@@ -3,119 +3,141 @@ import ResumeForm from './components/ResumeForm';
 import AdBanner from './components/AdBanner';
 import UpgradeModal from './components/UpgradeModal';
 
-// Load Razorpay script
-const loadRazorpay = () => {
+// ===== RAZORPAY START =====
+
+const BASE_URL = import.meta.env.VITE_API_URL;
+const RZP_KEY  = import.meta.env.VITE_RAZORPAY_KEY_ID;
+
+/**
+ * Injects the Razorpay checkout script once.
+ * Resolves true on success, false on network/script failure.
+ */
+function loadRazorpaySDK() {
   return new Promise((resolve) => {
-    // Avoid injecting duplicate script
     if (window.Razorpay) { resolve(true); return; }
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
+
+    const script    = document.createElement('script');
+    script.src      = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async    = true;
+    script.onload   = () => resolve(true);
+    script.onerror  = () => resolve(false);
     document.body.appendChild(script);
   });
-};
+}
 
-// ===== NEW CODE START =====
-const BASE_URL = "https://awe-os.onrender.com";
-// ===== NEW CODE END =====
+// ===== RAZORPAY END =====
 
 export default function App() {
-  // ===== NEW CODE START =====
-  const [isPremium,      setIsPremium]      = useState(() => localStorage.getItem("isPremium") === "true");
+  // ===== RAZORPAY START =====
+  const [isPremium,      setIsPremium]      = useState(() => localStorage.getItem('isPremium') === 'true');
   const [showModal,      setShowModal]      = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [notification,   setNotification]   = useState(null); // { type: 'success'|'error', message }
 
-  const showNotification = (type, message) => {
+  /** Show a self-dismissing toast notification */
+  const notify = (type, message) => {
     setNotification({ type, message });
-    setTimeout(() => setNotification(null), 4000);
+    setTimeout(() => setNotification(null), 4500);
   };
 
   const openModal  = () => setShowModal(true);
   const closeModal = () => { if (!paymentLoading) setShowModal(false); };
 
+  /**
+   * Full Razorpay payment flow:
+   *  1. Load SDK
+   *  2. Create order  (POST /create-order)
+   *  3. Open checkout
+   *  4. On success → verify (POST /verify-payment)
+   *  5. On verified → unlock premium locally
+   */
   const handlePayment = async () => {
     setPaymentLoading(true);
 
-    // 1. Load SDK
-    const sdkLoaded = await loadRazorpay();
-    if (!sdkLoaded) {
+    // ── Step 1: Load SDK ──────────────────────────────────────
+    const sdkReady = await loadRazorpaySDK();
+    if (!sdkReady) {
       setPaymentLoading(false);
-      showNotification("error", "Payment SDK failed to load. Please check your connection.");
+      notify('error', 'Payment SDK failed to load. Check your internet connection.');
       return;
     }
 
-    // 2. Create order
+    // ── Step 2: Create order ──────────────────────────────────
     let orderData;
     try {
-      const orderRes = await fetch(`${BASE_URL}/create-order`, { method: "POST" });
-      orderData = await orderRes.json();
+      const res = await fetch(`${BASE_URL}/create-order`, { method: 'POST' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      orderData = await res.json();
     } catch {
       setPaymentLoading(false);
-      showNotification("error", "Could not reach payment server. Please try again.");
+      notify('error', 'Could not reach payment server. Please try again.');
       return;
     }
 
-    if (!orderData.success) {
+    if (!orderData?.success || !orderData?.order?.id) {
       setPaymentLoading(false);
-      showNotification("error", "Order creation failed. Please try again.");
+      notify('error', 'Order creation failed. Please try again.');
       return;
     }
 
-    // 3. Open Razorpay checkout
+    // ── Step 3: Open Razorpay checkout ────────────────────────
     const options = {
-      key:         import.meta.env.VITE_RAZORPAY_KEY_ID,
-      amount:      orderData.order.amount,
-      currency:    "INR",
-      name:        "AWE-OS Resume Builder",
-      description: "Unlock Premium",
+      key:         RZP_KEY,
+      amount:      orderData.order.amount,   // paise from server
+      currency:    'INR',
+      name:        'AWE-OS Resume Builder',
+      description: 'Unlock Premium — one-time',
       order_id:    orderData.order.id,
-      theme:       { color: "#6366f1" },
+      theme:       { color: '#6366f1' },
 
-      handler: async function (response) {
-        // 4. Verify payment
+      // ── Step 4: Payment success handler ──────────────────────
+      handler: async (razorpayResponse) => {
         try {
           const verifyRes = await fetch(`${BASE_URL}/verify-payment`, {
-            method:  "POST",
-            headers: { "Content-Type": "application/json" },
-            body:    JSON.stringify(response),
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(razorpayResponse),
           });
+
+          if (!verifyRes.ok) throw new Error(`HTTP ${verifyRes.status}`);
           const verifyData = await verifyRes.json();
 
+          // ── Step 5: Unlock premium ────────────────────────────
           if (verifyData.success) {
-            localStorage.setItem("isPremium", "true");
+            localStorage.setItem('isPremium', 'true');
             setIsPremium(true);
             setShowModal(false);
-            showNotification("success", "Payment successful! Premium unlocked.");
+            notify('success', 'Payment successful! Premium features unlocked.');
           } else {
-            showNotification("error", "Payment verification failed. Contact support if charged.");
+            notify('error', 'Payment verification failed. Contact support if you were charged.');
           }
         } catch {
-          showNotification("error", "Verification error. Contact support if charged.");
+          notify('error', 'Verification error. Contact support if you were charged.');
         } finally {
           setPaymentLoading(false);
         }
       },
 
+      // User closed the Razorpay modal without paying
       modal: {
         ondismiss: () => {
           setPaymentLoading(false);
-          showNotification("error", "Payment cancelled.");
+          notify('error', 'Payment cancelled.');
         },
       },
     };
 
-    const paymentObject = new window.Razorpay(options);
+    const rzp = new window.Razorpay(options);
 
-    paymentObject.on("payment.failed", () => {
+    // Hard payment failure (card declined, bank error, etc.)
+    rzp.on('payment.failed', () => {
       setPaymentLoading(false);
-      showNotification("error", "Payment failed. Please try again.");
+      notify('error', 'Payment failed. Please try a different payment method.');
     });
 
-    paymentObject.open();
+    rzp.open();
   };
-  // ===== NEW CODE END =====
+  // ===== RAZORPAY END =====
 
   return (
     <div className="app">
@@ -163,9 +185,13 @@ export default function App() {
         <p>© {new Date().getFullYear()} AWE-OS · Free Resume Builder</p>
       </footer>
 
-      {/* ===== NEW CODE START ===== */}
+      {/* ===== RAZORPAY START ===== */}
       {notification && (
-        <div className={`notification notification-${notification.type}`} role="alert">
+        <div
+          className={`notification notification-${notification.type}`}
+          role="alert"
+          aria-live="polite"
+        >
           {notification.type === 'success' ? '✓ ' : '✕ '}
           {notification.message}
         </div>
@@ -178,7 +204,7 @@ export default function App() {
           isLoading={paymentLoading}
         />
       )}
-      {/* ===== NEW CODE END ===== */}
+      {/* ===== RAZORPAY END ===== */}
     </div>
   );
 }
