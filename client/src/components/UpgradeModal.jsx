@@ -7,24 +7,39 @@ const FEATURES = [
   { icon: '♾️', text: 'Unlimited downloads' },
 ];
 
-export default function UpgradeModal({ onConfirm, onClose }) {
-  // Close on Escape key
+export default function UpgradeModal({ onPay, onClose, isLoading }) {
+  // Close on Escape — but not while payment is processing
   useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e) => {
+      if (e.key === 'Escape' && !isLoading) onClose();
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, [onClose, isLoading]);
+
+  const handleBackdropClick = () => {
+    if (!isLoading) onClose();
+  };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+    <div className="modal-backdrop" onClick={handleBackdropClick}>
+      <div
+        className="modal"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+      >
 
-        <button className="modal-close" onClick={onClose} aria-label="Close">✕</button>
+        {/* Close button — hidden while processing */}
+        {!isLoading && (
+          <button className="modal-close" onClick={onClose} aria-label="Close">✕</button>
+        )}
 
         {/* Header */}
         <div className="modal-header">
           <div className="modal-icon">✦</div>
-          <h2 className="modal-title">Upgrade to Premium</h2>
+          <h2 className="modal-title" id="modal-title">Upgrade to Premium</h2>
           <p className="modal-subtitle">One-time payment — yours forever</p>
         </div>
 
@@ -44,10 +59,30 @@ export default function UpgradeModal({ onConfirm, onClose }) {
             <span className="price-amount">₹49</span>
             <span className="price-note">one-time · no subscription</span>
           </div>
-          <button className="btn-pay" onClick={onConfirm}>
-            Pay ₹49 — Unlock Premium
+
+          {/* ===== NEW CODE START ===== */}
+          <button
+            className="btn-pay"
+            onClick={onPay}
+            disabled={isLoading}
+            aria-busy={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <span className="btn-spinner" aria-hidden="true" />
+                Processing...
+              </>
+            ) : (
+              'Pay ₹49 — Unlock Premium'
+            )}
           </button>
-          <button className="btn-maybe-later" onClick={onClose}>
+          {/* ===== NEW CODE END ===== */}
+
+          <button
+            className="btn-maybe-later"
+            onClick={onClose}
+            disabled={isLoading}
+          >
             Maybe later
           </button>
         </div>

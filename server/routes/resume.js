@@ -4,6 +4,16 @@ const corporate  = require('../templates/corporate');
 const creative   = require('../templates/creative');
 const minimal    = require('../templates/minimal');
 
+// ===== NEW CODE START =====
+const Razorpay = require('razorpay');
+const crypto   = require('crypto');
+
+const razorpay = new Razorpay({
+  key_id:     process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+// ===== NEW CODE END =====
+
 const router = express.Router();
 
 // Templates available to each tier
@@ -71,4 +81,50 @@ router.post('/generate-resume', (req, res) => {
   }
 });
 
+// ===== NEW CODE START =====
+
+// Create Razorpay Order
+router.post('/create-order', async (req, res) => {
+  try {
+    const order = await razorpay.orders.create({
+      amount: 4900,
+      currency: 'INR',
+      receipt: `receipt_${Date.now()}`,
+    });
+
+    return res.json({ success: true, order });
+  } catch (err) {
+    console.error('Razorpay create-order error:', err);
+    return res.status(500).json({ success: false, error: 'Failed to create order' });
+  }
+});
+
+// Verify Payment
+router.post('/verify-payment', (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({ success: false, error: "Invalid payment data" });
+    }
+
+    const expectedSignature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest('hex');
+
+    if (expectedSignature === razorpay_signature) {
+      return res.json({
+        success: true,
+        message: "Payment verified"
+      });
+    }
+
+    return res.status(400).json({ success: false });
+
+  } catch (err) {
+    return res.status(500).json({ success: false });
+  }
+});
+// ===== NEW CODE END =====
 module.exports = router;
