@@ -7,6 +7,9 @@ import UpgradeModal from './components/UpgradeModal';
 const BASE_URL = import.meta.env.VITE_API_URL;
 const RZP_KEY  = import.meta.env.VITE_RAZORPAY_KEY_ID;
 
+console.log("🔥 BASE_URL:", BASE_URL);
+console.log("🔥 RZP_KEY:", RZP_KEY);
+
 if (!BASE_URL) {
   console.error("❌ Missing VITE_API_URL");
 }
@@ -191,7 +194,7 @@ export default function App() {
                 {isPremium ? (
                   <span className="badge-premium">✦ Premium</span>
                 ) : (
-                  <button onClick={openModal} className="btn-upgrade">
+                  <button onClick={handlePayment} className="btn-upgrade">
                     Unlock Premium — ₹49
                   </button>
                 )}
@@ -201,7 +204,7 @@ export default function App() {
             {!isPremium && (
               <div className="free-banner">
                 <span>Free Plan — watermark included.</span>
-                <button onClick={openModal}>
+                <button onClick={handlePayment}>
                   Upgrade Now →
                 </button>
               </div>
