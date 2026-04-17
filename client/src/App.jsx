@@ -1,23 +1,12 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import ResumeForm from './components/ResumeForm';
 import AdBanner from './components/AdBanner';
-import UpgradeModal from './components/UpgradeModal';
 
-// ===== CONFIG (STRICT VALIDATION) =====
-const BASE_URL = import.meta.env.VITE_API_URL;
-const RZP_KEY  = import.meta.env.VITE_RAZORPAY_KEY_ID;
+// ===== 🔥 HARD FIX (NO ENV BUGS) =====
+const BASE_URL = "https://awe-os.onrender.com"; // ✅ direct fix
+const RZP_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID;
 
-console.log("🔥 BASE_URL:", BASE_URL);
-console.log("🔥 RZP_KEY:", RZP_KEY);
-
-if (!BASE_URL) {
-  console.error("❌ Missing VITE_API_URL");
-}
-if (!RZP_KEY) {
-  console.error("❌ Missing VITE_RAZORPAY_KEY_ID");
-}
-
-// ===== UTIL: Razorpay SDK Loader (Singleton) =====
+// ===== Razorpay Loader =====
 let razorpayPromise = null;
 
 function loadRazorpaySDK() {
@@ -39,31 +28,21 @@ function loadRazorpaySDK() {
   return razorpayPromise;
 }
 
-// ===== UTIL: API CALL WRAPPER (RETRY + TIMEOUT) =====
-async function apiFetch(url, options = {}, timeout = 10000) {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
+// ===== API CALL =====
+async function apiFetch(url, options = {}) {
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+  });
 
-  try {
-    const res = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(options.headers || {}),
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
-
-    return await res.json();
-  } catch (err) {
-    throw err;
-  } finally {
-    clearTimeout(id);
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}`);
   }
+
+  return res.json();
 }
 
 // ===== APP =====
@@ -72,69 +51,69 @@ export default function App() {
     return localStorage.getItem('isPremium') === 'true';
   });
 
-  const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
-  // ===== TOAST SYSTEM =====
-  const notify = useCallback((type, message) => {
+  // ===== TOAST =====
+  const notify = (type, message) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 4000);
-  }, []);
+  };
 
-  const openModal = useCallback(() => setShowModal(true), []);
-  const closeModal = useCallback(() => {
-    if (!loading) setShowModal(false);
-  }, [loading]);
-
-  // ===== PAYMENT FLOW =====
+  // ===== 🔥 PAYMENT HANDLER (FINAL CLEAN) =====
   const handlePayment = useCallback(async () => {
     if (loading) return;
+
+    console.log("🚀 Payment Clicked");
 
     setLoading(true);
 
     try {
-      // STEP 1: SDK LOAD
-      const sdkReady = await loadRazorpaySDK();
-      if (!sdkReady) throw new Error("SDK_LOAD_FAILED");
+      // 1. Load SDK
+      const ok = await loadRazorpaySDK();
+      if (!ok) throw new Error("SDK_FAIL");
 
-      // STEP 2: CREATE ORDER (RETRY SAFE)
+      console.log("✅ SDK Loaded");
+
+      // 2. Create Order
+      console.log("📡 Calling API:", `${BASE_URL}/api/create-order`);
+
       const orderData = await apiFetch(`${BASE_URL}/api/create-order`, {
         method: 'POST',
       });
 
-      if (!orderData?.success || !orderData?.order?.id) {
-        throw new Error("ORDER_FAILED");
-      }
+      console.log("✅ Order:", orderData);
 
-      // STEP 3: RAZORPAY OPTIONS
+      if (!orderData?.success) throw new Error("ORDER_FAIL");
+
+      // 3. Razorpay Options
       const options = {
         key: RZP_KEY,
         amount: orderData.order.amount,
-        currency: 'INR',
-        name: 'AWE-OS Resume Builder',
-        description: 'Premium Upgrade',
+        currency: orderData.order.currency,
+        name: "AWE-OS Resume Builder",
+        description: "Premium Upgrade",
         order_id: orderData.order.id,
 
-        handler: async (response) => {
+        handler: async function (response) {
           try {
-            const verifyData = await apiFetch(`${BASE_URL}/api/verify-payment`, {
+            console.log("💳 Payment Success:", response);
+
+            const verify = await apiFetch(`${BASE_URL}/api/verify-payment`, {
               method: 'POST',
               body: JSON.stringify(response),
             });
 
-            if (!verifyData.success) {
-              throw new Error("VERIFY_FAILED");
-            }
+            if (!verify.success) throw new Error("VERIFY_FAIL");
 
             // SUCCESS
             localStorage.setItem('isPremium', 'true');
             setIsPremium(true);
-            setShowModal(false);
-            notify('success', '🎉 Premium unlocked successfully!');
+
+            notify('success', '🎉 Premium unlocked!');
           } catch (err) {
-            console.error("Verification Error:", err);
-            notify('error', 'Payment verification failed.');
+            console.error(err);
+            notify('error', 'Verification failed');
           } finally {
             setLoading(false);
           }
@@ -143,34 +122,29 @@ export default function App() {
         modal: {
           ondismiss: () => {
             setLoading(false);
-            notify('error', 'Payment cancelled.');
+            notify('error', 'Payment cancelled');
           },
         },
 
-        theme: { color: '#6366f1' },
+        theme: { color: "#6366f1" },
       };
 
       const rzp = new window.Razorpay(options);
 
-      rzp.on('payment.failed', (err) => {
-        console.error("Payment Failed:", err);
+      rzp.on('payment.failed', () => {
         setLoading(false);
-        notify('error', 'Payment failed. Try again.');
+        notify('error', 'Payment failed');
       });
 
       rzp.open();
     } catch (err) {
-      console.error("Payment Flow Error:", err);
+      console.error("❌ Payment Error:", err);
 
-      if (err.name === 'AbortError') {
-        notify('error', 'Request timeout. Try again.');
-      } else {
-        notify('error', 'Could not reach payment server.');
-      }
+      notify('error', 'Server connection failed');
 
       setLoading(false);
     }
-  }, [loading, notify]);
+  }, [loading]);
 
   // ===== UI =====
   return (
@@ -190,28 +164,31 @@ export default function App() {
                 <p>Create professional resumes instantly.</p>
               </div>
 
-              <div>
-                {isPremium ? (
-                  <span className="badge-premium">✦ Premium</span>
-                ) : (
-                  <button onClick={handlePayment} className="btn-upgrade">
-                    Unlock Premium — ₹49
-                  </button>
-                )}
-              </div>
+              {!isPremium && (
+                <button
+                  onClick={handlePayment}
+                  style={{ zIndex: 9999, position: 'relative', cursor: 'pointer' }}
+                  className="btn-upgrade"
+                >
+                  {loading ? "Processing..." : "Unlock Premium — ₹49"}
+                </button>
+              )}
             </div>
 
             {!isPremium && (
               <div className="free-banner">
                 <span>Free Plan — watermark included.</span>
-                <button onClick={handlePayment}>
+                <button
+                  onClick={handlePayment}
+                  style={{ cursor: 'pointer' }}
+                >
                   Upgrade Now →
                 </button>
               </div>
             )}
           </header>
 
-          <ResumeForm isPremium={isPremium} onUpgradeClick={openModal} />
+          <ResumeForm isPremium={isPremium} onUpgradeClick={handlePayment} />
         </main>
       </div>
 
@@ -219,20 +196,11 @@ export default function App() {
         <p>© {new Date().getFullYear()} AWE-OS</p>
       </footer>
 
-      {/* ===== TOAST ===== */}
+      {/* TOAST */}
       {toast && (
         <div className={`notification ${toast.type}`}>
           {toast.message}
         </div>
-      )}
-
-      {/* ===== MODAL ===== */}
-      {showModal && (
-        <UpgradeModal
-          onPay={handlePayment}
-          onClose={closeModal}
-          isLoading={loading}
-        />
       )}
     </div>
   );
