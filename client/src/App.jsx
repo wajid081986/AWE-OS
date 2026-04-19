@@ -1,119 +1,130 @@
-import { useState, useCallback } from 'react';
-import ResumeForm from './components/ResumeForm';
-import AdBanner from './components/AdBanner';
+import { useState, useCallback, useEffect } from 'react';
+import ResumeForm  from './components/ResumeForm';
+import AdBanner    from './components/AdBanner';
+import AuthModal   from './components/AuthModal';
 
-// ===== 🔥 HARD FIX (NO ENV BUGS) =====
-const BASE_URL = "https://awe-os.onrender.com"; // ✅ direct fix
-const RZP_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID;
+const BASE_URL = 'https://awe-os.onrender.com';
+const RZP_KEY  = import.meta.env.VITE_RAZORPAY_KEY_ID;
 
-// ===== Razorpay Loader =====
+// ── Razorpay SDK loader ──────────────────────────────────────
 let razorpayPromise = null;
 
 function loadRazorpaySDK() {
   if (razorpayPromise) return razorpayPromise;
-
   razorpayPromise = new Promise((resolve) => {
     if (window.Razorpay) return resolve(true);
-
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-
+    const script    = document.createElement('script');
+    script.src      = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async    = true;
+    script.onload   = () => resolve(true);
+    script.onerror  = () => resolve(false);
     document.body.appendChild(script);
   });
-
   return razorpayPromise;
 }
 
-// ===== API CALL =====
-async function apiFetch(url, options = {}) {
-  const res = await fetch(url, {
+// ── API helper (injects JWT, handles 401) ───────────────────
+// ===== NEW CODE START =====
+function apiFetch(url, options = {}) {
+  const token = localStorage.getItem('awe_token');
+  return fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers || {}),
     },
+  }).then(async (res) => {
+    if (res.status === 401) {
+      localStorage.removeItem('awe_token');
+      throw new Error('TOKEN_EXPIRED');
+    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
   });
-
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}`);
-  }
-
-  return res.json();
 }
+// ===== NEW CODE END =====
 
-// ===== APP =====
+// ── App ──────────────────────────────────────────────────────
 export default function App() {
-  const [isPremium, setIsPremium] = useState(() => {
-    return localStorage.getItem('isPremium') === 'true';
-  });
+  // ===== NEW CODE START =====
+  const [user, setUser]                   = useState(null);      // { email, isPremium }
+  const [showAuth, setShowAuth]           = useState(false);
+  const [pendingPayment, setPendingPayment] = useState(false);
+  // ===== NEW CODE END =====
+  const [loading, setLoading]             = useState(false);
+  const [toast, setToast]                 = useState(null);
 
-  const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState(null);
+  const isPremium = user?.isPremium || false;
 
-  // ===== TOAST =====
+  // ── Toast ──────────────────────────────────────────────────
   const notify = (type, message) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 4000);
   };
 
-  // ===== 🔥 PAYMENT HANDLER (FINAL CLEAN) =====
-  const handlePayment = useCallback(async () => {
+  // ===== NEW CODE START =====
+  // ── Restore session on mount ───────────────────────────────
+  useEffect(() => {
+    const token = localStorage.getItem('awe_token');
+    if (!token) return;
+
+    apiFetch(`${BASE_URL}/api/auth/me`)
+      .then((data) => {
+        if (data.success) setUser(data.user);
+      })
+      .catch((err) => {
+        if (err.message === 'TOKEN_EXPIRED') {
+          notify('error', 'Session expired — please sign in again');
+        }
+      });
+  }, []);
+  // ===== NEW CODE END =====
+
+  // ── Core payment logic (requires user to be logged in) ────
+  const startPayment = useCallback(async () => {
     if (loading) return;
-
-    console.log("🚀 Payment Clicked");
-
     setLoading(true);
 
     try {
-      // 1. Load SDK
       const ok = await loadRazorpaySDK();
-      if (!ok) throw new Error("SDK_FAIL");
+      if (!ok) throw new Error('SDK_FAIL');
 
-      console.log("✅ SDK Loaded");
+      const orderData = await apiFetch(`${BASE_URL}/api/create-order`, { method: 'POST' });
+      if (!orderData?.success) throw new Error('ORDER_FAIL');
 
-      // 2. Create Order
-      console.log("📡 Calling API:", `${BASE_URL}/api/create-order`);
-
-      const orderData = await apiFetch(`${BASE_URL}/api/create-order`, {
-        method: 'POST',
-      });
-
-      console.log("✅ Order:", orderData);
-
-      if (!orderData?.success) throw new Error("ORDER_FAIL");
-
-      // 3. Razorpay Options
       const options = {
-        key: RZP_KEY,
-        amount: orderData.order.amount,
-        currency: orderData.order.currency,
-        name: "AWE-OS Resume Builder",
-        description: "Premium Upgrade",
-        order_id: orderData.order.id,
+        key:         RZP_KEY,
+        amount:      orderData.order.amount,
+        currency:    orderData.order.currency,
+        name:        'AWE-OS Resume Builder',
+        description: 'Premium Upgrade — one-time payment',
+        order_id:    orderData.order.id,
 
         handler: async function (response) {
           try {
-            console.log("💳 Payment Success:", response);
-
             const verify = await apiFetch(`${BASE_URL}/api/verify-payment`, {
               method: 'POST',
-              body: JSON.stringify(response),
+              body:   JSON.stringify(response),
             });
 
-            if (!verify.success) throw new Error("VERIFY_FAIL");
+            if (!verify.success) throw new Error('VERIFY_FAIL');
 
-            // SUCCESS
-            localStorage.setItem('isPremium', 'true');
-            setIsPremium(true);
-
+            // ===== NEW CODE START =====
+            setUser((prev) => ({ ...prev, isPremium: true }));
+            // ===== NEW CODE END =====
             notify('success', '🎉 Premium unlocked!');
           } catch (err) {
             console.error(err);
-            notify('error', 'Verification failed');
+            // ===== NEW CODE START =====
+            if (err.message === 'TOKEN_EXPIRED') {
+              notify('error', 'Session expired — please sign in and try again');
+              setUser(null);
+              setShowAuth(true);
+            } else {
+              notify('error', 'Payment verification failed. Contact support.');
+            }
+            // ===== NEW CODE END =====
           } finally {
             setLoading(false);
           }
@@ -126,27 +137,67 @@ export default function App() {
           },
         },
 
-        theme: { color: "#6366f1" },
+        // ===== NEW CODE START =====
+        theme: { color: '#6366f1' },
+        // ===== NEW CODE END =====
       };
 
       const rzp = new window.Razorpay(options);
 
-      rzp.on('payment.failed', () => {
+      // ===== NEW CODE START =====
+      rzp.on('payment.failed', (response) => {
         setLoading(false);
-        notify('error', 'Payment failed');
+        notify('error', `Payment failed: ${response.error?.description || 'Unknown error'}`);
       });
+      // ===== NEW CODE END =====
 
       rzp.open();
     } catch (err) {
-      console.error("❌ Payment Error:", err);
+      console.error('❌ Payment Error:', err);
 
-      notify('error', 'Server connection failed');
+      // ===== NEW CODE START =====
+      if (err.message === 'TOKEN_EXPIRED') {
+        notify('error', 'Session expired — please sign in and try again');
+        setUser(null);
+        setShowAuth(true);
+      } else {
+        notify('error', 'Could not start payment — please try again');
+      }
+      // ===== NEW CODE END =====
 
       setLoading(false);
     }
   }, [loading]);
 
-  // ===== UI =====
+  // ===== NEW CODE START =====
+  // ── Upgrade click — gate behind auth ─────────────────────
+  const handleUpgradeClick = useCallback(() => {
+    if (!user) {
+      setPendingPayment(true);
+      setShowAuth(true);
+    } else {
+      startPayment();
+    }
+  }, [user, startPayment]);
+
+  // ── After successful login / register ─────────────────────
+  const handleAuthSuccess = useCallback((authUser) => {
+    setUser(authUser);
+    setShowAuth(false);
+    if (pendingPayment) {
+      setPendingPayment(false);
+      setTimeout(() => startPayment(), 150); // let state settle
+    }
+  }, [pendingPayment, startPayment]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('awe_token');
+    setUser(null);
+    notify('success', 'Logged out');
+  };
+  // ===== NEW CODE END =====
+
+  // ── UI ────────────────────────────────────────────────────
   return (
     <div className="app">
       <AdBanner position="top" />
@@ -164,31 +215,54 @@ export default function App() {
                 <p>Create professional resumes instantly.</p>
               </div>
 
-              {!isPremium && (
-                <button
-                  onClick={handlePayment}
-                  style={{ zIndex: 9999, position: 'relative', cursor: 'pointer' }}
-                  className="btn-upgrade"
-                >
-                  {loading ? "Processing..." : "Unlock Premium — ₹49"}
-                </button>
-              )}
+              {/* ===== NEW CODE START ===== */}
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                {user ? (
+                  <>
+                    <span style={{ fontSize: '13px', color: '#6b7280' }}>{user.email}</span>
+                    <button
+                      onClick={handleLogout}
+                      className="btn-maybe-later"
+                      style={{ padding: '6px 12px' }}
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => setShowAuth(true)}
+                    className="btn-maybe-later"
+                    style={{ padding: '6px 12px' }}
+                  >
+                    Sign In
+                  </button>
+                )}
+
+                {!isPremium && (
+                  <button
+                    onClick={handleUpgradeClick}
+                    disabled={loading}
+                    style={{ zIndex: 9999, position: 'relative', cursor: loading ? 'not-allowed' : 'pointer' }}
+                    className="btn-upgrade"
+                  >
+                    {loading ? 'Processing…' : 'Unlock Premium — ₹49'}
+                  </button>
+                )}
+              </div>
+              {/* ===== NEW CODE END ===== */}
             </div>
 
             {!isPremium && (
               <div className="free-banner">
                 <span>Free Plan — watermark included.</span>
-                <button
-                  onClick={handlePayment}
-                  style={{ cursor: 'pointer' }}
-                >
+                <button onClick={handleUpgradeClick} style={{ cursor: 'pointer' }}>
                   Upgrade Now →
                 </button>
               </div>
             )}
           </header>
 
-          <ResumeForm isPremium={isPremium} onUpgradeClick={handlePayment} />
+          <ResumeForm isPremium={isPremium} onUpgradeClick={handleUpgradeClick} />
         </main>
       </div>
 
@@ -202,6 +276,15 @@ export default function App() {
           {toast.message}
         </div>
       )}
+
+      {/* ===== NEW CODE START ===== */}
+      {showAuth && (
+        <AuthModal
+          onSuccess={handleAuthSuccess}
+          onClose={() => { setShowAuth(false); setPendingPayment(false); }}
+        />
+      )}
+      {/* ===== NEW CODE END ===== */}
     </div>
   );
 }
