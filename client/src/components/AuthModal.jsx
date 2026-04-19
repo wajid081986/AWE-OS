@@ -37,6 +37,11 @@ export default function AuthModal({ onSuccess, onClose }) {
         body:    JSON.stringify({ email, password }),
       });
 
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error('Server error — please try again later');
+      }
+
       const data = await res.json();
 
       if (!res.ok || !data.success) {

@@ -106,6 +106,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
+console.log("✅ AUTH ROUTES LOADED");
 // ── GET /api/auth/me ────────────────────────────────────────
 router.get('/me', requireAuth, async (req, res) => {
   try {

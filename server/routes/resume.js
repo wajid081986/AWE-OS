@@ -17,7 +17,7 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-const EXPECTED_AMOUNT   = 4900;   // paise — ₹49
+const EXPECTED_AMOUNT = Number(process.env.PREMIUM_PRICE || 4900);   // paise — ₹49
 const EXPECTED_CURRENCY = 'INR';
 // ===== NEW CODE END =====
 
