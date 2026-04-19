@@ -1,7 +1,7 @@
 // ===== NEW CODE START =====
 import { useState } from 'react';
 
-const BASE_URL = 'https://awe-os.onrender.com';
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 const inputStyle = {
   width: '100%',
