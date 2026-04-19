@@ -44,10 +44,14 @@ export default function ResumeForm({ isPremium, onUpgradeClick }) {
 
     setLoading(true);
     try {
+      const token = localStorage.getItem('awe_token');
       const res = await fetch('https://awe-os.onrender.com/api/generate-resume', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, template, isPremium, skills, experience, education }),
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify({ ...form, template, skills, experience, education }),
       });
 
       if (!res.ok) {
