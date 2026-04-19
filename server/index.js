@@ -4,6 +4,7 @@ const rateLimit = require('express-rate-limit');
 
 const resumeRoutes = require('./routes/resume');
 const authRoutes   = require('./routes/auth');
+console.log('✅ AUTH ROUTES LOADED'); // 👈 ADD THIS LINE
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
