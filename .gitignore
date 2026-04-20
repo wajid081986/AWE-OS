@@ -1,0 +1,13 @@
+# ENV FILES (VERY IMPORTANT)
+.env
+.env.local
+.env.production
+client/.env
+server/.env
+*.env
+
+# NODE
+node_modules/
+
+# BUILD
+dist/
