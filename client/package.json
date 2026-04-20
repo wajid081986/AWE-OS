@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npx vite",
+    "dev": "vite",
     "build": "node node_modules/vite/bin/vite.js build",
-    "preview": "npx vite preview"
+    "preview": "vite preview"
   },
   "dependencies": {
     "react": "^18.2.0",
