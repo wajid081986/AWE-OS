@@ -1,9 +1,12 @@
 import { useState, useCallback, useEffect } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import ResumeForm  from './components/ResumeForm';
 import AdBanner    from './components/AdBanner';
 import AuthModal   from './components/AuthModal';
+import Dashboard   from './pages/Dashboard';
 
-const BASE_URL = 'https://awe-os.onrender.com';
+const BASE_URL = import.meta.env.VITE_API_URL
+              || 'https://awe-os.onrender.com';
 const RZP_KEY  = import.meta.env.VITE_RAZORPAY_KEY_ID;
 
 // ── Razorpay SDK loader ──────────────────────────────────────
@@ -198,6 +201,31 @@ export default function App() {
   // ===== NEW CODE END =====
 
   // ── UI ────────────────────────────────────────────────────
+  return (
+    <Routes>
+      <Route
+        path="/dashboard"
+        element={
+          localStorage.getItem('awe_token')
+            ? <Dashboard />
+            : <Navigate to="/" replace />
+        }
+      />
+      <Route path="*" element={<ResumeBuilderUI
+        user={user} isPremium={isPremium} loading={loading} toast={toast}
+        showAuth={showAuth} setShowAuth={setShowAuth}
+        handleUpgradeClick={handleUpgradeClick}
+        handleAuthSuccess={handleAuthSuccess}
+        handleLogout={handleLogout}
+        setPendingPayment={setPendingPayment}
+      />} />
+    </Routes>
+  );
+}
+
+// Extracted so the router wrapping above stays clean
+function ResumeBuilderUI({ user, isPremium, loading, toast, showAuth, setShowAuth,
+                           handleUpgradeClick, handleAuthSuccess, handleLogout, setPendingPayment }) {
   return (
     <div className="app">
       <AdBanner position="top" />

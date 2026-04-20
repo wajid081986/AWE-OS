@@ -1,10 +1,22 @@
+require('dotenv').config();
 const express   = require('express');
 const cors      = require('cors');
 const rateLimit = require('express-rate-limit');
 
-const resumeRoutes = require('./routes/resume');
-const authRoutes   = require('./routes/auth');
-console.log('✅ AUTH ROUTES LOADED'); // 👈 ADD THIS LINE
+const resumeRoutes  = require('./routes/resume');
+const authRoutes    = require('./routes/auth');
+const { eventRouter, revenueRouter } = require('./routes/event.routes');
+const decisionRoutes                 = require('./routes/decision.routes');
+const toolRoutes                     = require('./routes/tool.routes');
+const builderRoutes                  = require('./routes/builder.routes');
+const autonomousRoutes               = require('./routes/autonomous.routes');
+const ideaRoutes                     = require('./routes/idea.routes');
+const codegenRoutes                  = require('./routes/codegen.routes');
+const monetizationRoutes             = require('./routes/monetization.routes');
+const optimizationRoutes             = require('./routes/optimization.routes');
+const { startAnalyticsCron }         = require('./jobs/analytics.cron');
+require('./jobs/autonomous.cron');
+require('./jobs/idea.cron');
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
@@ -16,6 +28,7 @@ const REQUIRED_ENV = [
   'JWT_SECRET',
   'SUPABASE_URL',
   'SUPABASE_SERVICE_ROLE_KEY',
+  'OPENAI_API_KEY',
 ];
 
 REQUIRED_ENV.forEach((key) => {
@@ -27,7 +40,7 @@ REQUIRED_ENV.forEach((key) => {
 // ===== CORS =====
 app.use(cors({
   origin: ['https://awe-os.vercel.app', 'http://localhost:5173'],
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
   credentials: true,
 }));
 
@@ -82,15 +95,47 @@ app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/create-order', paymentLimiter);
 app.use('/api/verify-payment', paymentLimiter);
 
+// ✅ Event tracking + analytics
+app.use('/api/events', eventRouter);
+app.use('/api/revenue', revenueRouter);
+
+// ✅ Decision engine
+app.use('/api/decision', decisionRoutes);
+
+// ✅ Tools list (dashboard)
+app.use('/api/tools', toolRoutes);
+
+// ✅ Builder Agent
+app.use('/api/builder', builderRoutes);
+
+// ✅ Autonomous Agent
+app.use('/api/autonomous', autonomousRoutes);
+
+// ✅ Idea Pipeline
+app.use('/api/ideas', ideaRoutes);
+
+// ✅ Code Generator (AI → DB → human review → live)
+app.use('/api/codegen', codegenRoutes);
+
+// ✅ Monetization Intelligence (strategies + A/B pricing experiments)
+app.use('/api/monetize', monetizationRoutes);
+
+// ✅ Optimization Agent
+app.use('/api/optimize', optimizationRoutes);
+
 // ✅ Main app routes
 app.use('/api', resumeRoutes);
 
 // ===== HEALTH CHECK =====
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
   res.json({
-    status: 'ok',
+    status: 'healthy',
     service: 'AWE-OS Backend',
+    version: '2.0.0',
     time: new Date().toISOString(),
+    checks: {
+      database: 'ok',
+    },
   });
 });
 
@@ -111,4 +156,9 @@ app.use((err, req, res, next) => {
 // ===== START SERVER =====
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  startAnalyticsCron();
+  console.log('[SERVER] Analytics cron scheduled (daily)');
+  console.log('[SERVER] Autonomous cron scheduled (6h)');
+  console.log('[SERVER] Idea cron scheduled (12h)');
+  console.log('[SERVER] All systems GO ✅');
 });
