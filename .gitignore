@@ -2,12 +2,39 @@
 .env
 .env.local
 .env.production
+.env.development
 client/.env
+client/.env.local
 server/.env
+server/.env.local
 *.env
 
 # NODE
 node_modules/
+client/node_modules/
+server/node_modules/
 
 # BUILD
 dist/
+client/dist/
+build/
+
+# LOGS
+*.log
+npm-debug.log*
+logs/
+
+# OS FILES
+.DS_Store
+Thumbs.db
+
+# EDITOR
+.vscode/settings.json
+.idea/
+
+# UPLOADS (if any)
+uploads/
+
+# TEMP
+*.tmp
+*.temp
