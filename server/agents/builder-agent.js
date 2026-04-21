@@ -20,9 +20,9 @@ Generate a complete technical build plan for this micro-SaaS tool:
 
 Tool Name: ${tool.name}
 Description: ${tool.description || 'Not provided'}
-Problem Solved: ${tool.problem_solved || 'Not provided'}
-Target Audience: ${tool.target_audience || 'Not provided'}
-Monetization: ${tool.monetization || 'Not provided'}
+Problem Solved: ${tool.idea_metadata?.problem_solved || 'Not provided'}
+Target Audience: ${tool.idea_metadata?.target_audience || 'Not provided'}
+Monetization: ${tool.idea_metadata?.monetization || 'Not provided'}
 
 Return ONLY a valid JSON object with this exact structure:
 {
@@ -134,7 +134,7 @@ async function generateBuildPlan(tool_id) {
   // ── 1. Fetch and validate tool ───────────────────────────────
   const { data: tool, error: fetchErr } = await supabase
     .from('tools')
-    .select('id, name, description, status, problem_solved, target_audience, monetization, category')
+    .select('*')
     .eq('id', tool_id)
     .maybeSingle();
 
@@ -181,7 +181,7 @@ async function generateBuildPlan(tool_id) {
     .insert({
       tool_id,
       tool_name:       tool.name,
-      category:        tool.category || null,
+      category:        tool.idea_metadata?.category || null,
       ui_plan:         plan.ui_plan,
       api_plan:        plan.api_plan,
       db_schema:       plan.db_schema,
