@@ -23,7 +23,7 @@ function getClient() {
  * @param {string} prompt         - The user message to send
  * @param {object} [options]
  * @param {string} [options.model='gpt-4o-mini'] - Model ID
- * @param {number} [options.max_tokens=3000]
+ * @param {number} [options.max_tokens=4096]
  * @param {number} [options.temperature=0.4]  - Lower = more deterministic JSON output
  * @returns {Promise<string>} Raw text content of the first completion choice
  */
