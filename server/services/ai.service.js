@@ -61,7 +61,6 @@ async function callOpenAI(prompt, options = {}) {
  * @returns {object} Parsed JSON
  */
 function parseJSONResponse(raw) {
-  // Strip optional ```json ... ``` wrapping
   const cleaned = raw
     .replace(/^```(?:json)?\s*/i, '')
     .replace(/\s*```\s*$/, '')
@@ -70,10 +69,15 @@ function parseJSONResponse(raw) {
   try {
     return JSON.parse(cleaned);
   } catch (err) {
+    // ← YAHAN LOG ADD KIYA
+    console.error('[AI SERVICE] JSON parse failed!');
+    console.error('[AI SERVICE] Raw response length:', raw.length);
+    console.error('[AI SERVICE] Last 500 chars:', raw.slice(-500));
+    
     const parseErr = new Error(`Failed to parse AI response as JSON: ${err.message}`);
     parseErr.code  = 'PARSE_ERROR';
     parseErr.status = 500;
-    parseErr.raw   = raw.slice(0, 300); // first 300 chars for debugging
+    parseErr.raw   = raw.slice(0, 300);
     throw parseErr;
   }
 }
