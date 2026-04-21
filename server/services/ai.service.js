@@ -30,7 +30,7 @@ function getClient() {
 async function callOpenAI(prompt, options = {}) {
   const client     = getClient();
   const model      = options.model       || 'gpt-4o-mini';
-  const maxTokens  = options.max_tokens  || 3000;
+  const maxTokens  = options.max_tokens  || 8000;
   const temperature = options.temperature ?? 0.4;
 
   const response = await client.chat.completions.create({
@@ -38,8 +38,7 @@ async function callOpenAI(prompt, options = {}) {
     messages:    [{ role: 'user', content: prompt }],
     max_tokens:  maxTokens,
     temperature,
-    // response_format forces valid JSON — works on gpt-4o, gpt-4o-mini, gpt-4-turbo
-    response_format: { type: 'json_object' },
+  
   });
 
   const content = response.choices?.[0]?.message?.content;
