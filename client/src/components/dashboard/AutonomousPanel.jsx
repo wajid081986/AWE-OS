@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, memo } from 'react';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://awe-os.onrender.com';
 const DAILY_LIMIT = 10;
-const REFRESH_INTERVAL = 30_000;
+const REFRESH_INTERVAL = 300_000;
 
 function getToken() {
   return localStorage.getItem('awe_token');
