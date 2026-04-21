@@ -333,9 +333,10 @@ const PlanModal = memo(function PlanModal({ plan, onClose, onUpdated }) {
   ];
 
   return (
-    <div
-      onClick={onClose}
-      style={{
+    <>
+      <div
+        onClick={onClose}
+        style={{
         position: 'fixed', inset: 0, zIndex: 1100,
         background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)',
         display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
@@ -493,6 +494,7 @@ const PlanModal = memo(function PlanModal({ plan, onClose, onUpdated }) {
         onRejected={() => setShowCodeViewer(false)}
       />
     )}
+    </>
   );
 });
 
