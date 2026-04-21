@@ -90,7 +90,7 @@ export default function Dashboard() {
   // On mount + auto-refresh every 30s
   useEffect(() => {
     fetchTools();
-    intervalRef.current = setInterval(fetchTools, 30_000);
+    intervalRef.current = setInterval(fetchTools, 300_000);
     return () => clearInterval(intervalRef.current);
   }, [fetchTools]);
 
