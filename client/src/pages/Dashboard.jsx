@@ -519,7 +519,19 @@ function GeneratedCodeSection({ onViewCode }) {
                  📁 {code.total_files} files · 🕒 {code.generation_ms ? `${(code.generation_ms/1000).toFixed(1)}s` : 'N/A'} 
                 </p>
                 <button
-                  onClick={() => onViewCode(code)}
+                  onClick={async () => {
+                      try {
+                        const token = localStorage.getItem('awe_token');
+                        const res = await fetch(
+                          `${import.meta.env.VITE_API_URL || 'https://awe-os.onrender.com'}/api/codegen/${code.tool_id}`,
+                          { headers: { Authorization: `Bearer ${token}` } }
+                        );
+                        const data = await res.json();
+                        if (data.success) onViewCode(data.data);
+                      } catch (err) {
+                        console.error('Failed to fetch full code:', err);
+                      }
+                    }}
                   style={{ width: '100%', padding: '7px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', background: '#1e3a5f', color: '#93c5fd', border: '1px solid #2563eb' }}
                 >
                   👁️ View Code
