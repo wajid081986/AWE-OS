@@ -1,9 +1,10 @@
-import { useReducer, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useReducer, useEffect, useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatsCard     from '../components/dashboard/StatsCard';
 import ToolsTable    from '../components/dashboard/ToolsTable';
 import DecisionModal from '../components/dashboard/DecisionModal';
 import BuilderPanel      from '../components/dashboard/BuilderPanel';
+import CodeViewer        from '../components/dashboard/CodeViewer';
 import AutonomousPanel   from '../components/dashboard/AutonomousPanel';
 import IdeaPanel            from '../components/dashboard/IdeaPanel';
 import MonetizationPanel    from '../components/dashboard/MonetizationPanel';
@@ -17,6 +18,7 @@ const initialState = {
   tools:        [],
   allDecisions: null,
   modal:        null,
+  codeViewer:   null,
   loadingTools:        false,
   loadingAllDecisions: false,
   loadingSingleId:     null,
@@ -49,6 +51,11 @@ function reducer(state, action) {
 
     case 'CLOSE_MODAL':
       return { ...state, modal: null };
+    case 'OPEN_CODE_VIEWER':
+      return { ...state, codeViewer: action.payload };
+    case 'CLOSE_CODE_VIEWER':
+      return { ...state, codeViewer: null };
+
     case 'CLEAR_ERROR':
       return { ...state, error: null };
     default:
@@ -243,6 +250,11 @@ export default function Dashboard() {
           {/* SECTION 6 — Builder Agent */}
           <BuilderPanel />
 
+          {/* SECTION 7 — Generated Code */}
+          <GeneratedCodeSection
+            onViewCode={(code) => dispatch({ type: 'OPEN_CODE_VIEWER', payload: code })}
+          />
+
           {/* SECTION 4 — Decision Panel */}
           <section style={S.card}>
             <div style={S.cardHeader}>
@@ -387,6 +399,18 @@ export default function Dashboard() {
           </div>
         </aside>
       </div>
+    {/* ── Code Viewer Modal ─────────────────────────────── */}
+      {state.codeViewer && (
+        <CodeViewer
+          code={state.codeViewer}
+          onClose={() => dispatch({ type: 'CLOSE_CODE_VIEWER' })}
+          onApproved={() => {
+            dispatch({ type: 'CLOSE_CODE_VIEWER' });
+            fetchTools();
+          }}
+          onRejected={() => dispatch({ type: 'CLOSE_CODE_VIEWER' })}
+        />
+      )}
 
       {/* ── Decision modal ────────────────────────────────── */}
       <DecisionModal
@@ -407,6 +431,107 @@ const DECISION_COLORS = {
   kill:    { text: '#f87171', border: '#dc2626', bg: '#2d0808' },
   observe: { text: '#94a3b8', border: '#475569', bg: '#1a1a2e' },
 };
+// ── Generated Code Section ────────────────────────────────────
+function GeneratedCodeSection({ onViewCode }) {
+  const [codes,   setCodes]   = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState(null);
+
+  const fetchCodes = useCallback(async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('awe_token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://awe-os.onrender.com'}/api/codegen`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setCodes(data.data || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchCodes(); }, [fetchCodes]);
+
+  const STATUS_COLORS = {
+    ready_for_review: { bg: '#1c1200', color: '#fbbf24', border: '#d97706' },
+    approved:         { bg: '#052e16', color: '#4ade80', border: '#16a34a' },
+    rejected:         { bg: '#2d0808', color: '#f87171', border: '#dc2626' },
+  };
+
+  return (
+    <section style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #334155' }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#f1f5f9' }}>
+            🖥️ Generated Code
+          </h2>
+          <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>
+            Review and approve AI-generated code
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <span style={{ padding: '2px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 700, background: '#0f172a', color: '#94a3b8', border: '1px solid #334155' }}>
+            {codes.length} total
+          </span>
+          <button
+            onClick={fetchCodes}
+            style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', background: '#1e293b', color: '#94a3b8', border: '1px solid #334155' }}
+          >
+            ↻ Refresh
+          </button>
+        </div>
+      </div>
+
+      <div style={{ padding: '16px 20px' }}>
+        {loading && (
+          <div style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>
+            ⟳ Loading...
+          </div>
+        )}
+        {error && (
+          <div style={{ padding: '12px', background: '#2d0808', borderRadius: '8px', color: '#f87171', fontSize: '12px' }}>
+            ⚠ {error}
+          </div>
+        )}
+        {!loading && codes.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '30px', color: '#475569' }}>
+            <div style={{ fontSize: '32px' }}>💻</div>
+            <p style={{ margin: '8px 0 0' }}>No code generated yet.</p>
+          </div>
+        )}
+        <div style={{ display: 'grid', gap: '10px', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
+          {codes.map(code => {
+            const s = STATUS_COLORS[code.status] || { bg: '#1e293b', color: '#94a3b8', border: '#334155' };
+            return (
+              <div key={code.id} style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '10px', padding: '14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                  <p style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#f1f5f9' }}>
+                    {code.tool_name}
+                  </p>
+                  <span style={{ padding: '2px 8px', borderRadius: '999px', fontSize: '10px', fontWeight: 700, background: s.bg, color: s.color, border: `1px solid ${s.border}`, whiteSpace: 'nowrap', marginLeft: '8px' }}>
+                    {code.status?.replace(/_/g, ' ')}
+                  </span>
+                </div>
+                <p style={{ margin: '0 0 10px', fontSize: '11px', color: '#64748b' }}>
+                  📁 {code.total_files} files · ⚛ {code.frontend_files} frontend · 🔧 {code.backend_files} backend
+                </p>
+                <button
+                  onClick={() => onViewCode(code)}
+                  style={{ width: '100%', padding: '7px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', background: '#1e3a5f', color: '#93c5fd', border: '1px solid #2563eb' }}
+                >
+                  👁️ View Code
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function DecisionResultCard({ result, onOpen }) {
   const c = DECISION_COLORS[result.decision] || DECISION_COLORS.observe;
