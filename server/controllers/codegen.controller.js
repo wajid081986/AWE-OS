@@ -148,7 +148,7 @@ async function getAllCodes(req, res) {
    const supabase = require('../db/supabase');
    const { data, error } = await supabase
   .from('generated_code')
-  .select('id, tool_id, tool_name, status, total_files, has_sql, generation_ms, ai_model, created_at')
+  .select('id, tool_id, tool_name, status, total_files, generation_ms, ai_model, created_at')
   .order('created_at', { ascending: false }); 
 
     if (error) throw error;
