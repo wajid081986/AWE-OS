@@ -4,6 +4,7 @@ const requireAuth = require('../middleware/auth');
 const {
   generateCode,
   getCode,
+  getAllCodes,
   approveCode,
   rejectCode,
 } = require('../controllers/codegen.controller');
@@ -38,6 +39,9 @@ router.use(requireAuth);
 // POST /api/codegen/generate/:tool_id — start code generation (AI + DB save)
 // Must be declared BEFORE /:tool_id to avoid Express path ambiguity
 router.post('/generate/:tool_id', generateLimiter, generateCode);
+
+// GET  /api/codegen — fetch ALL generated code records
+router.get('/', readLimiter, getAllCodes);
 
 // GET  /api/codegen/:tool_id — fetch generated code with all file contents
 router.get('/:tool_id', readLimiter, getCode);

@@ -139,4 +139,25 @@ async function rejectCode(req, res) {
   }
 }
 
-module.exports = { generateCode, getCode, approveCode, rejectCode };
+/**
+ * GET /api/codegen
+ * Returns all generated code records (summary, no file contents)
+ */
+async function getAllCodes(req, res) {
+  try {
+    const supabase = require('../db/supabase');
+    const { data, error } = await supabase
+      .from('generated_code')
+      .select('id, tool_id, tool_name, status, total_files, frontend_files, backend_files, has_sql, generation_ms, ai_model, created_at')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return res.json({ success: true, data: data || [], count: (data || []).length });
+  } catch (err) {
+    console.error('[codegen.controller] getAllCodes:', err.message);
+    return res.status(500).json({ success: false, error: 'Failed to fetch code records', code: 'UNKNOWN' });
+  }
+}
+
+module.exports = { generateCode, getCode, getAllCodes, approveCode, rejectCode };
+
