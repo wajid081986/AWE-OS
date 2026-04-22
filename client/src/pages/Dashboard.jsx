@@ -516,7 +516,7 @@ function GeneratedCodeSection({ onViewCode }) {
                   </span>
                 </div>
                 <p style={{ margin: '0 0 10px', fontSize: '11px', color: '#64748b' }}>
-                  📁 {code.total_files} files · ⚛ {code.frontend_files} frontend · 🔧 {code.backend_files} backend
+                 📁 {code.total_files} files · 🕒 {code.generation_ms ? `${(code.generation_ms/1000).toFixed(1)}s` : 'N/A'} 
                 </p>
                 <button
                   onClick={() => onViewCode(code)}

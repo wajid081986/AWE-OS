@@ -145,11 +145,11 @@ async function rejectCode(req, res) {
  */
 async function getAllCodes(req, res) {
   try {
-    const supabase = require('../db/supabase');
-    const { data, error } = await supabase
-      .from('generated_code')
-      .select('id, tool_id, tool_name, status, total_files, frontend_files, backend_files, has_sql, generation_ms, ai_model, created_at')
-      .order('created_at', { ascending: false });
+   const supabase = require('../db/supabase');
+   const { data, error } = await supabase
+  .from('generated_code')
+  .select('id, tool_id, tool_name, status, total_files, has_sql, generation_ms, ai_model, created_at')
+  .order('created_at', { ascending: false }); 
 
     if (error) throw error;
     return res.json({ success: true, data: data || [], count: (data || []).length });
