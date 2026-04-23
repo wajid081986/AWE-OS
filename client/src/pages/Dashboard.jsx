@@ -8,6 +8,7 @@ import CodeViewer        from '../components/dashboard/CodeViewer';
 import AutonomousPanel   from '../components/dashboard/AutonomousPanel';
 import IdeaPanel            from '../components/dashboard/IdeaPanel';
 import MonetizationPanel    from '../components/dashboard/MonetizationPanel';
+import DeploymentPanel      from '../components/dashboard/DeploymentPanel';     {/* ← ADD */}
 import {
   getTools, getDecision, getAllDecisions,
   approveDecision, rejectDecision,
@@ -254,6 +255,9 @@ export default function Dashboard() {
           <GeneratedCodeSection
             onViewCode={(code) => dispatch({ type: 'OPEN_CODE_VIEWER', payload: code })}
           />
+
+          {/* SECTION 8 — Deployment Agent */}
+          <DeploymentPanel />                                                    {/* ← ADD */}
 
           {/* SECTION 4 — Decision Panel */}
           <section style={S.card}>
