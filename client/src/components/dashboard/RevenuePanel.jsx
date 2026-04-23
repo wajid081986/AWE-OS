@@ -1,4 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, Legend,
+} from 'recharts';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://awe-os.onrender.com';
 
@@ -41,54 +45,71 @@ function timeAgo(dateStr) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-// ── Mini Bar Chart (pure CSS) ────────────────────────────────
+// ── Revenue Trend Chart (recharts) ───────────────────────────
 
-function RevenueBarChart({ data = [] }) {
-  const [hovered, setHovered] = useState(null);
+const CHART_TOOLTIP_STYLE = {
+  contentStyle: {
+    background: '#1f2937', border: '1px solid #374151',
+    borderRadius: 6, fontSize: 12, color: '#f9fafb',
+  },
+  labelStyle: { color: '#9ca3af', marginBottom: 4 },
+  itemStyle:  { color: '#d1d5db' },
+};
+
+function RevenueTrendChart({ data = [] }) {
   if (!data.length) {
-    return <div style={{ color: '#4b5563', textAlign: 'center', padding: '32px 0', fontSize: 13 }}>No history data yet — run a snapshot first</div>;
+    return (
+      <div style={{ color: '#4b5563', textAlign: 'center', padding: '32px 0', fontSize: 13 }}>
+        No history data yet — run a snapshot first
+      </div>
+    );
   }
 
-  const max = Math.max(...data.map(d => Number(d.daily_revenue || 0)), 1);
+  const chartData = data.map(d => ({
+    date:    fmtDate(d.snapshot_date),
+    revenue: Number(d.daily_revenue || 0),
+    mrr:     Number(d.mrr || 0),
+  }));
 
   return (
-    <div style={{ position: 'relative' }}>
-      {hovered && (
-        <div style={{
-          position: 'absolute', top: -36, left: '50%', transform: 'translateX(-50%)',
-          background: '#1f2937', border: '1px solid #374151', borderRadius: 6,
-          padding: '4px 10px', fontSize: 12, color: '#f9fafb', whiteSpace: 'nowrap', zIndex: 10,
-        }}>
-          {fmtDate(hovered.snapshot_date)} — {fmtINR(hovered.daily_revenue)}
-        </div>
-      )}
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 80, overflowX: 'auto', paddingBottom: 4 }}>
-        {data.map((d, i) => {
-          const height = Math.max(4, (Number(d.daily_revenue || 0) / max) * 72);
-          const isActive = hovered?.snapshot_date === d.snapshot_date;
-          return (
-            <div
-              key={i}
-              onMouseEnter={() => setHovered(d)}
-              onMouseLeave={() => setHovered(null)}
-              style={{
-                flex: '0 0 auto',
-                width: Math.max(8, Math.floor(320 / data.length) - 2),
-                height,
-                background: isActive ? '#6d28d9' : '#3b82f6',
-                borderRadius: '2px 2px 0 0',
-                cursor: 'pointer',
-                transition: 'background 0.15s',
-              }}
-            />
-          );
-        })}
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-        <span style={{ color: '#6b7280', fontSize: 10 }}>{fmtDate(data[0]?.snapshot_date)}</span>
-        <span style={{ color: '#6b7280', fontSize: 10 }}>{fmtDate(data[data.length - 1]?.snapshot_date)}</span>
-      </div>
-    </div>
+    <ResponsiveContainer width="100%" height={160}>
+      <LineChart data={chartData} margin={{ top: 4, right: 12, left: 0, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
+        <XAxis
+          dataKey="date"
+          tick={{ fill: '#6b7280', fontSize: 10 }}
+          tickLine={false}
+          axisLine={false}
+          interval="preserveStartEnd"
+        />
+        <YAxis
+          tick={{ fill: '#6b7280', fontSize: 10 }}
+          tickLine={false}
+          axisLine={false}
+          width={70}
+          tickFormatter={v => `₹${v.toLocaleString('en-IN')}`}
+        />
+        <Tooltip
+          {...CHART_TOOLTIP_STYLE}
+          formatter={(v, name) => [
+            fmtINR(v),
+            name === 'revenue' ? 'Daily Revenue' : 'MRR',
+          ]}
+        />
+        <Legend
+          wrapperStyle={{ fontSize: 11, color: '#6b7280', paddingTop: 4 }}
+          formatter={name => name === 'revenue' ? 'Daily Revenue' : 'MRR'}
+        />
+        <Line
+          type="monotone" dataKey="revenue"
+          stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 4 }}
+        />
+        <Line
+          type="monotone" dataKey="mrr"
+          stroke="#7c3aed" strokeWidth={1.5} strokeDasharray="5 3" dot={false}
+        />
+      </LineChart>
+    </ResponsiveContainer>
   );
 }
 
@@ -347,7 +368,7 @@ export default function RevenuePanel() {
           {/* ── SECTION B: Revenue Trend Chart ──────────── */}
           <div style={CARD}>
             <h3 style={TITLE}>📈 Revenue Trend (30 days)</h3>
-            <RevenueBarChart data={history} />
+            <RevenueTrendChart data={history} />
           </div>
 
           {/* ── SECTION C: AI Insights ───────────────────── */}
