@@ -6,7 +6,7 @@ const {
   startDeployment,
   completeDeployment,
   getDeploymentHistory,
-  getHealthHistory,
+  getHealthHistory: fetchHealthHistory,
 } = require('../agents/deployment-agent');
 
 // GET /api/deploy/health
@@ -96,7 +96,7 @@ async function getHistory(req, res) {
 async function getHealthHistory(req, res) {
   const hours = Math.min(parseInt(req.query.hours, 10) || 24, 168);
   try {
-    const data = await getHealthHistory(hours);
+    const data = await fetchHealthHistory(hours);
     return res.status(200).json({ success: true, data, count: data.length });
   } catch (err) {
     console.error('[DEPLOY CTRL] getHealthHistory error:', err.message);
