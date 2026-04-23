@@ -9,6 +9,7 @@ import AutonomousPanel   from '../components/dashboard/AutonomousPanel';
 import IdeaPanel            from '../components/dashboard/IdeaPanel';
 import MonetizationPanel    from '../components/dashboard/MonetizationPanel';
 import DeploymentPanel      from '../components/dashboard/DeploymentPanel';     {/* ← ADD */}
+import RevenuePanel         from '../components/dashboard/RevenuePanel';         {/* ← ADD */}
 import {
   getTools, getDecision, getAllDecisions,
   approveDecision, rejectDecision,
@@ -256,7 +257,10 @@ export default function Dashboard() {
             onViewCode={(code) => dispatch({ type: 'OPEN_CODE_VIEWER', payload: code })}
           />
 
-          {/* SECTION 8 — Deployment Agent */}
+          {/* SECTION 8 — Revenue Agent */}
+          <RevenuePanel />                                                       {/* ← ADD */}
+
+          {/* SECTION 9 — Deployment Agent */}
           <DeploymentPanel />                                                    {/* ← ADD */}
 
           {/* SECTION 4 — Decision Panel */}

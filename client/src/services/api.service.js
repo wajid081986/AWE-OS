@@ -265,3 +265,48 @@ export const rejectCode = (code_id, reviewer_notes = null) =>
     method: 'POST',
     body:   JSON.stringify({ reviewer_notes }),
   });
+
+// ── Revenue Agent ─────────────────────────────────────────────
+
+/** Full revenue dashboard (metrics, insights, alerts, top tools) */
+export const getRevenueDashboard = () =>
+  apiFetch('/api/revenue-agent/dashboard');
+
+/** Trigger a fresh daily revenue snapshot + AI insights */
+export const runRevenueSnapshot = () =>
+  apiFetch('/api/revenue-agent/snapshot', { method: 'POST' });
+
+/** Historical daily snapshots for chart (default 30 days) */
+export const getRevenueHistory = (days = 30) =>
+  apiFetch(`/api/revenue-agent/history?days=${days}`);
+
+/** Fetch upsell opportunities */
+export const getUpsellOpportunities = ({ status = 'identified', limit = 20 } = {}) =>
+  apiFetch(`/api/revenue-agent/upsells?status=${status}&limit=${limit}`);
+
+/** Scan for new upsell opportunities (AI) */
+export const findUpsellOpportunities = () =>
+  apiFetch('/api/revenue-agent/upsells/find', { method: 'POST' });
+
+/** Update upsell opportunity status */
+export const updateUpsellStatus = (id, status) =>
+  apiFetch(`/api/revenue-agent/upsells/${id}/status`, {
+    method: 'PATCH',
+    body:   JSON.stringify({ status }),
+  });
+
+/** Fetch unresolved failed payments */
+export const getFailedPayments = (resolved = false) =>
+  apiFetch(`/api/revenue-agent/failed-payments?resolved=${resolved}`);
+
+/** Mark a failed payment as resolved */
+export const resolveFailedPayment = (id) =>
+  apiFetch(`/api/revenue-agent/failed-payments/${id}/resolve`, { method: 'PATCH' });
+
+/** Fetch unacknowledged revenue alerts */
+export const getRevenueAlerts = (acknowledged = false) =>
+  apiFetch(`/api/revenue-agent/alerts?acknowledged=${acknowledged}`);
+
+/** Acknowledge a revenue alert */
+export const acknowledgeRevenueAlert = (id) =>
+  apiFetch(`/api/revenue-agent/alerts/${id}/acknowledge`, { method: 'PATCH' });
