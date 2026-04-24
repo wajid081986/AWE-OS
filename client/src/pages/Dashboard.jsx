@@ -11,6 +11,7 @@ import MonetizationPanel    from '../components/dashboard/MonetizationPanel';
 import DeploymentPanel      from '../components/dashboard/DeploymentPanel';     {/* ← ADD */}
 import RevenuePanel         from '../components/dashboard/RevenuePanel';         {/* ← ADD */}
 import MarketingPanel       from '../components/dashboard/MarketingPanel';
+import SupportPanel        from '../components/dashboard/SupportPanel';
 import {
   getTools, getDecision, getAllDecisions,
   approveDecision, rejectDecision,
@@ -266,6 +267,9 @@ export default function Dashboard() {
 
           {/* SECTION 10 — Marketing Command Center */}
           <MarketingPanel />
+
+          {/* SECTION 11 — Support Agent */}
+          <SupportPanel />
 
           {/* SECTION 4 — Decision Panel */}
           <section style={S.card}>
