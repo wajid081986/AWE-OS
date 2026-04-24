@@ -17,11 +17,13 @@ const optimizationRoutes             = require('./routes/optimization.routes');
 const deploymentRoutes               = require('./routes/deployment.routes');   // ← ADD
 const revenueAgentRoutes             = require('./routes/revenue.agent.routes'); // ← ADD
 const marketingRoutes                = require('./routes/marketing.routes');
+const supportRoutes                  = require('./routes/support.routes');
 const { startAnalyticsCron }         = require('./jobs/analytics.cron');
 require('./jobs/autonomous.cron');
 require('./jobs/idea.cron');
 require('./jobs/health.cron');                                                   // ← ADD
 require('./jobs/revenue.cron');                                                  // ← ADD
+require('./jobs/support.cron');
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
@@ -137,6 +139,9 @@ app.use('/api/revenue-agent', revenueAgentRoutes);                              
 // ✅ Marketing Agent
 app.use('/api/marketing', marketingRoutes);
 
+// ✅ Support Agent
+app.use('/api/support', supportRoutes);
+
 // ✅ Main app routes
 app.use('/api', resumeRoutes);
 
@@ -176,5 +181,6 @@ app.listen(PORT, () => {
   console.log('[SERVER] Idea cron scheduled (12h)');
   console.log('[SERVER] Health cron scheduled (30min)');
   console.log('[SERVER] Revenue cron scheduled (daily 23:59)');
+  console.log('[SERVER] Support cron scheduled (30min SLA + daily + weekly KB)');
   console.log('[SERVER] All systems GO ✅');
 });
