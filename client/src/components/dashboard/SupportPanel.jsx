@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Fragment } from 'react';
 import api from '../../services/api.service';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -119,8 +119,8 @@ export default function SupportPanel() {
       if (filter.priority) p.set('priority', filter.priority);
       if (filter.category) p.set('category', filter.category);
       const res = await api.get(`/support/tickets?${p}`);
-      setTickets(res.data.data ?? []);
-      setTicketTotal(res.data.total ?? 0);
+      setTickets(Array.isArray(res.data) ? res.data : []);
+      setTicketTotal(res.total ?? res.count ?? 0);
     } catch (e) {
       setError('Failed to load tickets');
     }
@@ -140,7 +140,7 @@ export default function SupportPanel() {
   const fetchBugs = useCallback(async () => {
     try {
       const res = await api.get('/support/bugs');
-      setBugs(res.data.data ?? []);
+      setBugs(Array.isArray(res.data) ? res.data : []);
     } catch (e) {
       setError('Failed to load bugs');
     }
@@ -149,7 +149,7 @@ export default function SupportPanel() {
   const fetchFeatures = useCallback(async () => {
     try {
       const res = await api.get('/support/features');
-      setFeatures(res.data.data ?? []);
+      setFeatures(Array.isArray(res.data) ? res.data : []);
     } catch (e) {
       setError('Failed to load features');
     }
@@ -158,7 +158,7 @@ export default function SupportPanel() {
   const fetchKB = useCallback(async () => {
     try {
       const res = await api.get('/support/kb');
-      setKbArticles(res.data.data ?? []);
+      setKbArticles(Array.isArray(res.data) ? res.data : []);
     } catch (e) {
       setError('Failed to load knowledge base');
     }
@@ -284,13 +284,16 @@ export default function SupportPanel() {
 
   // ── Derived ───────────────────────────────────────────────────────────────
 
+  // Guard against Supabase returning { count, data } objects instead of primitives
+  const safeN = (v) => (v == null || typeof v === 'object') ? null : Number(v);
+
   const metrics = [
-    { label: 'Open Tickets',     value: dashboard?.open_tickets    ?? '—', color: 'text-blue-400' },
-    { label: 'Avg Resolution',   value: dashboard?.avg_resolution_hours != null ? `${dashboard.avg_resolution_hours.toFixed(1)}h` : '—', color: 'text-green-400' },
-    { label: 'SLA Breached',     value: dashboard?.sla_breached    ?? '—', color: 'text-red-400' },
-    { label: 'CSAT Score',       value: dashboard?.avg_csat        != null ? `${dashboard.avg_csat.toFixed(1)}/5` : '—', color: 'text-yellow-400' },
-    { label: 'Open Bugs',        value: dashboard?.open_bugs       ?? '—', color: 'text-orange-400' },
-    { label: 'Feature Requests', value: dashboard?.open_features   ?? '—', color: 'text-purple-400' },
+    { label: 'Open Tickets',     value: safeN(dashboard?.open_tickets)    ?? '—', color: 'text-blue-400' },
+    { label: 'Avg Resolution',   value: safeN(dashboard?.avg_resolution_hours) != null ? `${Number(dashboard.avg_resolution_hours).toFixed(1)}h` : '—', color: 'text-green-400' },
+    { label: 'SLA Breached',     value: safeN(dashboard?.sla_breached)    ?? '—', color: 'text-red-400' },
+    { label: 'CSAT Score',       value: safeN(dashboard?.avg_csat)        != null ? `${Number(dashboard.avg_csat).toFixed(1)}/5` : '—', color: 'text-yellow-400' },
+    { label: 'Open Bugs',        value: safeN(dashboard?.open_bugs)       ?? '—', color: 'text-orange-400' },
+    { label: 'Feature Requests', value: safeN(dashboard?.open_features)   ?? '—', color: 'text-purple-400' },
   ];
 
   const TABS = [
@@ -624,7 +627,7 @@ export default function SupportPanel() {
                   </tr>
                 )}
                 {bugs.map((bug) => (
-                  <tbody key={bug.id}>
+                  <Fragment key={bug.id}>
                     <tr
                       onClick={() => setSelectedBug(selectedBug?.id === bug.id ? null : bug)}
                       className="border-t border-gray-700 hover:bg-gray-700/50 cursor-pointer"
@@ -677,7 +680,7 @@ export default function SupportPanel() {
                         </td>
                       </tr>
                     )}
-                  </tbody>
+                  </Fragment>
                 ))}
               </tbody>
             </table>

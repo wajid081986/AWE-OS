@@ -59,9 +59,8 @@ async function getDashboard(req, res) {
 
 async function getTickets(req, res) {
   try {
-    const limit    = Math.min(parseInt(req.query.limit) || 20, 100);
-    const page     = Math.max(parseInt(req.query.page)  || 1, 1);
-    const offset   = (page - 1) * limit;
+    const limit    = Math.min(parseInt(req.query.limit)  || 20, 100);
+    const offset   = Math.max(parseInt(req.query.offset) || 0,  0);
     const { status, priority, category } = req.query;
 
     let query = supabase
@@ -85,7 +84,7 @@ async function getTickets(req, res) {
       return new Date(b.created_at) - new Date(a.created_at);
     });
 
-    return res.json({ success: true, data: sorted, count: count || 0, page, limit });
+    return res.json({ success: true, data: sorted, total: count || 0, limit, offset });
   } catch (err) {
     console.error('[SUPPORT CTRL] getTickets error:', err.message);
     return res.status(500).json({ error: err.message });
@@ -129,15 +128,15 @@ async function getTicket(req, res) {
 async function replyTicket(req, res) {
   try {
     const { id } = req.params;
-    const { message, is_internal = false, approve_ai = false } = req.body;
+    const { message, message_id, is_internal = false, approve_ai = false } = req.body;
+
+    if (approve_ai) {
+      const result = await approveAndSendResponse(id, message_id, req.user?.email);
+      return res.json({ success: true, data: result, action: 'ai_approved' });
+    }
 
     if (!message || message.trim().length < 5) {
       return res.status(400).json({ error: 'Message must be at least 5 characters' });
-    }
-
-    if (approve_ai) {
-      const result = await approveAndSendResponse(id, message.trim(), req.user?.email);
-      return res.json({ success: true, data: result, action: 'ai_approved' });
     }
 
     // Fetch ticket to verify it exists and check first_response_at

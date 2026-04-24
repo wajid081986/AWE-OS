@@ -1,4 +1,4 @@
-import { useReducer, useEffect, useCallback, useMemo, useRef, useState } from 'react';
+import React, { useReducer, useEffect, useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatsCard     from '../components/dashboard/StatsCard';
 import ToolsTable    from '../components/dashboard/ToolsTable';
@@ -266,10 +266,14 @@ export default function Dashboard() {
           <DeploymentPanel />                                                    {/* ← ADD */}
 
           {/* SECTION 10 — Marketing Command Center */}
-          <MarketingPanel />
+          <PanelErrorBoundary name="Marketing">
+            <MarketingPanel />
+          </PanelErrorBoundary>
 
           {/* SECTION 11 — Support Agent */}
-          <SupportPanel />
+          <PanelErrorBoundary name="Support">
+            <SupportPanel />
+          </PanelErrorBoundary>
 
           {/* SECTION 4 — Decision Panel */}
           <section style={S.card}>
@@ -607,6 +611,40 @@ function StatusDot({ status }) {
       background: colors[status] || '#64748b', flexShrink: 0,
     }} />
   );
+}
+
+// ── Panel Error Boundary ──────────────────────────────────────
+class PanelErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, info) {
+    console.error(`[Dashboard] ${this.props.name} panel error:`, error, info.componentStack);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          background: '#2d0808', border: '1px solid #7f1d1d', borderRadius: '12px',
+          padding: '20px', color: '#f87171', fontSize: '13px',
+        }}>
+          ⚠ {this.props.name} panel unavailable — {this.state.error?.message || 'unexpected error'}
+          <button
+            onClick={() => this.setState({ hasError: false, error: null })}
+            style={{ marginLeft: '12px', background: 'none', border: '1px solid #7f1d1d',
+                     borderRadius: '6px', color: '#f87171', cursor: 'pointer', padding: '2px 8px' }}
+          >
+            Retry
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 // ── Style constants ───────────────────────────────────────────
