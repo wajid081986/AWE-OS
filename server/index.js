@@ -16,6 +16,7 @@ const monetizationRoutes             = require('./routes/monetization.routes');
 const optimizationRoutes             = require('./routes/optimization.routes');
 const deploymentRoutes               = require('./routes/deployment.routes');   // ← ADD
 const revenueAgentRoutes             = require('./routes/revenue.agent.routes'); // ← ADD
+const marketingRoutes                = require('./routes/marketing.routes');
 const { startAnalyticsCron }         = require('./jobs/analytics.cron');
 require('./jobs/autonomous.cron');
 require('./jobs/idea.cron');
@@ -132,6 +133,9 @@ app.use('/api/deploy', deploymentRoutes);                                       
 
 // ✅ Revenue Agent
 app.use('/api/revenue-agent', revenueAgentRoutes);                              // ← ADD
+
+// ✅ Marketing Agent
+app.use('/api/marketing', marketingRoutes);
 
 // ✅ Main app routes
 app.use('/api', resumeRoutes);
