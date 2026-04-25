@@ -1,5 +1,25 @@
 const eventService   = require('../services/event.service');
 const revenueService = require('../services/revenue.service');
+const supabase       = require('../db/supabase');
+
+// Returns 403 if authenticated user does not own the tool, 404 if not found
+async function assertToolOwner(toolId, userId) {
+  const { data: tool, error } = await supabase
+    .from('tools')
+    .select('user_id')
+    .eq('id', toolId)
+    .maybeSingle();
+  if (error || !tool) {
+    const err = new Error('Tool not found');
+    err.status = 404;
+    throw err;
+  }
+  if (tool.user_id !== userId) {
+    const err = new Error('Forbidden');
+    err.status = 403;
+    throw err;
+  }
+}
 
 /**
  * POST /api/events/track
@@ -38,6 +58,8 @@ async function trackEvent(req, res) {
  */
 async function getToolEvents(req, res) {
   try {
+    await assertToolOwner(req.params.tool_id, req.user.userId);
+
     const result = await eventService.getEventsByTool(req.params.tool_id, {
       event_type: req.query.event_type,
       date_from:  req.query.date_from,
@@ -49,7 +71,7 @@ async function getToolEvents(req, res) {
     return res.json({ success: true, ...result });
   } catch (err) {
     console.error('[controller] getToolEvents:', err.message);
-    return res.status(500).json({ success: false, error: 'Failed to fetch events' });
+    return res.status(err.status || 500).json({ success: false, error: err.message || 'Failed to fetch events' });
   }
 }
 
@@ -58,11 +80,13 @@ async function getToolEvents(req, res) {
  */
 async function getSummary(req, res) {
   try {
+    await assertToolOwner(req.params.tool_id, req.user.userId);
+
     const summary = await eventService.getEventSummary(req.params.tool_id);
     return res.json({ success: true, ...summary });
   } catch (err) {
     console.error('[controller] getSummary:', err.message);
-    return res.status(500).json({ success: false, error: 'Failed to fetch summary' });
+    return res.status(err.status || 500).json({ success: false, error: err.message || 'Failed to fetch summary' });
   }
 }
 
@@ -97,11 +121,13 @@ async function logRevenue(req, res) {
  */
 async function getRevenueSummary(req, res) {
   try {
+    await assertToolOwner(req.params.tool_id, req.user.userId);
+
     const summary = await revenueService.getRevenueSummary(req.params.tool_id);
     return res.json({ success: true, ...summary });
   } catch (err) {
     console.error('[controller] getRevenueSummary:', err.message);
-    return res.status(500).json({ success: false, error: 'Failed to fetch revenue summary' });
+    return res.status(err.status || 500).json({ success: false, error: err.message || 'Failed to fetch revenue summary' });
   }
 }
 

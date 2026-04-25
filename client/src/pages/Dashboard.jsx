@@ -1,17 +1,22 @@
-import React, { useReducer, useEffect, useCallback, useMemo, useRef, useState } from 'react';
+import React, { useReducer, useEffect, useCallback, useMemo, useRef, useState, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+// Always-eager: small components visible immediately on page load
 import StatsCard     from '../components/dashboard/StatsCard';
 import ToolsTable    from '../components/dashboard/ToolsTable';
 import DecisionModal from '../components/dashboard/DecisionModal';
-import BuilderPanel      from '../components/dashboard/BuilderPanel';
-import CodeViewer        from '../components/dashboard/CodeViewer';
-import AutonomousPanel   from '../components/dashboard/AutonomousPanel';
-import IdeaPanel            from '../components/dashboard/IdeaPanel';
-import MonetizationPanel    from '../components/dashboard/MonetizationPanel';
-import DeploymentPanel      from '../components/dashboard/DeploymentPanel';     {/* ← ADD */}
-import RevenuePanel         from '../components/dashboard/RevenuePanel';         {/* ← ADD */}
-import MarketingPanel       from '../components/dashboard/MarketingPanel';
-import SupportPanel        from '../components/dashboard/SupportPanel';
+
+// Lazy-loaded: heavy panels — each becomes a separate JS chunk
+const AutonomousPanel   = lazy(() => import('../components/dashboard/AutonomousPanel'));
+const BuilderPanel      = lazy(() => import('../components/dashboard/BuilderPanel'));
+const CodeViewer        = lazy(() => import('../components/dashboard/CodeViewer'));
+const DeploymentPanel   = lazy(() => import('../components/dashboard/DeploymentPanel'));
+const IdeaPanel         = lazy(() => import('../components/dashboard/IdeaPanel'));
+const MarketingPanel    = lazy(() => import('../components/dashboard/MarketingPanel'));
+const MonetizationPanel = lazy(() => import('../components/dashboard/MonetizationPanel'));
+const RevenuePanel      = lazy(() => import('../components/dashboard/RevenuePanel'));
+const SupportPanel      = lazy(() => import('../components/dashboard/SupportPanel'));
+
 import {
   getTools, getDecision, getAllDecisions,
   approveDecision, rejectDecision,
@@ -243,16 +248,32 @@ export default function Dashboard() {
           </section>
 
           {/* SECTION 3 — Autonomous Agent */}
-          <AutonomousPanel />
+          <PanelErrorBoundary name="Autonomous">
+            <Suspense fallback={<PanelSkeleton />}>
+              <AutonomousPanel />
+            </Suspense>
+          </PanelErrorBoundary>
 
           {/* SECTION 4 — AI Idea Review (generated → review here → build) */}
-          <IdeaPanel />
+          <PanelErrorBoundary name="Ideas">
+            <Suspense fallback={<PanelSkeleton />}>
+              <IdeaPanel />
+            </Suspense>
+          </PanelErrorBoundary>
 
           {/* SECTION 5 — Monetization Intelligence */}
-          <MonetizationPanel tools={state.tools} />
+          <PanelErrorBoundary name="Monetization">
+            <Suspense fallback={<PanelSkeleton />}>
+              <MonetizationPanel tools={state.tools} />
+            </Suspense>
+          </PanelErrorBoundary>
 
           {/* SECTION 6 — Builder Agent */}
-          <BuilderPanel />
+          <PanelErrorBoundary name="Builder">
+            <Suspense fallback={<PanelSkeleton />}>
+              <BuilderPanel />
+            </Suspense>
+          </PanelErrorBoundary>
 
           {/* SECTION 7 — Generated Code */}
           <GeneratedCodeSection
@@ -260,19 +281,31 @@ export default function Dashboard() {
           />
 
           {/* SECTION 8 — Revenue Agent */}
-          <RevenuePanel />                                                       {/* ← ADD */}
+          <PanelErrorBoundary name="Revenue">
+            <Suspense fallback={<PanelSkeleton />}>
+              <RevenuePanel />
+            </Suspense>
+          </PanelErrorBoundary>
 
           {/* SECTION 9 — Deployment Agent */}
-          <DeploymentPanel />                                                    {/* ← ADD */}
+          <PanelErrorBoundary name="Deployment">
+            <Suspense fallback={<PanelSkeleton />}>
+              <DeploymentPanel />
+            </Suspense>
+          </PanelErrorBoundary>
 
           {/* SECTION 10 — Marketing Command Center */}
           <PanelErrorBoundary name="Marketing">
-            <MarketingPanel />
+            <Suspense fallback={<PanelSkeleton />}>
+              <MarketingPanel />
+            </Suspense>
           </PanelErrorBoundary>
 
           {/* SECTION 11 — Support Agent */}
           <PanelErrorBoundary name="Support">
-            <SupportPanel />
+            <Suspense fallback={<PanelSkeleton />}>
+              <SupportPanel />
+            </Suspense>
           </PanelErrorBoundary>
 
           {/* SECTION 4 — Decision Panel */}
@@ -421,15 +454,17 @@ export default function Dashboard() {
       </div>
     {/* ── Code Viewer Modal ─────────────────────────────── */}
       {state.codeViewer && (
-        <CodeViewer
-          code={state.codeViewer}
-          onClose={() => dispatch({ type: 'CLOSE_CODE_VIEWER' })}
-          onApproved={() => {
-            dispatch({ type: 'CLOSE_CODE_VIEWER' });
-            fetchTools();
-          }}
-          onRejected={() => dispatch({ type: 'CLOSE_CODE_VIEWER' })}
-        />
+        <Suspense fallback={null}>
+          <CodeViewer
+            code={state.codeViewer}
+            onClose={() => dispatch({ type: 'CLOSE_CODE_VIEWER' })}
+            onApproved={() => {
+              dispatch({ type: 'CLOSE_CODE_VIEWER' });
+              fetchTools();
+            }}
+            onRejected={() => dispatch({ type: 'CLOSE_CODE_VIEWER' })}
+          />
+        </Suspense>
       )}
 
       {/* ── Decision modal ────────────────────────────────── */}
@@ -609,6 +644,21 @@ function StatusDot({ status }) {
     <span style={{
       width: '8px', height: '8px', borderRadius: '50%',
       background: colors[status] || '#64748b', flexShrink: 0,
+    }} />
+  );
+}
+
+// ── Panel Skeleton — Suspense fallback for lazy panels ────────
+function PanelSkeleton() {
+  return (
+    <div style={{
+      background: '#1e293b', border: '1px solid #334155',
+      borderRadius: '12px', height: '120px',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      color: '#475569', fontSize: '13px',
+      animation: 'shimmer 1.5s infinite linear',
+      backgroundImage: 'linear-gradient(90deg, #1e293b 25%, #263246 50%, #1e293b 75%)',
+      backgroundSize: '200% 100%',
     }} />
   );
 }

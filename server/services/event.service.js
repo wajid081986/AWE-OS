@@ -61,7 +61,7 @@ async function trackEvent(tool_id, user_id, event_type, metadata = {}, req = {})
   if (process.env.NODE_ENV !== 'production') {
     console.log(`[Event] ${event_type} | tool=${tool_id} | user=${user_id ?? 'anon'}`);
   } else {
-    console.log(JSON.stringify({ level: 'info', event: 'tracked', event_type, tool_id, ts: new Date().toISOString() }));
+    console.log(JSON.stringify({ level: 'info', event: 'tracked', event_type, ts: new Date().toISOString() }));
   }
 
   return event;
@@ -115,17 +115,24 @@ async function getEventsByTool(tool_id, { event_type, date_from, date_to, page =
  * @returns {object} summary object
  */
 async function getEventSummary(tool_id) {
-  // Fetch only the event_type column — minimal data transfer
+  // Aggregation: last 90 days only — avoids loading full event history into memory
+  const ninetyDaysAgo = new Date();
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
   const { data: events, error: eventsErr } = await supabase
     .from('tool_events')
     .select('event_type, created_at')
-    .eq('tool_id', tool_id);
+    .eq('tool_id', tool_id)
+    .gte('created_at', ninetyDaysAgo.toISOString())
+    .limit(5000);
 
   if (eventsErr) throw eventsErr;
 
+  const safeEvents = events ?? [];
+
   // Aggregate counts
   const summary = {};
-  for (const row of events) {
+  for (const row of safeEvents) {
     summary[row.event_type] = (summary[row.event_type] || 0) + 1;
   }
 
@@ -139,7 +146,7 @@ async function getEventSummary(tool_id) {
 
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - 7);
-  for (const row of events) {
+  for (const row of safeEvents) {
     if (new Date(row.created_at) >= cutoff) {
       const day = row.created_at.slice(0, 10);
       if (trendMap[day] !== undefined) trendMap[day]++;

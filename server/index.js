@@ -38,21 +38,27 @@ const REQUIRED_ENV = [
   'OPENAI_API_KEY',
 ];
 
-REQUIRED_ENV.forEach((key) => {
-  if (!process.env[key]) {
-    console.warn(`⚠️ Missing ENV: ${key}`);
+const missingEnv = REQUIRED_ENV.filter((key) => !process.env[key]);
+if (missingEnv.length > 0) {
+  console.warn(`⚠️ Server misconfiguration: ${missingEnv.length} required environment variable(s) are not set. Check your .env file.`);
+  if (process.env.NODE_ENV !== 'production') {
+    missingEnv.forEach((key) => console.warn(`   - Missing: ${key}`));
   }
-});
+}
 
 // ===== CORS =====
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? ['https://awe-os.vercel.app']
+  : ['https://awe-os.vercel.app', 'http://localhost:5173'];
+
 app.use(cors({
-  origin: ['https://awe-os.vercel.app', 'http://localhost:5173'],
+  origin: allowedOrigins,
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
   credentials: true,
 }));
 
 // ===== MIDDLEWARE =====
-app.use(express.json());
+app.use(express.json({ limit: '100kb' }));
 
 // ===== REQUEST LOGGING =====
 app.use((req, res, next) => {
@@ -173,7 +179,7 @@ app.use((err, req, res, next) => {
 });
 
 // ===== START SERVER =====
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   startAnalyticsCron();
   console.log('[SERVER] Analytics cron scheduled (daily)');
@@ -183,4 +189,18 @@ app.listen(PORT, () => {
   console.log('[SERVER] Revenue cron scheduled (daily 23:59)');
   console.log('[SERVER] Support cron scheduled (30min SLA + daily + weekly KB)');
   console.log('[SERVER] All systems GO ✅');
+});
+
+// Graceful shutdown — allow in-flight requests to complete before exit
+process.on('SIGTERM', () => {
+  console.log('[SERVER] SIGTERM received — shutting down gracefully');
+  server.close(() => {
+    console.log('[SERVER] All connections closed. Exiting.');
+    process.exit(0);
+  });
+  // Force exit after 10s if connections don't drain
+  setTimeout(() => {
+    console.error('[SERVER] Forced exit after 10s timeout');
+    process.exit(1);
+  }, 10_000);
 });

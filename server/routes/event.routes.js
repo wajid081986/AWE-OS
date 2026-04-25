@@ -9,7 +9,7 @@ const { validateEvent, validateRevenue, validateToolId } = require('../middlewar
 // already protected by requireAuth which is a softer gate.
 const trackLimiter = rateLimit({
   windowMs:       60 * 1000,
-  max:            100,
+  max:            20,
   standardHeaders: true,
   legacyHeaders:  false,
   keyGenerator:   (req) => req.ip,

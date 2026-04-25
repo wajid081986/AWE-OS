@@ -174,12 +174,20 @@ router.post('/verify-payment', requireAuth, async (req, res) => {
       updateData.razorpay_order_id   = razorpay_order_id;
     }
 
-    const { error: updateErr } = await supabase
+    const { data: updated, error: updateErr } = await supabase
       .from('users')
       .update(updateData)
-      .eq('id', req.user.userId);
+      .eq('id', req.user.userId)
+      .eq('is_premium', false)
+      .select('id')
+      .maybeSingle();
 
     if (updateErr) throw updateErr;
+
+    // 0 rows updated = concurrent request already upgraded this user
+    if (!updated) {
+      return res.json({ success: true, message: 'Payment verified' });
+    }
 
     return res.json({ success: true, message: 'Payment verified' });
   } catch (err) {

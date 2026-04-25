@@ -306,16 +306,18 @@ async function runAutonomousLoop({ limit = MAX_TOOLS_PER_RUN, triggered_by = 'cr
     return { skipped: true, reason: 'already_running' };
   }
 
+  // Set lock IMMEDIATELY before any await to prevent race condition
+  isRunning = true;
+
   // ── Guard: daily run limit ────────────────────────────────────
   const runsToday = await getRunsToday();
   if (runsToday >= MAX_RUNS_PER_DAY) {
     const msg = `Daily run limit reached (${runsToday}/${MAX_RUNS_PER_DAY}) — aborting`;
     console.warn(`[AUTONOMOUS AGENT] ${msg}`);
     await logAction({ tool_id: null, tool_name: null, action: 'skipped', notes: msg });
+    isRunning = false;
     return { skipped: true, reason: 'daily_limit_reached' };
   }
-
-  isRunning = true;
   const safeLimit  = Math.min(Number(limit) || MAX_TOOLS_PER_RUN, MAX_TOOLS_PER_RUN);
   const startedAt  = new Date();
   const runId      = await createRunRecord(triggered_by);

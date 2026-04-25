@@ -31,15 +31,15 @@ async function submitTicket(req, res) {
 
     const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!user_email || !emailRe.test(user_email)) {
-      return res.status(400).json({ error: 'A valid user_email is required' });
+      return res.status(400).json({ success: false, error: 'A valid user_email is required' });
     }
 
     const result = await createTicket({ user_email, user_name, subject, description, tool_id });
     return res.status(201).json({ success: true, data: result });
   } catch (err) {
     console.error('[SUPPORT CTRL] submitTicket error:', err.message);
-    if (err.field) return res.status(400).json({ error: err.message, field: err.field });
-    return res.status(500).json({ error: err.message });
+    if (err.field) return res.status(400).json({ success: false, error: err.message, field: err.field });
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
 
@@ -51,7 +51,7 @@ async function getDashboard(req, res) {
     return res.json({ success: true, data: result });
   } catch (err) {
     console.error('[SUPPORT CTRL] getDashboard error:', err.message);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
 
@@ -87,7 +87,7 @@ async function getTickets(req, res) {
     return res.json({ success: true, data: sorted, total: count || 0, limit, offset });
   } catch (err) {
     console.error('[SUPPORT CTRL] getTickets error:', err.message);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
 
@@ -105,7 +105,7 @@ async function getTicket(req, res) {
     ]);
 
     if (ticketRes.error || !ticketRes.data) {
-      return res.status(404).json({ error: 'Ticket not found' });
+      return res.status(404).json({ success: false, error: 'Ticket not found' });
     }
 
     return res.json({
@@ -119,7 +119,7 @@ async function getTicket(req, res) {
     });
   } catch (err) {
     console.error('[SUPPORT CTRL] getTicket error:', err.message);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
 
@@ -136,18 +136,22 @@ async function replyTicket(req, res) {
     }
 
     if (!message || message.trim().length < 5) {
-      return res.status(400).json({ error: 'Message must be at least 5 characters' });
+      return res.status(400).json({ success: false, error: 'Message must be at least 5 characters' });
     }
 
-    // Fetch ticket to verify it exists and check first_response_at
+    // Fetch ticket to verify it exists and check ownership
     const { data: ticket, error: fetchErr } = await supabase
       .from('support_tickets')
-      .select('id, first_response_at')
+      .select('id, user_email, first_response_at')
       .eq('id', id)
       .single();
 
     if (fetchErr || !ticket) {
-      return res.status(404).json({ error: 'Ticket not found' });
+      return res.status(404).json({ success: false, error: 'Ticket not found' });
+    }
+
+    if (ticket.user_email !== req.user.email) {
+      return res.status(403).json({ success: false, error: 'Forbidden: you do not own this ticket' });
     }
 
     // INSERT message
@@ -180,7 +184,7 @@ async function replyTicket(req, res) {
     return res.json({ success: true, data: savedMsg });
   } catch (err) {
     console.error('[SUPPORT CTRL] replyTicket error:', err.message);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
 
@@ -192,15 +196,15 @@ async function resolveTicketCtrl(req, res) {
     const { resolution_notes } = req.body;
 
     if (!resolution_notes || resolution_notes.trim().length < 10) {
-      return res.status(400).json({ error: 'resolution_notes must be at least 10 characters' });
+      return res.status(400).json({ success: false, error: 'resolution_notes must be at least 10 characters' });
     }
 
     const result = await resolveTicket(id, resolution_notes.trim(), req.user?.email || 'human');
     return res.json({ success: true, data: result });
   } catch (err) {
     console.error('[SUPPORT CTRL] resolveTicketCtrl error:', err.message);
-    if (err.message.includes('not found')) return res.status(404).json({ error: err.message });
-    return res.status(500).json({ error: err.message });
+    if (err.message.includes('not found')) return res.status(404).json({ success: false, error: err.message });
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
 
@@ -228,7 +232,7 @@ async function getBugs(req, res) {
     return res.json({ success: true, data: bugs || [] });
   } catch (err) {
     console.error('[SUPPORT CTRL] getBugs error:', err.message);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
 
@@ -241,7 +245,7 @@ async function updateBug(req, res) {
 
     if (status && !VALID_BUG_STATUSES.includes(status)) {
       return res.status(400).json({
-        error: `status must be one of: ${VALID_BUG_STATUSES.join(', ')}`,
+        success: false, error: `status must be one of: ${VALID_BUG_STATUSES.join(', ')}`,
       });
     }
 
@@ -260,7 +264,7 @@ async function updateBug(req, res) {
     return res.json({ success: true, data: updated });
   } catch (err) {
     console.error('[SUPPORT CTRL] updateBug error:', err.message);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
 
@@ -292,7 +296,7 @@ async function getFeatures(req, res) {
     return res.json({ success: true, data: features || [] });
   } catch (err) {
     console.error('[SUPPORT CTRL] getFeatures error:', err.message);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
 
@@ -305,7 +309,7 @@ async function updateFeature(req, res) {
 
     if (status && !VALID_FEAT_STATUSES.includes(status)) {
       return res.status(400).json({
-        error: `status must be one of: ${VALID_FEAT_STATUSES.join(', ')}`,
+        success: false, error: `status must be one of: ${VALID_FEAT_STATUSES.join(', ')}`,
       });
     }
 
@@ -324,7 +328,7 @@ async function updateFeature(req, res) {
     return res.json({ success: true, data: updated });
   } catch (err) {
     console.error('[SUPPORT CTRL] updateFeature error:', err.message);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
 
@@ -349,7 +353,7 @@ async function getKnowledgeBase(req, res) {
     return res.json({ success: true, data: articles || [] });
   } catch (err) {
     console.error('[SUPPORT CTRL] getKnowledgeBase error:', err.message);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
 
@@ -367,7 +371,7 @@ async function getKBArticle(req, res) {
       .single();
 
     if (error || !article) {
-      return res.status(404).json({ error: 'Article not found' });
+      return res.status(404).json({ success: false, error: 'Article not found' });
     }
 
     // Increment view count (fire-and-forget)
@@ -377,12 +381,13 @@ async function getKBArticle(req, res) {
       .eq('id', article.id)
       .then(({ error: updErr }) => {
         if (updErr) console.error('[SUPPORT CTRL] view_count update error:', updErr.message);
-      });
+      })
+      .catch((err) => console.error('[SUPPORT CTRL] view_count promise rejected:', err));
 
     return res.json({ success: true, data: article });
   } catch (err) {
     console.error('[SUPPORT CTRL] getKBArticle error:', err.message);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
 
@@ -394,7 +399,7 @@ async function generateKB(req, res) {
 
     if (!category || !VALID_KB_CATEGORIES.includes(category)) {
       return res.status(400).json({
-        error: `category must be one of: ${VALID_KB_CATEGORIES.join(', ')}`,
+        success: false, error: `category must be one of: ${VALID_KB_CATEGORIES.join(', ')}`,
       });
     }
 
@@ -407,7 +412,7 @@ async function generateKB(req, res) {
     return res.json({ success: true, data: article });
   } catch (err) {
     console.error('[SUPPORT CTRL] generateKB error:', err.message);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
 
@@ -419,7 +424,7 @@ async function kbHelpful(req, res) {
     const { helpful } = req.body;
 
     if (typeof helpful !== 'boolean') {
-      return res.status(400).json({ error: 'helpful must be true or false' });
+      return res.status(400).json({ success: false, error: 'helpful must be true or false' });
     }
 
     const { data: article, error: fetchErr } = await supabase
@@ -429,7 +434,7 @@ async function kbHelpful(req, res) {
       .single();
 
     if (fetchErr || !article) {
-      return res.status(404).json({ error: 'Article not found' });
+      return res.status(404).json({ success: false, error: 'Article not found' });
     }
 
     const helpfulCount    = (article.helpful_count     || 0) + (helpful  ? 1 : 0);
@@ -454,7 +459,7 @@ async function kbHelpful(req, res) {
     return res.json({ success: true });
   } catch (err) {
     console.error('[SUPPORT CTRL] kbHelpful error:', err.message);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
 
@@ -465,7 +470,12 @@ async function submitSurvey(req, res) {
     const { ticket_id, csat_score, nps_score, feedback_text } = req.body;
 
     if (!csat_score || !Number.isInteger(csat_score) || csat_score < 1 || csat_score > 5) {
-      return res.status(400).json({ error: 'csat_score must be an integer between 1 and 5' });
+      return res.status(400).json({ success: false, error: 'csat_score must be an integer between 1 and 5' });
+    }
+
+    if (nps_score !== undefined && nps_score !== null &&
+        (!Number.isInteger(nps_score) || nps_score < 0 || nps_score > 10)) {
+      return res.status(400).json({ success: false, error: 'nps_score must be an integer between 0 and 10' });
     }
 
     // Check survey not already submitted for this ticket
@@ -477,7 +487,7 @@ async function submitSurvey(req, res) {
       .maybeSingle();
 
     if (existing) {
-      return res.status(409).json({ error: 'Survey already submitted for this ticket' });
+      return res.status(409).json({ success: false, error: 'Survey already submitted for this ticket' });
     }
 
     // AI sentiment on feedback text
@@ -510,7 +520,7 @@ async function submitSurvey(req, res) {
     return res.json({ success: true, message: 'Thank you for your feedback!' });
   } catch (err) {
     console.error('[SUPPORT CTRL] submitSurvey error:', err.message);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
 

@@ -33,13 +33,26 @@ async function callOpenAI(prompt, options = {}) {
   const maxTokens  = options.max_tokens  || 8000;
   const temperature = options.temperature ?? 0.4;
 
-  const response = await client.chat.completions.create({
-    model,
-    messages:    [{ role: 'user', content: prompt }],
-    max_tokens:  maxTokens,
-    temperature,
-  
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30_000);
+
+  let response;
+  try {
+    response = await client.chat.completions.create(
+      { model, messages: [{ role: 'user', content: prompt }], max_tokens: maxTokens, temperature },
+      { signal: controller.signal }
+    );
+  } catch (err) {
+    if (err.name === 'AbortError' || controller.signal.aborted) {
+      const timeoutErr = new Error('OpenAI request timed out after 30s');
+      timeoutErr.code   = 'AI_TIMEOUT';
+      timeoutErr.status = 504;
+      throw timeoutErr;
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
 
   const content = response.choices?.[0]?.message?.content;
   if (!content) {
@@ -73,7 +86,8 @@ function parseJSONResponse(raw) {
     console.error('[AI SERVICE] Raw response length:', raw.length);
     console.error('[AI SERVICE] Last 500 chars:', raw.slice(-500));
     
-    const parseErr = new Error(`Failed to parse AI response as JSON: ${err.message}`);
+    const errMsg   = err instanceof Error ? err.message : String(err);
+    const parseErr = new Error(`Failed to parse AI response as JSON: ${errMsg}`);
     parseErr.code  = 'PARSE_ERROR';
     parseErr.status = 500;
     parseErr.raw   = raw.slice(0, 300);

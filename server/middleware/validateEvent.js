@@ -12,7 +12,7 @@ const TrackEventSchema = z.object({
   }),
   // metadata: accept only plain objects, strip unknown nested types that could
   // carry prototype-pollution payloads (__proto__, constructor, etc.)
-  metadata: z.record(z.unknown())
+  metadata: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()]))
     .optional()
     .default({})
     .transform((obj) => {

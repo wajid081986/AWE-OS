@@ -96,6 +96,11 @@ export default function App() {
       const orderData = await apiFetch(`${BASE_URL}/api/create-order`, { method: 'POST' });
       if (!orderData?.success) throw new Error('ORDER_FAIL');
 
+      // Sanity-check the order before opening payment modal
+      if (orderData.order.amount !== 4900 || orderData.order.currency !== 'INR') {
+        throw new Error('ORDER_TAMPERED');
+      }
+
       const options = {
         key:         RZP_KEY,
         amount:      orderData.order.amount,
@@ -194,6 +199,11 @@ export default function App() {
   }, [pendingPayment, startPayment]);
 
   const handleLogout = () => {
+    // Notify server (fire-and-forget — client clears token regardless)
+    fetch(`${BASE_URL}/api/auth/logout`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${localStorage.getItem('awe_token')}` },
+    }).catch(() => {});
     localStorage.removeItem('awe_token');
     setUser(null);
     notify('success', 'Logged out');

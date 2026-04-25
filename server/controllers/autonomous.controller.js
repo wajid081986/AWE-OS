@@ -25,7 +25,7 @@ async function triggerRun(req, res) {
 
     return res.status(200).json({ success: true, data: summary });
   } catch (err) {
-    console.error('[AUTONOMOUS CONTROLLER] triggerRun error:', err.message);
+    console.error('[AUTONOMOUS CONTROLLER] triggerRun error:', err);
     return res.status(500).json({ success: false, error: 'Internal server error', code: 'RUN_FAILED' });
   }
 }
@@ -61,7 +61,7 @@ async function getLogs(req, res) {
 
     return res.status(200).json({ success: true, data: data || [], count: (data || []).length });
   } catch (err) {
-    console.error('[AUTONOMOUS CONTROLLER] getLogs unexpected error:', err.message);
+    console.error('[AUTONOMOUS CONTROLLER] getLogs unexpected error:', err);
     return res.status(500).json({ success: false, error: 'Internal server error', code: 'LOGS_FAILED' });
   }
 }
@@ -115,7 +115,7 @@ async function getLastRun(req, res) {
       },
     });
   } catch (err) {
-    console.error('[AUTONOMOUS CONTROLLER] getLastRun unexpected error:', err.message);
+    console.error('[AUTONOMOUS CONTROLLER] getLastRun unexpected error:', err);
     return res.status(500).json({ success: false, error: 'Internal server error', code: 'LAST_RUN_FAILED' });
   }
 }

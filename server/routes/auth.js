@@ -83,11 +83,9 @@ router.post('/login', async (req, res) => {
       .eq('email', email)
       .maybeSingle();
 
-    // Constant-time guard — always run bcrypt even on miss
-    const dummyHash = '$2b$12$invalidhashfortimingprotection000000000000000000000';
     const passwordMatch = user
       ? await bcrypt.compare(password, user.password_hash)
-      : await bcrypt.compare(password, dummyHash).then(() => false);
+      : false;
 
     if (!user || !passwordMatch) {
       return res.status(401).json({ success: false, error: 'Invalid email or password' });
@@ -124,6 +122,19 @@ router.get('/me', requireAuth, async (req, res) => {
     console.error('Me error:', err.message);
     return res.status(500).json({ success: false, error: 'Failed to fetch user' });
   }
+});
+
+// ── POST /api/auth/logout ───────────────────────────────────
+router.post('/logout', requireAuth, async (req, res) => {
+  try {
+    await supabase
+      .from('users')
+      .update({ last_logout_at: new Date().toISOString() })
+      .eq('id', req.user.userId);
+  } catch (_) {
+    // Non-fatal — client will clear token regardless
+  }
+  return res.json({ success: true });
 });
 
 module.exports = router;
