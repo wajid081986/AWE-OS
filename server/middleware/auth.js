@@ -1,6 +1,7 @@
-const jwt = require('jsonwebtoken');
+const jwt      = require('jsonwebtoken');
+const supabase = require('../db/supabase');
 
-module.exports = function requireAuth(req, res, next) {
+module.exports = async function requireAuth(req, res, next) {
   try {
     if (!process.env.JWT_SECRET) {
       throw new Error('JWT_SECRET not configured');
@@ -26,9 +27,23 @@ module.exports = function requireAuth(req, res, next) {
     }
 
     req.user = {
-      userId: payload.userId || payload.id,
-      email: payload.email,
+      userId:   payload.userId || payload.id,
+      email:    payload.email,
+      jti:      payload.jti,
+      tokenExp: payload.exp,
     };
+
+    // Blacklist check — reject tokens that were explicitly revoked at logout
+    if (payload.jti) {
+      const { data: blocked } = await supabase
+        .from('token_blacklist')
+        .select('jti')
+        .eq('jti', payload.jti)
+        .maybeSingle();
+      if (blocked) {
+        return res.status(401).json({ success: false, error: 'Token has been revoked' });
+      }
+    }
 
     next();
   } catch (err) {

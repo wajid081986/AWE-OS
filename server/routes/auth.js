@@ -1,9 +1,10 @@
 // ===== NEW CODE START =====
-const express  = require('express');
-const bcrypt = require('bcryptjs');
-const jwt      = require('jsonwebtoken');
-const { z }    = require('zod');
-const supabase = require('../db/supabase');
+const express     = require('express');
+const bcrypt      = require('bcryptjs');
+const jwt         = require('jsonwebtoken');
+const { v4: uuidv4 } = require('uuid');
+const { z }       = require('zod');
+const supabase    = require('../db/supabase');
 const requireAuth = require('../middleware/auth');
 
 const router = express.Router();
@@ -19,7 +20,11 @@ const LoginSchema = z.object({
 });
 
 function signToken(userId, email) {
-  return jwt.sign({ userId, email }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign(
+    { userId, email, jti: uuidv4() },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  );
 }
 
 // ── POST /api/auth/register ─────────────────────────────────
@@ -127,6 +132,12 @@ router.get('/me', requireAuth, async (req, res) => {
 // ── POST /api/auth/logout ───────────────────────────────────
 router.post('/logout', requireAuth, async (req, res) => {
   try {
+    if (req.user.jti && req.user.tokenExp) {
+      const expiresAt = new Date(req.user.tokenExp * 1000).toISOString();
+      await supabase
+        .from('token_blacklist')
+        .insert({ jti: req.user.jti, expires_at: expiresAt });
+    }
     await supabase
       .from('users')
       .update({ last_logout_at: new Date().toISOString() })
