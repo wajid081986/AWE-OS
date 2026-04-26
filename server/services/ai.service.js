@@ -25,7 +25,7 @@ function getClient() {
  * @param {string} [options.model='gpt-4o-mini'] - Model ID
  * @param {number} [options.max_tokens=6000]
  * @param {number} [options.temperature=0.4]  - Lower = more deterministic JSON output
- * @param {number} [options.timeout=30000]   - Abort timeout in milliseconds
+ * @param {number} [options.timeout=120000]  - Abort timeout in milliseconds
  * @returns {Promise<string>} Raw text content of the first completion choice
  */
 async function callOpenAI(prompt, options = {}) {
@@ -34,7 +34,7 @@ async function callOpenAI(prompt, options = {}) {
   const maxTokens  = options.max_tokens  || 8000;
   const temperature = options.temperature ?? 0.4;
 
-  const timeoutMs  = options.timeout || 30_000;
+  const timeoutMs  = options.timeout || 120_000;
   const controller = new AbortController();
   const timer      = setTimeout(() => controller.abort(), timeoutMs);
 
