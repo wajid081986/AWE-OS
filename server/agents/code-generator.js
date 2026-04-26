@@ -60,65 +60,273 @@ function validateAndCleanFiles(files, label) {
 // ── Per-file prompt builders ───────────────────────────────────
 
 function buildPagePrompt(tool, page) {
-  return `You are a senior React developer. Generate ONE complete production-ready React component.
+  const safeName   = (page.name || 'Page').replace(/\s+/g, '');
+  const apiCalls   = (page.api_calls   || []).join('\n  - ') || 'none';
+  const components = (page.components  || []).join(', ')     || 'none';
+  const features   = (page.key_features || []).join(', ')    || 'none';
 
-Tool: ${tool.name}
-Page: ${page.name || 'Page'} — route: ${page.route || '/'}
-Purpose: ${page.purpose || ''}
-Components: ${(page.components || []).join(', ')}
-Features: ${(page.key_features || []).join(', ')}
-State: ${page.state_management || ''}
-API Calls: ${(page.api_calls || []).join(', ')}
+  return `You are a senior React developer at a top-tier company. Generate ONE complete production-ready React page component.
 
-Rules:
-- Tailwind CSS only, dark theme (#0a0a0f bg, #12121a cards, #4f46e5 accent)
-- Functional component with hooks — no class components
-- Include loading state, error state, and empty state
-- Use fetch() for API calls; read token from localStorage('awe_token')
-- Export as default function
-- VITE_API_URL is from import.meta.env.VITE_API_URL
+TOOL: ${tool.name}
+PAGE: ${page.name || 'Page'} — route: ${page.route || '/'}
+PURPOSE: ${page.purpose || ''}
+COMPONENTS: ${components}
+FEATURES: ${features}
+STATE: ${page.state_management || 'useState + useEffect'}
+API CALLS:
+  - ${apiCalls}
 
-Return ONLY the complete JSX code. No markdown, no explanation.`;
+════ MANDATORY REQUIREMENTS — every rule must appear in the output ════
+
+1. IMPORTS (exact lines required at top of file):
+   import React, { useState, useEffect } from 'react';
+   import axios from 'axios';
+   const API = import.meta.env.VITE_API_URL;
+
+2. AUTH (exact lines required — first thing inside component body):
+   const token = localStorage.getItem('awe_token');
+   if (!token) { window.location.href = '/login'; return null; }
+   const headers = { Authorization: \`Bearer \${token}\` };
+
+3. ALL AXIOS CALLS must include the auth headers object:
+   await axios.get(\`\${API}/endpoint\`, { headers })
+   await axios.post(\`\${API}/endpoint\`, body, { headers })
+   await axios.delete(\`\${API}/endpoint\`, { headers })
+
+4. LOADING STATE (required):
+   const [loading, setLoading] = useState(true);
+   Render: <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500" /></div>
+
+5. ERROR STATE (required):
+   const [error, setError] = useState(null);
+   Render: <div className="p-4 bg-red-900/30 border border-red-500 rounded-lg text-red-300">{error}</div>
+
+6. EMPTY STATE (required when list/data is empty):
+   Render: <div className="text-center py-12 text-gray-400">No items yet. Create your first one!</div>
+
+7. DARK THEME (Tailwind CSS only — no inline styles):
+   Page bg: bg-[#0a0a0f]   Cards: bg-[#12121a]   Accent: bg-indigo-600 hover:bg-indigo-700
+   Text: text-white / text-gray-300 / text-gray-400   Borders: border-gray-700
+   Rounded: rounded-xl   Shadow: shadow-lg   Transitions: transition-all
+
+8. EXPORT (exact line):
+   export default function ${safeName}() { ... }
+
+════ STRICTLY FORBIDDEN — will cause build failure or security breach ════
+✗ fetch() — use axios only, always
+✗ Hardcoded URLs (localhost, onrender.com, vercel.app, or any http:// / https://)
+✗ Class components (extends React.Component)
+✗ Inline styles (style={{ }})
+✗ Any axios/fetch call WITHOUT the Authorization header
+✗ Missing any of: loading state, error state, empty state
+✗ import.meta.env.REACT_APP_* — use VITE_API_URL only
+✗ console.log with token, password, or user PII
+
+Return ONLY the complete JSX file. No markdown fences (\`\`\`), no explanation, no intro text.`;
 }
 
 function buildRoutePrompt(tool, endpoint) {
-  return `You are a senior Node.js/Express developer. Generate ONE complete production-ready route handler.
+  const validations = (endpoint.validation_rules || []).join('\n  - ') || 'none';
+  const errorCodes  = (endpoint.error_codes || []).join(', ') || '400, 401, 404, 500';
 
-Tool: ${tool.name}
-Endpoint: ${endpoint.method || 'GET'} ${endpoint.path || '/api/route'}
-Purpose: ${endpoint.purpose || ''}
-Auth Required: ${endpoint.auth_required ?? true}
-Rate Limit: ${endpoint.rate_limit || '100/15min'}
-Request Body: ${JSON.stringify(endpoint.request_body || {})}
-Response: ${JSON.stringify(endpoint.response || {})}
-Validations: ${(endpoint.validation_rules || []).join(', ')}
-Error Codes: ${(endpoint.error_codes || []).join(', ')}
+  return `You are a senior Node.js/Express developer. Generate ONE complete production-ready Express route file.
 
-Rules:
-- Express Router with requireAuth middleware at server/middleware/auth.js
-- Supabase client from server/db/supabase.js
-- Input validation with express-validator
-- try/catch on every async operation — return JSON { success, data/error }
-- Proper HTTP status codes (400/401/403/404/429/500)
+TOOL: ${tool.name}
+ENDPOINT: ${endpoint.method || 'GET'} ${endpoint.path || '/api/route'}
+PURPOSE: ${endpoint.purpose || ''}
+AUTH REQUIRED: ${endpoint.auth_required !== false ? 'YES' : 'NO'}
+RATE LIMIT: ${endpoint.rate_limit || '100 req / 15 min'}
+REQUEST BODY: ${JSON.stringify(endpoint.request_body || {})}
+RESPONSE: ${JSON.stringify(endpoint.response || {})}
+VALIDATIONS:
+  - ${validations}
+ERROR CODES: ${errorCodes}
 
-Return ONLY the complete route handler code. No markdown, no explanation.`;
+════ MANDATORY REQUIREMENTS ════
+
+1. FILE HEADER — exact imports (copy these lines):
+   const express  = require('express');
+   const supabase = require('../db/supabase');
+   const requireAuth = require('../middleware/auth');
+   const router   = express.Router();
+
+2. AUTH MIDDLEWARE — apply on every protected route:
+   router.get('/path', requireAuth, async (req, res) => { ... });
+   NEVER use: const { requireAuth } = require('../middleware/auth')
+   requireAuth is a DEFAULT EXPORT — destructuring it returns undefined.
+
+3. USER ID — read from req.user.userId (this is what requireAuth sets):
+   const { userId, email } = req.user;
+   NEVER use req.user.id — the field is userId, not id.
+
+4. RESPONSE FORMAT — always this exact shape:
+   Success: return res.status(200).json({ success: true, data: result, message: 'Done' });
+   Created: return res.status(201).json({ success: true, data: result, message: 'Created' });
+   Error:   return res.status(400).json({ success: false, message: 'Reason here' });
+
+5. ERROR HANDLING — wrap every async handler:
+   try {
+     ...
+   } catch (err) {
+     console.error('[${tool.name}]', err.message);
+     return res.status(500).json({ success: false, message: 'Server error' });
+   }
+
+6. SUPABASE QUERIES — always destructure and check error:
+   const { data, error } = await supabase.from('table').select('*').eq('user_id', userId);
+   if (error) return res.status(400).json({ success: false, message: error.message });
+   if (!data)  return res.status(404).json({ success: false, message: 'Not found' });
+
+7. INPUT VALIDATION — validate before touching DB:
+   if (!body.fieldName) return res.status(400).json({ success: false, message: 'fieldName is required' });
+
+8. FILE FOOTER — exact line:
+   module.exports = router;
+
+════ STRICTLY FORBIDDEN ════
+✗ const { requireAuth } = require(...)  — breaks auth silently (it's a default export)
+✗ req.user.id — use req.user.userId
+✗ Hardcoded secrets, API keys, passwords, or URLs
+✗ POST /auth/login route — the global auth system already handles login, never duplicate
+✗ Raw SQL strings — Supabase client only
+✗ Async handler without try/catch
+✗ Missing module.exports = router at the end
+
+Return ONLY the complete .js route file. No markdown fences (\`\`\`), no explanation.`;
 }
 
 function buildSqlPrompt(tool, dbSchema) {
-  return `Generate PostgreSQL SQL for this tool's database schema.
+  return `You are a senior PostgreSQL/Supabase DBA. Generate the complete database schema SQL for this tool.
 
-Tool: ${tool.name}
-Schema: ${JSON.stringify(dbSchema || {})}
+TOOL: ${tool.name}
+SCHEMA: ${JSON.stringify(dbSchema || {})}
 
-Rules:
-- CREATE TABLE IF NOT EXISTS with proper types
-- UUID primary keys with gen_random_uuid()
-- created_at/updated_at TIMESTAMPTZ DEFAULT now()
-- Proper indexes for foreign keys and frequently queried columns
-- RLS policies for user data isolation
-- updated_at trigger
+════ MANDATORY REQUIREMENTS ════
 
-Return ONLY the SQL. No explanation. No markdown.`;
+1. TABLE CREATION — always use IF NOT EXISTS:
+   CREATE TABLE IF NOT EXISTS table_name (
+     id         UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
+     user_id    UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+     created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
+     updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
+   );
+
+2. THE "users" TABLE ALREADY EXISTS — never create it.
+   Only create NEW tables specific to this tool.
+
+3. INDEXES — always use IF NOT EXISTS:
+   CREATE INDEX IF NOT EXISTS idx_table_user_id    ON table_name(user_id);
+   CREATE INDEX IF NOT EXISTS idx_table_created_at ON table_name(created_at DESC);
+
+4. ROW LEVEL SECURITY — required for every new table:
+   ALTER TABLE table_name ENABLE ROW LEVEL SECURITY;
+   CREATE POLICY "Users access own data"
+     ON table_name FOR ALL
+     USING (user_id = auth.uid());
+
+5. UPDATED_AT TRIGGER — use CREATE OR REPLACE:
+   CREATE OR REPLACE FUNCTION update_updated_at_column()
+   RETURNS TRIGGER AS $$
+   BEGIN NEW.updated_at = now(); RETURN NEW; END;
+   $$ LANGUAGE plpgsql;
+
+   CREATE TRIGGER update_table_name_updated_at
+     BEFORE UPDATE ON table_name
+     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+6. COLUMN TYPES:
+   - Text fields:   TEXT NOT NULL  (never VARCHAR)
+   - Money:         NUMERIC(10,2) NOT NULL
+   - Counters:      INTEGER DEFAULT 0 NOT NULL
+   - JSON data:     JSONB NOT NULL DEFAULT '[]'
+   - Enums:         TEXT CHECK (col IN ('a','b','c')) DEFAULT 'a' NOT NULL
+   - Flags:         BOOLEAN DEFAULT false NOT NULL
+
+════ STRICTLY FORBIDDEN ════
+✗ CREATE TABLE users — it already exists; never recreate or alter it
+✗ DROP TABLE — never use destructive DDL
+✗ CREATE TABLE without IF NOT EXISTS
+✗ CREATE INDEX without IF NOT EXISTS
+✗ VARCHAR — use TEXT
+✗ Nullable required columns (always add NOT NULL with a default)
+✗ Foreign keys without ON DELETE CASCADE or ON DELETE SET NULL
+
+Return ONLY the SQL statements. No markdown fences (\`\`\`), no explanation, no comments.`;
+}
+
+// ── Post-generation code validator ────────────────────────────
+// Checks AI output for known anti-patterns before saving to DB.
+// Returns { score: 0-100, issues: { critical, high, medium }, passed: bool }
+
+function validateGeneratedCode(content, type) {
+  const issues = { critical: [], high: [], medium: [] };
+  let score = 100;
+
+  if (type === 'frontend') {
+    if (!content.includes('axios')) {
+      issues.critical.push('Missing axios import — never use fetch()');
+      score -= 30;
+    }
+    if (!content.includes('awe_token')) {
+      issues.critical.push('Auth token not read from localStorage("awe_token")');
+      score -= 25;
+    }
+    if (!content.includes('VITE_API_URL') && !content.includes('import.meta.env')) {
+      issues.critical.push('API URL hardcoded or missing — must use import.meta.env.VITE_API_URL');
+      score -= 20;
+    }
+    if (/https?:\/\/(localhost|[\w-]+\.onrender\.com|[\w-]+\.vercel\.app)/.test(content)) {
+      issues.critical.push('Hardcoded absolute URL found — remove all http/https URLs');
+      score -= 20;
+    }
+    if (content.includes('fetch(')) {
+      issues.high.push('fetch() used — replace with axios');
+      score -= 15;
+    }
+    if (!/loading/.test(content)) {
+      issues.high.push('Missing loading state (useState for loading)');
+      score -= 10;
+    }
+    if (!/\berror\b/.test(content)) {
+      issues.medium.push('Missing error state (useState for error)');
+      score -= 5;
+    }
+    if (!content.includes('export default function')) {
+      issues.medium.push('Missing default function export');
+      score -= 5;
+    }
+  }
+
+  if (type === 'backend') {
+    if (/\{\s*requireAuth/.test(content)) {
+      issues.critical.push('requireAuth destructured — it is a default export, use: require("../middleware/auth")');
+      score -= 35;
+    }
+    if (/req\.user\.id\b/.test(content) && !/req\.user\.userId/.test(content)) {
+      issues.critical.push('req.user.id used — the correct field is req.user.userId');
+      score -= 25;
+    }
+    if (/https?:\/\/(localhost|[\w-]+\.onrender\.com|[\w-]+\.vercel\.app)/.test(content)) {
+      issues.critical.push('Hardcoded absolute URL in backend route');
+      score -= 20;
+    }
+    if (!content.includes('try') || !content.includes('catch')) {
+      issues.high.push('Missing try/catch error handling in async handler');
+      score -= 15;
+    }
+    if (!content.includes('module.exports')) {
+      issues.high.push('Missing module.exports = router');
+      score -= 15;
+    }
+    if (/router\.(get|post|put|patch|delete)\(/.test(content) && !content.includes('requireAuth')) {
+      issues.high.push('Route handler registered without requireAuth middleware');
+      score -= 10;
+    }
+  }
+
+  score = Math.max(0, score);
+  const passed = issues.critical.length === 0 && score >= 60;
+  return { score, issues, passed };
 }
 
 // ── Retry wrapper ─────────────────────────────────────────────
@@ -172,7 +380,7 @@ async function generateChunked(tool, plan, codeId) {
   for (const page of pages) {
     const pageName = page.name || 'Page';
     try {
-      const rawCode = await generateWithRetry(() =>
+      let rawCode = await generateWithRetry(() =>
         callWithTimeout(
           callOpenAI(buildPagePrompt(tool, page), {
             model: AI_MODEL, temperature: 0.2, max_tokens: 3000, timeout: AI_TIMEOUT_MS,
@@ -181,7 +389,24 @@ async function generateChunked(tool, plan, codeId) {
         )
       );
 
-      // Derive file path from page name
+      // Validate quality — retry once if critical issues found
+      let validation = validateGeneratedCode(rawCode, 'frontend');
+      console.log(`[CODE GEN] Quality "${pageName}": ${validation.score}/100`);
+      if (!validation.passed && validation.issues.critical.length > 0) {
+        console.warn(`[CODE GEN] Critical issues in "${pageName}" — retrying with fix prompt`);
+        const fixPrompt = buildPagePrompt(tool, page) +
+          `\n\nFIX THESE CRITICAL ISSUES FROM YOUR PREVIOUS ATTEMPT (all must be resolved):\n` +
+          validation.issues.critical.map(i => `- ${i}`).join('\n') +
+          `\n\nGenerate the fully corrected file. No explanation.`;
+        await delay(2000);
+        rawCode = await callWithTimeout(
+          callOpenAI(fixPrompt, { model: AI_MODEL, temperature: 0.1, max_tokens: 3000, timeout: AI_TIMEOUT_MS }),
+          AI_TIMEOUT_MS
+        );
+        validation = validateGeneratedCode(rawCode, 'frontend');
+        console.log(`[CODE GEN] Retry quality "${pageName}": ${validation.score}/100`);
+      }
+
       const safeName  = pageName.replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '');
       const filePath  = `client/src/pages/${safeName}.jsx`;
       const fileObj   = { path: filePath, language: 'jsx', type: 'page', content: rawCode };
@@ -202,7 +427,7 @@ async function generateChunked(tool, plan, codeId) {
   for (const endpoint of endpoints) {
     const epLabel = `${endpoint.method || 'GET'} ${endpoint.path || '/'}`;
     try {
-      const rawCode = await generateWithRetry(() =>
+      let rawCode = await generateWithRetry(() =>
         callWithTimeout(
           callOpenAI(buildRoutePrompt(tool, endpoint), {
             model: AI_MODEL, temperature: 0.2, max_tokens: 3000, timeout: AI_TIMEOUT_MS,
@@ -211,7 +436,24 @@ async function generateChunked(tool, plan, codeId) {
         )
       );
 
-      // Derive a safe file path from endpoint path
+      // Validate quality — retry once if critical issues found
+      let validation = validateGeneratedCode(rawCode, 'backend');
+      console.log(`[CODE GEN] Quality "${epLabel}": ${validation.score}/100`);
+      if (!validation.passed && validation.issues.critical.length > 0) {
+        console.warn(`[CODE GEN] Critical issues in "${epLabel}" — retrying with fix prompt`);
+        const fixPrompt = buildRoutePrompt(tool, endpoint) +
+          `\n\nFIX THESE CRITICAL ISSUES FROM YOUR PREVIOUS ATTEMPT (all must be resolved):\n` +
+          validation.issues.critical.map(i => `- ${i}`).join('\n') +
+          `\n\nGenerate the fully corrected file. No explanation.`;
+        await delay(2000);
+        rawCode = await callWithTimeout(
+          callOpenAI(fixPrompt, { model: AI_MODEL, temperature: 0.1, max_tokens: 3000, timeout: AI_TIMEOUT_MS }),
+          AI_TIMEOUT_MS
+        );
+        validation = validateGeneratedCode(rawCode, 'backend');
+        console.log(`[CODE GEN] Retry quality "${epLabel}": ${validation.score}/100`);
+      }
+
       const safePath  = (endpoint.path || '/route').replace(/[^a-zA-Z0-9/-]/g, '').replace(/\//g, '-').replace(/^-/, '');
       const filePath  = `server/routes/${safePath || 'route'}.routes.js`;
       const fileObj   = { path: filePath, language: 'javascript', type: 'route', content: rawCode };
@@ -379,6 +621,24 @@ async function generateToolCode(tool_id) {
   }
 
   console.log(`[CODE GEN] Saved → code_id: ${codeId}`);
+
+  // ── 5. Log route mounting instructions ───────────────────
+  if (backendFiles.length > 0) {
+    const toolSlug = tool.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    console.log('\n[CODE GEN] ══════════════════════════════════════════════');
+    console.log(`[CODE GEN] ROUTE MOUNTING INSTRUCTIONS — "${tool.name}"`);
+    console.log('[CODE GEN] Add these lines to server/index.js:');
+    backendFiles.forEach(f => {
+      const routeFile = f.path.replace('server/', './');
+      const varName   = routeFile
+        .replace('./routes/', '')
+        .replace('.routes.js', '')
+        .replace(/[-/]([a-z])/g, (_, c) => c.toUpperCase()) + 'Router';
+      console.log(`[CODE GEN]   const ${varName} = require('${routeFile}');`);
+      console.log(`[CODE GEN]   app.use('/api/${toolSlug}', ${varName});`);
+    });
+    console.log('[CODE GEN] ══════════════════════════════════════════════\n');
+  }
 
   return {
     success:        true,
