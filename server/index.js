@@ -3,8 +3,9 @@ const express   = require('express');
 const cors      = require('cors');
 const rateLimit = require('express-rate-limit');
 
-const resumeRoutes  = require('./routes/resume');
-const authRoutes    = require('./routes/auth');
+const resumeRoutes         = require('./routes/resume');
+const resumeVersionsRoutes = require('./routes/resume-versions.routes');
+const authRoutes           = require('./routes/auth');
 const { eventRouter, revenueRouter } = require('./routes/event.routes');
 const decisionRoutes                 = require('./routes/decision.routes');
 const toolRoutes                     = require('./routes/tool.routes');
@@ -129,6 +130,12 @@ app.use('/api/autonomous', autonomousRoutes);
 app.use('/api/ideas', ideaRoutes);
 
 // ✅ Code Generator (AI → DB → human review → live)
+// Timeout middleware: generation can take up to 3 minutes on Render free tier
+app.use('/api/codegen/generate', (req, res, next) => {
+  req.setTimeout(180_000);
+  res.setTimeout(180_000);
+  next();
+});
 app.use('/api/codegen', codegenRoutes);
 
 // ✅ Monetization Intelligence (strategies + A/B pricing experiments)
@@ -148,6 +155,9 @@ app.use('/api/marketing', marketingRoutes);
 
 // ✅ Support Agent
 app.use('/api/support', supportRoutes);
+
+// ✅ Resume versions (explicit mount — avoids 404 from /api catch-all ordering)
+app.use('/api/resume-versions', resumeVersionsRoutes);
 
 // ✅ Main app routes
 app.use('/api', resumeRoutes);

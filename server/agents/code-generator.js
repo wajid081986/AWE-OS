@@ -2,7 +2,7 @@ const supabase                        = require('../db/supabase');
 const { callOpenAI, parseJSONResponse } = require('../services/ai.service');
 
 // ── Constants ─────────────────────────────────────────────────
-const AI_TIMEOUT_MS          = 60_000;
+const AI_TIMEOUT_MS           = 120_000;           // 120s — was 60s, Render needs headroom
 const MAX_FILE_CONTENT_LENGTH = 50_000;
 const AI_MODEL                = process.env.CODEGEN_MODEL || 'gpt-4o-mini';
 
@@ -10,6 +10,8 @@ const BLOCKED_PATH_PATTERNS = ['..', '.env', 'node_modules'];
 const ALLOWED_PATH_PREFIXES = ['client/', 'server/'];
 
 // ── Helpers ───────────────────────────────────────────────────
+
+const delay = ms => new Promise(r => setTimeout(r, ms));
 
 function callWithTimeout(promise, ms) {
   const timer = new Promise((_, reject) =>
@@ -25,116 +27,232 @@ function callWithTimeout(promise, ms) {
 
 function isValidPath(filePath) {
   if (!filePath || typeof filePath !== 'string') return false;
-  if (BLOCKED_PATH_PATTERNS.some(p => filePath.includes(p)))  return false;
+  if (BLOCKED_PATH_PATTERNS.some(p => filePath.includes(p)))   return false;
   if (!ALLOWED_PATH_PREFIXES.some(p => filePath.startsWith(p))) return false;
   return true;
 }
 
 function validateAndCleanFiles(files, label) {
   if (!Array.isArray(files)) return [];
-
   const valid = [];
   for (let i = 0; i < files.length; i++) {
     const f = files[i];
-
     if (!f || typeof f !== 'object') {
-      console.warn(`[CODE GEN] ${label}[${i}] not an object — skipping`);
-      continue;
+      console.warn(`[CODE GEN] ${label}[${i}] not an object — skipping`); continue;
     }
     if (!f.path || !f.language || !f.content) {
-      console.warn(`[CODE GEN] ${label}[${i}] missing path/language/content — skipping`);
-      continue;
+      console.warn(`[CODE GEN] ${label}[${i}] missing path/language/content — skipping`); continue;
     }
     if (!isValidPath(f.path)) {
-      console.warn(`[CODE GEN] ${label}[${i}] unsafe path "${f.path}" — skipping`);
-      continue;
+      console.warn(`[CODE GEN] ${label}[${i}] unsafe path "${f.path}" — skipping`); continue;
     }
     if (typeof f.content !== 'string' || f.content.trim().length === 0) {
-      console.warn(`[CODE GEN] ${label}[${i}] empty content — skipping`);
-      continue;
+      console.warn(`[CODE GEN] ${label}[${i}] empty content — skipping`); continue;
     }
-
-    // Truncate oversized files rather than rejecting to preserve as much as possible
     const content = f.content.length > MAX_FILE_CONTENT_LENGTH
-      ? f.content.slice(0, MAX_FILE_CONTENT_LENGTH) + '\n// [TRUNCATED — content exceeded 50,000 chars]'
+      ? f.content.slice(0, MAX_FILE_CONTENT_LENGTH) + '\n// [TRUNCATED]'
       : f.content;
-
-    valid.push({
-      path:     f.path.trim(),
-      language: f.language.trim(),
-      type:     f.type || 'file',
-      content,
-    });
+    valid.push({ path: f.path.trim(), language: f.language.trim(), type: f.type || 'file', content });
   }
   return valid;
 }
 
-function buildPrompt(tool, plan) {
-  return `You are a Senior Full-Stack Engineer.
-Generate complete, production-ready code for this micro-SaaS tool.
+// ── Per-file prompt builders ───────────────────────────────────
 
-Tool Name: ${tool.name}
-Description: ${tool.description || 'Not provided'}
+function buildPagePrompt(tool, page) {
+  return `You are a senior React developer. Generate ONE complete production-ready React component.
 
-TECH STACK (follow exactly):
-- Frontend: React (Vite), Tailwind CSS, Axios
-- Backend: Node.js, Express, Supabase
-- Auth: JWT (token in localStorage as 'awe_token')
-- API Base: process.env.VITE_API_URL
+Tool: ${tool.name}
+Page: ${page.name || 'Page'} — route: ${page.route || '/'}
+Purpose: ${page.purpose || ''}
+Components: ${(page.components || []).join(', ')}
+Features: ${(page.key_features || []).join(', ')}
+State: ${page.state_management || ''}
+API Calls: ${(page.api_calls || []).join(', ')}
 
-BUILD PLAN:
-UI Plan: ${JSON.stringify(plan.ui_plan)}
-API Plan: ${JSON.stringify(plan.api_plan)}
-DB Schema: ${JSON.stringify(plan.db_schema)}
+Rules:
+- Tailwind CSS only, dark theme (#0a0a0f bg, #12121a cards, #4f46e5 accent)
+- Functional component with hooks — no class components
+- Include loading state, error state, and empty state
+- Use fetch() for API calls; read token from localStorage('awe_token')
+- Export as default function
+- VITE_API_URL is from import.meta.env.VITE_API_URL
 
-RULES:
-- Use functional React components with hooks only
-- Use Tailwind CSS only (no other UI libraries)
-- Every API route must validate JWT via middleware
-- Every async function must have try/catch with appropriate HTTP status codes
-- Add a JSDoc comment to every exported function
-- Follow RESTful conventions for all endpoints
-- Supabase client is at server/db/supabase.js (already configured)
-- JWT secret is process.env.JWT_SECRET
-- Auth middleware is at server/middleware/auth.js (use requireAuth)
-
-Return ONLY this exact JSON object — no explanation, no markdown fences:
-{
-  "frontend_files": [
-    {
-      "path": "client/src/pages/ToolName.jsx",
-      "language": "jsx",
-      "type": "page",
-      "content": "full complete file content here"
-    }
-  ],
-  "backend_files": [
-    {
-      "path": "server/routes/toolname.routes.js",
-      "language": "javascript",
-      "type": "route",
-      "content": "full complete file content here"
-    },
-    {
-      "path": "server/controllers/toolname.controller.js",
-      "language": "javascript",
-      "type": "controller",
-      "content": "full complete file content here"
-    }
-  ],
-  "db_sql": "-- SQL to create this tool's tables\\nCREATE TABLE IF NOT EXISTS..."
+Return ONLY the complete JSX code. No markdown, no explanation.`;
 }
 
-CRITICAL: Every file content must be complete, working code.
-DO NOT use placeholder comments like '// add logic here' or '// TODO'.
-The code must be ready to copy-paste into the project and run.`;
+function buildRoutePrompt(tool, endpoint) {
+  return `You are a senior Node.js/Express developer. Generate ONE complete production-ready route handler.
+
+Tool: ${tool.name}
+Endpoint: ${endpoint.method || 'GET'} ${endpoint.path || '/api/route'}
+Purpose: ${endpoint.purpose || ''}
+Auth Required: ${endpoint.auth_required ?? true}
+Rate Limit: ${endpoint.rate_limit || '100/15min'}
+Request Body: ${JSON.stringify(endpoint.request_body || {})}
+Response: ${JSON.stringify(endpoint.response || {})}
+Validations: ${(endpoint.validation_rules || []).join(', ')}
+Error Codes: ${(endpoint.error_codes || []).join(', ')}
+
+Rules:
+- Express Router with requireAuth middleware at server/middleware/auth.js
+- Supabase client from server/db/supabase.js
+- Input validation with express-validator
+- try/catch on every async operation — return JSON { success, data/error }
+- Proper HTTP status codes (400/401/403/404/429/500)
+
+Return ONLY the complete route handler code. No markdown, no explanation.`;
+}
+
+function buildSqlPrompt(tool, dbSchema) {
+  return `Generate PostgreSQL SQL for this tool's database schema.
+
+Tool: ${tool.name}
+Schema: ${JSON.stringify(dbSchema || {})}
+
+Rules:
+- CREATE TABLE IF NOT EXISTS with proper types
+- UUID primary keys with gen_random_uuid()
+- created_at/updated_at TIMESTAMPTZ DEFAULT now()
+- Proper indexes for foreign keys and frequently queried columns
+- RLS policies for user data isolation
+- updated_at trigger
+
+Return ONLY the SQL. No explanation. No markdown.`;
+}
+
+// ── Retry wrapper ─────────────────────────────────────────────
+
+async function generateWithRetry(fn, retries = 1) {
+  try {
+    return await fn();
+  } catch (err) {
+    if (retries > 0) {
+      console.log('[CODE GEN] Retrying generation…');
+      await delay(3000);
+      return generateWithRetry(fn, retries - 1);
+    }
+    throw err;
+  }
+}
+
+// ── Partial progress save ─────────────────────────────────────
+
+async function savePartialProgress(codeId, frontendFiles, backendFiles) {
+  try {
+    await supabase
+      .from('generated_code')
+      .update({
+        frontend_files: frontendFiles,
+        backend_files:  backendFiles,
+        total_files:    frontendFiles.length + backendFiles.length,
+        status:         'generating',
+      })
+      .eq('id', codeId);
+  } catch (err) {
+    console.warn('[CODE GEN] Partial save failed (non-fatal):', err.message);
+  }
+}
+
+// ── Chunked generation ────────────────────────────────────────
+// Generates one file at a time — each call is short enough for Render free tier.
+// Saves progress to DB after every file so partial work is never lost.
+
+async function generateChunked(tool, plan, codeId) {
+  const pages     = plan.ui_plan?.pages     || [];
+  const endpoints = plan.api_plan?.endpoints || [];
+  const toolName  = tool.name;
+
+  const frontendFiles = [];
+  const backendFiles  = [];
+  const total = pages.length + endpoints.length;
+  let done = 0;
+
+  // ── Frontend pages ────────────────────────────────────────
+  for (const page of pages) {
+    const pageName = page.name || 'Page';
+    try {
+      const rawCode = await generateWithRetry(() =>
+        callWithTimeout(
+          callOpenAI(buildPagePrompt(tool, page), {
+            model: AI_MODEL, temperature: 0.2, max_tokens: 3000, timeout: AI_TIMEOUT_MS,
+          }),
+          AI_TIMEOUT_MS
+        )
+      );
+
+      // Derive file path from page name
+      const safeName  = pageName.replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '');
+      const filePath  = `client/src/pages/${safeName}.jsx`;
+      const fileObj   = { path: filePath, language: 'jsx', type: 'page', content: rawCode };
+      const validated = validateAndCleanFiles([fileObj], 'frontend');
+      if (validated.length > 0) frontendFiles.push(validated[0]);
+
+      done++;
+      console.log(`[CODE GEN] ✓ Page "${pageName}" (${done}/${total})`);
+    } catch (err) {
+      console.warn(`[CODE GEN] ✗ Page "${pageName}" failed — skipping:`, err.message);
+    }
+
+    await savePartialProgress(codeId, frontendFiles, backendFiles);
+    await delay(2000);
+  }
+
+  // ── Backend routes ────────────────────────────────────────
+  for (const endpoint of endpoints) {
+    const epLabel = `${endpoint.method || 'GET'} ${endpoint.path || '/'}`;
+    try {
+      const rawCode = await generateWithRetry(() =>
+        callWithTimeout(
+          callOpenAI(buildRoutePrompt(tool, endpoint), {
+            model: AI_MODEL, temperature: 0.2, max_tokens: 3000, timeout: AI_TIMEOUT_MS,
+          }),
+          AI_TIMEOUT_MS
+        )
+      );
+
+      // Derive a safe file path from endpoint path
+      const safePath  = (endpoint.path || '/route').replace(/[^a-zA-Z0-9/-]/g, '').replace(/\//g, '-').replace(/^-/, '');
+      const filePath  = `server/routes/${safePath || 'route'}.routes.js`;
+      const fileObj   = { path: filePath, language: 'javascript', type: 'route', content: rawCode };
+      const validated = validateAndCleanFiles([fileObj], 'backend');
+      if (validated.length > 0) backendFiles.push(validated[0]);
+
+      done++;
+      console.log(`[CODE GEN] ✓ Route "${epLabel}" (${done}/${total})`);
+    } catch (err) {
+      console.warn(`[CODE GEN] ✗ Route "${epLabel}" failed — skipping:`, err.message);
+    }
+
+    await savePartialProgress(codeId, frontendFiles, backendFiles);
+    await delay(2000);
+  }
+
+  // ── SQL ───────────────────────────────────────────────────
+  let dbSql = null;
+  try {
+    dbSql = await generateWithRetry(() =>
+      callWithTimeout(
+        callOpenAI(buildSqlPrompt(tool, plan.db_schema), {
+          model: AI_MODEL, temperature: 0.1, max_tokens: 1000, timeout: AI_TIMEOUT_MS,
+        }),
+        AI_TIMEOUT_MS
+      )
+    );
+    console.log('[CODE GEN] ✓ SQL generated');
+  } catch (err) {
+    console.warn('[CODE GEN] ✗ SQL generation failed (non-fatal):', err.message);
+  }
+
+  const partial = done < total;
+  return { frontendFiles, backendFiles, dbSql, done, total, partial };
 }
 
 // ── Public API ─────────────────────────────────────────────────
 
 /**
- * Generate production-ready code for an approved tool and save it to DB.
- * Code is stored in Supabase — never written to disk.
+ * Generate production-ready code for an approved tool, one file at a time.
+ * Saves partial progress to DB after each file — no work lost on timeout.
  *
  * @param {string} tool_id - UUID of the tool in 'building' status
  * @returns {Promise<GenerationResult>}
@@ -177,9 +295,7 @@ async function generateToolCode(tool_id) {
     err.code = 'DB_ERROR'; err.status = 500; throw err;
   }
   if (!plan) {
-    const err = new Error(
-      'No approved plan found. Approve a plan in the Builder Panel first.'
-    );
+    const err = new Error('No approved plan found. Approve a plan in the Builder Panel first.');
     err.code = 'NO_APPROVED_PLAN'; err.status = 422; throw err;
   }
 
@@ -198,15 +314,10 @@ async function generateToolCode(tool_id) {
     err.code = 'DUPLICATE_BUILD'; err.status = 409; throw err;
   }
 
-  // ── 2. Create pending record ──────────────────────────────
+  // ── 2. Create pending DB record ───────────────────────────
   const { data: record, error: insertErr } = await supabase
     .from('generated_code')
-    .insert({
-      tool_id,
-      plan_id:   plan.id,
-      tool_name: tool.name,
-      status:    'generating',
-    })
+    .insert({ tool_id, plan_id: plan.id, tool_name: tool.name, status: 'generating' })
     .select('id')
     .single();
 
@@ -217,60 +328,47 @@ async function generateToolCode(tool_id) {
 
   const codeId = record.id;
 
-  // ── 3–5. Call AI + validate ──────────────────────────────
-  console.log(`[CODE GEN] Starting for: ${tool.name} | plan_id: ${plan.id}`);
+  // ── 3. Chunked generation ─────────────────────────────────
+  console.log(`[CODE GEN] Starting chunked generation for: ${tool.name} | plan_id: ${plan.id}`);
   const start = Date.now();
 
-  let parsed;
+  let frontendFiles = [], backendFiles = [], dbSql = null, done = 0, total = 0;
+
   try {
-    const prompt   = buildPrompt(tool, plan);
-    const aiRaw    = await callWithTimeout(
-      callOpenAI(prompt, { model: AI_MODEL, temperature: 0.3, max_tokens: 4000 }),
-      AI_TIMEOUT_MS
-    );
-    const duration = Date.now() - start;
-    console.log(`[CODE GEN] AI responded in ${duration}ms`);
-
-    parsed = parseJSONResponse(aiRaw);
-    parsed._duration = duration;
-  } catch (aiErr) {
-    // Update record to 'failed' so UI can show the error state
-    await supabase
-      .from('generated_code')
-      .update({ status: 'failed' })
-      .eq('id', codeId);
-
-    console.error(`[CODE GEN] AI error for "${tool.name}": ${aiErr.message}`);
-    aiErr.code   = aiErr.code   || 'AI_UNAVAILABLE';
-    aiErr.status = aiErr.status || 503;
-    throw aiErr;
-  }
-
-  const frontendFiles = validateAndCleanFiles(parsed.frontend_files, 'frontend');
-  const backendFiles  = validateAndCleanFiles(parsed.backend_files,  'backend');
-  const totalFiles    = frontendFiles.length + backendFiles.length;
-
-  if (totalFiles === 0) {
+    ({ frontendFiles, backendFiles, dbSql, done, total } = await generateChunked(tool, plan, codeId));
+  } catch (err) {
+    // Mark failed if chunked generation itself crashes (not individual file failures)
     await supabase.from('generated_code').update({ status: 'failed' }).eq('id', codeId);
-    const err = new Error('AI returned no valid files after path validation');
-    err.code   = 'INVALID_CODE_OUTPUT';
-    err.status = 500;
+    console.error(`[CODE GEN] Fatal error for "${tool.name}": ${err.message}`);
+    err.code   = err.code   || 'AI_UNAVAILABLE';
+    err.status = err.status || 503;
     throw err;
   }
 
-  console.log(`[CODE GEN] Validated ${totalFiles} files successfully (${frontendFiles.length} frontend, ${backendFiles.length} backend)`);
+  const totalFiles  = frontendFiles.length + backendFiles.length;
+  const genMs       = Date.now() - start;
+  const partial     = done < total;
+  const finalStatus = totalFiles === 0 ? 'failed' : partial ? 'partial_ready' : 'ready_for_review';
 
-  // ── 6. Save to DB ──────────────────────────────────────────
+  if (totalFiles === 0) {
+    await supabase.from('generated_code').update({ status: 'failed' }).eq('id', codeId);
+    const err = new Error('AI returned no valid files after validation');
+    err.code = 'INVALID_CODE_OUTPUT'; err.status = 500; throw err;
+  }
+
+  console.log(`[CODE GEN] ${done}/${total} files in ${genMs}ms — status: ${finalStatus}`);
+
+  // ── 4. Save final result ──────────────────────────────────
   const { error: updateErr } = await supabase
     .from('generated_code')
     .update({
       frontend_files: frontendFiles,
       backend_files:  backendFiles,
-      db_sql:         typeof parsed.db_sql === 'string' ? parsed.db_sql : null,
+      db_sql:         typeof dbSql === 'string' ? dbSql : null,
       total_files:    totalFiles,
-      generation_ms:  parsed._duration,
+      generation_ms:  genMs,
       ai_model:       AI_MODEL,
-      status:         'ready_for_review',
+      status:         finalStatus,
     })
     .eq('id', codeId);
 
@@ -280,7 +378,7 @@ async function generateToolCode(tool_id) {
     err.code = 'DB_ERROR'; err.status = 500; throw err;
   }
 
-  console.log(`[CODE GEN] Saved to DB: code_id = ${codeId}`);
+  console.log(`[CODE GEN] Saved → code_id: ${codeId}`);
 
   return {
     success:        true,
@@ -290,17 +388,21 @@ async function generateToolCode(tool_id) {
     total_files:    totalFiles,
     frontend_files: frontendFiles.length,
     backend_files:  backendFiles.length,
-    has_sql:        Boolean(parsed.db_sql),
-    generation_ms:  parsed._duration,
-    status:         'ready_for_review',
-    message:        'Code ready for review in dashboard',
+    has_sql:        Boolean(dbSql),
+    generation_ms:  genMs,
+    files_done:     done,
+    files_total:    total,
+    partial,
+    status:         finalStatus,
+    message:        partial
+      ? `Partial generation: ${done}/${total} files. Retry to complete.`
+      : 'Code ready for review in dashboard',
   };
 }
 
 /**
  * Fetch the latest generated code record for a tool, including all file contents.
  * @param {string} tool_id
- * @returns {Promise<object|null>}
  */
 async function getGeneratedCode(tool_id) {
   const { data, error } = await supabase
@@ -310,7 +412,6 @@ async function getGeneratedCode(tool_id) {
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
-
   if (error) throw error;
   return data || null;
 }
@@ -335,16 +436,11 @@ async function approveGeneratedCode(code_id, reviewer_notes = null) {
 
   const { error: approveErr } = await supabase
     .from('generated_code')
-    .update({
-      status:         'approved',
-      reviewed_at:    new Date().toISOString(),
-      reviewer_notes: reviewer_notes || null,
-    })
+    .update({ status: 'approved', reviewed_at: new Date().toISOString(), reviewer_notes: reviewer_notes || null })
     .eq('id', code_id);
 
   if (approveErr) throw approveErr;
 
-  // Promote tool to 'live' only after human explicitly approves
   const { error: toolErr } = await supabase
     .from('tools')
     .update({ status: 'live' })
@@ -353,7 +449,7 @@ async function approveGeneratedCode(code_id, reviewer_notes = null) {
   if (toolErr) {
     console.error(`[CODE GEN] Failed to set tool status=live: ${toolErr.message}`);
   } else {
-    console.log(`[CODE GEN] Tool ${codeRecord.tool_name} approved → live`);
+    console.log(`[CODE GEN] Tool "${codeRecord.tool_name}" approved → live`);
   }
 
   return { success: true, tool_id: codeRecord.tool_id, status: 'live' };
@@ -379,18 +475,12 @@ async function rejectGeneratedCode(code_id, reviewer_notes = null) {
 
   const { error: rejectErr } = await supabase
     .from('generated_code')
-    .update({
-      status:         'rejected',
-      reviewed_at:    new Date().toISOString(),
-      reviewer_notes: reviewer_notes || null,
-    })
+    .update({ status: 'rejected', reviewed_at: new Date().toISOString(), reviewer_notes: reviewer_notes || null })
     .eq('id', code_id);
 
   if (rejectErr) throw rejectErr;
 
-  // Tool stays 'building' — intentionally no status change here
   console.log(`[CODE GEN] Code rejected for "${codeRecord.tool_name}". Tool stays 'building' — can regenerate.`);
-
   return { success: true, tool_id: codeRecord.tool_id, can_regenerate: true };
 }
 

@@ -33,6 +33,11 @@ function isSafe4xx(err) {
  * Triggers AI code generation for an approved plan. Code saved to DB only.
  */
 async function generateCode(req, res) {
+  // Code generation can take several minutes — extend socket timeout so
+  // Render / nginx don't close the connection before we finish.
+  req.setTimeout(180_000);
+  res.setTimeout(180_000);
+
   const { tool_id } = req.params;
 
   if (!UUID_REGEX.test(tool_id)) {
@@ -41,11 +46,25 @@ async function generateCode(req, res) {
     });
   }
 
+  let partialFiles = 0;
   try {
     const result = await generateToolCode(tool_id);
+    partialFiles = result.files_done || 0;
     return res.status(201).json({ success: true, data: result });
   } catch (err) {
     console.error('[codegen.controller] generateCode:', err.message);
+
+    // If we timed out but some files were saved, tell the client so it can retry
+    if (err.code === 'AI_TIMEOUT') {
+      return res.status(503).json({
+        success:         false,
+        error:           'Generation timed out — retry to continue from saved progress',
+        code:            'AI_TIMEOUT',
+        partial:         partialFiles > 0,
+        files_generated: partialFiles,
+      });
+    }
+
     return res.status(httpFor(err)).json({
       success: false,
       error:   isSafe4xx(err) ? err.message : 'Code generation failed — check server logs',
