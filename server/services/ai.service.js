@@ -18,30 +18,35 @@ function getClient() {
 }
 
 /**
- * Send a single user prompt to OpenAI and return the raw text response.
+ * Send a prompt to OpenAI and return the raw text response.
  *
- * @param {string} prompt         - The user message to send
+ * @param {string} prompt               - The user message to send
  * @param {object} [options]
- * @param {string} [options.model='gpt-4o-mini'] - Model ID
- * @param {number} [options.max_tokens=6000]
- * @param {number} [options.temperature=0.4]  - Lower = more deterministic JSON output
- * @param {number} [options.timeout=120000]  - Abort timeout in milliseconds
+ * @param {string} [options.model]      - Model ID (default: gpt-4o-mini)
+ * @param {number} [options.max_tokens] - Token limit (default: 8000)
+ * @param {number} [options.temperature]- 0 = deterministic, 1 = creative (default: 0.4)
+ * @param {number} [options.timeout]    - Abort timeout ms (default: 120000)
+ * @param {string} [options.systemPrompt] - Optional system-role message prepended before user prompt
  * @returns {Promise<string>} Raw text content of the first completion choice
  */
 async function callOpenAI(prompt, options = {}) {
-  const client     = getClient();
-  const model      = options.model       || 'gpt-4o-mini';
-  const maxTokens  = options.max_tokens  || 8000;
+  const client      = getClient();
+  const model       = options.model       || 'gpt-4o-mini';
+  const maxTokens   = options.max_tokens  || 8000;
   const temperature = options.temperature ?? 0.4;
 
   const timeoutMs  = options.timeout || 120_000;
   const controller = new AbortController();
   const timer      = setTimeout(() => controller.abort(), timeoutMs);
 
+  const messages = options.systemPrompt
+    ? [{ role: 'system', content: options.systemPrompt }, { role: 'user', content: prompt }]
+    : [{ role: 'user', content: prompt }];
+
   let response;
   try {
     response = await client.chat.completions.create(
-      { model, messages: [{ role: 'user', content: prompt }], max_tokens: maxTokens, temperature },
+      { model, messages, max_tokens: maxTokens, temperature },
       { signal: controller.signal }
     );
   } catch (err) {

@@ -235,54 +235,84 @@ function validatePlan(plan) {
 // ── Single-file prompt builders ──────────────────────────────
 
 function buildPageCodePrompt(page, toolName) {
-  return `You are a senior React developer. Generate production-ready JSX for one page.
+  return `Generate ONE complete React page for the AWE-OS platform.
 
 Tool: ${toolName}
 Page: ${page.name || 'Unnamed'} (route: ${page.route || '/'})
 Purpose: ${page.purpose || ''}
-Components: ${(page.components || []).join(', ')}
 Key Features: ${(page.key_features || []).join(', ')}
-State: ${page.state_management || ''}
 API Calls: ${(page.api_calls || []).join(', ')}
 
-Rules:
-- Tailwind CSS only, dark theme
-- Include loading state, error state, empty state
-- Use fetch() for API calls with Authorization header
-- Export as default function
-- Return ONLY the JSX code, no explanation`;
+Required structure (copy exactly):
+  import React, { useState, useEffect } from 'react';
+  import axios from 'axios';
+  const API = import.meta.env.VITE_API_URL;
+
+  export default function ${(page.name || 'Page').replace(/\s+/g, '')}() {
+    const token = localStorage.getItem('awe_token');
+    if (!token) { window.location.href = '/login'; return null; }
+    const headers = { Authorization: \`Bearer \${token}\` };
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    ...
+  }
+
+All UI must be inline — no external component imports.
+Use axios for all API calls. Show loading, error, and empty states.
+Return ONLY the JSX code, no explanation, no markdown fences.`;
 }
 
 function buildRouteCodePrompt(route, toolName) {
-  return `You are a senior Node.js/Express developer. Generate one production-ready API route handler.
+  return `Generate ONE complete Express route file for the AWE-OS platform.
 
 Tool: ${toolName}
 Endpoint: ${route.method || 'GET'} ${route.path || '/api/route'}
 Purpose: ${route.purpose || ''}
 Auth Required: ${route.auth_required ?? true}
-Rate Limit: ${route.rate_limit || '100/15min'}
 Request Body: ${JSON.stringify(route.request_body || {})}
-Response Shape: ${JSON.stringify(route.response || {})}
-Error Codes: ${(route.error_codes || []).join(', ')}
+Response: ${JSON.stringify(route.response || {})}
 Validation: ${(route.validation_rules || []).join(', ')}
 
-Rules:
-- Express Router syntax
-- Use express-validator for input validation
-- Proper try/catch with console.error
-- Return JSON with { success, data/error }
-- Return ONLY the route handler code, no explanation`;
+Required file structure:
+  const express     = require('express');
+  const supabase    = require('../db/supabase');
+  const requireAuth = require('../middleware/auth');   // DEFAULT export — never destructure
+  const router      = express.Router();
+
+  router.${(route.method || 'GET').toLowerCase()}('${route.path || '/'}', requireAuth, async (req, res) => {
+    const { userId } = req.user;   // use req.user?.userId — never req.user.id
+    try {
+      // filter all queries with .eq('user_id', userId)
+      return res.status(200).json({ success: true, data: result });
+    } catch (err) {
+      return res.status(500).json({ success: false, message: 'Server error' });
+    }
+  });
+
+  module.exports = router;
+
+Return ONLY the route handler code, no explanation, no markdown fences.`;
 }
 
 // ── generateSingleFile ────────────────────────────────────────
 // Generates code for one page or API route with 120s timeout.
+
+const BUILDER_SYSTEM_PROMPT = `You are an expert SaaS developer for the AWE-OS platform.
+Rules: use axios not fetch, use awe_token from localStorage, use VITE_API_URL,
+inline all UI (no external imports), requireAuth is a default export,
+use req.user?.userId not req.user.id, always try/catch, always IF NOT EXISTS in SQL.`;
 
 async function generateSingleFile(fileSpec, type, toolName) {
   const prompt = type === 'page'
     ? buildPageCodePrompt(fileSpec, toolName)
     : buildRouteCodePrompt(fileSpec, toolName);
 
-  const code = await callOpenAI(prompt, { temperature: 0.2, timeout: 120_000, max_tokens: 4000 });
+  const code = await callOpenAI(prompt, {
+    temperature:  0.1,
+    timeout:      120_000,
+    max_tokens:   4000,
+    systemPrompt: BUILDER_SYSTEM_PROMPT,
+  });
   return {
     type,
     name:  type === 'page' ? fileSpec.name : `${fileSpec.method} ${fileSpec.path}`,
