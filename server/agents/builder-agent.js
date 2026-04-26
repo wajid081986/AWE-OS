@@ -7,7 +7,8 @@ const { callOpenAI, parseJSONResponse } = require('../services/ai.service');
 const VALID_TRANSITIONS = {
   pending_review: new Set(['approved', 'rejected']),
   approved:       new Set(['in_progress']),
-  in_progress:    new Set(['completed']),
+  in_progress:    new Set(['completed', 'partial']),
+  partial:        new Set(['in_progress', 'completed']),  // can retry from partial
   rejected:       new Set([]),    // terminal — create a new plan instead
   completed:      new Set([]),    // terminal
 };
@@ -231,20 +232,158 @@ function validatePlan(plan) {
   return plan;
 }
 
+// ── Single-file prompt builders ──────────────────────────────
+
+function buildPageCodePrompt(page, toolName) {
+  return `You are a senior React developer. Generate production-ready JSX for one page.
+
+Tool: ${toolName}
+Page: ${page.name || 'Unnamed'} (route: ${page.route || '/'})
+Purpose: ${page.purpose || ''}
+Components: ${(page.components || []).join(', ')}
+Key Features: ${(page.key_features || []).join(', ')}
+State: ${page.state_management || ''}
+API Calls: ${(page.api_calls || []).join(', ')}
+
+Rules:
+- Tailwind CSS only, dark theme
+- Include loading state, error state, empty state
+- Use fetch() for API calls with Authorization header
+- Export as default function
+- Return ONLY the JSX code, no explanation`;
+}
+
+function buildRouteCodePrompt(route, toolName) {
+  return `You are a senior Node.js/Express developer. Generate one production-ready API route handler.
+
+Tool: ${toolName}
+Endpoint: ${route.method || 'GET'} ${route.path || '/api/route'}
+Purpose: ${route.purpose || ''}
+Auth Required: ${route.auth_required ?? true}
+Rate Limit: ${route.rate_limit || '100/15min'}
+Request Body: ${JSON.stringify(route.request_body || {})}
+Response Shape: ${JSON.stringify(route.response || {})}
+Error Codes: ${(route.error_codes || []).join(', ')}
+Validation: ${(route.validation_rules || []).join(', ')}
+
+Rules:
+- Express Router syntax
+- Use express-validator for input validation
+- Proper try/catch with console.error
+- Return JSON with { success, data/error }
+- Return ONLY the route handler code, no explanation`;
+}
+
+// ── generateSingleFile ────────────────────────────────────────
+// Generates code for one page or API route with 120s timeout.
+
+async function generateSingleFile(fileSpec, type, toolName) {
+  const prompt = type === 'page'
+    ? buildPageCodePrompt(fileSpec, toolName)
+    : buildRouteCodePrompt(fileSpec, toolName);
+
+  const code = await callOpenAI(prompt, { temperature: 0.2, timeout: 120_000, max_tokens: 4000 });
+  return {
+    type,
+    name:  type === 'page' ? fileSpec.name : `${fileSpec.method} ${fileSpec.path}`,
+    route: fileSpec.route || fileSpec.path || null,
+    code,
+  };
+}
+
+// ── generateCodeChunked ───────────────────────────────────────
+// Generates code one file at a time so no single call exceeds
+// Render's response window. Saves partial results after each file.
+
+async function generateCodeChunked(plan, planId) {
+  const pages     = plan.ui_plan?.pages     || [];
+  const endpoints = plan.api_plan?.endpoints || [];
+  const toolName  = plan.tool_name || 'Unknown Tool';
+
+  const results = [];
+  let done = 0;
+  const total = pages.length + endpoints.length;
+
+  // ── Frontend pages ────────────────────────────────────────
+  for (const page of pages) {
+    try {
+      const file = await generateWithRetry(
+        () => generateSingleFile(page, 'page', toolName)
+      );
+      results.push(file);
+      done++;
+      console.log(`[BUILDER] Generated page "${page.name}" (${done}/${total})`);
+    } catch (err) {
+      console.warn(`[BUILDER] Page "${page.name}" failed — skipping:`, err.message);
+    }
+
+    // Save progress after each file so nothing is lost on crash
+    if (planId && results.length > 0) {
+      await supabase
+        .from('builder_plans')
+        .update({ generated_files: results, files_done: done, files_total: total, status: 'in_progress' })
+        .eq('id', planId);
+    }
+
+    await new Promise(r => setTimeout(r, 1000));
+  }
+
+  // ── Backend routes ────────────────────────────────────────
+  for (const route of endpoints) {
+    try {
+      const file = await generateWithRetry(
+        () => generateSingleFile(route, 'route', toolName)
+      );
+      results.push(file);
+      done++;
+      console.log(`[BUILDER] Generated route "${route.method} ${route.path}" (${done}/${total})`);
+    } catch (err) {
+      console.warn(`[BUILDER] Route "${route.method} ${route.path}" failed — skipping:`, err.message);
+    }
+
+    if (planId && results.length > 0) {
+      await supabase
+        .from('builder_plans')
+        .update({ generated_files: results, files_done: done, files_total: total, status: 'in_progress' })
+        .eq('id', planId);
+    }
+
+    await new Promise(r => setTimeout(r, 1000));
+  }
+
+  return { results, done, total };
+}
+
 // ── callAIWithRetry ───────────────────────────────────────────
-// Retries the OpenAI call + JSON parse exactly once.
-// Two attempts total — balances reliability vs. cost.
+// Used for plan generation (big JSON). 120s timeout, 2 attempts.
 
 async function callAIWithRetry(prompt) {
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
-      const raw  = await callOpenAI(prompt, { temperature: 0.3 });
+      const raw  = await callOpenAI(prompt, { temperature: 0.3, timeout: 120_000 });
       const plan = parseJSONResponse(raw);
       return validatePlan(plan);
     } catch (err) {
-      if (attempt === 2) throw err;   // second failure → propagate
+      if (attempt === 2) throw err;
       console.warn(`[BUILDER AGENT] Attempt ${attempt} failed (${err.code}) — retrying…`);
     }
+  }
+}
+
+// ── generateWithRetry ─────────────────────────────────────────
+// Generic retry wrapper for any async generation function.
+// Waits 3s between attempts so Render/OpenAI rate limits recover.
+
+async function generateWithRetry(fn, retries = 1) {
+  try {
+    return await fn();
+  } catch (err) {
+    if (retries > 0) {
+      console.log('[BUILDER] Retrying generation…');
+      await new Promise(r => setTimeout(r, 3000));
+      return generateWithRetry(fn, retries - 1);
+    }
+    throw err;
   }
 }
 
@@ -440,4 +579,61 @@ async function updatePlanStatus(plan_id, newStatus, reviewer_notes = null) {
   return updated;
 }
 
-module.exports = { generateBuildPlan, getPlan, getAllPlans, updatePlanStatus };
+/**
+ * Generate actual code files for an approved plan, one file at a time.
+ * Saves partial progress after each file — never loses work on timeout.
+ *
+ * Status flow: approved → in_progress → (partial saves) → completed | partial
+ *
+ * @param {string} plan_id
+ * @returns {Promise<{ success, plan_id, files_done, files_total, status }>}
+ */
+async function generateCode(plan_id) {
+  const plan = await getPlan(plan_id);
+
+  if (!['approved', 'in_progress', 'partial'].includes(plan.status)) {
+    const err = new Error(
+      `Plan "${plan_id}" has status="${plan.status}". Must be approved, in_progress, or partial to generate code.`
+    );
+    err.status = 422; err.code = 'INVALID_STATUS'; throw err;
+  }
+
+  // Mark as in_progress
+  await supabase
+    .from('builder_plans')
+    .update({ status: 'in_progress' })
+    .eq('id', plan_id);
+
+  console.log(`[BUILDER AGENT] Code generation started for plan: ${plan_id}`);
+  const start = Date.now();
+
+  let done = 0, total = 0, finalStatus = 'completed';
+
+  try {
+    const result = await generateCodeChunked(plan, plan_id);
+    done  = result.done;
+    total = result.total;
+
+    // Partial if some files failed
+    finalStatus = done < total ? 'partial' : 'completed';
+
+    await supabase
+      .from('builder_plans')
+      .update({ status: finalStatus, files_done: done, files_total: total })
+      .eq('id', plan_id);
+
+    console.log(`[BUILDER AGENT] Code generation ${finalStatus}: ${done}/${total} files in ${Date.now() - start}ms`);
+  } catch (err) {
+    // Unexpected failure — mark partial so it can be retried
+    console.error('[BUILDER AGENT] Code generation crashed:', err.message);
+    await supabase
+      .from('builder_plans')
+      .update({ status: 'partial' })
+      .eq('id', plan_id);
+    finalStatus = 'partial';
+  }
+
+  return { success: true, plan_id, files_done: done, files_total: total, status: finalStatus };
+}
+
+module.exports = { generateBuildPlan, getPlan, getAllPlans, updatePlanStatus, generateCode };

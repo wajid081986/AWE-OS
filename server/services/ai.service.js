@@ -25,6 +25,7 @@ function getClient() {
  * @param {string} [options.model='gpt-4o-mini'] - Model ID
  * @param {number} [options.max_tokens=6000]
  * @param {number} [options.temperature=0.4]  - Lower = more deterministic JSON output
+ * @param {number} [options.timeout=30000]   - Abort timeout in milliseconds
  * @returns {Promise<string>} Raw text content of the first completion choice
  */
 async function callOpenAI(prompt, options = {}) {
@@ -33,8 +34,9 @@ async function callOpenAI(prompt, options = {}) {
   const maxTokens  = options.max_tokens  || 8000;
   const temperature = options.temperature ?? 0.4;
 
+  const timeoutMs  = options.timeout || 30_000;
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 30_000);
+  const timer      = setTimeout(() => controller.abort(), timeoutMs);
 
   let response;
   try {
@@ -44,7 +46,7 @@ async function callOpenAI(prompt, options = {}) {
     );
   } catch (err) {
     if (err.name === 'AbortError' || controller.signal.aborted) {
-      const timeoutErr = new Error('OpenAI request timed out after 30s');
+      const timeoutErr = new Error(`OpenAI request timed out after ${timeoutMs / 1000}s`);
       timeoutErr.code   = 'AI_TIMEOUT';
       timeoutErr.status = 504;
       throw timeoutErr;
