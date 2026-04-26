@@ -3,6 +3,7 @@ const PDFDocument = require('pdfkit');
 const corporate   = require('../templates/corporate');
 const creative    = require('../templates/creative');
 const minimal     = require('../templates/minimal');
+const executive   = require('../templates/executive');
 
 // ===== NEW CODE START =====
 const Razorpay    = require('razorpay');
@@ -24,8 +25,8 @@ const EXPECTED_CURRENCY = 'INR';
 const router = express.Router();
 
 const FREE_TEMPLATE      = 'corporate';
-const PREMIUM_TEMPLATES  = new Set(['creative', 'minimal']);
-const ALL_TEMPLATES      = { corporate, creative, minimal };
+const PREMIUM_TEMPLATES  = new Set(['creative', 'minimal', 'executive']);
+const ALL_TEMPLATES      = { corporate, creative, minimal, executive };
 
 // ── Watermark ─────────────────────────────────────────────────
 function addWatermark(doc) {
@@ -68,8 +69,9 @@ router.post('/generate-resume', async (req, res) => {
         .eq('id', payload.userId)
         .maybeSingle();
       isDbPremium = data?.is_premium || false;
-    } catch (_) {
-      // Invalid/expired token — treat as free user
+    } catch (err) {
+      console.error('[generate-resume] token/db error:', err.message);
+      // Invalid/expired token or Supabase error — treat as free user
     }
   }
 
@@ -196,5 +198,92 @@ router.post('/verify-payment', requireAuth, async (req, res) => {
   }
 });
 // ===== NEW CODE END =====
+
+// ── Resume Versions CRUD ───────────────────────────────────────
+
+router.get('/resume-versions', requireAuth, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('resume_versions')
+      .select('id, name, created_at, updated_at')
+      .eq('user_id', req.user.userId)
+      .order('updated_at', { ascending: false });
+    if (error) throw error;
+    res.json({ success: true, versions: data || [] });
+  } catch (err) {
+    console.error('Get resume versions error:', err.message);
+    res.status(500).json({ success: false, error: 'Failed to fetch versions' });
+  }
+});
+
+router.post('/resume-versions', requireAuth, async (req, res) => {
+  const { name = 'Untitled', data } = req.body;
+  if (!data) return res.status(400).json({ success: false, error: 'data is required' });
+  try {
+    const { data: created, error } = await supabase
+      .from('resume_versions')
+      .insert({ user_id: req.user.userId, name: (name || 'Untitled').trim(), data })
+      .select('id, name, created_at, updated_at')
+      .single();
+    if (error) throw error;
+    res.json({ success: true, version: created });
+  } catch (err) {
+    console.error('Save resume version error:', err.message);
+    res.status(500).json({ success: false, error: 'Failed to save version' });
+  }
+});
+
+router.get('/resume-versions/:id', requireAuth, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('resume_versions')
+      .select('*')
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.userId)
+      .single();
+    if (error || !data) return res.status(404).json({ success: false, error: 'Not found' });
+    res.json({ success: true, version: data });
+  } catch (err) {
+    console.error('Get resume version error:', err.message);
+    res.status(500).json({ success: false, error: 'Failed to fetch version' });
+  }
+});
+
+router.put('/resume-versions/:id', requireAuth, async (req, res) => {
+  const { name, data } = req.body;
+  const updates = { updated_at: new Date().toISOString() };
+  if (name !== undefined) updates.name = (name || 'Untitled').trim();
+  if (data !== undefined) updates.data = data;
+  try {
+    const { data: updated, error } = await supabase
+      .from('resume_versions')
+      .update(updates)
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.userId)
+      .select('id, name, updated_at')
+      .maybeSingle();
+    if (error) throw error;
+    if (!updated) return res.status(404).json({ success: false, error: 'Not found' });
+    res.json({ success: true, version: updated });
+  } catch (err) {
+    console.error('Update resume version error:', err.message);
+    res.status(500).json({ success: false, error: 'Failed to update version' });
+  }
+});
+
+router.delete('/resume-versions/:id', requireAuth, async (req, res) => {
+  try {
+    const { error } = await supabase
+      .from('resume_versions')
+      .delete()
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.userId);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Delete resume version error:', err.message);
+    res.status(500).json({ success: false, error: 'Failed to delete version' });
+  }
+});
 
 module.exports = router;

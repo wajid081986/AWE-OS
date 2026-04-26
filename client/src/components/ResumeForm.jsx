@@ -18,20 +18,19 @@ const JOB_TITLES = [
 
 function calcATSScore(form, skills, experience, education) {
   let score = 0;
-  if (form.name?.trim())     score += 8;
-  if (form.email?.trim())    score += 7;
-  if (form.phone?.trim())    score += 5;
-  if (form.jobTitle?.trim()) score += 5;
-  const sLen = form.summary?.trim()?.length || 0;
-  if (sLen > 30)  score += 5;
-  if (sLen > 100) score += 5;
-  if (sLen > 200) score += 5;
-  score += Math.min(20, skills.length * 4);
-  const validExp = experience.filter(e => e.role?.trim() && e.company?.trim());
-  score += Math.min(15, validExp.length * 8);
-  if (validExp.some(e => e.description?.trim()?.length > 50)) score += 10;
-  const validEdu = education.filter(e => e.degree?.trim());
-  score += Math.min(10, validEdu.length * 10);
+  // Summary > 50 chars → +20
+  if ((form.summary?.trim()?.length || 0) > 50) score += 20;
+  // More than 3 skills → +20
+  if (skills.length > 3) score += 20;
+  // Has any experience → +20
+  if (experience.some(e => e.role?.trim() || e.company?.trim())) score += 20;
+  // Has education → +15
+  if (education.some(e => e.degree?.trim() || e.institution?.trim())) score += 15;
+  // Both email + phone → +15
+  if (form.email?.trim() && form.phone?.trim()) score += 15;
+  // Metrics in descriptions (%, $, multipliers) → +10
+  const metricsRe = /(\d+%|\$\d+|\d+[xX]|\d+\s*(million|thousand|users|clients|sales|revenue))/i;
+  if (experience.some(e => metricsRe.test(e.description || ''))) score += 10;
   return Math.min(100, score);
 }
 
@@ -243,7 +242,94 @@ function MinimalPreviewHTML({ form, skills, experience, education }) {
   );
 }
 
-const PREVIEW_COMPS = { corporate: CorporatePreviewHTML, creative: CreativePreviewHTML, minimal: MinimalPreviewHTML };
+/* ── Executive HTML Preview ──────────────────────────────── */
+function ExecutivePreviewHTML({ form, skills, experience, education }) {
+  const skillNames = skills.map(s => (typeof s === 'string' ? s : s.name));
+  return (
+    <div style={{ fontFamily: 'Arial,sans-serif', display: 'flex', minHeight: '842px', fontSize: '11px' }}>
+      {/* Sidebar */}
+      <div style={{ width: '175px', background: '#2D3748', color: '#fff', padding: '20px', flexShrink: 0, position: 'relative' }}>
+        <div style={{ position: 'absolute', top: 0, right: 0, width: '4px', height: '100%', background: '#D97706' }} />
+        {/* Header */}
+        <div style={{ background: '#1A202C', margin: '-20px -20px 14px', padding: '20px' }}>
+          <h1 style={{ fontSize: '16px', fontWeight: 700, color: '#fff', margin: 0, lineHeight: 1.3 }}>{form.name || 'Your Name'}</h1>
+          {form.jobTitle && <p style={{ fontSize: '10px', color: '#D97706', marginTop: '5px', marginBottom: 0 }}>{form.jobTitle}</p>}
+        </div>
+        <div style={{ height: '1.5px', background: '#D97706', marginBottom: '12px', marginRight: '4px' }} />
+        {/* Contact */}
+        {(form.email || form.phone) && (
+          <div style={{ marginBottom: '14px' }}>
+            <h3 style={{ fontSize: '7.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1.6px', color: '#D97706', marginBottom: '5px' }}>Contact</h3>
+            <div style={{ height: '0.5px', background: '#4A5568', marginBottom: '6px', marginRight: '4px' }} />
+            {form.email && <p style={{ color: '#94A3B8', marginBottom: '3px', fontSize: '9px', wordBreak: 'break-all' }}>{form.email}</p>}
+            {form.phone && <p style={{ color: '#94A3B8', fontSize: '9px' }}>{form.phone}</p>}
+          </div>
+        )}
+        {/* Skills */}
+        {skillNames.length > 0 && (
+          <div style={{ marginBottom: '14px' }}>
+            <h3 style={{ fontSize: '7.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1.6px', color: '#D97706', marginBottom: '5px' }}>Core Skills</h3>
+            <div style={{ height: '0.5px', background: '#4A5568', marginBottom: '6px', marginRight: '4px' }} />
+            {skillNames.map((s, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '5px' }}>
+                <div style={{ width: '4px', height: '4px', background: '#D97706', flexShrink: 0 }} />
+                <span style={{ color: '#CBD5E1', fontSize: '9px' }}>{s}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {/* Education */}
+        {education.some(e => e.degree || e.institution) && (
+          <div>
+            <h3 style={{ fontSize: '7.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1.6px', color: '#D97706', marginBottom: '5px' }}>Education</h3>
+            <div style={{ height: '0.5px', background: '#4A5568', marginBottom: '6px', marginRight: '4px' }} />
+            {education.filter(e => e.degree || e.institution).map((edu, i) => (
+              <div key={i} style={{ marginBottom: '10px' }}>
+                {edu.degree && <div style={{ fontSize: '9px', fontWeight: 700, color: '#F7FAFC' }}>{edu.degree}</div>}
+                {edu.institution && <div style={{ fontSize: '8.5px', color: '#94A3B8', marginTop: '2px' }}>{edu.institution}</div>}
+                {edu.year && <div style={{ fontSize: '8.5px', color: '#D97706', marginTop: '2px', fontStyle: 'italic' }}>{edu.year}</div>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      {/* Main */}
+      <div style={{ flex: 1, padding: '28px 24px', background: '#fff' }}>
+        {form.summary && (
+          <div style={{ marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1.5px', color: '#B45309', margin: '0 0 4px' }}>Executive Summary</h2>
+            <div style={{ height: '1.2px', background: '#D97706', marginBottom: '8px' }} />
+            <p style={{ color: '#2D3748', lineHeight: 1.6 }}>{form.summary}</p>
+          </div>
+        )}
+        {experience.some(e => e.role || e.company) && (
+          <div style={{ marginBottom: '14px' }}>
+            <h2 style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1.5px', color: '#B45309', margin: '0 0 4px' }}>Professional Experience</h2>
+            <div style={{ height: '1.2px', background: '#D97706', marginBottom: '8px' }} />
+            {experience.filter(e => e.role || e.company).map((exp, i) => (
+              <div key={i} style={{ marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <strong style={{ fontSize: '12px', color: '#1A202C' }}>{exp.role || '—'}</strong>
+                  {exp.duration && <span style={{ fontSize: '9px', color: '#D97706' }}>{exp.duration}</span>}
+                </div>
+                {exp.company && <div style={{ fontSize: '10px', fontStyle: 'italic', color: '#718096', marginBottom: '3px' }}>{exp.company}</div>}
+                {exp.description && <p style={{ color: '#2D3748', marginLeft: '10px' }}>{exp.description}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+        {!form.name && !form.email && !form.summary && experience.every(e => !e.role) && (
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#9CA3AF' }}>
+            <div style={{ fontSize: '28px', marginBottom: '8px' }}>📄</div>
+            <p style={{ fontSize: '12px' }}>Fill in the form to see your resume here</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const PREVIEW_COMPS = { corporate: CorporatePreviewHTML, creative: CreativePreviewHTML, minimal: MinimalPreviewHTML, executive: ExecutivePreviewHTML };
 
 const STEPS = [
   { label: 'Personal',   icon: '👤' },
@@ -253,7 +339,7 @@ const STEPS = [
 ];
 
 /* ── Main Component ─────────────────────────────────────── */
-export default function ResumeForm({ isPremium, onUpgradeClick }) {
+export default function ResumeForm({ isPremium = false, onUpgradeClick }) {
   const [template, setTemplate]         = useState('corporate');
   const [activeStep, setActiveStep]     = useState(0);
   const [showTplPicker, setShowTplPicker] = useState(false);
@@ -270,6 +356,12 @@ export default function ResumeForm({ isPremium, onUpgradeClick }) {
   const [mobileTab, setMobileTab]       = useState('edit');
   const [titleSuggestions, setTitleSuggestions] = useState([]);
   const [showTitleDropdown, setShowTitleDropdown] = useState(false);
+  // Versions
+  const [versions, setVersions]         = useState([]);
+  const [showVersions, setShowVersions] = useState(false);
+  const [versionsLoading, setVersionsLoading] = useState(false);
+  const [savingVersion, setSavingVersion] = useState(false);
+  const [versionName, setVersionName]   = useState('');
 
   const skillNames = skills.map(s => (typeof s === 'string' ? s : s.name));
   const atsScore   = calcATSScore(form, skills, experience, education);
@@ -278,7 +370,77 @@ export default function ResumeForm({ isPremium, onUpgradeClick }) {
 
   const PreviewComp = PREVIEW_COMPS[template] || PREVIEW_COMPS.corporate;
 
+  const isLoggedIn = !!localStorage.getItem('awe_token');
   const setField = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }));
+
+  /* Versions */
+  const loadVersions = useCallback(async () => {
+    if (!isLoggedIn) return;
+    setVersionsLoading(true);
+    try {
+      const token = localStorage.getItem('awe_token');
+      const res   = await fetch(`${BASE_URL}/api/resume-versions`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) setVersions(data.versions || []);
+    } catch {}
+    setVersionsLoading(false);
+  }, [isLoggedIn]);
+
+  const saveVersion = useCallback(async () => {
+    if (!isLoggedIn) return;
+    setSavingVersion(true);
+    try {
+      const token   = localStorage.getItem('awe_token');
+      const payload = { form, skills: skillNames, experience, education, template };
+      const label   = versionName.trim() || form.name || 'Untitled';
+      const res = await fetch(`${BASE_URL}/api/resume-versions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name: label, data: payload }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setVersions(prev => [data.version, ...prev]);
+        setVersionName('');
+        setSuccessMsg('✅ Resume saved!');
+        setTimeout(() => setSuccessMsg(''), 2500);
+      }
+    } catch {}
+    setSavingVersion(false);
+  }, [isLoggedIn, form, skillNames, experience, education, template, versionName]);
+
+  const loadVersion = useCallback(async (id) => {
+    try {
+      const token = localStorage.getItem('awe_token');
+      const res   = await fetch(`${BASE_URL}/api/resume-versions/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success && data.version?.data) {
+        const { form: f, skills: s, experience: e, education: ed, template: t } = data.version.data;
+        if (f)  setForm(f);
+        if (s)  setSkills(s);
+        if (e)  setExperience(e);
+        if (ed) setEducation(ed);
+        if (t)  setTemplate(t);
+        setSuccessMsg('✅ Version loaded!');
+        setTimeout(() => setSuccessMsg(''), 2500);
+      }
+    } catch {}
+  }, []);
+
+  const deleteVersion = useCallback(async (id) => {
+    try {
+      const token = localStorage.getItem('awe_token');
+      await fetch(`${BASE_URL}/api/resume-versions/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setVersions(prev => prev.filter(v => v.id !== id));
+    } catch {}
+  }, []);
 
   /* Skills */
   const addSkill = () => {
@@ -314,22 +476,30 @@ export default function ResumeForm({ isPremium, onUpgradeClick }) {
     }
   };
 
-  /* AI Summary */
+  /* AI Summary — JWT-protected, 1-use free limit tracked in localStorage */
   const handleAISummary = useCallback(async () => {
     if (!form.jobTitle?.trim() && !form.name?.trim()) {
       setError('Enter a job title first to generate summary');
       setTimeout(() => setError(''), 2500);
       return;
     }
+    const token = localStorage.getItem('awe_token');
+    if (!token) {
+      setError('Sign in to use AI Summary Writer');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+    // 1-use free limit check (client-side guard)
+    if (!isPremium && localStorage.getItem('ai_summary_used')) {
+      setError('Free plan: 1 AI summary used. Upgrade for unlimited ✨');
+      setTimeout(() => setError(''), 3500);
+      return;
+    }
     setAiLoading(true);
     try {
-      const token = localStorage.getItem('awe_token');
       const res = await fetch(`${BASE_URL}/api/tools/resume/ai-summary`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           job_title:        form.jobTitle || form.name,
           skills:           skillNames,
@@ -340,6 +510,7 @@ export default function ResumeForm({ isPremium, onUpgradeClick }) {
       const data = await res.json();
       if (data.summary) {
         setForm(f => ({ ...f, summary: data.summary }));
+        if (!isPremium) localStorage.setItem('ai_summary_used', '1');
         setSuccessMsg('✨ AI summary generated!');
         setTimeout(() => setSuccessMsg(''), 2500);
       }
@@ -349,7 +520,7 @@ export default function ResumeForm({ isPremium, onUpgradeClick }) {
     } finally {
       setAiLoading(false);
     }
-  }, [form.jobTitle, form.name, skillNames, experience]);
+  }, [form.jobTitle, form.name, skillNames, experience, isPremium]);
 
   /* Download PDF */
   const handleDownload = useCallback(async () => {
@@ -400,6 +571,66 @@ export default function ResumeForm({ isPremium, onUpgradeClick }) {
 
       {/* ══════════════════ LEFT PANEL ══════════════════ */}
       <div className={`builder-left ${mobileTab === 'preview' ? 'mob-hidden' : ''}`}>
+
+        {/* My Resumes panel */}
+        {isLoggedIn && (
+          <div className="versions-panel">
+            <button
+              className="versions-toggle"
+              type="button"
+              onClick={() => {
+                const next = !showVersions;
+                setShowVersions(next);
+                if (next && versions.length === 0) loadVersions();
+              }}
+            >
+              <span>💾 My Resumes {versions.length > 0 ? `(${versions.length})` : ''}</span>
+              <span className="toggle-chevron">{showVersions ? '▲' : '▼'}</span>
+            </button>
+            {showVersions && (
+              <div className="versions-body">
+                <div className="version-save-row">
+                  <input
+                    className="input-dark version-name-input"
+                    placeholder="Version name (optional)…"
+                    value={versionName}
+                    onChange={e => setVersionName(e.target.value)}
+                  />
+                  <button
+                    className="btn-save-version"
+                    type="button"
+                    onClick={saveVersion}
+                    disabled={savingVersion}
+                  >
+                    {savingVersion ? '…' : '+ Save'}
+                  </button>
+                </div>
+                {versionsLoading ? (
+                  <p className="versions-empty">Loading…</p>
+                ) : versions.length === 0 ? (
+                  <p className="versions-empty">No saved resumes yet.</p>
+                ) : (
+                  <div className="versions-list">
+                    {versions.map(v => (
+                      <div key={v.id} className="version-item">
+                        <div className="version-item-info">
+                          <span className="version-item-name">{v.name}</span>
+                          <span className="version-item-date">
+                            {new Date(v.updated_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="version-item-actions">
+                          <button className="btn-version-load" type="button" onClick={() => loadVersion(v.id)}>Load</button>
+                          <button className="btn-version-delete" type="button" onClick={() => deleteVersion(v.id)}>✕</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Template toggle */}
         <div className="template-toggle-bar" onClick={() => setShowTplPicker(v => !v)}>

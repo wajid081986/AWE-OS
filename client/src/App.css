@@ -840,3 +840,67 @@ textarea.input-dark { resize: vertical; min-height: 88px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #1e1e2e; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #2a2a3e; }
+
+/* ── My Resumes (Versions) Panel ── */
+.versions-panel {
+  background: #12121a; border: 1px solid #1e1e2e; border-radius: 10px; overflow: hidden;
+}
+
+.versions-toggle {
+  width: 100%; display: flex; justify-content: space-between; align-items: center;
+  padding: 9px 13px; background: transparent; border: none; cursor: pointer;
+  font-size: 0.83rem; color: #64748b; font-family: inherit; transition: color 0.15s;
+}
+.versions-toggle:hover { color: #f1f5f9; }
+
+.versions-body {
+  padding: 10px 12px 12px; border-top: 1px solid #1e1e2e; display: flex;
+  flex-direction: column; gap: 8px;
+}
+
+.version-save-row { display: flex; gap: 8px; }
+
+.version-name-input { flex: 1; font-size: 0.8rem !important; padding: 7px 10px !important; }
+
+.btn-save-version {
+  padding: 7px 13px; background: #4f46e5; border: none; border-radius: 7px;
+  color: #fff; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+  white-space: nowrap; transition: opacity 0.15s; font-family: inherit;
+}
+.btn-save-version:hover:not(:disabled) { opacity: 0.85; }
+.btn-save-version:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.versions-empty { font-size: 0.78rem; color: #334155; padding: 4px 0; margin: 0; }
+
+.versions-list { display: flex; flex-direction: column; gap: 5px; max-height: 220px; overflow-y: auto; }
+
+.version-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 10px; background: #0a0a0f; border: 1px solid #1e1e2e;
+  border-radius: 7px; gap: 8px;
+}
+.version-item:hover { border-color: #2a2a3e; }
+
+.version-item-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+
+.version-item-name {
+  font-size: 0.8rem; color: #cbd5e1; font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.version-item-date { font-size: 0.7rem; color: #334155; }
+
+.version-item-actions { display: flex; gap: 5px; flex-shrink: 0; }
+
+.btn-version-load {
+  padding: 4px 10px; background: rgba(79,70,229,0.15); border: 1px solid rgba(79,70,229,0.25);
+  border-radius: 5px; color: #818cf8; font-size: 0.75rem; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; font-family: inherit;
+}
+.btn-version-load:hover { background: rgba(79,70,229,0.3); }
+
+.btn-version-delete {
+  padding: 4px 8px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.15);
+  border-radius: 5px; color: #f87171; font-size: 0.75rem; cursor: pointer;
+  transition: all 0.15s; font-family: inherit;
+}
+.btn-version-delete:hover { background: rgba(239,68,68,0.18); }

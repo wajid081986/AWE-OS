@@ -22,7 +22,15 @@ const TEMPLATES = [
     name: 'Minimal',
     desc: 'Clean whitespace, serif type',
     premium: true,
-    categories: ['minimal', 'executive'],
+    categories: ['minimal'],
+    badge: 'Minimal',
+  },
+  {
+    id: 'executive',
+    name: 'Executive',
+    desc: 'Gray sidebar, gold headings',
+    premium: true,
+    categories: ['executive', 'modern'],
     badge: 'Executive',
   },
 ];
@@ -148,7 +156,58 @@ function MinimalPreview() {
   );
 }
 
-const PREVIEWS = { corporate: CorporatePreview, creative: CreativePreview, minimal: MinimalPreview };
+function ExecutivePreview() {
+  return (
+    <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg" className="template-svg">
+      {/* Sidebar */}
+      <rect x="0"  y="0"   width="40"  height="160" fill="#2D3748" />
+      <rect x="0"  y="0"   width="40"  height="45"  fill="#1A202C" />
+      {/* Gold accent strip */}
+      <rect x="37" y="0"   width="3"   height="160" fill="#D97706" />
+      {/* Name + title in header */}
+      <rect x="4"  y="8"   width="28"  height="4"   rx="0.5" fill="#FFFFFF" opacity="0.9" />
+      <rect x="4"  y="16"  width="20"  height="2"   rx="0.5" fill="#D97706" />
+      {/* Gold divider */}
+      <rect x="4"  y="23"  width="30"  height="0.8" fill="#D97706" opacity="0.6" />
+      {/* Contact label */}
+      <rect x="4"  y="29"  width="14"  height="1.5" rx="0.5" fill="#D97706" opacity="0.8" />
+      <rect x="4"  y="33"  width="29"  height="1.5" rx="0.5" fill="#94A3B8" opacity="0.6" />
+      <rect x="4"  y="37"  width="22"  height="1.5" rx="0.5" fill="#94A3B8" opacity="0.5" />
+      {/* Skills label */}
+      <rect x="4"  y="49"  width="18"  height="1.5" rx="0.5" fill="#D97706" opacity="0.8" />
+      <rect x="4"  y="53"  width="3"   height="3"   fill="#D97706" opacity="0.7" />
+      <rect x="10" y="54"  width="22"  height="1.5" rx="0.5" fill="#CBD5E1" opacity="0.7" />
+      <rect x="4"  y="59"  width="3"   height="3"   fill="#D97706" opacity="0.7" />
+      <rect x="10" y="60"  width="18"  height="1.5" rx="0.5" fill="#CBD5E1" opacity="0.6" />
+      <rect x="4"  y="65"  width="3"   height="3"   fill="#D97706" opacity="0.7" />
+      <rect x="10" y="66"  width="24"  height="1.5" rx="0.5" fill="#CBD5E1" opacity="0.6" />
+      {/* Education label */}
+      <rect x="4"  y="76"  width="20"  height="1.5" rx="0.5" fill="#D97706" opacity="0.8" />
+      <rect x="4"  y="80"  width="28"  height="2"   rx="0.5" fill="#F7FAFC" opacity="0.8" />
+      <rect x="4"  y="85"  width="22"  height="1.5" rx="0.5" fill="#94A3B8" opacity="0.5" />
+      {/* Main content area */}
+      <rect x="46" y="10"  width="22"  height="2"   rx="0.5" fill="#B45309" />
+      <rect x="46" y="14"  width="66"  height="0.8" fill="#D97706" />
+      <rect x="46" y="18"  width="60"  height="2"   rx="0.5" fill="#2D3748" opacity="0.7" />
+      <rect x="46" y="23"  width="50"  height="2"   rx="0.5" fill="#2D3748" opacity="0.5" />
+      {/* Experience section */}
+      <rect x="46" y="33"  width="30"  height="2"   rx="0.5" fill="#B45309" />
+      <rect x="46" y="37"  width="66"  height="0.8" fill="#D97706" />
+      <rect x="46" y="41"  width="44"  height="2.5" rx="0.5" fill="#1A202C" opacity="0.85" />
+      <rect x="78" y="41"  width="28"  height="2"   rx="0.5" fill="#D97706" opacity="0.6" />
+      <rect x="46" y="46"  width="36"  height="1.5" rx="0.5" fill="#718096" opacity="0.6" />
+      <rect x="46" y="51"  width="62"  height="2"   rx="0.5" fill="#2D3748" opacity="0.6" />
+      <rect x="46" y="56"  width="52"  height="2"   rx="0.5" fill="#2D3748" opacity="0.5" />
+      {/* Second exp block */}
+      <rect x="46" y="65"  width="40"  height="2.5" rx="0.5" fill="#1A202C" opacity="0.8" />
+      <rect x="78" y="65"  width="28"  height="2"   rx="0.5" fill="#D97706" opacity="0.5" />
+      <rect x="46" y="70"  width="34"  height="1.5" rx="0.5" fill="#718096" opacity="0.5" />
+      <rect x="46" y="75"  width="58"  height="2"   rx="0.5" fill="#2D3748" opacity="0.5" />
+    </svg>
+  );
+}
+
+const PREVIEWS = { corporate: CorporatePreview, creative: CreativePreview, minimal: MinimalPreview, executive: ExecutivePreview };
 
 export default function TemplateSelector({ value, onChange, isPremium, onUpgradeClick }) {
   const [activeCategory, setActiveCategory] = useState('all');
