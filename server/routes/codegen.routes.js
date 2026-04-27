@@ -14,13 +14,14 @@ const router = express.Router();
 // GPT-4 code generation is expensive — hard cap at 3/hour per IP
 const generateLimiter = rateLimit({
   windowMs:        60 * 60 * 1000,
-  max:             3,
+  max:             process.env.NODE_ENV === 'production' ? 10 : 50,
   standardHeaders: true,
   legacyHeaders:   false,
+  skip:            (req) => req.user?.email === process.env.ADMIN_EMAIL,
   keyGenerator:    (req) => req.user?.userId || req.ip,
   message: {
     success: false,
-    error:   'Code generation limit reached — max 3 per hour. GPT-4 calls are expensive.',
+    error:   'Code generation limit reached — max 10 per hour. GPT-4 calls are expensive.',
     code:    'RATE_LIMITED',
   },
 });
