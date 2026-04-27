@@ -3,7 +3,7 @@ const rateLimit   = require('express-rate-limit');
 const requireAuth = require('../middleware/auth');
 const {
   generateCode,
-  getCode,
+  getCodeStatus,
   getAllCodes,
   approveCode,
   rejectCode,
@@ -44,8 +44,8 @@ router.post('/generate/:tool_id', generateLimiter, generateCode);
 // GET  /api/codegen — fetch ALL generated code records
 router.get('/', readLimiter, getAllCodes);
 
-// GET  /api/codegen/:tool_id — fetch generated code with all file contents
-router.get('/:tool_id', readLimiter, getCode);
+// GET  /api/codegen/:tool_id — fetch generation status + code (safe to poll)
+router.get('/:tool_id', readLimiter, getCodeStatus);
 
 // POST /api/codegen/:code_id/approve — human approves code → tool → 'live'
 router.post('/:code_id/approve', readLimiter, approveCode);
