@@ -5,6 +5,8 @@ const {
   rejectGeneratedCode,
 } = require('../agents/code-generator');
 
+const supabase = require('../db/supabase');
+
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const HTTP_STATUS = {
@@ -30,10 +32,11 @@ function isSafe4xx(err) {
 
 /**
  * POST /api/codegen/generate/:tool_id
- * Triggers AI code generation for an approved plan. Code saved to DB only.
+ * Responds immediately with 202 — generation runs in background.
  */
 async function generateCode(req, res) {
   const { tool_id } = req.params;
+  const force = req.body?.force === true || req.query.force === 'true';
 
   if (!UUID_REGEX.test(tool_id)) {
     return res.status(400).json({
@@ -41,24 +44,69 @@ async function generateCode(req, res) {
     });
   }
 
-  try {
-    const result = await generateToolCode(tool_id);
-    return res.status(201).json({ success: true, data: result });
-  } catch (err) {
-    console.error('[codegen.controller] generateCode:', err.message);
-    return res.status(httpFor(err)).json({
+  // Pre-flight: approved plan must exist
+  const { data: plan } = await supabase
+    .from('builder_plans')
+    .select('id')
+    .eq('tool_id', tool_id)
+    .eq('status', 'approved')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!plan) {
+    return res.status(422).json({
       success: false,
-      error:   isSafe4xx(err) ? err.message : 'Code generation failed — check server logs',
-      code:    err.code || 'UNKNOWN',
+      error:   'No approved plan found. Approve a plan in the Builder Panel first.',
+      code:    'NO_APPROVED_PLAN',
     });
   }
+
+  // Pre-flight: duplicate check (skip when force=true)
+  if (!force) {
+    const { data: existing } = await supabase
+      .from('generated_code')
+      .select('id, status')
+      .eq('plan_id', plan.id)
+      .not('status', 'in', '("rejected","failed")')
+      .maybeSingle();
+
+    if (existing) {
+      return res.status(409).json({
+        success: false,
+        error:   `Code already generated for this plan (id=${existing.id}, status=${existing.status}). Check the Code Viewer.`,
+        code:    'DUPLICATE_BUILD',
+        tip:     'Pass force=true to regenerate',
+      });
+    }
+  }
+
+  // Respond immediately — client polls GET /api/codegen/:tool_id for progress
+  res.status(202).json({
+    success:   true,
+    message:   'Code generation started in background',
+    plan_id:   plan.id,
+    status:    'generating',
+    check_url: `/api/codegen/${tool_id}`,
+  });
+
+  // Fire-and-forget — runs after response is flushed
+  setImmediate(async () => {
+    try {
+      console.log(`[CODE GEN] Background generation started — tool_id=${tool_id}`);
+      await generateToolCode(tool_id, force);
+      console.log(`[CODE GEN] Background generation complete — tool_id=${tool_id}`);
+    } catch (err) {
+      console.error(`[CODE GEN] Background generation failed — tool_id=${tool_id}:`, err.message);
+    }
+  });
 }
 
 /**
  * GET /api/codegen/:tool_id
- * Returns the latest generated code record including all file contents.
+ * Returns generation status + code data. Safe to poll during generation.
  */
-async function getCode(req, res) {
+async function getCodeStatus(req, res) {
   const { tool_id } = req.params;
 
   if (!UUID_REGEX.test(tool_id)) {
@@ -68,18 +116,32 @@ async function getCode(req, res) {
   }
 
   try {
-    const code = await getGeneratedCode(tool_id);
-    if (!code) {
+    const { data: plan } = await supabase
+      .from('builder_plans')
+      .select('id, status')
+      .eq('tool_id', tool_id)
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!plan) {
       return res.status(404).json({
-        success: false,
-        error:   'No generated code found for this tool. Generate code first.',
-        code:    'NOT_FOUND',
+        success: false, error: 'No approved plan found', code: 'NOT_FOUND',
       });
     }
-    return res.json({ success: true, data: code });
+
+    const code = await getGeneratedCode(tool_id);
+
+    return res.json({
+      success:  true,
+      plan_id:  plan.id,
+      status:   code?.status || 'not_started',
+      data:     code || null,
+    });
   } catch (err) {
-    console.error('[codegen.controller] getCode:', err.message);
-    return res.status(500).json({ success: false, error: 'Failed to fetch generated code', code: 'UNKNOWN' });
+    console.error('[codegen.controller] getCodeStatus:', err.message);
+    return res.status(500).json({ success: false, error: 'Failed to fetch code status', code: 'UNKNOWN' });
   }
 }
 
@@ -145,11 +207,10 @@ async function rejectCode(req, res) {
  */
 async function getAllCodes(req, res) {
   try {
-   const supabase = require('../db/supabase');
-   const { data, error } = await supabase
-  .from('generated_code')
-  .select('id, tool_id, tool_name, status, total_files, generation_ms, ai_model, created_at')
-  .order('created_at', { ascending: false }); 
+    const { data, error } = await supabase
+      .from('generated_code')
+      .select('id, tool_id, tool_name, status, total_files, generation_ms, ai_model, created_at')
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
     return res.json({ success: true, data: data || [], count: (data || []).length });
@@ -159,5 +220,4 @@ async function getAllCodes(req, res) {
   }
 }
 
-module.exports = { generateCode, getCode, getAllCodes, approveCode, rejectCode };
-
+module.exports = { generateCode, getCodeStatus, getAllCodes, approveCode, rejectCode };

@@ -77,20 +77,21 @@ async function getRevenueSummary(tool_id) {
 
   if (error) throw error;
 
-  const total        = logs.reduce((sum, r) => sum + Number(r.amount), 0);
-  const cutoff       = new Date();
+  const safelogs      = logs ?? [];
+  const total         = safelogs.reduce((sum, r) => sum + Number(r.amount), 0);
+  const cutoff        = new Date();
   cutoff.setDate(cutoff.getDate() - 30);
-  const last30Total  = logs
+  const last30Total   = safelogs
     .filter(r => new Date(r.created_at) >= cutoff)
     .reduce((sum, r) => sum + Number(r.amount), 0);
-  const avgOrderValue = logs.length > 0 ? total / logs.length : 0;
+  const avgOrderValue = safelogs.length > 0 ? total / safelogs.length : 0;
 
   return {
     tool_id,
     total_revenue:        Number(total.toFixed(2)),
     revenue_last_30_days: Number(last30Total.toFixed(2)),
     average_order_value:  Number(avgOrderValue.toFixed(2)),
-    transaction_count:    logs.length,
+    transaction_count:    safelogs.length,
   };
 }
 

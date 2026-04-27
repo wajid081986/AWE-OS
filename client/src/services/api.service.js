@@ -311,12 +311,28 @@ export const getRevenueAlerts = (acknowledged = false) =>
 export const acknowledgeRevenueAlert = (id) =>
   apiFetch(`/api/revenue-agent/alerts/${id}/acknowledge`, { method: 'PATCH' });
 
-// ── Axios-compatible default export (used by SupportPanel) ────
-// Wraps apiFetch to return { data } so components can do api.get(...).then(r => r.data)
+// ── Support Agent ─────────────────────────────────────────────
+
+export const getSupportDashboard = () =>
+  apiFetch('/api/support/dashboard');
+
+export const getSupportTickets = (params) => {
+  const qs = params ? '?' + new URLSearchParams(params).toString() : '';
+  return apiFetch(`/api/support/tickets${qs}`);
+};
+
+export const submitSupportTicket = (body) =>
+  apiFetch('/api/support/ticket', {
+    method: 'POST',
+    body:   JSON.stringify(body),
+  });
+
+// General-purpose request helper used by SupportPanel (and future panels)
+// that need ad-hoc GET / POST / PATCH without adding a named export per call.
 const api = {
-  get:   (path)       => apiFetch(`/api${path}`).then((data) => ({ data })),
-  post:  (path, body) => apiFetch(`/api${path}`, { method: 'POST',  body: JSON.stringify(body) }).then((data) => ({ data })),
-  patch: (path, body) => apiFetch(`/api${path}`, { method: 'PATCH', body: JSON.stringify(body) }).then((data) => ({ data })),
+  get:   (path, opts = {})  => apiFetch(`/api${path}`, { method: 'GET',   ...opts }),
+  post:  (path, body = {})  => apiFetch(`/api${path}`, { method: 'POST',  body: JSON.stringify(body) }),
+  patch: (path, body = {})  => apiFetch(`/api${path}`, { method: 'PATCH', body: JSON.stringify(body) }),
 };
 
 export default api;

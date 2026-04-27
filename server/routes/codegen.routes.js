@@ -3,7 +3,7 @@ const rateLimit   = require('express-rate-limit');
 const requireAuth = require('../middleware/auth');
 const {
   generateCode,
-  getCode,
+  getCodeStatus,
   getAllCodes,
   approveCode,
   rejectCode,
@@ -14,13 +14,14 @@ const router = express.Router();
 // GPT-4 code generation is expensive — hard cap at 3/hour per IP
 const generateLimiter = rateLimit({
   windowMs:        60 * 60 * 1000,
-  max:             3,
+  max:             process.env.NODE_ENV === 'production' ? 10 : 50,
   standardHeaders: true,
   legacyHeaders:   false,
+  skip:            (req) => req.user?.email === process.env.ADMIN_EMAIL,
   keyGenerator:    (req) => req.user?.userId || req.ip,
   message: {
     success: false,
-    error:   'Code generation limit reached — max 3 per hour. GPT-4 calls are expensive.',
+    error:   'Code generation limit reached — max 10 per hour. GPT-4 calls are expensive.',
     code:    'RATE_LIMITED',
   },
 });
@@ -43,8 +44,8 @@ router.post('/generate/:tool_id', generateLimiter, generateCode);
 // GET  /api/codegen — fetch ALL generated code records
 router.get('/', readLimiter, getAllCodes);
 
-// GET  /api/codegen/:tool_id — fetch generated code with all file contents
-router.get('/:tool_id', readLimiter, getCode);
+// GET  /api/codegen/:tool_id — fetch generation status + code (safe to poll)
+router.get('/:tool_id', readLimiter, getCodeStatus);
 
 // POST /api/codegen/:code_id/approve — human approves code → tool → 'live'
 router.post('/:code_id/approve', readLimiter, approveCode);

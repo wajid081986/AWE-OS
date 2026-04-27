@@ -1,50 +1,83 @@
+import { useState } from 'react';
+
 const TEMPLATES = [
   {
     id: 'corporate',
-    name: 'Professional Corporate',
-    desc: 'Clean, ATS-friendly, navy header',
+    name: 'Professional',
+    desc: 'ATS-Friendly, Navy header',
     premium: false,
+    categories: ['ats', 'professional'],
+    badge: 'ATS-Friendly',
   },
   {
     id: 'creative',
-    name: 'Creative Designer',
+    name: 'Creative',
     desc: 'Bold sidebar, teal accents',
     premium: true,
+    categories: ['creative', 'modern'],
+    badge: 'Creative',
   },
   {
     id: 'minimal',
-    name: 'Minimal Elegant',
-    desc: 'Premium whitespace, serif type',
+    name: 'Minimal',
+    desc: 'Clean whitespace, serif type',
     premium: true,
+    categories: ['minimal'],
+    badge: 'Minimal',
   },
+  {
+    id: 'executive',
+    name: 'Executive',
+    desc: 'Gray sidebar, gold headings',
+    premium: true,
+    categories: ['executive', 'modern'],
+    badge: 'Executive',
+  },
+];
+
+const CATEGORIES = [
+  { id: 'all',          label: 'All' },
+  { id: 'ats',          label: 'ATS-Friendly' },
+  { id: 'creative',     label: 'Creative' },
+  { id: 'minimal',      label: 'Minimal' },
+  { id: 'executive',    label: 'Executive' },
+  { id: 'modern',       label: 'Modern' },
 ];
 
 function CorporatePreview() {
   return (
     <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg" className="template-svg">
-      <rect x="0" y="0" width="120" height="32" fill="#1B3A6B" />
-      <rect x="0" y="30" width="120" height="2" fill="#2563EB" />
-      <rect x="8" y="8" width="55" height="5" rx="1" fill="#FFFFFF" opacity="0.9" />
-      <rect x="8" y="17" width="38" height="3" rx="1" fill="#93C5FD" opacity="0.7" />
-      <rect x="8" y="38" width="22" height="2" rx="0.5" fill="#2563EB" />
-      <rect x="8" y="43" width="104" height="0.5" fill="#D1D5DB" />
-      <rect x="8" y="47" width="80" height="2.5" rx="0.5" fill="#374151" />
-      <rect x="8" y="52" width="95" height="2" rx="0.5" fill="#6B7280" opacity="0.6" />
-      <rect x="8" y="57" width="70" height="2" rx="0.5" fill="#6B7280" opacity="0.6" />
-      <rect x="8" y="66" width="22" height="2" rx="0.5" fill="#2563EB" />
-      <rect x="8" y="71" width="104" height="0.5" fill="#D1D5DB" />
-      <rect x="8" y="75" width="65" height="3" rx="0.5" fill="#111827" />
-      <rect x="8" y="80" width="45" height="2" rx="0.5" fill="#6B7280" opacity="0.7" />
-      <rect x="8" y="86" width="90" height="2" rx="0.5" fill="#374151" opacity="0.7" />
-      <rect x="8" y="91" width="75" height="2" rx="0.5" fill="#374151" opacity="0.7" />
-      <rect x="8" y="100" width="22" height="2" rx="0.5" fill="#2563EB" />
-      <rect x="8" y="105" width="104" height="0.5" fill="#D1D5DB" />
-      <rect x="8" y="109" width="24" height="9" rx="2" fill="#EFF6FF" />
-      <rect x="12" y="112" width="16" height="2" rx="0.5" fill="#2563EB" />
-      <rect x="35" y="109" width="20" height="9" rx="2" fill="#EFF6FF" />
-      <rect x="39" y="112" width="12" height="2" rx="0.5" fill="#2563EB" />
-      <rect x="58" y="109" width="28" height="9" rx="2" fill="#EFF6FF" />
-      <rect x="62" y="112" width="20" height="2" rx="0.5" fill="#2563EB" />
+      <rect x="0" y="0" width="120" height="34" fill="#1B3A6B" />
+      <rect x="0" y="32" width="120" height="2" fill="#2563EB" />
+      <rect x="8" y="8"  width="60" height="5"   rx="1" fill="#FFFFFF" opacity="0.92" />
+      <rect x="8" y="17" width="42" height="3"   rx="1" fill="#93C5FD" opacity="0.75" />
+      <rect x="8" y="24" width="30" height="2"   rx="1" fill="#BFDBFE" opacity="0.5" />
+      {/* Summary section */}
+      <rect x="8" y="40" width="22" height="2"   rx="0.5" fill="#2563EB" />
+      <rect x="8" y="44" width="104" height="0.5" fill="#D1D5DB" />
+      <rect x="8" y="48" width="90"  height="2"  rx="0.5" fill="#374151" />
+      <rect x="8" y="53" width="75"  height="2"  rx="0.5" fill="#6B7280" opacity="0.6" />
+      {/* Experience */}
+      <rect x="8" y="62" width="26" height="2"   rx="0.5" fill="#2563EB" />
+      <rect x="8" y="66" width="104" height="0.5" fill="#D1D5DB" />
+      <rect x="8" y="70" width="70"  height="3"  rx="0.5" fill="#111827" />
+      <rect x="8" y="76" width="48"  height="2"  rx="0.5" fill="#6B7280" opacity="0.7" />
+      <rect x="8" y="81" width="95"  height="2"  rx="0.5" fill="#374151" opacity="0.7" />
+      <rect x="8" y="86" width="80"  height="2"  rx="0.5" fill="#374151" opacity="0.7" />
+      {/* Education */}
+      <rect x="8" y="95" width="22"  height="2"  rx="0.5" fill="#2563EB" />
+      <rect x="8" y="99" width="104" height="0.5" fill="#D1D5DB" />
+      <rect x="8" y="103" width="68" height="3"  rx="0.5" fill="#111827" />
+      <rect x="8" y="109" width="40" height="2"  rx="0.5" fill="#6B7280" opacity="0.7" />
+      {/* Skills */}
+      <rect x="8" y="118" width="18" height="2"  rx="0.5" fill="#2563EB" />
+      <rect x="8" y="122" width="104" height="0.5" fill="#D1D5DB" />
+      <rect x="8" y="126" width="24" height="9"  rx="2" fill="#EFF6FF" />
+      <rect x="12" y="129" width="16" height="2" rx="0.5" fill="#2563EB" />
+      <rect x="36" y="126" width="20" height="9" rx="2" fill="#EFF6FF" />
+      <rect x="40" y="129" width="12" height="2" rx="0.5" fill="#2563EB" />
+      <rect x="60" y="126" width="28" height="9" rx="2" fill="#EFF6FF" />
+      <rect x="64" y="129" width="20" height="2" rx="0.5" fill="#2563EB" />
     </svg>
   );
 }
@@ -52,34 +85,39 @@ function CorporatePreview() {
 function CreativePreview() {
   return (
     <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg" className="template-svg">
-      <rect x="0" y="0" width="36" height="160" fill="#1A1F36" />
-      <rect x="0" y="0" width="36" height="38" fill="#12172A" />
-      <rect x="36" y="0" width="2" height="160" fill="#14B8A6" />
-      <rect x="4" y="8" width="24" height="4" rx="0.5" fill="#FFFFFF" opacity="0.9" />
-      <rect x="4" y="16" width="16" height="2" rx="0.5" fill="#14B8A6" />
-      <rect x="4" y="21" width="12" height="1.5" fill="#14B8A6" />
-      <rect x="4" y="26" width="22" height="1.5" rx="0.5" fill="#94A3B8" opacity="0.7" />
-      <rect x="4" y="30" width="18" height="1.5" rx="0.5" fill="#94A3B8" opacity="0.7" />
-      <rect x="4" y="42" width="18" height="1.5" rx="0.5" fill="#14B8A6" />
-      <rect x="4" y="46" width="28" height="0.5" fill="#2D3748" />
-      <circle cx="6.5" cy="51" r="1.5" fill="#14B8A6" />
-      <rect x="10" y="49.5" width="18" height="2" rx="0.5" fill="#CBD5E1" opacity="0.7" />
-      <circle cx="6.5" cy="57" r="1.5" fill="#14B8A6" />
-      <rect x="10" y="55.5" width="14" height="2" rx="0.5" fill="#CBD5E1" opacity="0.7" />
-      <circle cx="6.5" cy="63" r="1.5" fill="#14B8A6" />
-      <rect x="10" y="61.5" width="20" height="2" rx="0.5" fill="#CBD5E1" opacity="0.7" />
-      <rect x="44" y="14" width="52" height="7" rx="1" fill="#1E293B" opacity="0.85" />
-      <rect x="44" y="25" width="20" height="2.5" fill="#14B8A6" />
-      <rect x="44" y="35" width="28" height="3" rx="0.5" fill="#0D9488" />
-      <rect x="44" y="41" width="68" height="0.5" fill="#E2E8F0" />
-      <rect x="44" y="45" width="52" height="2" rx="0.5" fill="#334155" />
-      <rect x="44" y="50" width="60" height="2" rx="0.5" fill="#334155" opacity="0.7" />
-      <rect x="44" y="64" width="30" height="3" rx="0.5" fill="#0D9488" />
-      <rect x="44" y="70" width="68" height="0.5" fill="#E2E8F0" />
-      <rect x="44" y="74" width="45" height="2.5" rx="0.5" fill="#1E293B" />
-      <rect x="80" y="74" width="28" height="2" rx="0.5" fill="#0D9488" opacity="0.6" />
-      <rect x="44" y="80" width="35" height="2" rx="0.5" fill="#64748B" />
-      <rect x="44" y="86" width="62" height="2" rx="0.5" fill="#334155" opacity="0.7" />
+      <rect x="0" y="0" width="38" height="160" fill="#1A1F36" />
+      <rect x="0" y="0" width="38" height="40"  fill="#12172A" />
+      <rect x="38" y="0" width="2" height="160" fill="#14B8A6" />
+      <rect x="4" y="8"  width="26" height="4" rx="0.5" fill="#FFFFFF" opacity="0.9" />
+      <rect x="4" y="16" width="18" height="2" rx="0.5" fill="#14B8A6" />
+      <rect x="4" y="22" width="14" height="1.5" rx="0.5" fill="#14B8A6" opacity="0.6" />
+      <rect x="4" y="27" width="24" height="1.5" rx="0.5" fill="#94A3B8" opacity="0.6" />
+      <rect x="4" y="31" width="20" height="1.5" rx="0.5" fill="#94A3B8" opacity="0.5" />
+      {/* Sidebar labels */}
+      <rect x="4" y="46" width="20" height="1.5" rx="0.5" fill="#14B8A6" />
+      <rect x="4" y="50" width="30" height="0.5" fill="#2D3748" />
+      <circle cx="6.5" cy="55" r="1.5" fill="#14B8A6" />
+      <rect x="10" y="53.5" width="20" height="2" rx="0.5" fill="#CBD5E1" opacity="0.7" />
+      <circle cx="6.5" cy="61" r="1.5" fill="#14B8A6" />
+      <rect x="10" y="59.5" width="15" height="2" rx="0.5" fill="#CBD5E1" opacity="0.6" />
+      <circle cx="6.5" cy="67" r="1.5" fill="#14B8A6" />
+      <rect x="10" y="65.5" width="22" height="2" rx="0.5" fill="#CBD5E1" opacity="0.6" />
+      <circle cx="6.5" cy="73" r="1.5" fill="#14B8A6" />
+      <rect x="10" y="71.5" width="18" height="2" rx="0.5" fill="#CBD5E1" opacity="0.5" />
+      {/* Main content */}
+      <rect x="46" y="10" width="62" height="8"  rx="1" fill="#1E293B" opacity="0.9" />
+      <rect x="46" y="22" width="22" height="2.5" fill="#14B8A6" />
+      <rect x="46" y="34" width="30" height="2.5" rx="0.5" fill="#0D9488" />
+      <rect x="46" y="40" width="70" height="0.5" fill="#E2E8F0" />
+      <rect x="46" y="44" width="55" height="2" rx="0.5" fill="#334155" />
+      <rect x="46" y="49" width="65" height="2" rx="0.5" fill="#334155" opacity="0.7" />
+      <rect x="46" y="60" width="32" height="2.5" rx="0.5" fill="#0D9488" />
+      <rect x="46" y="66" width="70" height="0.5" fill="#E2E8F0" />
+      <rect x="46" y="70" width="48" height="2.5" rx="0.5" fill="#1E293B" />
+      <rect x="84" y="70" width="28" height="2" rx="0.5"  fill="#0D9488" opacity="0.6" />
+      <rect x="46" y="76" width="38" height="2" rx="0.5" fill="#64748B" />
+      <rect x="46" y="82" width="64" height="2" rx="0.5" fill="#334155" opacity="0.7" />
+      <rect x="46" y="88" width="54" height="2" rx="0.5" fill="#334155" opacity="0.6" />
     </svg>
   );
 }
@@ -88,43 +126,122 @@ function MinimalPreview() {
   return (
     <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg" className="template-svg">
       <rect x="0" y="0" width="120" height="160" fill="#FFFFFF" />
-      <rect x="12" y="18" width="68" height="8" rx="1" fill="#111111" opacity="0.9" />
-      <rect x="12" y="30" width="96" height="0.4" fill="#111111" />
-      <rect x="12" y="34" width="60" height="2" rx="0.5" fill="#777777" opacity="0.6" />
-      <rect x="12" y="38" width="96" height="0.3" fill="#CCCCCC" />
-      <rect x="12" y="48" width="22" height="2" rx="0.5" fill="#111111" />
-      <rect x="12" y="53" width="96" height="0.3" fill="#CCCCCC" />
-      <rect x="12" y="58" width="90" height="2.5" rx="0.5" fill="#333333" opacity="0.7" />
-      <rect x="12" y="63" width="75" height="2" rx="0.5" fill="#333333" opacity="0.6" />
-      <rect x="12" y="74" width="25" height="2" rx="0.5" fill="#111111" />
-      <rect x="12" y="79" width="96" height="0.3" fill="#CCCCCC" />
-      <rect x="12" y="84" width="55" height="3" rx="0.5" fill="#111111" opacity="0.85" />
-      <rect x="82" y="84" width="26" height="2" rx="0.5" fill="#777777" opacity="0.5" />
-      <rect x="12" y="90" width="40" height="2" rx="0.5" fill="#777777" opacity="0.5" />
-      <rect x="12" y="96" width="82" height="2" rx="0.5" fill="#333333" opacity="0.6" />
-      <circle cx="60" cy="108" r="1.5" fill="#CCCCCC" />
-      <rect x="12" y="116" width="20" height="2" rx="0.5" fill="#111111" />
-      <rect x="12" y="121" width="96" height="0.3" fill="#CCCCCC" />
-      <rect x="12" y="126" width="55" height="3" rx="0.5" fill="#111111" opacity="0.85" />
-      <rect x="82" y="126" width="26" height="2" rx="0.5" fill="#777777" opacity="0.5" />
-      <rect x="12" y="142" width="22" height="2" rx="0.5" fill="#111111" />
-      <rect x="12" y="147" width="96" height="0.3" fill="#CCCCCC" />
-      <rect x="12" y="151" width="85" height="2" rx="0.5" fill="#333333" opacity="0.6" />
+      <rect x="10" y="16" width="72" height="8" rx="1" fill="#111111" opacity="0.9" />
+      <rect x="10" y="28" width="100" height="0.5" fill="#111111" />
+      <rect x="10" y="32" width="64" height="2" rx="0.5" fill="#777777" opacity="0.5" />
+      <rect x="10" y="37" width="100" height="0.3" fill="#CCCCCC" />
+      {/* Summary */}
+      <rect x="10" y="45" width="24" height="2" rx="0.5" fill="#111111" />
+      <rect x="10" y="50" width="100" height="0.3" fill="#CCCCCC" />
+      <rect x="10" y="54" width="90"  height="2.5" rx="0.5" fill="#333333" opacity="0.7" />
+      <rect x="10" y="59" width="78"  height="2"   rx="0.5" fill="#333333" opacity="0.5" />
+      {/* Experience */}
+      <rect x="10" y="68" width="26" height="2" rx="0.5" fill="#111111" />
+      <rect x="10" y="73" width="100" height="0.3" fill="#CCCCCC" />
+      <rect x="10" y="77" width="58"  height="3"  rx="0.5" fill="#111111" opacity="0.85" />
+      <rect x="84" y="77" width="26"  height="2"  rx="0.5" fill="#777777" opacity="0.5" />
+      <rect x="10" y="83" width="42"  height="2"  rx="0.5" fill="#777777" opacity="0.5" />
+      <rect x="10" y="89" width="88"  height="2"  rx="0.5" fill="#333333" opacity="0.6" />
+      <rect x="10" y="95" width="72"  height="2"  rx="0.5" fill="#333333" opacity="0.5" />
+      {/* Education */}
+      <rect x="10" y="104" width="22" height="2" rx="0.5" fill="#111111" />
+      <rect x="10" y="109" width="100" height="0.3" fill="#CCCCCC" />
+      <rect x="10" y="113" width="60"  height="3" rx="0.5" fill="#111111" opacity="0.85" />
+      <rect x="84" y="113" width="26"  height="2" rx="0.5" fill="#777777" opacity="0.5" />
+      {/* Skills */}
+      <rect x="10" y="125" width="18" height="2" rx="0.5" fill="#111111" />
+      <rect x="10" y="130" width="100" height="0.3" fill="#CCCCCC" />
+      <rect x="10" y="134" width="88"  height="2" rx="0.5" fill="#333333" opacity="0.6" />
     </svg>
   );
 }
 
-const PREVIEWS = { corporate: CorporatePreview, creative: CreativePreview, minimal: MinimalPreview };
+function ExecutivePreview() {
+  return (
+    <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg" className="template-svg">
+      {/* Sidebar */}
+      <rect x="0"  y="0"   width="40"  height="160" fill="#2D3748" />
+      <rect x="0"  y="0"   width="40"  height="45"  fill="#1A202C" />
+      {/* Gold accent strip */}
+      <rect x="37" y="0"   width="3"   height="160" fill="#D97706" />
+      {/* Name + title in header */}
+      <rect x="4"  y="8"   width="28"  height="4"   rx="0.5" fill="#FFFFFF" opacity="0.9" />
+      <rect x="4"  y="16"  width="20"  height="2"   rx="0.5" fill="#D97706" />
+      {/* Gold divider */}
+      <rect x="4"  y="23"  width="30"  height="0.8" fill="#D97706" opacity="0.6" />
+      {/* Contact label */}
+      <rect x="4"  y="29"  width="14"  height="1.5" rx="0.5" fill="#D97706" opacity="0.8" />
+      <rect x="4"  y="33"  width="29"  height="1.5" rx="0.5" fill="#94A3B8" opacity="0.6" />
+      <rect x="4"  y="37"  width="22"  height="1.5" rx="0.5" fill="#94A3B8" opacity="0.5" />
+      {/* Skills label */}
+      <rect x="4"  y="49"  width="18"  height="1.5" rx="0.5" fill="#D97706" opacity="0.8" />
+      <rect x="4"  y="53"  width="3"   height="3"   fill="#D97706" opacity="0.7" />
+      <rect x="10" y="54"  width="22"  height="1.5" rx="0.5" fill="#CBD5E1" opacity="0.7" />
+      <rect x="4"  y="59"  width="3"   height="3"   fill="#D97706" opacity="0.7" />
+      <rect x="10" y="60"  width="18"  height="1.5" rx="0.5" fill="#CBD5E1" opacity="0.6" />
+      <rect x="4"  y="65"  width="3"   height="3"   fill="#D97706" opacity="0.7" />
+      <rect x="10" y="66"  width="24"  height="1.5" rx="0.5" fill="#CBD5E1" opacity="0.6" />
+      {/* Education label */}
+      <rect x="4"  y="76"  width="20"  height="1.5" rx="0.5" fill="#D97706" opacity="0.8" />
+      <rect x="4"  y="80"  width="28"  height="2"   rx="0.5" fill="#F7FAFC" opacity="0.8" />
+      <rect x="4"  y="85"  width="22"  height="1.5" rx="0.5" fill="#94A3B8" opacity="0.5" />
+      {/* Main content area */}
+      <rect x="46" y="10"  width="22"  height="2"   rx="0.5" fill="#B45309" />
+      <rect x="46" y="14"  width="66"  height="0.8" fill="#D97706" />
+      <rect x="46" y="18"  width="60"  height="2"   rx="0.5" fill="#2D3748" opacity="0.7" />
+      <rect x="46" y="23"  width="50"  height="2"   rx="0.5" fill="#2D3748" opacity="0.5" />
+      {/* Experience section */}
+      <rect x="46" y="33"  width="30"  height="2"   rx="0.5" fill="#B45309" />
+      <rect x="46" y="37"  width="66"  height="0.8" fill="#D97706" />
+      <rect x="46" y="41"  width="44"  height="2.5" rx="0.5" fill="#1A202C" opacity="0.85" />
+      <rect x="78" y="41"  width="28"  height="2"   rx="0.5" fill="#D97706" opacity="0.6" />
+      <rect x="46" y="46"  width="36"  height="1.5" rx="0.5" fill="#718096" opacity="0.6" />
+      <rect x="46" y="51"  width="62"  height="2"   rx="0.5" fill="#2D3748" opacity="0.6" />
+      <rect x="46" y="56"  width="52"  height="2"   rx="0.5" fill="#2D3748" opacity="0.5" />
+      {/* Second exp block */}
+      <rect x="46" y="65"  width="40"  height="2.5" rx="0.5" fill="#1A202C" opacity="0.8" />
+      <rect x="78" y="65"  width="28"  height="2"   rx="0.5" fill="#D97706" opacity="0.5" />
+      <rect x="46" y="70"  width="34"  height="1.5" rx="0.5" fill="#718096" opacity="0.5" />
+      <rect x="46" y="75"  width="58"  height="2"   rx="0.5" fill="#2D3748" opacity="0.5" />
+    </svg>
+  );
+}
+
+const PREVIEWS = { corporate: CorporatePreview, creative: CreativePreview, minimal: MinimalPreview, executive: ExecutivePreview };
 
 export default function TemplateSelector({ value, onChange, isPremium, onUpgradeClick }) {
+  const [activeCategory, setActiveCategory] = useState('all');
+
+  const filtered = TEMPLATES.filter(
+    tpl => activeCategory === 'all' || tpl.categories.includes(activeCategory)
+  );
+
   return (
-    <div className="card">
-      <h2>Choose Template</h2>
+    <div className="card" style={{ marginBottom: 0 }}>
+      <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        🎨 Choose Template
+      </h2>
+
+      {/* Category pills */}
+      <div className="template-categories">
+        {CATEGORIES.map(cat => (
+          <button
+            key={cat.id}
+            type="button"
+            className={`cat-pill ${activeCategory === cat.id ? 'active' : ''}`}
+            onClick={() => setActiveCategory(cat.id)}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Template grid */}
       <div className="template-grid">
-        {TEMPLATES.map((tpl) => {
-          const Preview   = PREVIEWS[tpl.id];
-          const locked    = tpl.premium && !isPremium;
-          const selected  = value === tpl.id;
+        {filtered.map((tpl) => {
+          const Preview  = PREVIEWS[tpl.id];
+          const locked   = tpl.premium && !isPremium;
+          const selected = value === tpl.id;
 
           return (
             <button
@@ -132,10 +249,10 @@ export default function TemplateSelector({ value, onChange, isPremium, onUpgrade
               type="button"
               className={`template-card ${selected ? 'selected' : ''} ${locked ? 'locked' : ''}`}
               onClick={() => locked ? onUpgradeClick?.() : onChange(tpl.id)}
-              title={locked ? 'Upgrade to Premium to unlock this template' : tpl.name}
+              title={locked ? 'Upgrade to Premium to unlock' : tpl.name}
             >
               <div className="template-preview">
-                <Preview />
+                {Preview && <Preview />}
                 {locked && (
                   <div className="template-lock-overlay">
                     <span className="lock-icon">🔒</span>
@@ -143,17 +260,22 @@ export default function TemplateSelector({ value, onChange, isPremium, onUpgrade
                   </div>
                 )}
               </div>
+
               <div className="template-info">
                 <span className="template-name">
                   {tpl.name}
                   {tpl.premium && (
-                    <span className={`template-tier ${isPremium ? 'tier-premium' : 'tier-locked'}`}>
-                      {isPremium ? '✦' : '🔒'}
-                    </span>
+                    isPremium
+                      ? <span className="badge-gold-shimmer" style={{ marginLeft: '5px' }}>✦ PRO</span>
+                      : <span className="tier-locked" style={{ marginLeft: '4px' }}>🔒</span>
                   )}
                 </span>
                 <span className="template-desc">{tpl.desc}</span>
+                {!locked && tpl.id === 'corporate' && (
+                  <span className="ats-friendly-badge">ATS-Safe</span>
+                )}
               </div>
+
               {selected && !locked && <span className="template-check">✓</span>}
             </button>
           );
@@ -162,8 +284,8 @@ export default function TemplateSelector({ value, onChange, isPremium, onUpgrade
 
       {!isPremium && (
         <p className="template-upgrade-hint">
-          🔒 Creative and Minimal require Premium.{' '}
-          <button className="hint-upgrade-link" onClick={onUpgradeClick}>
+          🔒 Creative &amp; Minimal require Premium.{' '}
+          <button className="hint-upgrade-link" type="button" onClick={onUpgradeClick}>
             Unlock for ₹49 →
           </button>
         </p>

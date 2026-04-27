@@ -3,8 +3,9 @@ const express   = require('express');
 const cors      = require('cors');
 const rateLimit = require('express-rate-limit');
 
-const resumeRoutes  = require('./routes/resume');
-const authRoutes    = require('./routes/auth');
+const resumeRoutes         = require('./routes/resume');
+const resumeVersionsRoutes = require('./routes/resume-versions.routes');
+const authRoutes           = require('./routes/auth');
 const { eventRouter, revenueRouter } = require('./routes/event.routes');
 const decisionRoutes                 = require('./routes/decision.routes');
 const toolRoutes                     = require('./routes/tool.routes');
@@ -14,177 +15,85 @@ const ideaRoutes                     = require('./routes/idea.routes');
 const codegenRoutes                  = require('./routes/codegen.routes');
 const monetizationRoutes             = require('./routes/monetization.routes');
 const optimizationRoutes             = require('./routes/optimization.routes');
-const deploymentRoutes               = require('./routes/deployment.routes');   // ← ADD
-const revenueAgentRoutes             = require('./routes/revenue.agent.routes'); // ← ADD
+const deploymentRoutes               = require('./routes/deployment.routes');
+const revenueAgentRoutes             = require('./routes/revenue.agent.routes');
 const marketingRoutes                = require('./routes/marketing.routes');
 const supportRoutes                  = require('./routes/support.routes');
-const paymentRoutes                  = require('./routes/payment.routes');
+const invoiceRoutes                  = require('./routes/invoice.routes');
+const paymentRoutes                  = require('./routes/payment.routes');   // invoice payments
+const razorpayRoutes                 = require('./routes/razorpay.routes');  // premium upgrade
 const { startAnalyticsCron }         = require('./jobs/analytics.cron');
 require('./jobs/autonomous.cron');
 require('./jobs/idea.cron');
-require('./jobs/health.cron');                                                   // ← ADD
-require('./jobs/revenue.cron');                                                  // ← ADD
+require('./jobs/health.cron');
+require('./jobs/revenue.cron');
 require('./jobs/support.cron');
 
 const app  = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
 
-// ===== ENV CHECK =====
-const REQUIRED_ENV = [
-  'RAZORPAY_KEY_ID',
-  'RAZORPAY_KEY_SECRET',
-  'JWT_SECRET',
-  'SUPABASE_URL',
-  'SUPABASE_SERVICE_ROLE_KEY',
-  'OPENAI_API_KEY',
-];
+const REQUIRED_ENV = ['RAZORPAY_KEY_ID','RAZORPAY_KEY_SECRET','JWT_SECRET','SUPABASE_URL','SUPABASE_SERVICE_ROLE_KEY','OPENAI_API_KEY'];
+const missingEnv = REQUIRED_ENV.filter((key) => !process.env[key]);
+if (missingEnv.length > 0) {
+  console.warn(`Warning: ${missingEnv.length} required ENV variable(s) missing`);
+  if (process.env.NODE_ENV !== 'production') missingEnv.forEach((key) => console.warn(`   - Missing: ${key}`));
+}
 
-REQUIRED_ENV.forEach((key) => {
-  if (!process.env[key]) {
-    console.warn(`⚠️ Missing ENV: ${key}`);
-  }
-});
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? ['https://awe-os.vercel.app']
+  : ['https://awe-os.vercel.app', 'http://localhost:5173'];
 
-// ===== CORS =====
-app.use(cors({
-  origin: ['https://awe-os.vercel.app', 'http://localhost:5173'],
-  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
-  credentials: true,
-}));
+app.use(cors({ origin: allowedOrigins, methods: ['GET','POST','PATCH','PUT','DELETE'], credentials: true }));
+app.use(express.json({ limit: '100kb' }));
 
-// ===== MIDDLEWARE =====
-app.use(express.json());
-
-// ===== REQUEST LOGGING =====
 app.use((req, res, next) => {
   const start = Date.now();
-  res.on('finish', () => {
-    console.log(
-      `[${new Date().toISOString()}] ${req.method} ${req.path} ${res.statusCode} ${Date.now() - start}ms`
-    );
-  });
+  res.on('finish', () => console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} ${res.statusCode} ${Date.now()-start}ms`));
   next();
 });
 
-// ===== RATE LIMITING =====
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { success: false, error: 'Too many requests, slow down.' },
-});
+const globalLimiter  = rateLimit({ windowMs: 15*60*1000, max: 100, standardHeaders: true, legacyHeaders: false, message: { success: false, error: 'Too many requests, slow down.' } });
+const authLimiter    = rateLimit({ windowMs: 15*60*1000, max: 20,  standardHeaders: true, legacyHeaders: false, message: { success: false, error: 'Too many auth attempts, try again later.' } });
+const paymentLimiter = rateLimit({ windowMs: 60*60*1000, max: 10,  standardHeaders: true, legacyHeaders: false, message: { success: false, error: 'Too many payment attempts.' } });
 
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { success: false, error: 'Too many auth attempts, try again later.' },
-});
-
-const paymentLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { success: false, error: 'Too many payment attempts.' },
-});
-
-// Apply global limiter
 app.use(globalLimiter);
 
-// ===== ROUTES =====
-
-// ✅ Auth routes (ONLY once)
-app.use('/api/auth', authLimiter, authRoutes);
-
-// ✅ Payment routes (attach limiter only)
-app.use('/api/create-order', paymentLimiter);
+app.use('/api/auth',           authLimiter, authRoutes);
+app.use('/api/create-order',   paymentLimiter);
 app.use('/api/verify-payment', paymentLimiter);
+app.use('/api/events',         eventRouter);
+app.use('/api/revenue',        revenueRouter);
+app.use('/api/decision',       decisionRoutes);
+app.use('/api/tools',          toolRoutes);
+app.use('/api/builder',        builderRoutes);
+app.use('/api/autonomous',     autonomousRoutes);
+app.use('/api/ideas',          ideaRoutes);
+app.use('/api/codegen/generate', (req, res, next) => { req.setTimeout(180_000); res.setTimeout(180_000); next(); });
+app.use('/api/codegen',        codegenRoutes);
+app.use('/api/monetize',       monetizationRoutes);
+app.use('/api/optimize',       optimizationRoutes);
+app.use('/api/deploy',         deploymentRoutes);
+app.use('/api/revenue-agent',  revenueAgentRoutes);
+app.use('/api/marketing',      marketingRoutes);
+app.use('/api/support',        supportRoutes);
+app.use('/api/invoices',       invoiceRoutes);
+app.use('/api/payments',       paymentRoutes);
+app.use('/api/payment',        paymentLimiter, razorpayRoutes);
+app.use('/api/resume-versions', resumeVersionsRoutes);
+app.use('/api',                resumeRoutes);
 
-// ✅ Event tracking + analytics
-app.use('/api/events', eventRouter);
-app.use('/api/revenue', revenueRouter);
+app.get('/api/health', (req, res) => res.json({ status: 'healthy', service: 'AWE-OS Backend', version: '2.0.0', time: new Date().toISOString(), checks: { database: 'ok' } }));
+app.get('/', (req, res) => res.send('AWE-OS Backend Running'));
+app.use((err, req, res, next) => { console.error('Unhandled Error:', err.message); res.status(500).json({ success: false, error: 'Internal Server Error' }); });
 
-// ✅ Decision engine
-app.use('/api/decision', decisionRoutes);
-
-// ✅ Tools list (dashboard)
-app.use('/api/tools', toolRoutes);
-
-// ✅ Builder Agent
-app.use('/api/builder', builderRoutes);
-
-// ✅ Autonomous Agent
-app.use('/api/autonomous', autonomousRoutes);
-
-// ✅ Idea Pipeline
-app.use('/api/ideas', ideaRoutes);
-
-// ✅ Code Generator (AI → DB → human review → live)
-app.use('/api/codegen', codegenRoutes);
-
-// ✅ Monetization Intelligence (strategies + A/B pricing experiments)
-app.use('/api/monetize', monetizationRoutes);
-
-// ✅ Optimization Agent
-app.use('/api/optimize', optimizationRoutes);
-
-// ✅ Deployment Agent
-app.use('/api/deploy', deploymentRoutes);                                        // ← ADD
-
-// ✅ Revenue Agent
-app.use('/api/revenue-agent', revenueAgentRoutes);                              // ← ADD
-
-// ✅ Marketing Agent
-app.use('/api/marketing', marketingRoutes);
-
-// ✅ Support Agent
-app.use('/api/support', supportRoutes);
-
-// ✅ Payment (Razorpay) — new dedicated routes
-app.use('/api/payment', paymentLimiter, paymentRoutes);
-
-// ✅ Main app routes
-app.use('/api', resumeRoutes);
-
-// ===== HEALTH CHECK =====
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    service: 'AWE-OS Backend',
-    version: '2.0.0',
-    time: new Date().toISOString(),
-    checks: {
-      database: 'ok',
-    },
-  });
-});
-
-// ===== ROOT =====
-app.get('/', (req, res) => {
-  res.send('AWE-OS Backend Running');
-});
-
-// ===== GLOBAL ERROR HANDLER =====
-app.use((err, req, res, next) => {
-  console.error('❌ Unhandled Error:', err.message);
-  res.status(500).json({
-    success: false,
-    error: 'Internal Server Error',
-  });
-});
-
-// ===== START SERVER =====
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+const server = app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
   startAnalyticsCron();
-  console.log('[SERVER] Analytics cron scheduled (daily)');
-  console.log('[SERVER] Autonomous cron scheduled (6h)');
-  console.log('[SERVER] Idea cron scheduled (12h)');
-  console.log('[SERVER] Health cron scheduled (30min)');
-  console.log('[SERVER] Revenue cron scheduled (daily 23:59)');
-  console.log('[SERVER] Support cron scheduled (30min SLA + daily + weekly KB)');
-  console.log('[SERVER] All systems GO ✅');
+  console.log('[SERVER] All systems GO');
+});
+
+process.on('SIGTERM', () => {
+  server.close(() => { console.log('[SERVER] Closed.'); process.exit(0); });
+  setTimeout(() => process.exit(1), 10_000);
 });

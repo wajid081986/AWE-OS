@@ -61,7 +61,7 @@ async function trackEvent(tool_id, user_id, event_type, metadata = {}, req = {})
   if (process.env.NODE_ENV !== 'production') {
     console.log(`[Event] ${event_type} | tool=${tool_id} | user=${user_id ?? 'anon'}`);
   } else {
-    console.log(JSON.stringify({ level: 'info', event: 'tracked', event_type, tool_id, ts: new Date().toISOString() }));
+    console.log(JSON.stringify({ level: 'info', event: 'tracked', event_type, ts: new Date().toISOString() }));
   }
 
   return event;
@@ -104,58 +104,49 @@ async function getEventsByTool(tool_id, { event_type, date_from, date_to, page =
 
 /**
  * Return aggregate summary for a tool:
- * - count per event_type
+ * - count per event_type  (via get_event_summary RPC — Postgres GROUP BY)
+ * - last-7-day daily trend (via get_event_trend RPC — Postgres GROUP BY)
  * - conversion_rate and revenue from tools table
- * - last-7-day daily event trend
  *
- * Note: for very high event volumes this should be replaced with
- * a Supabase RPC that does the GROUP BY in Postgres.
+ * All three queries run in parallel. Postgres aggregates server-side so
+ * at most ~14 rows are transferred regardless of event volume.
  *
  * @param {string} tool_id
  * @returns {object} summary object
  */
 async function getEventSummary(tool_id) {
-  // Fetch only the event_type column — minimal data transfer
-  const { data: events, error: eventsErr } = await supabase
-    .from('tool_events')
-    .select('event_type, created_at')
-    .eq('tool_id', tool_id);
+  const [summaryRes, trendRes, toolRes] = await Promise.all([
+    supabase.rpc('get_event_summary', { p_tool_id: tool_id }),
+    supabase.rpc('get_event_trend',   { p_tool_id: tool_id }),
+    supabase.from('tools').select('revenue, conversion_rate').eq('id', tool_id).maybeSingle(),
+  ]);
 
-  if (eventsErr) throw eventsErr;
+  if (summaryRes.error) throw summaryRes.error;
+  if (trendRes.error)   throw trendRes.error;
+  if (toolRes.error)    throw toolRes.error;
 
-  // Aggregate counts
+  // [{event_type, count}] → {tool_viewed: 42, tool_used: 17, ...}
   const summary = {};
-  for (const row of events) {
-    summary[row.event_type] = (summary[row.event_type] || 0) + 1;
+  for (const row of (summaryRes.data ?? [])) {
+    summary[row.event_type] = Number(row.count);
   }
 
-  // Build last-7-day trend (initialise every day to 0 first)
+  // Initialise all 7 days to 0, then fill in days returned by the RPC
   const trendMap = {};
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     trendMap[d.toISOString().slice(0, 10)] = 0;
   }
-
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - 7);
-  for (const row of events) {
-    if (new Date(row.created_at) >= cutoff) {
-      const day = row.created_at.slice(0, 10);
-      if (trendMap[day] !== undefined) trendMap[day]++;
-    }
+  for (const row of (trendRes.data ?? [])) {
+    const day = row.day instanceof Date
+      ? row.day.toISOString().slice(0, 10)
+      : String(row.day).slice(0, 10);
+    if (trendMap[day] !== undefined) trendMap[day] = Number(row.count);
   }
-
   const trend = Object.entries(trendMap).map(([date, count]) => ({ date, count }));
 
-  // Pull authoritative revenue + conversion_rate from the tools row
-  const { data: tool, error: toolErr } = await supabase
-    .from('tools')
-    .select('revenue, conversion_rate')
-    .eq('id', tool_id)
-    .maybeSingle();
-
-  if (toolErr) throw toolErr;
+  const tool = toolRes.data;
 
   return {
     tool_id,

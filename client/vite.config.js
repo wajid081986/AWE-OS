@@ -9,7 +9,14 @@ export default defineConfig({
       '/api': 'http://localhost:5000',
     },
   },
-   build: {
-    outDir: 'dist',   // ✅ IMPORTANT (Vercel needs this)
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('react-dom') || id.includes('react-router')) return 'vendor-react';
+          if (id.includes('recharts')) return 'vendor-charts';
+        },
+      },
+    },
   },
 });

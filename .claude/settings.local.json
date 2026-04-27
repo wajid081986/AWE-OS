@@ -10,7 +10,20 @@
       "Bash(npm run *)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(npm audit *)",
+      "Bash(node --check index.js)",
+      "Bash(node --check services/revenue.service.js)",
+      "Bash(node --check agents/autonomous-agent.js)",
+      "Bash(node --check routes/auth.js)",
+      "Bash(node --check services/ai.service.js)",
+      "Bash(node --check controllers/event.controller.js)",
+      "Bash(timeout 8 node *)",
+      "Bash(node *)",
+      "Bash(npm info *)",
+      "Bash(git -C \"D:/MyProjects/AWE-OS\" add client/package.json client/package-lock.json)",
+      "Bash(git -C \"D:/MyProjects/AWE-OS\" status)",
+      "Bash(git *)"
     ]
   }
 }

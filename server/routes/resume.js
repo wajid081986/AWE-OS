@@ -3,6 +3,7 @@ const PDFDocument = require('pdfkit');
 const corporate   = require('../templates/corporate');
 const creative    = require('../templates/creative');
 const minimal     = require('../templates/minimal');
+const executive   = require('../templates/executive');
 
 // ===== NEW CODE START =====
 const Razorpay    = require('razorpay');
@@ -24,8 +25,8 @@ const EXPECTED_CURRENCY = 'INR';
 const router = express.Router();
 
 const FREE_TEMPLATE      = 'corporate';
-const PREMIUM_TEMPLATES  = new Set(['creative', 'minimal']);
-const ALL_TEMPLATES      = { corporate, creative, minimal };
+const PREMIUM_TEMPLATES  = new Set(['creative', 'minimal', 'executive']);
+const ALL_TEMPLATES      = { corporate, creative, minimal, executive };
 
 // ── Watermark ─────────────────────────────────────────────────
 function addWatermark(doc) {
@@ -68,8 +69,9 @@ router.post('/generate-resume', async (req, res) => {
         .eq('id', payload.userId)
         .maybeSingle();
       isDbPremium = data?.is_premium || false;
-    } catch (_) {
-      // Invalid/expired token — treat as free user
+    } catch (err) {
+      console.error('[generate-resume] token/db error:', err.message);
+      // Invalid/expired token or Supabase error — treat as free user
     }
   }
 
@@ -174,12 +176,20 @@ router.post('/verify-payment', requireAuth, async (req, res) => {
       updateData.razorpay_order_id   = razorpay_order_id;
     }
 
-    const { error: updateErr } = await supabase
+    const { data: updated, error: updateErr } = await supabase
       .from('users')
       .update(updateData)
-      .eq('id', req.user.userId);
+      .eq('id', req.user.userId)
+      .eq('is_premium', false)
+      .select('id')
+      .maybeSingle();
 
     if (updateErr) throw updateErr;
+
+    // 0 rows updated = concurrent request already upgraded this user
+    if (!updated) {
+      return res.json({ success: true, message: 'Payment verified' });
+    }
 
     return res.json({ success: true, message: 'Payment verified' });
   } catch (err) {

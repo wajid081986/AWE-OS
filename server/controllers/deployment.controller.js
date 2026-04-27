@@ -94,7 +94,7 @@ async function getHistory(req, res) {
 
 // GET /api/deploy/health-history
 async function getHealthHistory(req, res) {
-  const hours = Math.min(parseInt(req.query.hours, 10) || 24, 168);
+  const hours = Math.max(1, Math.min(parseInt(req.query.hours, 10) || 24, 168));
   try {
     const data = await fetchHealthHistory(hours);
     return res.status(200).json({ success: true, data, count: data.length });

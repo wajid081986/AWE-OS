@@ -26,21 +26,30 @@ CREATE TABLE IF NOT EXISTS generated_code (
 
   -- Status lifecycle:
   --   generating → ready_for_review → approved (tool goes live)
-  --                                 ↘ rejected  (can regenerate)
+  --            ↘ partial_ready      ↘ rejected  (can regenerate)
   --   generating → failed           (AI error, can retry)
   status          TEXT     CHECK (status IN (
                     'generating',
+                    'partial_ready',
                     'ready_for_review',
                     'approved',
                     'rejected',
                     'failed'
                   )) DEFAULT 'generating',
 
+  -- Quality report from the self-healing validator
+  quality_report  JSONB,
+  avg_score       NUMERIC(5,2),
+
   reviewed_at     TIMESTAMP,
   reviewer_notes  TEXT,
   created_at      TIMESTAMP DEFAULT NOW(),
   updated_at      TIMESTAMP DEFAULT NOW()
 );
+
+-- Add quality columns to existing tables (idempotent)
+ALTER TABLE generated_code ADD COLUMN IF NOT EXISTS quality_report JSONB;
+ALTER TABLE generated_code ADD COLUMN IF NOT EXISTS avg_score NUMERIC(5,2);
 
 -- Fast lookup by tool
 CREATE INDEX IF NOT EXISTS idx_generated_code_tool_id
