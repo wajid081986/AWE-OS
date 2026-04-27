@@ -18,6 +18,7 @@ const deploymentRoutes               = require('./routes/deployment.routes');   
 const revenueAgentRoutes             = require('./routes/revenue.agent.routes'); // ← ADD
 const marketingRoutes                = require('./routes/marketing.routes');
 const supportRoutes                  = require('./routes/support.routes');
+const paymentRoutes                  = require('./routes/payment.routes');
 const { startAnalyticsCron }         = require('./jobs/analytics.cron');
 require('./jobs/autonomous.cron');
 require('./jobs/idea.cron');
@@ -141,6 +142,9 @@ app.use('/api/marketing', marketingRoutes);
 
 // ✅ Support Agent
 app.use('/api/support', supportRoutes);
+
+// ✅ Payment (Razorpay) — new dedicated routes
+app.use('/api/payment', paymentLimiter, paymentRoutes);
 
 // ✅ Main app routes
 app.use('/api', resumeRoutes);

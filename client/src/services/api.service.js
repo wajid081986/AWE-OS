@@ -310,3 +310,13 @@ export const getRevenueAlerts = (acknowledged = false) =>
 /** Acknowledge a revenue alert */
 export const acknowledgeRevenueAlert = (id) =>
   apiFetch(`/api/revenue-agent/alerts/${id}/acknowledge`, { method: 'PATCH' });
+
+// ── Axios-compatible default export (used by SupportPanel) ────
+// Wraps apiFetch to return { data } so components can do api.get(...).then(r => r.data)
+const api = {
+  get:   (path)       => apiFetch(`/api${path}`).then((data) => ({ data })),
+  post:  (path, body) => apiFetch(`/api${path}`, { method: 'POST',  body: JSON.stringify(body) }).then((data) => ({ data })),
+  patch: (path, body) => apiFetch(`/api${path}`, { method: 'PATCH', body: JSON.stringify(body) }).then((data) => ({ data })),
+};
+
+export default api;

@@ -4,6 +4,22 @@ import ResumeForm  from './components/ResumeForm';
 import AdBanner    from './components/AdBanner';
 import AuthModal   from './components/AuthModal';
 import Dashboard   from './pages/Dashboard';
+import AdminPanel  from './pages/AdminPanel';
+
+// ── Route guards ─────────────────────────────────────────────
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('awe_token');
+  return token ? children : <Navigate to="/" replace />;
+};
+
+const AdminRoute = ({ children }) => {
+  const token      = localStorage.getItem('awe_token');
+  const user       = JSON.parse(localStorage.getItem('awe_user') || '{}');
+  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
+  if (!token)                                   return <Navigate to="/" replace />;
+  if (!adminEmail || user.email !== adminEmail)  return <Navigate to="/dashboard" replace />;
+  return children;
+};
 
 const BASE_URL = import.meta.env.VITE_API_URL
               || 'https://awe-os.onrender.com';
@@ -205,11 +221,11 @@ export default function App() {
     <Routes>
       <Route
         path="/dashboard"
-        element={
-          localStorage.getItem('awe_token')
-            ? <Dashboard />
-            : <Navigate to="/" replace />
-        }
+        element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
+      />
+      <Route
+        path="/admin"
+        element={<AdminRoute><AdminPanel /></AdminRoute>}
       />
       <Route path="*" element={<ResumeBuilderUI
         user={user} isPremium={isPremium} loading={loading} toast={toast}
