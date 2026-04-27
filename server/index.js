@@ -19,6 +19,8 @@ const deploymentRoutes               = require('./routes/deployment.routes');   
 const revenueAgentRoutes             = require('./routes/revenue.agent.routes'); // ← ADD
 const marketingRoutes                = require('./routes/marketing.routes');
 const supportRoutes                  = require('./routes/support.routes');
+const invoiceRoutes                  = require('./routes/invoice.routes');
+const paymentRoutes                  = require('./routes/payment.routes');
 const { startAnalyticsCron }         = require('./jobs/analytics.cron');
 require('./jobs/autonomous.cron');
 require('./jobs/idea.cron');
@@ -155,6 +157,10 @@ app.use('/api/marketing', marketingRoutes);
 
 // ✅ Support Agent
 app.use('/api/support', supportRoutes);
+
+// ✅ Invoice Generator Pro
+app.use('/api/invoices', invoiceRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // ✅ Resume versions (explicit mount — avoids 404 from /api catch-all ordering)
 app.use('/api/resume-versions', resumeVersionsRoutes);

@@ -4,7 +4,11 @@ import ResumeForm   from './components/ResumeForm';
 import AdBanner     from './components/AdBanner';
 import AuthModal    from './components/AuthModal';
 import UpgradeModal from './components/UpgradeModal';
-import Dashboard    from './pages/Dashboard';
+import Dashboard        from './pages/Dashboard';
+import InvoiceDashboard from './pages/InvoiceDashboard';
+import CreateInvoice    from './pages/CreateInvoice';
+import InvoiceDetails   from './pages/InvoiceDetails';
+import InvoiceSettings  from './pages/InvoiceSettings';
 
 const BASE_URL = import.meta.env.VITE_API_URL  || 'https://awe-os.onrender.com';
 const RZP_KEY  = import.meta.env.VITE_RAZORPAY_KEY_ID;
@@ -186,6 +190,10 @@ export default function App() {
         path="/dashboard"
         element={localStorage.getItem('awe_token') ? <Dashboard /> : <Navigate to="/" replace />}
       />
+      <Route path="/tools/invoice"         element={localStorage.getItem('awe_token') ? <InvoiceDashboard /> : <Navigate to="/" replace />} />
+      <Route path="/tools/invoice/create"  element={localStorage.getItem('awe_token') ? <CreateInvoice />    : <Navigate to="/" replace />} />
+      <Route path="/tools/invoice/:id"     element={localStorage.getItem('awe_token') ? <InvoiceDetails />   : <Navigate to="/" replace />} />
+      <Route path="/tools/invoice/settings" element={localStorage.getItem('awe_token') ? <InvoiceSettings />  : <Navigate to="/" replace />} />
       <Route path="*" element={
         <ResumeBuilderUI
           user={user} isPremium={isPremium} loading={loading} toast={toast}
