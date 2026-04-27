@@ -134,9 +134,10 @@ async function getCodeStatus(req, res) {
     const code = await getGeneratedCode(tool_id);
 
     return res.json({
-      success:    true,
-      plan_id:    plan.id,
-      generation: code || { status: 'not_started' },
+      success:  true,
+      plan_id:  plan.id,
+      status:   code?.status || 'not_started',
+      data:     code || null,
     });
   } catch (err) {
     console.error('[codegen.controller] getCodeStatus:', err.message);

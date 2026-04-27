@@ -276,9 +276,11 @@ export default function Dashboard() {
           </PanelErrorBoundary>
 
           {/* SECTION 7 — Generated Code */}
-          <GeneratedCodeSection
-            onViewCode={(code) => dispatch({ type: 'OPEN_CODE_VIEWER', payload: code })}
-          />
+          <PanelErrorBoundary name="Generated Code">
+            <GeneratedCodeSection
+              onViewCode={(code) => dispatch({ type: 'OPEN_CODE_VIEWER', payload: code })}
+            />
+          </PanelErrorBoundary>
 
           {/* SECTION 8 — Revenue Agent */}
           <PanelErrorBoundary name="Revenue">
@@ -575,19 +577,19 @@ function GeneratedCodeSection({ onViewCode }) {
                 </p>
                 <button
                   onClick={async () => {
-                      try {
-                        const token = localStorage.getItem('awe_token');
-                        const res = await fetch(
-                          `${import.meta.env.VITE_API_URL || 'https://awe-os.onrender.com'}/api/codegen/${code.tool_id}`,
-                          { headers: { Authorization: `Bearer ${token}` } }
-                        );
-                        const data = await res.json();
-                        if (data.success) onViewCode(data.data);
-                      } catch (err) {
-                        console.error('Failed to fetch full code:', err);
-                      }
-                    }}
-                  style={{ width: '100%', padding: '7px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', background: '#1e3a5f', color: '#93c5fd', border: '1px solid #2563eb' }}
+                    try {
+                      const token = localStorage.getItem('awe_token');
+                      const res = await fetch(
+                        `${import.meta.env.VITE_API_URL || 'https://awe-os.onrender.com'}/api/codegen/${code.tool_id}`,
+                        { headers: { Authorization: `Bearer ${token}` } }
+                      );
+                      const data = await res.json();
+                      if (data.success && data.data) onViewCode(data.data);
+                    } catch (err) {
+                      console.error('Failed to fetch full code:', err);
+                    }
+                  }}
+                  style={{ width: '100%', padding: '7px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', background: '#1e3a5f', color: '#93c5fd', border: '1px solid #2563eb', pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
                 >
                   👁️ View Code
                 </button>
