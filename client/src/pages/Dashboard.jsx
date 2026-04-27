@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import StatsCard     from '../components/dashboard/StatsCard';
 import ToolsTable    from '../components/dashboard/ToolsTable';
 import DecisionModal from '../components/dashboard/DecisionModal';
+import UserDashboard from '../components/dashboard/UserDashboard';
 
 // Lazy-loaded: heavy panels — each becomes a separate JS chunk
 const AutonomousPanel   = lazy(() => import('../components/dashboard/AutonomousPanel'));
@@ -220,6 +221,11 @@ export default function Dashboard() {
       <div style={S.body}>
         {/* ── LEFT / MAIN ─────────────────────────────────── */}
         <div style={S.main}>
+
+          {/* SECTION 0 — User Dashboard */}
+          <PanelErrorBoundary name="User Dashboard">
+            <UserDashboard />
+          </PanelErrorBoundary>
 
           {/* SECTION 1 — Stats Cards */}
           <div style={S.statsRow}>
