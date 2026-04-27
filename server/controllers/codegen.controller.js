@@ -39,6 +39,7 @@ async function generateCode(req, res) {
   res.setTimeout(180_000);
 
   const { tool_id } = req.params;
+  const force = req.body?.force === true || req.query.force === 'true';
 
   if (!UUID_REGEX.test(tool_id)) {
     return res.status(400).json({
@@ -48,7 +49,7 @@ async function generateCode(req, res) {
 
   let partialFiles = 0;
   try {
-    const result = await generateToolCode(tool_id);
+    const result = await generateToolCode(tool_id, force);
     partialFiles = result.files_done || 0;
     return res.status(201).json({ success: true, data: result });
   } catch (err) {
@@ -69,6 +70,7 @@ async function generateCode(req, res) {
       success: false,
       error:   isSafe4xx(err) ? err.message : 'Code generation failed — check server logs',
       code:    err.code || 'UNKNOWN',
+      ...(err.tip && { tip: err.tip }),
     });
   }
 }

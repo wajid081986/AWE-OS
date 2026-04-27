@@ -505,7 +505,7 @@ async function generateChunked(tool, plan, codeId) {
 
 // ── Public API ─────────────────────────────────────────────────
 
-async function generateToolCode(tool_id) {
+async function generateToolCode(tool_id, force = false) {
   // ── 1. Validate preconditions ─────────────────────────────
   const { data: tool, error: toolErr } = await supabase
     .from('tools')
@@ -553,11 +553,16 @@ async function generateToolCode(tool_id) {
     .not('status', 'in', '("rejected","failed")')
     .maybeSingle();
 
-  if (existing) {
+  if (existing && !force) {
     const err = new Error(
       `Code already generated for this plan (id=${existing.id}, status=${existing.status}). Check the Code Viewer.`
     );
-    err.code = 'DUPLICATE_BUILD'; err.status = 409; throw err;
+    err.code = 'DUPLICATE_BUILD'; err.status = 409; err.tip = 'Pass force=true to regenerate'; throw err;
+  }
+
+  if (existing && force) {
+    await supabase.from('generated_code').delete().eq('plan_id', plan.id);
+    console.log(`[CODE GEN] Force regenerating plan_id=${plan.id}, deleted existing record ${existing.id}`);
   }
 
   // ── 2. Create DB record ──────────────────────────────────
