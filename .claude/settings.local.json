@@ -23,7 +23,9 @@
       "Bash(npm info *)",
       "Bash(git -C \"D:/MyProjects/AWE-OS\" add client/package.json client/package-lock.json)",
       "Bash(git -C \"D:/MyProjects/AWE-OS\" status)",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Bash(sed -n '5,20p' client/src/App.jsx)",
+      "Bash(sed -n '195,235p' client/src/App.jsx)"
     ]
   }
 }

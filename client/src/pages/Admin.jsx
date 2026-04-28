@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom'
-import AdminDashboard from '../components/admin/AdminDashboard'
+import AdminDashboard from '../components/dashboard/AdminDashboard'
 
 export default function Admin() {
   const token      = localStorage.getItem('awe_token')
