@@ -218,6 +218,20 @@ export default function App() {
           setPendingPayment={setPendingPayment}
         />
       } />
+      <Route path="/" element={
+        localStorage.getItem('awe_token')
+          ? <Navigate to="/dashboard" replace />
+          : <ResumeBuilderUI
+              user={user} isPremium={isPremium} loading={loading} toast={toast}
+              showAuth={showAuth} setShowAuth={setShowAuth}
+              showUpgrade={showUpgrade} setShowUpgrade={setShowUpgrade}
+              handleUpgradeClick={handleUpgradeClick}
+              handleAuthSuccess={handleAuthSuccess}
+              handleLogout={handleLogout}
+              startPayment={startPayment}
+              setPendingPayment={setPendingPayment}
+            />
+      } />
       <Route path="*" element={
         <ResumeBuilderUI
           user={user} isPremium={isPremium} loading={loading} toast={toast}

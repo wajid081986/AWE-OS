@@ -12,6 +12,8 @@ export default function Admin() {
     return <Navigate to="/dashboard" replace />
 
   return (
-    <AdminDashboard />
+    <div className="min-h-screen bg-gray-900">
+      <AdminDashboard />
+    </div>
   )
 }
