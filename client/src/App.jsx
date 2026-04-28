@@ -5,6 +5,7 @@ import AdBanner     from './components/AdBanner';
 import AuthModal    from './components/AuthModal';
 import UpgradeModal from './components/UpgradeModal';
 import Dashboard        from './pages/Dashboard';
+import Admin           from './pages/Admin';
 import InvoiceDashboard from './pages/InvoiceDashboard';
 import CreateInvoice    from './pages/CreateInvoice';
 import InvoiceDetails   from './pages/InvoiceDetails';
@@ -183,13 +184,24 @@ export default function App() {
     notify('success', 'Logged out');
   };
 
+  // ── Route guard ───────────────────────────────────────────
+  const ProtectedRoute = ({ children }) => {
+    const token = localStorage.getItem('awe_token');
+    return token ? children : <Navigate to="/" replace />;
+  };
+
   // ── UI ────────────────────────────────────────────────────
   return (
     <Routes>
       <Route
         path="/dashboard"
-        element={localStorage.getItem('awe_token') ? <Dashboard /> : <Navigate to="/" replace />}
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
       />
+      <Route path="/admin" element={<Admin />} />
       <Route path="/tools/invoice"         element={localStorage.getItem('awe_token') ? <InvoiceDashboard /> : <Navigate to="/" replace />} />
       <Route path="/tools/invoice/create"  element={localStorage.getItem('awe_token') ? <CreateInvoice />    : <Navigate to="/" replace />} />
       <Route path="/tools/invoice/:id"     element={localStorage.getItem('awe_token') ? <InvoiceDetails />   : <Navigate to="/" replace />} />
