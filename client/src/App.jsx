@@ -191,61 +191,104 @@ export default function App() {
   };
 
   // ── UI ────────────────────────────────────────────────────
-  return (
-    <Routes>
-      {/* Root — redirect based on auth */}
-      <Route path="/" element={
+  return (<Routes>
+
+    {/* ROOT */}
+    <Route
+      path="/"
+      element={
         localStorage.getItem('awe_token')
           ? <Navigate to="/dashboard" replace />
           : <Navigate to="/login" replace />
-      } />
+      }
+    />
 
-      {/* Login page */}
-      <Route path="/login" element={
+    {/* LOGIN */}
+    <Route
+      path="/login"
+      element={
         localStorage.getItem('awe_token')
           ? <Navigate to="/dashboard" replace />
-          : <LoginPage
-              showAuth={showAuth} setShowAuth={setShowAuth}
+          : (
+            <LoginPage
+              showAuth={showAuth}
+              setShowAuth={setShowAuth}
               handleAuthSuccess={handleAuthSuccess}
               setPendingPayment={setPendingPayment}
               toast={toast}
             />
-      } />
+          )
+      }
+    />
 
-      {/* User dashboard */}
-      <Route path="/dashboard" element={
+    {/* DASHBOARD */}
+    <Route
+      path="/dashboard"
+      element={
         <ProtectedRoute>
           <Dashboard />
         </ProtectedRoute>
-      } />
+      }
+    />
 
-      {/* Admin */}
-      <Route path="/admin" element={<Admin />} />
+    {/* ADMIN */}
+    <Route path="/admin" element={<Admin />} />
 
-      {/* Resume Builder — explicit URL only */}
-      <Route path="/tools/resume" element={
+    {/* RESUME BUILDER */}
+    <Route
+      path="/tools/resume"
+      element={
         <ResumeBuilderUI
-          user={user} isPremium={isPremium} loading={loading} toast={toast}
-          showAuth={showAuth} setShowAuth={setShowAuth}
-          showUpgrade={showUpgrade} setShowUpgrade={setShowUpgrade}
+          user={user}
+          isPremium={isPremium}
+          loading={loading}
+          toast={toast}
+          showAuth={showAuth}
+          setShowAuth={setShowAuth}
+          showUpgrade={showUpgrade}
+          setShowUpgrade={setShowUpgrade}
           handleUpgradeClick={handleUpgradeClick}
           handleAuthSuccess={handleAuthSuccess}
           handleLogout={handleLogout}
           startPayment={startPayment}
           setPendingPayment={setPendingPayment}
         />
-      } />
+      }
+    />
 
-      {/* Invoice tools */}
-      <Route path="/tools/invoice"          element={localStorage.getItem('awe_token') ? <InvoiceDashboard /> : <Navigate to="/login" replace />} />
-      <Route path="/tools/invoice/create"   element={localStorage.getItem('awe_token') ? <CreateInvoice />    : <Navigate to="/login" replace />} />
-      <Route path="/tools/invoice/:id"      element={localStorage.getItem('awe_token') ? <InvoiceDetails />   : <Navigate to="/login" replace />} />
-      <Route path="/tools/invoice/settings" element={localStorage.getItem('awe_token') ? <InvoiceSettings />  : <Navigate to="/login" replace />} />
+    {/* INVOICE ROUTES */}
+    <Route
+      path="/tools/invoice"
+      element={localStorage.getItem('awe_token')
+        ? <InvoiceDashboard />
+        : <Navigate to="/login" replace />}
+    />
 
-      {/* Catch-all — back to root */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  );
+    <Route
+      path="/tools/invoice/create"
+      element={localStorage.getItem('awe_token')
+        ? <CreateInvoice />
+        : <Navigate to="/login" replace />}
+    />
+
+    <Route
+      path="/tools/invoice/:id"
+      element={localStorage.getItem('awe_token')
+        ? <InvoiceDetails />
+        : <Navigate to="/login" replace />}
+    />
+
+    <Route
+      path="/tools/invoice/settings"
+      element={localStorage.getItem('awe_token')
+        ? <InvoiceSettings />
+        : <Navigate to="/login" replace />}
+    />
+
+    {/* FALLBACK */}
+    <Route path="*" element={<Navigate to="/" replace />} />
+
+  </Routes>);
 }
 
 function ResumeBuilderUI({
