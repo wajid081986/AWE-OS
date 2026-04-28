@@ -187,7 +187,7 @@ export default function App() {
   // ── Route guard ───────────────────────────────────────────
   const ProtectedRoute = ({ children }) => {
     const token = localStorage.getItem('awe_token');
-    return token ? children : <Navigate to="/" replace />;
+    return token ? children : <Navigate to="/login" replace />;
   };
 
   // ── UI ────────────────────────────────────────────────────
@@ -209,7 +209,7 @@ export default function App() {
       element={
         localStorage.getItem('awe_token')
           ? <Navigate to="/dashboard" replace />
-          : (
+          :  (
             <LoginPage
               showAuth={showAuth}
               setShowAuth={setShowAuth}
@@ -232,7 +232,15 @@ export default function App() {
     />
 
     {/* ADMIN */}
-    <Route path="/admin" element={<Admin />} />
+
+    <Route
+  path="/admin"
+  element={
+    <ProtectedRoute>
+      <Admin />
+    </ProtectedRoute>
+  }
+/>
 
     {/* RESUME BUILDER */}
     <Route
@@ -286,7 +294,7 @@ export default function App() {
     />
 
     {/* FALLBACK */}
-    <Route path="*" element={<Navigate to="/" replace />} />
+   <Route path="*" element={<Navigate to="/" replace />} />
 
   </Routes>);
 }
