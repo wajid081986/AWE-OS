@@ -15,121 +15,155 @@ function apiFetch(path) {
   });
 }
 
-// ── Skeletons ────────────────────────────────────────────────────────────────
-function SkeletonBlock({ h = 80, r = 10 }) {
-  return (
-    <div style={{
-      height: h, borderRadius: r,
-      background: 'linear-gradient(90deg,#1e293b 25%,#263246 50%,#1e293b 75%)',
-      backgroundSize: '200% 100%',
-      animation: 'ud_shimmer 1.4s infinite linear',
-    }} />
-  );
-}
+const getGreeting = () => {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+};
+
+const timeAgo = (dateStr) => {
+  if (!dateStr) return 'recently';
+  const diff  = Date.now() - new Date(dateStr).getTime();
+  const mins  = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days  = Math.floor(diff / 86400000);
+  if (mins  < 1)  return 'just now';
+  if (mins  < 60) return `${mins}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days  < 7)  return `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString();
+};
+
+// ── Explicit Tailwind color maps (dynamic strings are not purge-safe) ────────
+const STAT_C = {
+  blue:   { icon: 'bg-blue-500/10',   text: 'text-blue-400',   bd: 'hover:border-blue-500/50',   sh: 'hover:shadow-blue-500/10'   },
+  purple: { icon: 'bg-purple-500/10', text: 'text-purple-400', bd: 'hover:border-purple-500/50', sh: 'hover:shadow-purple-500/10' },
+  green:  { icon: 'bg-green-500/10',  text: 'text-green-400',  bd: 'hover:border-green-500/50',  sh: 'hover:shadow-green-500/10'  },
+  orange: { icon: 'bg-orange-500/10', text: 'text-orange-400', bd: 'hover:border-orange-500/50', sh: 'hover:shadow-orange-500/10' },
+};
+
+const PROD_C = {
+  blue:   { hdr: 'from-blue-900/80 to-blue-800/40',     text: 'text-blue-400',   btn: 'bg-blue-600 hover:bg-blue-500',     bd: 'hover:border-blue-500/50'   },
+  purple: { hdr: 'from-purple-900/80 to-purple-800/40', text: 'text-purple-400', btn: 'bg-purple-600 hover:bg-purple-500', bd: 'hover:border-purple-500/50' },
+  green:  { hdr: 'from-green-900/80 to-green-800/40',   text: 'text-green-400',  btn: 'bg-green-600 hover:bg-green-500',   bd: 'hover:border-green-500/50'  },
+};
 
 // ── StatCard ─────────────────────────────────────────────────────────────────
-const StatCard = memo(function StatCard({ icon, label, value, sub, accent, loading }) {
-  const ACCENTS = {
-    green:  { bg: '#052e16', border: '#16a34a', text: '#4ade80' },
-    blue:   { bg: '#0c1a3a', border: '#2563eb', text: '#60a5fa' },
-    purple: { bg: '#1e1040', border: '#7c3aed', text: '#a78bfa' },
-    amber:  { bg: '#1c1200', border: '#d97706', text: '#fbbf24' },
-  };
-  const c = ACCENTS[accent] || ACCENTS.blue;
-
-  if (loading) {
-    return (
-      <div style={{ flex: '1 1 160px', minWidth: 140, borderRadius: 12,
-        background: '#1e293b', border: '1px solid #334155', padding: 16 }}>
-        <SkeletonBlock h={16} r={6} />
-        <div style={{ marginTop: 10 }}><SkeletonBlock h={28} r={6} /></div>
-        <div style={{ marginTop: 6 }}><SkeletonBlock h={12} r={4} /></div>
-      </div>
-    );
-  }
+const StatCard = memo(function StatCard({ icon, label, value, color, loading, trend }) {
+  const c = STAT_C[color] || STAT_C.blue;
   return (
-    <div style={{
-      flex: '1 1 160px', minWidth: 140, borderRadius: 12,
-      background: c.bg, border: `1px solid ${c.border}`, padding: '14px 16px',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-        <span style={{ fontSize: 18 }}>{icon}</span>
-        <span style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8',
-          textTransform: 'uppercase', letterSpacing: '0.07em' }}>{label}</span>
-      </div>
-      <div style={{ fontSize: 24, fontWeight: 800, color: c.text }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>{sub}</div>}
-    </div>
-  );
-});
-
-// ── ActivityItem ─────────────────────────────────────────────────────────────
-const ActivityItem = memo(function ActivityItem({ icon, title, sub, badge, badgeColor }) {
-  const BC = {
-    green:  { bg: '#052e16', color: '#4ade80', border: '#16a34a' },
-    amber:  { bg: '#1c1200', color: '#fbbf24', border: '#d97706' },
-    blue:   { bg: '#0c1a3a', color: '#60a5fa', border: '#2563eb' },
-    slate:  { bg: '#1a1a2e', color: '#94a3b8', border: '#475569' },
-  };
-  const bc = BC[badgeColor] || BC.slate;
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 10,
-      padding: '9px 0', borderBottom: '1px solid #1e293b',
-    }}>
-      <span style={{ fontSize: 20, flexShrink: 0 }}>{icon}</span>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#e2e8f0',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {title}
+    <div className={`bg-gray-800/60 backdrop-blur-sm rounded-2xl p-5 border
+      border-gray-700/50 ${c.bd} transition-all duration-200
+      hover:shadow-lg ${c.sh} group`}>
+      <div className="flex justify-between items-start mb-3">
+        <div className={`w-10 h-10 rounded-xl ${c.icon} flex items-center
+          justify-center text-xl group-hover:scale-110 transition-transform duration-200`}>
+          {icon}
         </div>
-        <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{sub}</div>
+        {trend != null && (
+          <span className={`text-xs px-2 py-1 rounded-full ${
+            trend > 0 ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'
+          }`}>
+            {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}%
+          </span>
+        )}
       </div>
-      {badge && (
-        <span style={{
-          fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999,
-          background: bc.bg, color: bc.color, border: `1px solid ${bc.border}`,
-          whiteSpace: 'nowrap', flexShrink: 0,
-        }}>{badge}</span>
+      {loading ? (
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-700 rounded mb-2 w-16" />
+          <div className="h-4 bg-gray-700 rounded w-24" />
+        </div>
+      ) : (
+        <>
+          <p className={`text-3xl font-bold ${c.text} mb-1`}>{value}</p>
+          <p className="text-gray-400 text-sm">{label}</p>
+        </>
       )}
     </div>
   );
 });
 
-// ── ActionCard ───────────────────────────────────────────────────────────────
-function ActionCard({ icon, title, desc, btnLabel, onClick, locked, accent }) {
-  const ACCENTS = {
-    indigo: { border: '#4338ca', btnBg: '#3730a3', btnColor: '#e0e7ff', btnBorder: '#6366f1' },
-    teal:   { border: '#0d9488', btnBg: '#0f766e', btnColor: '#ccfbf1', btnBorder: '#14b8a6' },
-    rose:   { border: '#be123c', btnBg: '#9f1239', btnColor: '#ffe4e6', btnBorder: '#f43f5e' },
-  };
-  const c = ACCENTS[accent] || ACCENTS.indigo;
+// ── ToolCard ─────────────────────────────────────────────────────────────────
+function ToolCard({ icon, title, desc, badge, badgeColor, href, locked, onUpgrade }) {
   return (
-    <div style={{
-      flex: '1 1 200px', minWidth: 180,
-      background: '#1e293b', border: `1px solid ${locked ? '#334155' : c.border}`,
-      borderRadius: 12, padding: 16,
-      display: 'flex', flexDirection: 'column', gap: 8,
-      opacity: locked ? 0.6 : 1,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 22 }}>{icon}</span>
-        <span style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9' }}>{title}</span>
-        {locked && <span style={{ fontSize: 10, marginLeft: 'auto', color: '#64748b', padding: '1px 6px',
-          borderRadius: 999, background: '#0f172a', border: '1px solid #334155' }}>🔒 Pro</span>}
+    <div className={`relative bg-gray-800/60 backdrop-blur-sm rounded-2xl p-6
+      border transition-all duration-200 group
+      ${locked
+        ? 'border-gray-700/30 opacity-75'
+        : 'border-gray-700/50 hover:border-blue-500/50'}
+      hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-0.5`}>
+
+      {locked && (
+        <div className="absolute inset-0 rounded-2xl bg-gray-900/60
+          backdrop-blur-sm z-10 flex flex-col items-center justify-center gap-3">
+          <span className="text-4xl">🔒</span>
+          <button onClick={onUpgrade}
+            className="bg-amber-500 hover:bg-amber-400 active:scale-95
+            text-white text-sm font-semibold px-5 py-2.5 rounded-xl
+            transition-all duration-150">
+            Unlock Premium — ₹49
+          </button>
+        </div>
+      )}
+
+      <div className="flex justify-between items-start mb-4">
+        <div className="text-4xl group-hover:scale-110 transition-transform duration-200">
+          {icon}
+        </div>
+        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${badgeColor}`}>
+          {badge}
+        </span>
       </div>
-      <p style={{ margin: 0, fontSize: 12, color: '#64748b', lineHeight: 1.5 }}>{desc}</p>
-      <button
-        onClick={locked ? undefined : onClick}
-        disabled={locked}
-        style={{
-          marginTop: 'auto', padding: '7px 0', borderRadius: 8,
-          fontSize: 12, fontWeight: 700, cursor: locked ? 'not-allowed' : 'pointer',
-          background: locked ? '#0f172a' : c.btnBg,
-          color: locked ? '#475569' : c.btnColor,
-          border: `1px solid ${locked ? '#334155' : c.btnBorder}`,
-        }}
-      >{btnLabel}</button>
+
+      <h3 className="text-white font-bold text-lg mb-1">{title}</h3>
+      <p className="text-gray-400 text-sm mb-4">{desc}</p>
+
+      {!locked && (
+        <a href={href}
+          className="inline-flex items-center gap-1 text-blue-400
+          hover:text-blue-300 text-sm font-medium
+          group-hover:gap-2 transition-all duration-150">
+          Open Tool <span>→</span>
+        </a>
+      )}
+    </div>
+  );
+}
+
+// ── ProductCard ──────────────────────────────────────────────────────────────
+function ProductCard({ emoji, title, desc, price, oldPrice, color }) {
+  const c = PROD_C[color] || PROD_C.blue;
+  return (
+    <div className={`relative bg-gray-800/60 rounded-2xl overflow-hidden
+      border border-gray-700/50 ${c.bd}
+      transition-all duration-200 hover:-translate-y-1 group`}>
+
+      <div className={`h-24 bg-gradient-to-br ${c.hdr} flex items-center
+        justify-center text-5xl
+        group-hover:scale-105 transition-transform duration-300`}>
+        {emoji}
+      </div>
+
+      <div className="absolute top-3 right-3 bg-red-500 text-white
+        text-xs font-bold px-2 py-0.5 rounded-full">
+        SALE
+      </div>
+
+      <div className="p-5">
+        <h3 className="text-white font-bold mb-1">{title}</h3>
+        <p className="text-gray-400 text-sm mb-4">{desc}</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-gray-500 line-through text-sm mr-1">{oldPrice}</span>
+            <span className={`${c.text} font-bold text-xl`}>{price}</span>
+          </div>
+          <button className={`${c.btn} text-white text-sm font-semibold
+            px-4 py-2 rounded-xl transition-colors active:scale-95`}>
+            Buy Now
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -137,63 +171,15 @@ function ActionCard({ icon, title, desc, btnLabel, onClick, locked, accent }) {
 // ── MiniToolCard ─────────────────────────────────────────────────────────────
 function MiniToolCard({ icon, title, desc, comingSoon }) {
   return (
-    <div style={{
-      flex: '1 1 140px', minWidth: 120,
-      background: '#0f172a', border: '1px solid #334155',
-      borderRadius: 10, padding: '12px 14px',
-    }}>
-      <div style={{ fontSize: 22, marginBottom: 6 }}>{icon}</div>
-      <div style={{ fontSize: 13, fontWeight: 700, color: '#e2e8f0' }}>{title}</div>
-      <div style={{ fontSize: 11, color: '#64748b', marginTop: 3 }}>{desc}</div>
+    <div className="flex-1 min-w-[130px] bg-gray-900/60 border border-gray-700/50
+      rounded-xl p-4 hover:border-gray-600/50 transition-colors">
+      <div className="text-2xl mb-2">{icon}</div>
+      <div className="text-sm font-bold text-gray-200">{title}</div>
+      <div className="text-xs text-gray-500 mt-1 leading-relaxed">{desc}</div>
       {comingSoon && (
-        <span style={{ marginTop: 8, display: 'inline-block', fontSize: 10, fontWeight: 600,
-          color: '#f59e0b', padding: '1px 7px', borderRadius: 999,
-          background: '#1c1200', border: '1px solid #d97706' }}>Coming Soon</span>
-      )}
-    </div>
-  );
-}
-
-// ── ProductCard ──────────────────────────────────────────────────────────────
-function ProductCard({ icon, title, desc, price, tag }) {
-  return (
-    <div style={{
-      flex: '1 1 180px', minWidth: 160,
-      background: 'linear-gradient(135deg,#1e293b,#0f172a)',
-      border: '1px solid #4338ca', borderRadius: 12, padding: 16,
-    }}>
-      <div style={{ fontSize: 28, marginBottom: 8 }}>{icon}</div>
-      {tag && (
-        <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 999,
-          background: '#1c1200', color: '#fbbf24', border: '1px solid #d97706',
-          textTransform: 'uppercase', letterSpacing: '0.08em' }}>{tag}</span>
-      )}
-      <div style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', marginTop: 6 }}>{title}</div>
-      <div style={{ fontSize: 11, color: '#64748b', marginTop: 4, lineHeight: 1.5 }}>{desc}</div>
-      <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 16, fontWeight: 800, color: '#a78bfa' }}>{price}</span>
-        <button style={{
-          padding: '5px 12px', borderRadius: 7, fontSize: 11, fontWeight: 700,
-          cursor: 'pointer', background: '#3730a3', color: '#e0e7ff', border: '1px solid #6366f1',
-        }}>Get →</button>
-      </div>
-    </div>
-  );
-}
-
-// ── SectionHeader ────────────────────────────────────────────────────────────
-function SectionHeader({ title, sub, badge }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10,
-      padding: '14px 18px', borderBottom: '1px solid #334155' }}>
-      <div style={{ flex: 1 }}>
-        <h2 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#f1f5f9' }}>{title}</h2>
-        {sub && <p style={{ margin: '2px 0 0', fontSize: 11, color: '#64748b' }}>{sub}</p>}
-      </div>
-      {badge != null && (
-        <span style={{ padding: '2px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700,
-          background: '#0f172a', color: '#94a3b8', border: '1px solid #334155' }}>
-          {badge}
+        <span className="mt-2 inline-block text-xs font-semibold text-amber-400
+          px-2 py-0.5 rounded-full bg-amber-900/30 border border-amber-700/50">
+          Soon
         </span>
       )}
     </div>
@@ -202,13 +188,31 @@ function SectionHeader({ title, sub, badge }) {
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function UserDashboard() {
-  const navigate  = useNavigate();
-  const [apiData,  setApiData]  = useState(null);
-  const [loading,  setLoading]  = useState(true);
+  const navigate = useNavigate();
 
-  const rawUser  = JSON.parse(localStorage.getItem('awe_user') || '{}');
+  const [apiData,     setApiData]     = useState(null);
+  const [loading,     setLoading]     = useState(true);
+  const [upgrading,   setUpgrading]   = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const rawUser   = JSON.parse(localStorage.getItem('awe_user') || '{}');
   const isPremium = rawUser.isPremium || false;
-  const userName  = rawUser.name || rawUser.email?.split('@')[0] || 'Builder';
+  const userName  = rawUser.name || rawUser.email?.split('@')[0] || 'there';
+
+  const handleUpgrade = () => {
+    setUpgrading(true);
+    navigate('/');
+  };
+
+  // Post-payment success notification via sessionStorage flag
+  useEffect(() => {
+    const flag = sessionStorage.getItem('premium_success');
+    if (flag) {
+      setShowSuccess(true);
+      sessionStorage.removeItem('premium_success');
+      setTimeout(() => setShowSuccess(false), 5000);
+    }
+  }, []);
 
   const loadData = useCallback(async () => {
     try {
@@ -218,7 +222,7 @@ export default function UserDashboard() {
         setLoading(false);
         return;
       }
-    } catch { /* stale or corrupt cache */ }
+    } catch { /* stale/corrupt cache */ }
 
     const [resumesRes, invoiceRes, ticketsRes] = await Promise.allSettled([
       apiFetch('/api/resumes'),
@@ -227,9 +231,12 @@ export default function UserDashboard() {
     ]);
 
     const d = {
-      resumes:      resumesRes.status  === 'fulfilled' ? (resumesRes.value.resumes  || resumesRes.value.data  || []) : [],
-      invoiceStats: invoiceRes.status  === 'fulfilled' ? (invoiceRes.value.stats   || null) : null,
-      tickets:      ticketsRes.status  === 'fulfilled' ? (ticketsRes.value.tickets || ticketsRes.value.data || []) : [],
+      resumes:      resumesRes.status === 'fulfilled'
+        ? (resumesRes.value.resumes || resumesRes.value.data || []) : [],
+      invoiceStats: invoiceRes.status === 'fulfilled'
+        ? (invoiceRes.value.stats || null) : null,
+      tickets:      ticketsRes.status === 'fulfilled'
+        ? (ticketsRes.value.tickets || ticketsRes.value.data || []) : [],
     };
 
     try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: d })); } catch { /* quota */ }
@@ -239,237 +246,369 @@ export default function UserDashboard() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  // ── Derived values ──────────────────────────────────────────────────────────
   const resumes      = apiData?.resumes      || [];
   const invoiceStats = apiData?.invoiceStats || {};
   const tickets      = apiData?.tickets      || [];
+  const totalRevenue = invoiceStats.total_revenue || 0;
+  const openTickets  = tickets.filter(t => t.status === 'open').length || tickets.length;
 
-  const totalRevenue = invoiceStats.total_revenue  || 0;
   const fmtINR = v => `₹${Number(v || 0).toLocaleString('en-IN', { minimumFractionDigits: 0 })}`;
 
+  // Combined activity feed
+  const allActivity = [
+    ...resumes.slice(0, 4).map(r => ({
+      type:       'resume',
+      title:      r.name || r.title || 'Untitled Resume',
+      created_at: r.updated_at || r.created_at,
+      status:     'draft',
+      href:       '/',
+    })),
+    ...(invoiceStats.recent || []).slice(0, 4).map(inv => ({
+      type:       'invoice',
+      title:      inv.client_name || 'Unknown Client',
+      created_at: inv.created_at || inv.updated_at,
+      status:     inv.status || 'draft',
+      href:       `/tools/invoice/${inv.id}`,
+    })),
+  ]
+    .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+    .slice(0, 6);
+
   const AI_SUGGESTIONS = [
-    isPremium ? '⭐ Export resume as PDF — try now' : '🔓 Unlock all 12 templates for ₹49',
-    resumes.length === 0 ? '📄 Create your first resume in 3 minutes' : `📄 Update your resume — last edited ${resumes[0]?.updated_at ? new Date(resumes[0].updated_at).toLocaleDateString() : 'recently'}`,
-    invoiceStats.pending_count > 0 ? `💰 ${invoiceStats.pending_count} invoice(s) pending payment — follow up` : '🧾 Create a professional invoice — gets paid 2× faster',
+    isPremium
+      ? '⭐ Export resume as PDF — try now'
+      : '🔓 Unlock all 12 templates for ₹49',
+    resumes.length === 0
+      ? '📄 Create your first resume in 3 minutes'
+      : `📄 Update your resume — last edited ${resumes[0]?.updated_at ? new Date(resumes[0].updated_at).toLocaleDateString() : 'recently'}`,
+    invoiceStats.pending_count > 0
+      ? `💰 ${invoiceStats.pending_count} invoice(s) pending — follow up`
+      : '🧾 Create a professional invoice — gets paid 2× faster',
     '📊 Add skills section to get 40% more recruiter views',
     '🌟 Share your resume link — gets 3× more responses',
   ];
 
-  const card = {
-    background: '#1e293b', border: '1px solid #334155',
-    borderRadius: 12, overflow: 'hidden',
-  };
-
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <>
-      {/* Shimmer keyframe — injected once, harmless if duplicate */}
-      <style>{`@keyframes ud_shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-      {/* ── SECTION 1: Hero ────────────────────────────────────────────────── */}
-      <div style={{
-        background: 'linear-gradient(135deg,#1e1040 0%,#0c1a3a 50%,#052e16 100%)',
-        border: '1px solid #4338ca', borderRadius: 14, padding: '22px 24px',
-        display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center',
-      }}>
-        <div style={{ flex: 1, minWidth: 220 }}>
-          <p style={{ margin: '0 0 4px', fontSize: 12, color: '#7c3aed', fontWeight: 700,
-            textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            {isPremium ? '⭐ Premium Member' : '🆓 Free Plan'}
-          </p>
-          <h2 style={{ margin: '0 0 6px', fontSize: 20, fontWeight: 800, color: '#f1f5f9' }}>
-            Welcome back, {userName} 👋
-          </h2>
-          <p style={{ margin: 0, fontSize: 13, color: '#94a3b8' }}>
-            {resumes.length} resume{resumes.length !== 1 ? 's' : ''} created
-            {invoiceStats.total_count ? ` · ${invoiceStats.total_count} invoice${invoiceStats.total_count !== 1 ? 's' : ''} sent` : ''}
-            {totalRevenue > 0 ? ` · ${fmtINR(totalRevenue)} earned` : ''}
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <button onClick={() => navigate('/')}
-            style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700,
-              cursor: 'pointer', background: '#3730a3', color: '#e0e7ff', border: '1px solid #6366f1' }}>
-            📄 Create Resume
-          </button>
-          <button onClick={() => navigate('/tools/invoice/create')}
-            style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700,
-              cursor: 'pointer', background: '#0f766e', color: '#ccfbf1', border: '1px solid #14b8a6' }}>
-            🧾 New Invoice
-          </button>
-          {!isPremium && (
-            <button onClick={() => navigate('/')}
-              style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700,
-                cursor: 'pointer', background: '#92400e', color: '#fef3c7', border: '1px solid #f59e0b' }}>
-              ✨ Go Premium — ₹49
+      {/* ── Success Toast ─────────────────────────────────────────────────── */}
+      {showSuccess && (
+        <div className="fixed top-4 right-4 z-50 bg-green-900
+          border border-green-500/50 rounded-2xl p-4
+          shadow-2xl shadow-green-900/50">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🎉</span>
+            <div>
+              <p className="text-green-300 font-bold">Premium Activated!</p>
+              <p className="text-green-400 text-sm">Welcome to AWE-OS Pro</p>
+            </div>
+            <button onClick={() => setShowSuccess(false)}
+              className="ml-4 text-green-600 hover:text-green-400 text-lg leading-none">
+              ✕
             </button>
-          )}
-        </div>
-      </div>
-
-      {/* ── SECTION 2: Stats Cards ─────────────────────────────────────────── */}
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-        <StatCard icon="📄" label="Resumes"       accent="blue"
-          value={loading ? '…' : String(resumes.length)}
-          sub="created all time" loading={loading} />
-        <StatCard icon="💰" label="Revenue"       accent="green"
-          value={loading ? '…' : fmtINR(totalRevenue)}
-          sub="from paid invoices" loading={loading} />
-        <StatCard icon="🧾" label="Invoices Sent" accent="purple"
-          value={loading ? '…' : String(invoiceStats.total_count || 0)}
-          sub={`${invoiceStats.pending_count || 0} pending`} loading={loading} />
-        <StatCard icon="🎫" label="Support"       accent="amber"
-          value={loading ? '…' : String(tickets.length)}
-          sub="open tickets" loading={loading} />
-      </div>
-
-      {/* ── SECTION 3: Quick Actions ────────────────────────────────────────── */}
-      <div style={card}>
-        <SectionHeader title="🚀 Quick Actions" sub="Your most-used tools" />
-        <div style={{ padding: '14px 16px', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <ActionCard
-            icon="📄" title="Resume Builder" accent="indigo"
-            desc="ATS-optimised resumes with 12+ templates. Stand out in any job search."
-            btnLabel="Build Resume →"
-            onClick={() => navigate('/')} />
-          <ActionCard
-            icon="🧾" title="Invoice Generator" accent="teal"
-            desc="Professional PDF invoices. Auto-number, GST, multi-currency support."
-            btnLabel="Open Invoices →"
-            onClick={() => navigate('/tools/invoice')} />
-          <ActionCard
-            icon="🤖" title="AI Career Coach" accent="rose"
-            desc="Get personalised resume feedback and cover letter suggestions."
-            btnLabel={isPremium ? 'Open AI Coach →' : 'Unlock with Pro'}
-            locked={!isPremium}
-            onClick={() => {}} />
-        </div>
-      </div>
-
-      {/* ── SECTION 4: Premium Upsell (guests only) ────────────────────────── */}
-      {!isPremium && (
-        <div style={{
-          background: 'linear-gradient(135deg,#1c1200,#1e1040)',
-          border: '1px solid #d97706', borderRadius: 14, padding: '18px 22px',
-          display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'center',
-        }}>
-          <div style={{ flex: 1, minWidth: 200 }}>
-            <p style={{ margin: '0 0 4px', fontSize: 11, fontWeight: 700, color: '#f59e0b',
-              textTransform: 'uppercase', letterSpacing: '0.08em' }}>✨ Upgrade to Premium</p>
-            <p style={{ margin: '0 0 6px', fontSize: 15, fontWeight: 800, color: '#fef3c7' }}>
-              One-time ₹49 — Lifetime Access
-            </p>
-            <p style={{ margin: 0, fontSize: 12, color: '#92400e', lineHeight: 1.6 }}>
-              ✔ Remove watermark &nbsp;·&nbsp; ✔ All 12 templates &nbsp;·&nbsp;
-              ✔ AI cover letter &nbsp;·&nbsp; ✔ Priority support
-            </p>
           </div>
-          <button onClick={() => navigate('/')}
-            style={{ padding: '10px 22px', borderRadius: 9, fontSize: 13, fontWeight: 800,
-              cursor: 'pointer', background: '#d97706', color: '#1c1200', border: 'none',
-              whiteSpace: 'nowrap' }}>
-            Upgrade Now →
-          </button>
         </div>
       )}
 
-      {/* ── SECTION 5: Recent Activity ──────────────────────────────────────── */}
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-        {/* Recent Resumes */}
-        <div style={{ ...card, flex: '1 1 260px', minWidth: 240 }}>
-          <SectionHeader title="📄 Recent Resumes" badge={resumes.length} />
-          <div style={{ padding: '4px 16px 12px' }}>
-            {loading ? (
-              [1,2,3].map(i => <div key={i} style={{ paddingTop: 10 }}><SkeletonBlock h={40} r={8} /></div>)
-            ) : resumes.length === 0 ? (
-              <p style={{ padding: '16px 0', textAlign: 'center', color: '#475569', fontSize: 12 }}>
-                No resumes yet.{' '}
-                <span onClick={() => navigate('/')}
-                  style={{ color: '#60a5fa', cursor: 'pointer', textDecoration: 'underline' }}>
-                  Create one →
-                </span>
-              </p>
-            ) : resumes.slice(0, 3).map(r => (
-              <ActivityItem
-                key={r.id}
-                icon="📄"
-                title={r.name || r.title || 'Untitled Resume'}
-                sub={r.updated_at ? new Date(r.updated_at).toLocaleDateString() : 'No date'}
-                badge={r.template || 'Classic'}
-                badgeColor="blue" />
-            ))}
+      {/* ── SECTION 1: Hero ─────────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-3xl
+        bg-gradient-to-br from-gray-900 via-blue-950 to-purple-950
+        border border-blue-800/30 p-8">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10
+          rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-600/10
+          rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10">
+          <p className="text-blue-400 text-sm font-medium mb-1">
+            {getGreeting()} {isPremium ? '⭐' : '☀️'}
+          </p>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Welcome back, {userName} 👋
+          </h1>
+          <p className="text-gray-400 text-lg mb-6">
+            {loading
+              ? 'Loading your workspace…'
+              : resumes.length > 0 || invoiceStats.total_count
+              ? `${resumes.length} resume${resumes.length !== 1 ? 's' : ''} · ${invoiceStats.total_count || 0} invoice${(invoiceStats.total_count || 0) !== 1 ? 's' : ''} · ${fmtINR(totalRevenue)} earned`
+              : 'What do you want to create today?'}
+          </p>
+
+          <div className="flex flex-wrap gap-3">
+            <a href="/"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500
+              active:scale-95 px-5 py-3 rounded-xl font-semibold text-white
+              transition-all duration-150 shadow-lg shadow-blue-600/25">
+              📄 Build Resume
+              <span className="text-blue-200 text-sm">→</span>
+            </a>
+            <a href="/tools/invoice"
+              className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500
+              active:scale-95 px-5 py-3 rounded-xl font-semibold text-white
+              transition-all duration-150 shadow-lg shadow-purple-600/25">
+              🧾 Create Invoice
+              <span className="text-purple-200 text-sm">→</span>
+            </a>
+            {!isPremium && (
+              <button onClick={handleUpgrade} disabled={upgrading}
+                className="flex items-center gap-2
+                bg-gradient-to-r from-amber-500 to-orange-500
+                hover:from-amber-400 hover:to-orange-400
+                disabled:opacity-50 active:scale-95
+                px-5 py-3 rounded-xl font-semibold text-white
+                transition-all duration-150 shadow-lg shadow-amber-600/25
+                animate-pulse">
+                ⚡ Go Premium — ₹49
+              </button>
+            )}
           </div>
         </div>
+      </div>
 
-        {/* Recent Invoices */}
-        <div style={{ ...card, flex: '1 1 260px', minWidth: 240 }}>
-          <SectionHeader title="🧾 Recent Invoices"
-            badge={(invoiceStats.recent || []).length || 0} />
-          <div style={{ padding: '4px 16px 12px' }}>
-            {loading ? (
-              [1,2,3].map(i => <div key={i} style={{ paddingTop: 10 }}><SkeletonBlock h={40} r={8} /></div>)
-            ) : (invoiceStats.recent || []).length === 0 ? (
-              <p style={{ padding: '16px 0', textAlign: 'center', color: '#475569', fontSize: 12 }}>
-                No invoices yet.{' '}
-                <span onClick={() => navigate('/tools/invoice/create')}
-                  style={{ color: '#4ade80', cursor: 'pointer', textDecoration: 'underline' }}>
-                  Create one →
+      {/* ── SECTION 2: Stats Cards ───────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard icon="📄" label="Resumes Created" color="blue"
+          value={loading ? '…' : String(resumes.length)}
+          loading={loading} />
+        <StatCard icon="🧾" label="Invoices Sent" color="purple"
+          value={loading ? '…' : String(invoiceStats.total_count || 0)}
+          loading={loading} />
+        <StatCard icon="💰" label="Revenue Tracked" color="green"
+          value={loading ? '…' : fmtINR(totalRevenue)}
+          loading={loading} />
+        <StatCard icon="🎧" label="Open Tickets" color="orange"
+          value={loading ? '…' : String(openTickets)}
+          loading={loading} />
+      </div>
+
+      {/* ── SECTION 3: Quick Actions ─────────────────────────────────────────── */}
+      <div>
+        <h2 className="text-white font-bold text-lg mb-4">🚀 Quick Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <ToolCard
+            icon="📄"
+            title="Resume Builder"
+            desc="Create ATS-friendly resumes in minutes. Free PDF download."
+            badge="Free"
+            badgeColor="bg-green-900/50 text-green-400"
+            href="/"
+            locked={false}
+            onUpgrade={handleUpgrade} />
+          <ToolCard
+            icon="🧾"
+            title="Invoice Generator Pro"
+            desc="Professional invoices with live preview and PDF export."
+            badge="Free"
+            badgeColor="bg-green-900/50 text-green-400"
+            href="/tools/invoice"
+            locked={false}
+            onUpgrade={handleUpgrade} />
+          <ToolCard
+            icon="✨"
+            title="AI Content Writer"
+            desc="Generate blogs, emails, social posts with AI in seconds."
+            badge="Premium"
+            badgeColor="bg-amber-900/50 text-amber-400"
+            href="/tools/content"
+            locked={!isPremium}
+            onUpgrade={handleUpgrade} />
+        </div>
+      </div>
+
+      {/* ── SECTION 4: Premium Upsell (non-premium only) ─────────────────────── */}
+      {!isPremium && (
+        <div className="relative overflow-hidden rounded-3xl
+          bg-gradient-to-r from-purple-900/80 via-blue-900/80 to-indigo-900/80
+          border border-purple-500/30 p-8">
+          <div className="absolute top-0 right-0 w-72 h-72
+            bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row
+            justify-between items-start md:items-center gap-6">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">⚡</span>
+                <span className="bg-amber-500/20 text-amber-400 text-xs font-bold
+                  px-2 py-1 rounded-full border border-amber-500/30">
+                  LIMITED TIME
                 </span>
-              </p>
-            ) : (invoiceStats.recent || []).slice(0, 3).map(inv => (
-              <ActivityItem
-                key={inv.id}
-                icon="🧾"
-                title={inv.client_name || 'Unknown Client'}
-                sub={`${inv.invoice_number || 'INV'} · ${fmtINR(inv.total_amount)}`}
-                badge={inv.status}
-                badgeColor={inv.status === 'paid' ? 'green' : inv.status === 'pending' ? 'amber' : 'slate'} />
-            ))}
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Unlock AWE-OS Premium
+              </h2>
+              <p className="text-gray-300 mb-4">Everything you need to work faster</p>
+
+              <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                {[
+                  '✅ No watermark on PDFs',
+                  '✅ Premium resume templates',
+                  '✅ Unlimited invoices',
+                  '✅ AI Content Writer',
+                  '✅ Priority support',
+                  '✅ Advanced analytics',
+                ].map(f => (
+                  <div key={f} className="text-gray-300 text-sm">{f}</div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center gap-3 shrink-0">
+              <div className="text-center">
+                <div className="text-gray-500 line-through text-sm">₹499</div>
+                <div className="text-4xl font-black text-white">₹49</div>
+                <div className="text-gray-400 text-xs">one-time payment</div>
+              </div>
+              <button onClick={handleUpgrade} disabled={upgrading}
+                className="w-full bg-gradient-to-r from-purple-600 to-blue-600
+                hover:from-purple-500 hover:to-blue-500
+                disabled:opacity-50 disabled:cursor-not-allowed
+                px-8 py-4 rounded-2xl font-bold text-lg text-white
+                transition-all duration-200 hover:scale-105
+                shadow-xl shadow-purple-600/30">
+                {upgrading ? '⏳ Processing...' : '🚀 Upgrade Now'}
+              </button>
+              <div className="flex items-center gap-1 text-gray-400 text-xs">
+                ⭐⭐⭐⭐⭐
+                <span>4.8/5 from 2,400+ users</span>
+              </div>
+            </div>
           </div>
         </div>
+      )}
+
+      {/* ── SECTION 5: Recent Activity ───────────────────────────────────────── */}
+      <div className="bg-gray-800/60 backdrop-blur-sm rounded-2xl
+        border border-gray-700/50 overflow-hidden">
+        <div className="flex justify-between items-center p-5
+          border-b border-gray-700/50">
+          <h2 className="text-white font-bold text-lg">Recent Activity</h2>
+          <span className="text-gray-500 text-sm">Last 7 days</span>
+        </div>
+
+        {loading ? (
+          <div className="p-5 space-y-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="animate-pulse flex gap-3 items-center">
+                <div className="w-10 h-10 bg-gray-700 rounded-xl shrink-0" />
+                <div className="flex-1">
+                  <div className="h-4 bg-gray-700 rounded mb-2 w-48" />
+                  <div className="h-3 bg-gray-700 rounded w-24" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : allActivity.length === 0 ? (
+          <div className="p-10 text-center">
+            <div className="text-4xl mb-3">🌱</div>
+            <p className="text-gray-400 mb-4">No activity yet — start creating!</p>
+            <a href="/"
+              className="inline-block bg-blue-600 hover:bg-blue-500 text-white
+              px-5 py-2.5 rounded-xl text-sm font-medium transition-colors">
+              Create First Resume →
+            </a>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-700/50">
+            {allActivity.map((item, i) => (
+              <div key={i}
+                className="flex items-center gap-4 p-5
+                hover:bg-gray-700/30 transition-colors group">
+                <div className={`w-10 h-10 rounded-xl flex items-center
+                  justify-center text-xl shrink-0 ${
+                  item.type === 'resume' ? 'bg-blue-900/50' : 'bg-purple-900/50'
+                }`}>
+                  {item.type === 'resume' ? '📄' : '🧾'}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-medium truncate">{item.title}</p>
+                  <p className="text-gray-500 text-sm">{timeAgo(item.created_at)}</p>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    item.status === 'paid'
+                      ? 'bg-green-900/50 text-green-400'
+                      : item.status === 'pending'
+                      ? 'bg-yellow-900/50 text-yellow-400'
+                      : 'bg-gray-700/50 text-gray-400'
+                  }`}>
+                    {item.status}
+                  </span>
+                  <a href={item.href}
+                    className="text-gray-500 hover:text-blue-400 text-sm
+                    opacity-0 group-hover:opacity-100 transition-all duration-150">
+                    Continue →
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* ── SECTION 6: Tools & Calculators ─────────────────────────────────── */}
-      <div style={card}>
-        <SectionHeader title="🛠 Tools & Calculators" sub="Productivity add-ons" />
-        <div style={{ padding: '14px 16px', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <MiniToolCard icon="🧮" title="Tax Calculator"   desc="Estimate income tax instantly" comingSoon />
-          <MiniToolCard icon="💳" title="EMI Calculator"   desc="Loan EMI in seconds" comingSoon />
-          <MiniToolCard icon="📊" title="GST Calculator"   desc="GST-inclusive / exclusive" comingSoon />
-          <MiniToolCard icon="📝" title="Word Counter"     desc="Words, chars, reading time" comingSoon />
+      {/* ── SECTION 6: Digital Products ──────────────────────────────────────── */}
+      <div>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-white font-bold text-lg">🛒 Digital Products</h2>
+          <span className="text-gray-500 text-sm">Ready-to-use templates & guides</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <ProductCard
+            emoji="📄"
+            title="Premium Resume Templates"
+            desc="20+ ATS-optimized professional designs"
+            price="₹199" oldPrice="₹499" color="blue" />
+          <ProductCard
+            emoji="🧾"
+            title="Invoice Template Pack"
+            desc="50+ professional invoice designs"
+            price="₹149" oldPrice="₹399" color="purple" />
+          <ProductCard
+            emoji="🎓"
+            title="Career Accelerator Course"
+            desc="Get hired 3x faster with proven strategies"
+            price="₹999" oldPrice="₹2999" color="green" />
         </div>
       </div>
 
-      {/* ── SECTION 7: Digital Products Store ──────────────────────────────── */}
-      <div style={card}>
-        <SectionHeader title="🛒 Digital Products" sub="Ready-to-use templates & guides" />
-        <div style={{ padding: '14px 16px', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <ProductCard
-            icon="📄" title="Premium Resume Pack"
-            desc="12 ATS-optimised Tailwind resume templates for any industry."
-            price="₹149" tag="Bestseller" />
-          <ProductCard
-            icon="🧾" title="Invoice Template Pack"
-            desc="20 professional invoice designs — freelancer, agency, GST-ready."
-            price="₹99" tag="New" />
-          <ProductCard
-            icon="📚" title="Career Accelerator Guide"
-            desc="Step-by-step PDF guide to land your dream job in 60 days."
-            price="₹49" tag="Free with Pro" />
+      {/* ── SECTION 7: Tools & Calculators ───────────────────────────────────── */}
+      <div className="bg-gray-800/60 backdrop-blur-sm rounded-2xl
+        border border-gray-700/50 overflow-hidden">
+        <div className="p-5 border-b border-gray-700/50">
+          <h2 className="text-white font-bold">🛠 Tools & Calculators</h2>
+          <p className="text-gray-500 text-sm mt-0.5">Productivity add-ons</p>
+        </div>
+        <div className="p-5 flex flex-wrap gap-3">
+          <MiniToolCard icon="🧮" title="Tax Calculator"   desc="Estimate income tax instantly"    comingSoon />
+          <MiniToolCard icon="💳" title="EMI Calculator"   desc="Loan EMI in seconds"              comingSoon />
+          <MiniToolCard icon="📊" title="GST Calculator"   desc="GST-inclusive / exclusive"        comingSoon />
+          <MiniToolCard icon="📝" title="Word Counter"     desc="Words, chars, reading time"       comingSoon />
         </div>
       </div>
 
-      {/* ── SECTION 8: AI Suggestions ──────────────────────────────────────── */}
-      <div style={card}>
-        <SectionHeader title="🤖 AI Suggestions" sub="Personalised next steps for you" />
-        <div style={{ padding: '12px 16px', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      {/* ── SECTION 8: AI Suggestions ─────────────────────────────────────────── */}
+      <div className="bg-gray-800/60 backdrop-blur-sm rounded-2xl
+        border border-gray-700/50 overflow-hidden">
+        <div className="p-5 border-b border-gray-700/50">
+          <h2 className="text-white font-bold">🤖 AI Suggestions</h2>
+          <p className="text-gray-500 text-sm mt-0.5">Personalised next steps for you</p>
+        </div>
+        <div className="p-5 flex flex-wrap gap-2">
           {AI_SUGGESTIONS.map((s, i) => (
-            <span key={i} style={{
-              padding: '6px 14px', borderRadius: 999, fontSize: 12, fontWeight: 500,
-              background: '#0f172a', color: '#94a3b8', border: '1px solid #334155',
-              cursor: 'default',
-            }}>{s}</span>
+            <span key={i}
+              className="px-4 py-2 rounded-full text-sm font-medium
+              bg-gray-900/60 text-gray-400 border border-gray-700/50
+              hover:border-gray-600/50 hover:text-gray-300
+              transition-colors cursor-default">
+              {s}
+            </span>
           ))}
         </div>
       </div>
-    </>
+
+    </div>
   );
 }
