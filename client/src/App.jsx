@@ -193,19 +193,36 @@ export default function App() {
   // ── UI ────────────────────────────────────────────────────
   return (
     <Routes>
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
+      {/* Root — redirect based on auth */}
+      <Route path="/" element={
+        localStorage.getItem('awe_token')
+          ? <Navigate to="/dashboard" replace />
+          : <Navigate to="/login" replace />
+      } />
+
+      {/* Login page */}
+      <Route path="/login" element={
+        localStorage.getItem('awe_token')
+          ? <Navigate to="/dashboard" replace />
+          : <LoginPage
+              showAuth={showAuth} setShowAuth={setShowAuth}
+              handleAuthSuccess={handleAuthSuccess}
+              setPendingPayment={setPendingPayment}
+              toast={toast}
+            />
+      } />
+
+      {/* User dashboard */}
+      <Route path="/dashboard" element={
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      } />
+
+      {/* Admin */}
       <Route path="/admin" element={<Admin />} />
-      <Route path="/tools/invoice"         element={localStorage.getItem('awe_token') ? <InvoiceDashboard /> : <Navigate to="/" replace />} />
-      <Route path="/tools/invoice/create"  element={localStorage.getItem('awe_token') ? <CreateInvoice />    : <Navigate to="/" replace />} />
-      <Route path="/tools/invoice/:id"     element={localStorage.getItem('awe_token') ? <InvoiceDetails />   : <Navigate to="/" replace />} />
-      <Route path="/tools/invoice/settings" element={localStorage.getItem('awe_token') ? <InvoiceSettings />  : <Navigate to="/" replace />} />
+
+      {/* Resume Builder — explicit URL only */}
       <Route path="/tools/resume" element={
         <ResumeBuilderUI
           user={user} isPremium={isPremium} loading={loading} toast={toast}
@@ -218,32 +235,15 @@ export default function App() {
           setPendingPayment={setPendingPayment}
         />
       } />
-      <Route path="/" element={
-        localStorage.getItem('awe_token')
-          ? <Navigate to="/dashboard" replace />
-          : <ResumeBuilderUI
-              user={user} isPremium={isPremium} loading={loading} toast={toast}
-              showAuth={showAuth} setShowAuth={setShowAuth}
-              showUpgrade={showUpgrade} setShowUpgrade={setShowUpgrade}
-              handleUpgradeClick={handleUpgradeClick}
-              handleAuthSuccess={handleAuthSuccess}
-              handleLogout={handleLogout}
-              startPayment={startPayment}
-              setPendingPayment={setPendingPayment}
-            />
-      } />
-      <Route path="*" element={
-        <ResumeBuilderUI
-          user={user} isPremium={isPremium} loading={loading} toast={toast}
-          showAuth={showAuth} setShowAuth={setShowAuth}
-          showUpgrade={showUpgrade} setShowUpgrade={setShowUpgrade}
-          handleUpgradeClick={handleUpgradeClick}
-          handleAuthSuccess={handleAuthSuccess}
-          handleLogout={handleLogout}
-          startPayment={startPayment}
-          setPendingPayment={setPendingPayment}
-        />
-      } />
+
+      {/* Invoice tools */}
+      <Route path="/tools/invoice"          element={localStorage.getItem('awe_token') ? <InvoiceDashboard /> : <Navigate to="/login" replace />} />
+      <Route path="/tools/invoice/create"   element={localStorage.getItem('awe_token') ? <CreateInvoice />    : <Navigate to="/login" replace />} />
+      <Route path="/tools/invoice/:id"      element={localStorage.getItem('awe_token') ? <InvoiceDetails />   : <Navigate to="/login" replace />} />
+      <Route path="/tools/invoice/settings" element={localStorage.getItem('awe_token') ? <InvoiceSettings />  : <Navigate to="/login" replace />} />
+
+      {/* Catch-all — back to root */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
@@ -339,6 +339,21 @@ function ResumeBuilderUI({
           onPay={startPayment}
           onClose={() => setShowUpgrade(false)}
           isLoading={loading}
+        />
+      )}
+    </div>
+  );
+}
+
+function LoginPage({ showAuth, setShowAuth, handleAuthSuccess, setPendingPayment, toast }) {
+  useEffect(() => { setShowAuth(true); }, [setShowAuth]);
+  return (
+    <div style={{ minHeight: '100vh', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {toast && <div className={`notification ${toast.type}`}>{toast.message}</div>}
+      {showAuth && (
+        <AuthModal
+          onSuccess={handleAuthSuccess}
+          onClose={() => { setShowAuth(false); setPendingPayment(false); }}
         />
       )}
     </div>
