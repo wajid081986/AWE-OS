@@ -5,33 +5,33 @@ import ProtectedRoute from '../shared/components/ProtectedRoute'
 import PublicRoute    from '../shared/components/PublicRoute'
 
 // ── Lazy pages ────────────────────────────────────────────────
-const LoginPage        = lazy(() => import('../pages/LoginPage'))
-const ResumePage       = lazy(() => import('../pages/ResumePage'))
-const Dashboard        = lazy(() => import('../pages/Dashboard'))
-const Admin            = lazy(() => import('../pages/Admin'))
-const InvoiceDashboard = lazy(() => import('../pages/InvoiceDashboard'))
-const CreateInvoice    = lazy(() => import('../pages/CreateInvoice'))
-const InvoiceDetails   = lazy(() => import('../pages/InvoiceDetails'))
-const InvoiceSettings  = lazy(() => import('../pages/InvoiceSettings'))
+const LoginPage        = lazy(() => import('../modules/auth/pages/LoginPage'))
+const ResumePage       = lazy(() => import('../modules/tools/resume/pages/ResumePage'))
+const Dashboard        = lazy(() => import('../modules/user/pages/DashboardPage'))
+const Admin            = lazy(() => import('../modules/admin/pages/AdminPage'))
+const InvoiceDashboard = lazy(() => import('../modules/tools/invoice/pages/InvoiceDashboard'))
+const CreateInvoice    = lazy(() => import('../modules/tools/invoice/pages/CreateInvoice'))
+const InvoiceDetails   = lazy(() => import('../modules/tools/invoice/pages/InvoiceDetails'))
+const InvoiceSettings  = lazy(() => import('../modules/tools/invoice/pages/InvoiceSettings'))
+
+// ── Admin sub-pages ───────────────────────────────────────────
+const ToolBuilder       = lazy(() => import('../modules/admin/tools/builder/ToolBuilder'))
+const ProductManager    = lazy(() => import('../modules/admin/products/ProductManager'))
+const CalculatorBuilder = lazy(() => import('../modules/admin/calculators/CalculatorBuilder'))
+const UserManager       = lazy(() => import('../modules/admin/users/UserManager'))
+
+// ── User sub-pages ────────────────────────────────────────────
+const StorePage            = lazy(() => import('../modules/store/pages/StorePage'))
+const ProductsStorePage    = lazy(() => import('../modules/products/pages/ProductsStorePage'))
+const DownloadsPage        = lazy(() => import('../modules/products/pages/DownloadsPage'))
+const CalculatorsListPage  = lazy(() => import('../modules/calculators/pages/CalculatorsListPage'))
+const CalculatorPage       = lazy(() => import('../modules/calculators/pages/CalculatorPage'))
 
 // ── Shared UI ─────────────────────────────────────────────────
 function PageLoader() {
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center">
       <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-    </div>
-  )
-}
-
-function ComingSoon({ title }) {
-  return (
-    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center gap-4">
-      <span className="text-5xl">🚧</span>
-      <h1 className="text-2xl font-bold text-white">{title}</h1>
-      <p className="text-gray-400">Coming in the next phase</p>
-      <a href="/dashboard" className="text-indigo-400 hover:text-indigo-300 text-sm font-medium">
-        ← Back to Dashboard
-      </a>
     </div>
   )
 }
@@ -58,15 +58,14 @@ export default function AppRoutes() {
       <Route path="/tools/resume" element={lazy$(<ResumePage />)} />
 
       {/* Calculators — public, SEO-crawlable */}
-      <Route path="/calculators"       element={<PublicRoute><ComingSoon title="Calculators" /></PublicRoute>} />
-      <Route path="/calculators/:slug" element={<PublicRoute><ComingSoon title="Calculator" /></PublicRoute>} />
+      <Route path="/calculators"       element={<PublicRoute>{lazy$(<CalculatorsListPage />)}</PublicRoute>} />
+      <Route path="/calculators/:slug" element={<PublicRoute>{lazy$(<CalculatorPage />)}</PublicRoute>} />
 
       {/* User Dashboard */}
       <Route path="/dashboard"           element={<ProtectedRoute>{lazy$(<Dashboard />)}</ProtectedRoute>} />
-      <Route path="/dashboard/store"     element={<ProtectedRoute><ComingSoon title="Store" /></ProtectedRoute>} />
-      <Route path="/dashboard/tools"     element={<ProtectedRoute><ComingSoon title="Tools" /></ProtectedRoute>} />
-      <Route path="/dashboard/products"  element={<ProtectedRoute><ComingSoon title="Products" /></ProtectedRoute>} />
-      <Route path="/dashboard/downloads" element={<ProtectedRoute><ComingSoon title="Downloads" /></ProtectedRoute>} />
+      <Route path="/dashboard/store"     element={<ProtectedRoute>{lazy$(<StorePage />)}</ProtectedRoute>} />
+      <Route path="/dashboard/products"  element={<ProtectedRoute>{lazy$(<ProductsStorePage />)}</ProtectedRoute>} />
+      <Route path="/dashboard/downloads" element={<ProtectedRoute>{lazy$(<DownloadsPage />)}</ProtectedRoute>} />
 
       {/* Invoice tools */}
       <Route path="/tools/invoice"          element={<ProtectedRoute>{lazy$(<InvoiceDashboard />)}</ProtectedRoute>} />
@@ -76,10 +75,10 @@ export default function AppRoutes() {
 
       {/* Admin */}
       <Route path="/admin"                element={<ProtectedRoute requiredRole="admin">{lazy$(<Admin />)}</ProtectedRoute>} />
-      <Route path="/admin/tools/builder"  element={<ProtectedRoute requiredRole="admin"><ComingSoon title="Tools Builder" /></ProtectedRoute>} />
-      <Route path="/admin/products"       element={<ProtectedRoute requiredRole="admin"><ComingSoon title="Admin Products" /></ProtectedRoute>} />
-      <Route path="/admin/calculators"    element={<ProtectedRoute requiredRole="admin"><ComingSoon title="Admin Calculators" /></ProtectedRoute>} />
-      <Route path="/admin/users"          element={<ProtectedRoute requiredRole="admin"><ComingSoon title="Admin Users" /></ProtectedRoute>} />
+      <Route path="/admin/tools/builder"  element={<ProtectedRoute requiredRole="admin">{lazy$(<ToolBuilder />)}</ProtectedRoute>} />
+      <Route path="/admin/products"       element={<ProtectedRoute requiredRole="admin">{lazy$(<ProductManager />)}</ProtectedRoute>} />
+      <Route path="/admin/calculators"    element={<ProtectedRoute requiredRole="admin">{lazy$(<CalculatorBuilder />)}</ProtectedRoute>} />
+      <Route path="/admin/users"          element={<ProtectedRoute requiredRole="admin">{lazy$(<UserManager />)}</ProtectedRoute>} />
 
       {/* 404 */}
       <Route path="*" element={<Navigate to="/" replace />} />
