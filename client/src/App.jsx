@@ -206,6 +206,18 @@ export default function App() {
       <Route path="/tools/invoice/create"  element={localStorage.getItem('awe_token') ? <CreateInvoice />    : <Navigate to="/" replace />} />
       <Route path="/tools/invoice/:id"     element={localStorage.getItem('awe_token') ? <InvoiceDetails />   : <Navigate to="/" replace />} />
       <Route path="/tools/invoice/settings" element={localStorage.getItem('awe_token') ? <InvoiceSettings />  : <Navigate to="/" replace />} />
+      <Route path="/tools/resume" element={
+        <ResumeBuilderUI
+          user={user} isPremium={isPremium} loading={loading} toast={toast}
+          showAuth={showAuth} setShowAuth={setShowAuth}
+          showUpgrade={showUpgrade} setShowUpgrade={setShowUpgrade}
+          handleUpgradeClick={handleUpgradeClick}
+          handleAuthSuccess={handleAuthSuccess}
+          handleLogout={handleLogout}
+          startPayment={startPayment}
+          setPendingPayment={setPendingPayment}
+        />
+      } />
       <Route path="*" element={
         <ResumeBuilderUI
           user={user} isPremium={isPremium} loading={loading} toast={toast}
