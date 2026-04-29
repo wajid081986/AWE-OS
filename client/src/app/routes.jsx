@@ -20,6 +20,9 @@ const ProductManager    = lazy(() => import('../modules/admin/products/ProductMa
 const CalculatorBuilder = lazy(() => import('../modules/admin/calculators/CalculatorBuilder'))
 const UserManager       = lazy(() => import('../modules/admin/users/UserManager'))
 
+// ── Tool pages ────────────────────────────────────────────────
+const ToolPage             = lazy(() => import('../modules/tools/pages/ToolPage'))
+
 // ── User sub-pages ────────────────────────────────────────────
 const StorePage            = lazy(() => import('../modules/store/pages/StorePage'))
 const ProductsStorePage    = lazy(() => import('../modules/products/pages/ProductsStorePage'))
@@ -64,6 +67,7 @@ export default function AppRoutes() {
       {/* User Dashboard */}
       <Route path="/dashboard"           element={<ProtectedRoute>{lazy$(<Dashboard />)}</ProtectedRoute>} />
       <Route path="/dashboard/store"     element={<ProtectedRoute>{lazy$(<StorePage />)}</ProtectedRoute>} />
+      <Route path="/dashboard/tools/:slug" element={<ProtectedRoute>{lazy$(<ToolPage />)}</ProtectedRoute>} />
       <Route path="/dashboard/products"  element={<ProtectedRoute>{lazy$(<ProductsStorePage />)}</ProtectedRoute>} />
       <Route path="/dashboard/downloads" element={<ProtectedRoute>{lazy$(<DownloadsPage />)}</ProtectedRoute>} />
 
