@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import api from '../../../services/api.service'
-import { useTools } from '../../../../shared/hooks/useTools'
+import { useTools } from '../../../shared/hooks/useTools'
 
 function Spinner() {
   return (
