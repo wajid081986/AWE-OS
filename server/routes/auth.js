@@ -84,7 +84,7 @@ router.post('/login', async (req, res) => {
   try {
     const { data: user } = await supabase
       .from('users')
-      .select('id, email, password_hash, is_premium')
+      .select('id, email, password_hash, is_premium, role, permissions, subscription_status')
       .eq('email', email)
       .maybeSingle();
 
@@ -101,7 +101,14 @@ router.post('/login', async (req, res) => {
     return res.json({
       success: true,
       token,
-      user: { email: user.email, isPremium: user.is_premium },
+      user: {
+        id:                 user.id,
+        email:              user.email,
+        role:               user.role               ?? 'user',
+        permissions:        user.permissions         ?? [],
+        isPremium:          user.is_premium          ?? false,
+        subscriptionStatus: user.subscription_status ?? 'free',
+      },
     });
   } catch (err) {
     console.error('Login error:', err.message);
@@ -115,14 +122,24 @@ router.get('/me', requireAuth, async (req, res) => {
   try {
     const { data: user, error } = await supabase
       .from('users')
-      .select('email, is_premium')
+      .select('id, email, is_premium, role, permissions, subscription_status')
       .eq('id', req.user.userId)
       .maybeSingle();
 
     if (error) throw error;
     if (!user) return res.status(404).json({ success: false, error: 'User not found' });
 
-    return res.json({ success: true, user: { email: user.email, isPremium: user.is_premium } });
+    return res.json({
+      success: true,
+      user: {
+        id:                 user.id,
+        email:              user.email,
+        role:               user.role               ?? 'user',
+        permissions:        user.permissions         ?? [],
+        isPremium:          user.is_premium          ?? false,
+        subscriptionStatus: user.subscription_status ?? 'free',
+      },
+    });
   } catch (err) {
     console.error('Me error:', err.message);
     return res.status(500).json({ success: false, error: 'Failed to fetch user' });
