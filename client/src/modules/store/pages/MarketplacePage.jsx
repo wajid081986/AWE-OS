@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import StorePage from './StorePage'
+import ProductsStorePage from '../../products/pages/ProductsStorePage'
 
 const TABS = [
   { id: 'tools',    icon: '🛠️', label: 'AI Tools' },
@@ -43,18 +44,7 @@ export default function MarketplacePage() {
       {/* ── Tab Content ── */}
       {activeTab === 'tools' && <StorePage />}
 
-      {activeTab === 'products' && (
-        <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
-          <p className="text-5xl mb-5">📦</p>
-          <h3 className="text-xl font-bold text-white mb-2">Digital Products Coming Soon</h3>
-          <p className="text-gray-400 text-sm max-w-xs">
-            Premium templates, courses &amp; resources to accelerate your business.
-          </p>
-          <button className="mt-6 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-colors">
-            Notify Me
-          </button>
-        </div>
-      )}
+      {activeTab === 'products' && <ProductsStorePage />}
 
       {activeTab === 'calc' && (
         <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
