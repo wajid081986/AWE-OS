@@ -2,6 +2,7 @@
 const express     = require('express');
 const bcrypt      = require('bcryptjs');
 const jwt         = require('jsonwebtoken');
+const crypto      = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const { z }       = require('zod');
 const supabase    = require('../db/supabase');
@@ -124,6 +125,46 @@ router.post('/login', async (req, res) => {
   } catch (err) {
     console.error('Login error:', err.message);
     return res.status(500).json({ success: false, error: 'Login failed' });
+  }
+});
+
+// ── POST /api/auth/forgot-password ─────────────────────────
+router.post('/forgot-password', async (req, res) => {
+  const email = (req.body.email || '').toLowerCase().trim();
+
+  // Always respond the same way — never reveal whether the email exists
+  const safeResponse = () =>
+    res.json({ success: true, message: 'Reset link sent if email exists' });
+
+  if (!email) return safeResponse();
+
+  try {
+    const { data: user } = await supabase
+      .from('users')
+      .select('id, email')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (!user) return safeResponse();
+
+    const resetToken   = crypto.randomBytes(32).toString('hex');
+    const resetExpires = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
+
+    await supabase
+      .from('users')
+      .update({ password_reset_token: resetToken, password_reset_expires: resetExpires })
+      .eq('id', user.id);
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const resetLink   = `${frontendUrl}/reset-password?token=${resetToken}`;
+
+    // TODO: replace with real email (nodemailer / Resend / SendGrid)
+    console.log(`[FORGOT PASSWORD] Reset link for ${user.email}: ${resetLink}`);
+
+    return safeResponse();
+  } catch (err) {
+    console.error('Forgot password error:', err.message);
+    return safeResponse(); // still safe — don't leak the error
   }
 });
 
