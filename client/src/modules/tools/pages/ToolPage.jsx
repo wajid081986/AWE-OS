@@ -123,7 +123,7 @@ export default function ToolPage() {
           <div className="flex flex-wrap items-center gap-3 mb-2">
             <h1 className="text-2xl font-bold text-white">{tool.name}</h1>
             <span className="text-xs bg-indigo-900 text-indigo-300 px-2 py-0.5 rounded-full">{tool.category}</span>
-            {tool.isFree && <span className="text-xs text-green-400 font-medium">Free</span>}
+            {(tool.is_free ?? tool.isFree) && <span className="text-xs text-green-400 font-medium">Free</span>}
           </div>
           <p className="text-gray-400">{tool.description}</p>
         </div>

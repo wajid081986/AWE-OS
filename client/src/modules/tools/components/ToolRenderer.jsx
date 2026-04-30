@@ -19,9 +19,10 @@ export default function ToolRenderer({ tool, onUnlock }) {
   const [error, setError]       = useState(null)
   const [copied, setCopied]     = useState(false)
 
-  // Supabase returns snake_case: input_fields
+  // Supabase returns snake_case: input_fields / is_free
   const inputFields = tool.input_fields ?? tool.inputFields ?? []
-  const locked = !canAccessTool(tool.slug)
+  const isFree      = tool.is_free ?? tool.isFree ?? false
+  const locked      = !isFree && !canAccessTool(tool.slug)
 
   const handleChange = (name, value) => setInputs(prev => ({ ...prev, [name]: value }))
 
