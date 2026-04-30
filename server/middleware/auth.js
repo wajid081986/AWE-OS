@@ -27,10 +27,12 @@ module.exports = async function requireAuth(req, res, next) {
     }
 
     req.user = {
-      userId:   payload.userId || payload.id,
-      email:    payload.email,
-      jti:      payload.jti,
-      tokenExp: payload.exp,
+      userId:      payload.userId || payload.id,
+      email:       payload.email,
+      role:        payload.role        ?? 'user',
+      permissions: payload.permissions ?? [],
+      jti:         payload.jti,
+      tokenExp:    payload.exp,
     };
 
     // Blacklist check — reject tokens that were explicitly revoked at logout

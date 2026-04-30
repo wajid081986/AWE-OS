@@ -29,6 +29,8 @@ export function AuthProvider({ children }) {
       },
     })
     if (res.status === 401) {
+      const isAuthAttempt = path.includes('/auth/login') || path.includes('/auth/register')
+      if (isAuthAttempt) return res.json()
       storeToken(null)
       setUser(null)
       throw new Error('TOKEN_EXPIRED')
@@ -53,7 +55,7 @@ export function AuthProvider({ children }) {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     })
-    if (!data.success) throw new Error(data.message || 'Login failed')
+    if (!data.success) throw new Error(data.error || data.message || 'Login failed')
     storeToken(data.token)
     setUser(data.user)
     return data.user

@@ -19,6 +19,7 @@ const ToolBuilder       = lazy(() => import('../modules/admin/tools/builder/Tool
 const ProductManager    = lazy(() => import('../modules/admin/products/ProductManager'))
 const CalculatorBuilder = lazy(() => import('../modules/admin/calculators/CalculatorBuilder'))
 const UserManager       = lazy(() => import('../modules/admin/users/UserManager'))
+const AdminRevenuePage  = lazy(() => import('../modules/admin/pages/AdminRevenuePage'))
 
 // ── Tool pages ────────────────────────────────────────────────
 const ToolPage             = lazy(() => import('../modules/tools/pages/ToolPage'))
@@ -83,6 +84,7 @@ export default function AppRoutes() {
       <Route path="/admin/products"       element={<ProtectedRoute requiredRole="admin">{lazy$(<ProductManager />)}</ProtectedRoute>} />
       <Route path="/admin/calculators"    element={<ProtectedRoute requiredRole="admin">{lazy$(<CalculatorBuilder />)}</ProtectedRoute>} />
       <Route path="/admin/users"          element={<ProtectedRoute requiredRole="admin">{lazy$(<UserManager />)}</ProtectedRoute>} />
+      <Route path="/admin/revenue"        element={<ProtectedRoute requiredRole="admin">{lazy$(<AdminRevenuePage />)}</ProtectedRoute>} />
 
       {/* 404 */}
       <Route path="*" element={<Navigate to="/" replace />} />

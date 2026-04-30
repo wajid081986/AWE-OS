@@ -8,6 +8,7 @@ const supabase    = require('../db/supabase');
 const requireAuth = require('../middleware/auth');
 
 const router = express.Router();
+console.log('✅ AUTH ROUTES LOADED');
 
 const RegisterSchema = z.object({
   email:    z.string().email('Invalid email').transform((e) => e.toLowerCase().trim()),
@@ -19,9 +20,9 @@ const LoginSchema = z.object({
   password: z.string().min(1),
 });
 
-function signToken(userId, email) {
+function signToken(userId, email, role, permissions) {
   return jwt.sign(
-    { userId, email, jti: uuidv4() },
+    { userId, email, role, permissions, jti: uuidv4() },
     process.env.JWT_SECRET,
     { expiresIn: '7d' }
   );
@@ -53,17 +54,23 @@ router.post('/register', async (req, res) => {
     const { data: user, error } = await supabase
       .from('users')
       .insert({ email, password_hash: passwordHash })
-      .select('id, email, is_premium')
+      .select('id, email, is_premium, role, permissions')
       .single();
 
     if (error) throw error;
 
-    const token = signToken(user.id, user.email);
+    const token = signToken(user.id, user.email, user.role ?? 'user', user.permissions ?? []);
 
     return res.status(201).json({
       success: true,
       token,
-      user: { email: user.email, isPremium: user.is_premium },
+      user: {
+        id:          user.id,
+        email:       user.email,
+        role:        user.role        ?? 'user',
+        permissions: user.permissions ?? [],
+        isPremium:   user.is_premium  ?? false,
+      },
     });
   } catch (err) {
     console.error('Register error:', err.message);
@@ -96,7 +103,7 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ success: false, error: 'Invalid email or password' });
     }
 
-    const token = signToken(user.id, user.email);
+    const token = signToken(user.id, user.email, user.role ?? 'user', user.permissions ?? []);
 
     return res.json({
       success: true,
@@ -116,7 +123,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-console.log("✅ AUTH ROUTES LOADED");
 // ── GET /api/auth/me ────────────────────────────────────────
 router.get('/me', requireAuth, async (req, res) => {
   try {

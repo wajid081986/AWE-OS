@@ -12,7 +12,7 @@ const QUICK_LINKS = [
 ]
 
 export default function DashboardPage() {
-  const { user }                = useAuth()
+  const { user, logout }        = useAuth()
   const { tools, isLoading }    = useTools()
   const { canAccessTool, role } = usePermissions()
 
@@ -27,7 +27,51 @@ export default function DashboardPage() {
   const subStatus    = user?.subscriptionStatus === 'active' ? 'Active' : user?.isPremium ? 'Premium' : 'Free'
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
+    <div className="min-h-screen bg-gray-900">
+      {/* ── Navbar ── */}
+      <header className="bg-gray-800 border-b border-gray-700 px-6 py-3">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          {/* Brand */}
+          <span className="text-white font-bold text-lg tracking-tight">AWE-OS</span>
+
+          {/* Nav links */}
+          <nav className="hidden sm:flex items-center gap-1">
+            <Link
+              to="/dashboard/store"
+              className="px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+            >
+              Tool Store
+            </Link>
+            <Link
+              to="/dashboard/store"
+              className="px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+            >
+              My Tools
+            </Link>
+            {role === 'admin' && (
+              <Link
+                to="/admin"
+                className="px-3 py-1.5 rounded-lg text-sm text-indigo-300 hover:text-white hover:bg-indigo-700 transition-colors"
+              >
+                Admin Panel
+              </Link>
+            )}
+          </nav>
+
+          {/* Right: user + logout */}
+          <div className="flex items-center gap-3">
+            <span className="text-gray-400 text-sm hidden sm:inline">{user?.email}</span>
+            <button
+              onClick={logout}
+              className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded transition-colors"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="p-6">
       <div className="max-w-5xl mx-auto">
         {/* Welcome */}
         <div className="mb-8">
@@ -106,6 +150,7 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   )

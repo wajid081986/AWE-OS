@@ -9,8 +9,8 @@ export function usePermissions() {
   }
 
   const hasSubscription = (plan) => {
-    if (!user?.subscription) return false
-    return user.subscription.plan === plan || user.subscription.plan === 'enterprise'
+    if (!user?.subscriptionStatus) return false
+    return user.subscriptionStatus === plan || user.subscriptionStatus === 'enterprise'
   }
 
   const canAccessTool = (toolSlug) => {
