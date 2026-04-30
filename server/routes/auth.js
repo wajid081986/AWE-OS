@@ -49,7 +49,7 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ success: false, error: 'Email already registered' });
     }
 
-    const passwordHash = await bcrypt.hash(password, 12);
+    const passwordHash = await bcrypt.hash(password, 10);
 
     const { data: user, error } = await supabase
       .from('users')
