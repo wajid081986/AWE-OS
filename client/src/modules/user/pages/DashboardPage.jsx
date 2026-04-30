@@ -5,10 +5,10 @@ import { useTools } from '../../../shared/hooks/useTools'
 import { usePermissions } from '../../../shared/hooks/usePermissions'
 
 const QUICK_LINKS = [
-  { label: 'Browse Tools',  to: '/dashboard/store',    icon: '🛠️' },
-  { label: 'My Products',   to: '/dashboard/products', icon: '📦' },
-  { label: 'Downloads',     to: '/dashboard/downloads',icon: '⬇️' },
-  { label: 'Invoice Tool',  to: '/tools/invoice',      icon: '📄' },
+  { label: 'Browse Tools', to: '/dashboard/marketplace', icon: '🏪' },
+  { label: 'My Products',  to: '/dashboard/downloads',   icon: '📦' },
+  { label: 'Downloads',    to: '/dashboard/downloads',   icon: '⬇️' },
+  { label: 'Invoice Tool', to: '/tools/invoice',         icon: '📄' },
 ]
 
 export default function DashboardPage() {
@@ -29,24 +29,32 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-900">
       {/* ── Navbar ── */}
-      <header className="bg-gray-800 border-b border-gray-700 px-6 py-3">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
+      <header className="bg-gray-800 border-b border-gray-700 px-4 sm:px-6 py-3">
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
           {/* Brand */}
-          <span className="text-white font-bold text-lg tracking-tight">AWE-OS</span>
+          <Link to="/" className="text-white font-bold text-lg tracking-tight shrink-0">
+            AWE-OS
+          </Link>
 
-          {/* Nav links */}
+          {/* Center nav */}
           <nav className="hidden sm:flex items-center gap-1">
             <Link
-              to="/dashboard/store"
+              to="/dashboard/marketplace"
               className="px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
             >
-              Tool Store
+              🏪 Marketplace
             </Link>
             <Link
               to="/dashboard/store"
               className="px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
             >
-              My Tools
+              🛠️ My Tools
+            </Link>
+            <Link
+              to="/dashboard/downloads"
+              className="px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+            >
+              📥 Downloads
             </Link>
             {role === 'admin' && (
               <Link
@@ -58,12 +66,14 @@ export default function DashboardPage() {
             )}
           </nav>
 
-          {/* Right: user + logout */}
-          <div className="flex items-center gap-3">
-            <span className="text-gray-400 text-sm hidden sm:inline">{user?.email}</span>
+          {/* Right: email + logout */}
+          <div className="flex items-center gap-3 shrink-0">
+            <span className="text-gray-400 text-xs hidden md:inline truncate max-w-[160px]">
+              {user?.email}
+            </span>
             <button
               onClick={logout}
-              className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded transition-colors"
+              className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors"
             >
               Logout
             </button>

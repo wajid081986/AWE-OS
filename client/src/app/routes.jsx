@@ -5,6 +5,7 @@ import ProtectedRoute from '../shared/components/ProtectedRoute'
 import PublicRoute    from '../shared/components/PublicRoute'
 
 // ── Lazy pages ────────────────────────────────────────────────
+const LandingPage      = lazy(() => import('../modules/landing/pages/LandingPage'))
 const LoginPage        = lazy(() => import('../modules/auth/pages/LoginPage'))
 const ResumePage       = lazy(() => import('../modules/tools/resume/pages/ResumePage'))
 const Dashboard        = lazy(() => import('../modules/user/pages/DashboardPage'))
@@ -26,6 +27,7 @@ const ToolPage             = lazy(() => import('../modules/tools/pages/ToolPage'
 
 // ── User sub-pages ────────────────────────────────────────────
 const StorePage            = lazy(() => import('../modules/store/pages/StorePage'))
+const MarketplacePage      = lazy(() => import('../modules/store/pages/MarketplacePage'))
 const ProductsStorePage    = lazy(() => import('../modules/products/pages/ProductsStorePage'))
 const DownloadsPage        = lazy(() => import('../modules/products/pages/DownloadsPage'))
 const CalculatorsListPage  = lazy(() => import('../modules/calculators/pages/CalculatorsListPage'))
@@ -52,8 +54,8 @@ const lazy$ = (el) => <Suspense fallback={<PageLoader />}>{el}</Suspense>
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Root */}
-      <Route path="/" element={<RootRedirect />} />
+      {/* Root — public landing page */}
+      <Route path="/" element={lazy$(<LandingPage />)} />
 
       {/* Auth */}
       <Route path="/login" element={lazy$(<LoginPage />)} />
@@ -70,7 +72,8 @@ export default function AppRoutes() {
       <Route path="/dashboard/store"     element={<ProtectedRoute>{lazy$(<StorePage />)}</ProtectedRoute>} />
       <Route path="/dashboard/tools/:slug" element={<ProtectedRoute>{lazy$(<ToolPage />)}</ProtectedRoute>} />
       <Route path="/dashboard/products"  element={<ProtectedRoute>{lazy$(<ProductsStorePage />)}</ProtectedRoute>} />
-      <Route path="/dashboard/downloads" element={<ProtectedRoute>{lazy$(<DownloadsPage />)}</ProtectedRoute>} />
+      <Route path="/dashboard/downloads"    element={<ProtectedRoute>{lazy$(<DownloadsPage />)}</ProtectedRoute>} />
+      <Route path="/dashboard/marketplace" element={<ProtectedRoute>{lazy$(<MarketplacePage />)}</ProtectedRoute>} />
 
       {/* Invoice tools */}
       <Route path="/tools/invoice"          element={<ProtectedRoute>{lazy$(<InvoiceDashboard />)}</ProtectedRoute>} />
