@@ -35,7 +35,7 @@ export default function LoginPage() {
       {showModal ? (
         <AuthModal
           onSuccess={handleSuccess}
-          onClose={() => { setShowModal(false); navigate('/tools/resume') }}
+          onClose={() => setShowModal(false)}
         />
       ) : (
         <div className="text-center space-y-4">
