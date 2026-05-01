@@ -61,11 +61,14 @@ async function verifyPayment(req, res) {
     if (updateError) throw updateError;
 
     await supabase.from('revenue_logs').insert({
-      user_id:    req.user.userId,
-      amount:     49,
-      status:     'paid',
-      payment_id: razorpay_payment_id,
-      order_id:   razorpay_order_id,
+      user_id:             req.user.userId,
+      amount:              49,
+      type:                'subscription',
+      currency:            'INR',
+      status:              'paid',
+      payment_id:          razorpay_payment_id,
+      razorpay_payment_id: razorpay_payment_id,
+      order_id:            razorpay_order_id,
     });
 
     console.log('[PAYMENT] Premium activated for:', req.user.email);

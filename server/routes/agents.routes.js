@@ -2,6 +2,7 @@ const express  = require('express');
 const OpenAI   = require('openai');
 const supabase = require('../db/supabase');
 const { requireAuth } = require('../middleware/admin.middleware');
+const { trackToolUsage } = require('../services/analytics.service');
 
 const router = express.Router();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -51,14 +52,25 @@ router.post('/run', requireAuth, async (req, res) => {
       prompt = prompt.replaceAll(`{{${key}}}`, String(value ?? ''));
     }
 
+    const startTime  = Date.now();
     const completion = await openai.chat.completions.create({
       model:       'gpt-4o-mini',
       messages:    [{ role: 'user', content: prompt }],
       max_tokens:  2000,
       temperature: 0.7,
     });
+    const responseTime = Date.now() - startTime;
 
     const result = completion.choices[0]?.message?.content?.trim() ?? '';
+
+    trackToolUsage(
+      req.user.userId,
+      toolSlug,
+      Object.keys(inputs).length,
+      result.length,
+      responseTime,
+    ).catch(console.error);
+
     return res.json({ success: true, result });
   } catch (err) {
     console.error('[agents/run]', err.message);

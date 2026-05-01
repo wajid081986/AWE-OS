@@ -21,6 +21,8 @@ const ProductManager    = lazy(() => import('../modules/admin/products/ProductMa
 const CalculatorBuilder = lazy(() => import('../modules/admin/calculators/CalculatorBuilder'))
 const UserManager       = lazy(() => import('../modules/admin/users/UserManager'))
 const AdminRevenuePage  = lazy(() => import('../modules/admin/pages/AdminRevenuePage'))
+const RevenuePage       = lazy(() => import('../modules/admin/revenue/RevenuePage'))
+const UserAnalyticsPage = lazy(() => import('../modules/user/pages/UserAnalyticsPage'))
 const AIFactoryPage     = lazy(() => import('../modules/admin/factory/AIFactoryPage'))
 const AgentControlPage  = lazy(() => import('../modules/admin/agents/AgentControlPage'))
 
@@ -76,6 +78,7 @@ export default function AppRoutes() {
       <Route path="/dashboard/products"  element={<ProtectedRoute>{lazy$(<ProductsStorePage />)}</ProtectedRoute>} />
       <Route path="/dashboard/downloads"    element={<ProtectedRoute>{lazy$(<DownloadsPage />)}</ProtectedRoute>} />
       <Route path="/dashboard/marketplace" element={<ProtectedRoute>{lazy$(<MarketplacePage />)}</ProtectedRoute>} />
+      <Route path="/dashboard/analytics"  element={<ProtectedRoute>{lazy$(<UserAnalyticsPage />)}</ProtectedRoute>} />
 
       {/* Invoice tools */}
       <Route path="/tools/invoice"          element={<ProtectedRoute>{lazy$(<InvoiceDashboard />)}</ProtectedRoute>} />
@@ -89,7 +92,7 @@ export default function AppRoutes() {
       <Route path="/admin/products"       element={<ProtectedRoute requiredRole="admin">{lazy$(<ProductManager />)}</ProtectedRoute>} />
       <Route path="/admin/calculators"    element={<ProtectedRoute requiredRole="admin">{lazy$(<CalculatorBuilder />)}</ProtectedRoute>} />
       <Route path="/admin/users"          element={<ProtectedRoute requiredRole="admin">{lazy$(<UserManager />)}</ProtectedRoute>} />
-      <Route path="/admin/revenue"        element={<ProtectedRoute requiredRole="admin">{lazy$(<AdminRevenuePage />)}</ProtectedRoute>} />
+      <Route path="/admin/revenue"        element={<ProtectedRoute requiredRole="admin">{lazy$(<RevenuePage />)}</ProtectedRoute>} />
       <Route path="/admin/factory"        element={<ProtectedRoute requiredRole="admin">{lazy$(<AIFactoryPage />)}</ProtectedRoute>} />
       <Route path="/admin/agents"         element={<ProtectedRoute requiredRole="admin">{lazy$(<AgentControlPage />)}</ProtectedRoute>} />
 

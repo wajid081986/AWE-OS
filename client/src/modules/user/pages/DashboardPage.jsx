@@ -10,6 +10,7 @@ const QUICK_LINKS = [
   { label: 'My Products',  to: '/dashboard/downloads',   icon: '📦' },
   { label: 'Downloads',    to: '/dashboard/downloads',   icon: '⬇️' },
   { label: 'Invoice Tool', to: '/tools/invoice',         icon: '📄' },
+  { label: 'Analytics',    to: '/dashboard/analytics',   icon: '📊' },
 ]
 
 export default function DashboardPage() {
@@ -58,6 +59,12 @@ export default function DashboardPage() {
               className="px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
             >
               📥 Downloads
+            </Link>
+            <Link
+              to="/dashboard/analytics"
+              className="px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+            >
+              📊 Analytics
             </Link>
             {role === 'admin' && (
               <Link
