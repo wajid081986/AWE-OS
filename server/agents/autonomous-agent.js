@@ -199,8 +199,8 @@ async function processOneTool(tool) {
       if (decision === 'scale') {
         // AUTO-EXECUTE: scaling is a safe, positive action
         const { error: scaleErr } = await supabase
-          .from('tools')
-          .update({ status: 'scaling' })
+          .from('saas_tools')
+          .update({ is_published: true })
           .eq('id', tool.id);
 
         if (scaleErr) {
@@ -336,13 +336,12 @@ async function runAutonomousLoop({ limit = MAX_TOOLS_PER_RUN, triggered_by = 'cr
   let toolsSkipped   = 0;
 
   try {
-    // ── Fetch: live first (priority), then idea ───────────────────
-    const { data: tools, error: fetchErr } = await supabase
-      .from('tools')
-      .select('id, name, status, updated_at')
-      .in('status', ['live', 'idea'])
-      .order('status',     { ascending: false }) // 'live' sorts before 'idea'
-      .order('updated_at', { ascending: true  }) // oldest first within each group
+    // ── Fetch: published (live) first, then unpublished (idea) ──────
+    const { data: rawTools, error: fetchErr } = await supabase
+      .from('saas_tools')
+      .select('id, name, is_published, updated_at')
+      .order('is_published', { ascending: false }) // true (published/live) first
+      .order('updated_at',   { ascending: true  }) // oldest first within each group
       .limit(safeLimit);
 
     if (fetchErr) {
@@ -351,12 +350,18 @@ async function runAutonomousLoop({ limit = MAX_TOOLS_PER_RUN, triggered_by = 'cr
       throw err;
     }
 
-    if (!tools || tools.length === 0) {
-      console.log('[AUTONOMOUS AGENT] No actionable tools found (idea/live)');
+    // Normalize to internal status format: is_published=true → 'live', false → 'idea'
+    const tools = (rawTools || []).map(t => ({
+      ...t,
+      status: t.is_published ? 'live' : 'idea',
+    }));
+
+    if (tools.length === 0) {
+      console.log('[AUTONOMOUS AGENT] No tools found in saas_tools');
     }
 
     // ── Process each tool with a safety gap ───────────────────────
-    for (const tool of (tools || [])) {
+    for (const tool of tools) {
       try {
         const result = await processOneTool(tool);
 

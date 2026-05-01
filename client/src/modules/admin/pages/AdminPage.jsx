@@ -6,6 +6,7 @@ import api from '../../../services/api.service'
 const NAV_ITEMS = [
   { icon: '📊', label: 'Overview',     to: '/admin' },
   { icon: '🤖', label: 'AI Factory',   to: '/admin/factory', badge: '⚡' },
+  { icon: '🧬', label: 'Agents',       to: '/admin/agents',  badge: 'LIVE' },
   { icon: '🛠️', label: 'Tool Builder', to: '/admin/tools/builder' },
   { icon: '📦', label: 'Products',     to: '/admin/products' },
   { icon: '🧮', label: 'Calculators',  to: '/admin/calculators' },

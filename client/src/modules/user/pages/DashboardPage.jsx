@@ -1,8 +1,9 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth/context/AuthContext'
 import { useTools } from '../../../shared/hooks/useTools'
 import { usePermissions } from '../../../shared/hooks/usePermissions'
+import SupportModal from '../../../shared/components/SupportModal'
 
 const QUICK_LINKS = [
   { label: 'Browse Tools', to: '/dashboard/marketplace', icon: '🏪' },
@@ -15,6 +16,7 @@ export default function DashboardPage() {
   const { user, logout }        = useAuth()
   const { tools, isLoading }    = useTools()
   const { canAccessTool, role } = usePermissions()
+  const [showSupport, setShowSupport] = useState(false)
 
   // Supabase returns is_free (snake_case)
   const unlockedTools = useMemo(
@@ -28,6 +30,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-900">
+      {showSupport && <SupportModal onClose={() => setShowSupport(false)} />}
       {/* ── Navbar ── */}
       <header className="bg-gray-800 border-b border-gray-700 px-4 sm:px-6 py-3">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
@@ -125,6 +128,13 @@ export default function DashboardPage() {
                 <p className="text-sm text-gray-300 group-hover:text-white transition-colors">{label}</p>
               </Link>
             ))}
+            <button
+              onClick={() => setShowSupport(true)}
+              className="bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-indigo-500 rounded-xl p-4 text-center transition-all group"
+            >
+              <div className="text-2xl mb-2">🎫</div>
+              <p className="text-sm text-gray-300 group-hover:text-white transition-colors">Support</p>
+            </button>
           </div>
         </div>
 
