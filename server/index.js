@@ -34,6 +34,7 @@ const factoryRoutes                  = require('./routes/factory.routes');
 const analyticsRoutes                = require('./routes/analytics.routes');
 const { startAnalyticsCron }         = require('./jobs/analytics.cron');
 require('./jobs/autonomous.cron');
+require('./jobs/decision.cron');
 require('./jobs/idea.cron');
 require('./jobs/health.cron');
 require('./jobs/revenue.cron');

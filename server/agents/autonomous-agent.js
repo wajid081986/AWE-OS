@@ -1,7 +1,7 @@
-const { v4: uuidv4 }       = require('uuid');
-const supabase              = require('../db/supabase');
-const { evaluateTool }      = require('./decision-engine');
-const { generateBuildPlan } = require('./builder-agent');
+const { v4: uuidv4 }         = require('uuid');
+const supabase               = require('../db/supabase');
+const { applyRules }         = require('./decision-engine');
+const { generateToolConfig } = require('../services/ai-factory.service');
 
 // ── Safety constants ──────────────────────────────────────────
 const MAX_TOOLS_PER_RUN  = 10;   // hard cap — never process more than this
@@ -44,6 +44,25 @@ async function logAction({
     if (error) console.error('[AUTONOMOUS AGENT] logAction DB error:', error.message);
   } catch (err) {
     console.error('[AUTONOMOUS AGENT] logAction unexpected error:', err.message);
+  }
+}
+
+/**
+ * Insert one row into factory_jobs.
+ * Never throws — a logging failure must never abort the agent loop.
+ */
+async function logFactoryJob({ status, category, input_prompt, generated_tool_id, error_message }) {
+  try {
+    await supabase.from('factory_jobs').insert({
+      status,
+      category:          category          || null,
+      input_prompt:      input_prompt      || null,
+      generated_tool_id: generated_tool_id || null,
+      error_message:     error_message     || null,
+      completed_at:      new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error('[AUTONOMOUS AGENT] logFactoryJob error:', err.message);
   }
 }
 
@@ -144,80 +163,144 @@ async function processOneTool(tool) {
 
   try {
     // ────────────────────────────────────────────────────────────
-    // BRANCH 1: idea → generate build plan
+    // BRANCH 1: idea → generate tool config via AI Factory
     // ────────────────────────────────────────────────────────────
     if (tool.status === 'idea') {
-      // Check for an existing non-rejected plan to avoid duplicates
-      const { data: existingPlan, error: planCheckErr } = await supabase
-        .from('builder_plans')
-        .select('id, status')
-        .eq('tool_id', tool.id)
-        .neq('status', 'rejected')
-        .maybeSingle();
+      // Tool already has a config — only check auto-publish eligibility
+      if (tool.ai_prompt && tool.input_fields) {
+        const shouldAutoPublish =
+          tool.is_free === true ||
+          Number(tool.price) === 0 ||
+          tool.category === 'productivity';
 
-      if (planCheckErr) {
-        throw new Error(`Plan check failed: ${planCheckErr.message}`);
-      }
+        if (shouldAutoPublish) {
+          const { error: publishErr } = await supabase
+            .from('saas_tools')
+            .update({ is_published: true })
+            .eq('id', tool.id);
 
-      if (existingPlan) {
+          if (publishErr) throw new Error(`Auto-publish failed: ${publishErr.message}`);
+
+          await logAction({
+            tool_id: tool.id, tool_name: tool.name,
+            action:        'auto_published',
+            status_before: 'idea',
+            status_after:  'live',
+            notes:         `Auto-published (is_free=${tool.is_free}, price=${tool.price}, category=${tool.category})`,
+            is_auto_executed: true,
+          });
+          await logFactoryJob({ status: 'completed', category: tool.category, input_prompt: tool.description, generated_tool_id: tool.id });
+          console.log(`[AUTONOMOUS AGENT] Auto-published: ${tool.name}`);
+          return { tool_id: tool.id, tool_name: tool.name, action_taken: 'auto_published' };
+        }
+
+        // Config exists but not eligible for auto-publish — wait for human review
         await logAction({
-          tool_id:  tool.id, tool_name: tool.name,
-          action:   'already_planned',
-          notes:    `Plan already exists (plan_id=${existingPlan.id}, status=${existingPlan.status})`,
+          tool_id: tool.id, tool_name: tool.name,
+          action:  'awaiting_review',
+          notes:   'Tool config ready — pending manual review before publish',
           is_auto_executed: false,
         });
-        console.log(`[AUTONOMOUS AGENT] ${tool.name} → skipped (plan already exists)`);
-        return { skipped: true, reason: 'already_planned' };
+        console.log(`[AUTONOMOUS AGENT] ${tool.name} → awaiting manual review`);
+        return { skipped: true, reason: 'awaiting_review' };
       }
 
-      // Generate the plan — retried internally by builder-agent
-      const result = await generateBuildPlan(tool.id);
+      // No config yet — generate via AI Factory
+      let config;
+      try {
+        config = await generateToolConfig(
+          tool.category    || 'productivity',
+          tool.description || tool.name,
+        );
+      } catch (configErr) {
+        await logFactoryJob({
+          status:            'failed',
+          category:          tool.category,
+          input_prompt:      tool.description,
+          generated_tool_id: tool.id,
+          error_message:     configErr.message,
+        });
+        throw new Error(`generateToolConfig failed: ${configErr.message}`);
+      }
+
+      // Persist the generated config back into the saas_tool record
+      const { error: updateErr } = await supabase
+        .from('saas_tools')
+        .update({
+          ai_prompt:    config.ai_prompt,
+          input_fields: config.input_fields,
+          description:  config.description || tool.description,
+        })
+        .eq('id', tool.id);
+
+      if (updateErr) {
+        await logFactoryJob({ status: 'failed', category: tool.category, input_prompt: tool.description, generated_tool_id: tool.id, error_message: updateErr.message });
+        throw new Error(`Failed to save tool config: ${updateErr.message}`);
+      }
 
       await logAction({
-        tool_id:         tool.id,
-        tool_name:       tool.name,
-        action:          'plan_generated',
-        status_before:   'idea',
-        status_after:    'idea', // tool stays 'idea' until human approves the plan
-        notes:           `Plan ${result.plan_id} created — pending human review`,
+        tool_id: tool.id, tool_name: tool.name,
+        action:        'config_generated',
+        status_before: 'idea',
+        status_after:  'idea',
+        notes:         'Tool config generated via AI Factory — pending auto-publish check on next run',
         is_auto_executed: true,
       });
-
-      console.log(`[AUTONOMOUS AGENT] Decision: plan_generated → Action: plan awaiting review`);
-      return { tool_id: tool.id, tool_name: tool.name, action_taken: 'plan_generated', plan_id: result.plan_id };
+      await logFactoryJob({ status: 'completed', category: tool.category, input_prompt: tool.description, generated_tool_id: tool.id });
+      console.log(`[AUTONOMOUS AGENT] Tool config generated: ${tool.name}`);
+      return { tool_id: tool.id, tool_name: tool.name, action_taken: 'config_generated' };
     }
 
     // ────────────────────────────────────────────────────────────
-    // BRANCH 2: live → run decision engine
+    // BRANCH 2: live → evaluate performance metrics + decide
+    // Metrics pulled from tool_usage_events + revenue_logs directly
+    // (decision-engine.evaluateTool reads from 'tools' table, not saas_tools)
     // ────────────────────────────────────────────────────────────
     if (tool.status === 'live') {
-      const decisionResult = await evaluateTool(tool.id);
-      const { decision, reason, recommended_action } = decisionResult;
+      // Gather performance data in parallel
+      const [usageRes, revenueRes] = await Promise.all([
+        supabase
+          .from('tool_usage_events')
+          .select('*', { count: 'exact', head: true })
+          .eq('tool_slug', tool.slug),
+        supabase
+          .from('revenue_logs')
+          .select('amount')
+          .eq('tool_slug', tool.slug),
+      ]);
+
+      const usageCount = usageRes.count || 0;
+      const revenue    = (revenueRes.data || []).reduce((sum, r) => sum + Number(r.amount), 0);
+
+      const metrics  = { usage_count: usageCount, conversion_rate: 0, revenue };
+      const { decision, reason, recommended_action } = applyRules(metrics);
 
       console.log(`[AUTONOMOUS AGENT] Decision: ${decision} → Action: ${getActionLabel(decision)}`);
 
+      // Persist decision log (non-blocking)
+      supabase.from('decision_logs').insert({
+        tool_id:          tool.id,
+        decision,
+        reason,
+        recommended_action,
+        metrics_snapshot: metrics,
+        dry_run:          false,
+      }).then(({ error }) => {
+        if (error) console.error('[AUTONOMOUS AGENT] decision_log write error:', error.message);
+      });
+
       if (decision === 'scale') {
-        // AUTO-EXECUTE: scaling is a safe, positive action
-        const { error: scaleErr } = await supabase
-          .from('saas_tools')
-          .update({ is_published: true })
-          .eq('id', tool.id);
-
-        if (scaleErr) {
-          throw new Error(`Failed to update tool status to scaling: ${scaleErr.message}`);
-        }
-
+        // High-revenue tool — log as confirmed high performer (already live, no status change needed)
         await logAction({
           tool_id:          tool.id,
           tool_name:        tool.name,
           action:           'status_updated',
           decision:         'scale',
           status_before:    'live',
-          status_after:     'scaling',
+          status_after:     'live',
           notes:            reason,
           is_auto_executed: true,
         });
-
         return { tool_id: tool.id, decision: 'scale', action_taken: 'status_updated' };
       }
 
@@ -232,22 +315,20 @@ async function processOneTool(tool) {
           notes:            recommended_action,
           is_auto_executed: false,
         });
-
         return { tool_id: tool.id, decision: 'improve', action_taken: 'improvement_suggested' };
       }
 
       if (decision === 'kill') {
-        // LOG ONLY — killing a tool is irreversible; ALWAYS requires human approval
+        // LOG ONLY — killing a tool requires human approval
         await logAction({
           tool_id:          tool.id,
           tool_name:        tool.name,
           action:           'kill_flagged',
           decision:         'kill',
           status_before:    tool.status,
-          notes:            'Requires human approval before archiving. Reason: ' + reason,
+          notes:            'Requires human approval before unpublishing. Reason: ' + reason,
           is_auto_executed: false,
         });
-
         return { tool_id: tool.id, decision: 'kill', action_taken: 'kill_flagged' };
       }
 
@@ -261,7 +342,6 @@ async function processOneTool(tool) {
         notes:            reason,
         is_auto_executed: false,
       });
-
       return { tool_id: tool.id, decision: 'observe', action_taken: 'observation_logged' };
     }
 
@@ -339,7 +419,7 @@ async function runAutonomousLoop({ limit = MAX_TOOLS_PER_RUN, triggered_by = 'cr
     // ── Fetch: published (live) first, then unpublished (idea) ──────
     const { data: rawTools, error: fetchErr } = await supabase
       .from('saas_tools')
-      .select('id, name, is_published, updated_at')
+      .select('id, name, slug, is_published, updated_at, ai_prompt, input_fields, category, description, is_free, price')
       .order('is_published', { ascending: false }) // true (published/live) first
       .order('updated_at',   { ascending: true  }) // oldest first within each group
       .limit(safeLimit);
@@ -372,11 +452,13 @@ async function runAutonomousLoop({ limit = MAX_TOOLS_PER_RUN, triggered_by = 'cr
 
           // Accumulate action counters
           switch (result.action_taken) {
-            case 'plan_generated':    actions.plans_generated++;   break;
-            case 'status_updated':    actions.scaled++;            break;
-            case 'improvement_suggested': actions.improve_suggested++; break;
-            case 'kill_flagged':      actions.kill_flagged++;      break;
-            case 'observation_logged': actions.observed++;         break;
+            case 'config_generated':      actions.plans_generated++;    break;
+            case 'auto_published':        actions.scaled++;             break;
+            case 'plan_generated':        actions.plans_generated++;    break;
+            case 'status_updated':        actions.scaled++;             break;
+            case 'improvement_suggested': actions.improve_suggested++;  break;
+            case 'kill_flagged':          actions.kill_flagged++;       break;
+            case 'observation_logged':    actions.observed++;           break;
           }
         }
       } catch (toolErr) {

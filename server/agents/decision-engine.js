@@ -253,4 +253,86 @@ async function evaluateAllTools({ dry_run = false, limit = BATCH_LIMIT_MAX } = {
   };
 }
 
-module.exports = { evaluateTool, evaluateAllTools, applyRules };
+/**
+ * Batch-evaluate all published saas_tools using tool_usage_events + revenue_logs.
+ * Called by decision.cron.js every 24 hours.
+ * Does NOT use the 'tools' internal pipeline table.
+ *
+ * @param {object}  [options]
+ * @param {boolean} [options.dry_run=false]
+ * @returns {Promise<{ total_evaluated, results, errors, executed_at }>}
+ */
+async function evaluateAllSaasTools({ dry_run = false } = {}) {
+  const executed_at = new Date().toISOString();
+
+  const { data: tools, error: fetchErr } = await supabase
+    .from('saas_tools')
+    .select('id, name, slug, is_published')
+    .eq('is_published', true)
+    .limit(BATCH_LIMIT_MAX);
+
+  if (fetchErr) {
+    console.error('[DECISION ENGINE] evaluateAllSaasTools fetch failed:', fetchErr.message);
+    const err = new Error('Failed to fetch saas_tools for evaluation');
+    err.status = 500; err.code = 'EVALUATION_FAILED'; throw err;
+  }
+
+  const summary = { scale: 0, kill: 0, improve: 0, observe: 0 };
+  const results = [];
+  const errors  = [];
+
+  for (const tool of tools || []) {
+    try {
+      // Gather metrics from event tables
+      const [usageRes, revenueRes] = await Promise.all([
+        supabase
+          .from('tool_usage_events')
+          .select('*', { count: 'exact', head: true })
+          .eq('tool_slug', tool.slug),
+        supabase
+          .from('revenue_logs')
+          .select('amount')
+          .eq('tool_slug', tool.slug),
+      ]);
+
+      const usage_count = usageRes.count || 0;
+      const revenue     = (revenueRes.data || []).reduce((sum, r) => sum + Number(r.amount), 0);
+      const metrics     = { usage_count, conversion_rate: 0, revenue };
+
+      const { decision, reason, recommended_action } = applyRules(metrics);
+
+      // Persist decision log
+      if (!dry_run) {
+        const { error: logErr } = await supabase.from('decision_logs').insert({
+          tool_id:          tool.id,
+          decision,
+          reason,
+          recommended_action,
+          metrics_snapshot: metrics,
+          dry_run:          false,
+        });
+        if (logErr) {
+          console.error(`[DECISION ENGINE] decision_log write failed for ${tool.name}:`, logErr.message);
+        }
+      }
+
+      console.log(`[DECISION ENGINE] ${tool.name} | ${decision.toUpperCase()} | ${reason}${dry_run ? ' [DRY RUN]' : ''}`);
+      summary[decision]++;
+      results.push({ tool_id: tool.id, tool_name: tool.name, decision, reason, metrics });
+
+    } catch (err) {
+      console.error(`[DECISION ENGINE] evaluateSaasTool failed | tool=${tool.name}:`, err.message);
+      errors.push({ tool_id: tool.id, tool_name: tool.name, error: err.message });
+    }
+  }
+
+  console.log(
+    `[DECISION ENGINE] saas_tools batch complete | evaluated=${results.length} | ` +
+    `scale=${summary.scale} kill=${summary.kill} improve=${summary.improve} observe=${summary.observe}` +
+    (dry_run ? ' [DRY RUN]' : '')
+  );
+
+  return { total_evaluated: results.length, summary, results, errors, dry_run, executed_at };
+}
+
+module.exports = { evaluateTool, evaluateAllTools, evaluateAllSaasTools, applyRules };
