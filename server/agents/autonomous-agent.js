@@ -189,7 +189,19 @@ async function processOneTool(tool) {
             notes:         `Auto-published (is_free=${tool.is_free}, price=${tool.price}, category=${tool.category})`,
             is_auto_executed: true,
           });
-          await logFactoryJob({ status: 'completed', category: tool.category, input_prompt: tool.description, generated_tool_id: tool.id });
+          await supabase
+            .from('factory_jobs')
+            .insert({
+              status:            'completed',
+              category:          tool.category || 'general',
+              input_prompt:      tool.description || tool.name,
+              generated_tool_id: tool.id,
+              ai_response:       { name: tool.name, slug: tool.slug, action: 'auto_published' },
+              created_by:        null,
+              completed_at:      new Date(),
+            })
+            .select()
+            .single();
           console.log(`[AUTONOMOUS AGENT] Auto-published: ${tool.name}`);
           return { tool_id: tool.id, tool_name: tool.name, action_taken: 'auto_published' };
         }
