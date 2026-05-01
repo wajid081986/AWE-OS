@@ -18,6 +18,8 @@ const FEATURES = [
     icon: '🧮',
     title: 'Calculators',
     desc: 'Free calculators for instant results — EMI, GST, SIP and 50+ more.',
+    link: '/calculators',
+    linkLabel: 'View Calculators →',
   },
 ]
 
@@ -246,14 +248,22 @@ export default function LandingPage() {
             <p className="text-gray-400">One platform for all your business tools and resources</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {FEATURES.map(({ icon, title, desc }) => (
+            {FEATURES.map(({ icon, title, desc, link, linkLabel }) => (
               <div
                 key={title}
-                className="bg-gray-900 border border-gray-800 hover:border-blue-800/60 rounded-2xl p-6 transition-colors"
+                className="bg-gray-900 border border-gray-800 hover:border-blue-800/60 rounded-2xl p-6 transition-colors flex flex-col"
               >
                 <div className="text-3xl mb-4">{icon}</div>
                 <h3 className="text-white font-semibold text-lg mb-2">{title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{desc}</p>
+                <p className="text-gray-400 text-sm leading-relaxed flex-1">{desc}</p>
+                {link && (
+                  <Link
+                    to={link}
+                    className="mt-4 text-indigo-400 hover:text-indigo-300 text-sm font-medium transition-colors inline-block"
+                  >
+                    {linkLabel}
+                  </Link>
+                )}
               </div>
             ))}
           </div>

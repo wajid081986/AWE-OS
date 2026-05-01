@@ -25,7 +25,9 @@
       "Bash(git -C \"D:/MyProjects/AWE-OS\" status)",
       "Bash(git *)",
       "Bash(sed -n '5,20p' client/src/App.jsx)",
-      "Bash(sed -n '195,235p' client/src/App.jsx)"
+      "Bash(sed -n '195,235p' client/src/App.jsx)",
+      "Bash(xargs wc *)",
+      "Bash(xargs ls *)"
     ]
   }
 }
