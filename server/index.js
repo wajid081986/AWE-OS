@@ -27,6 +27,7 @@ const paymentRoutes                  = require('./routes/payment.routes');   // 
 const razorpayRoutes                 = require('./routes/razorpay.routes');  // premium upgrade
 const productsRoutes                 = require('./routes/products.routes');
 const calculatorsRoutes              = require('./routes/calculators.routes');
+const factoryRoutes                  = require('./routes/factory.routes');
 const { startAnalyticsCron }         = require('./jobs/analytics.cron');
 require('./jobs/autonomous.cron');
 require('./jobs/idea.cron');
@@ -90,6 +91,7 @@ app.use('/api/payments',       paymentRoutes);
 app.use('/api/payment',        paymentLimiter, razorpayRoutes);
 app.use('/api/products',       productsRoutes);
 app.use('/api/calculators',    calculatorsRoutes);
+app.use('/api/factory',        factoryRoutes);
 app.use('/api/resume-versions', resumeVersionsRoutes);
 app.use('/api',                resumeRoutes);
 

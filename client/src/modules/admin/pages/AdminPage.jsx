@@ -5,6 +5,7 @@ import api from '../../../services/api.service'
 
 const NAV_ITEMS = [
   { icon: '📊', label: 'Overview',     to: '/admin' },
+  { icon: '🤖', label: 'AI Factory',   to: '/admin/factory', badge: '⚡' },
   { icon: '🛠️', label: 'Tool Builder', to: '/admin/tools/builder' },
   { icon: '📦', label: 'Products',     to: '/admin/products' },
   { icon: '🧮', label: 'Calculators',  to: '/admin/calculators' },
@@ -60,14 +61,19 @@ export default function AdminPage() {
           Admin Panel
         </p>
         <nav className="space-y-1">
-          {NAV_ITEMS.map(({ icon, label, to }) => (
+          {NAV_ITEMS.map(({ icon, label, to, badge }) => (
             <Link
               key={to}
               to={to}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700 transition-colors text-sm font-medium"
             >
               <span className="text-base">{icon}</span>
-              <span>{label}</span>
+              <span className="flex-1">{label}</span>
+              {badge && (
+                <span className="text-[10px] bg-indigo-600 text-white px-1.5 py-0.5 rounded font-bold leading-none">
+                  {badge}
+                </span>
+              )}
             </Link>
           ))}
         </nav>
