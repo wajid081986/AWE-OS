@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Allow: /calculators/
+Allow: /calculators/*
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: https://awe-os.vercel.app/sitemap.xml

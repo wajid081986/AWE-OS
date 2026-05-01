@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { api } from '../../../services/api.service'
+import api from '../../../services/api.service'
 
 const PERIODS = [
   { label: '7D',  value: 7 },

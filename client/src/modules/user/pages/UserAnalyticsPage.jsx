@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { api } from '../../../services/api.service'
+import api from '../../../services/api.service'
 
 function timeAgo(dateStr) {
   const diffMs    = Date.now() - new Date(dateStr)

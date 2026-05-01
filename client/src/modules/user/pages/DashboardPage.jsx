@@ -5,6 +5,13 @@ import { useTools } from '../../../shared/hooks/useTools'
 import { usePermissions } from '../../../shared/hooks/usePermissions'
 import SupportModal from '../../../shared/components/SupportModal'
 
+const NAV_LINKS = [
+  { to: '/dashboard/marketplace', label: '🏪 Marketplace' },
+  { to: '/dashboard/store',       label: '🛠️ My Tools' },
+  { to: '/dashboard/downloads',   label: '📥 Downloads' },
+  { to: '/dashboard/analytics',   label: '📊 Analytics' },
+]
+
 const QUICK_LINKS = [
   { label: 'Browse Tools', to: '/dashboard/marketplace', icon: '🏪' },
   { label: 'My Products',  to: '/dashboard/downloads',   icon: '📦' },
@@ -17,7 +24,8 @@ export default function DashboardPage() {
   const { user, logout }        = useAuth()
   const { tools, isLoading }    = useTools()
   const { canAccessTool, role } = usePermissions()
-  const [showSupport, setShowSupport] = useState(false)
+  const [showSupport,    setShowSupport]    = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Supabase returns is_free (snake_case)
   const unlockedTools = useMemo(
@@ -40,32 +48,17 @@ export default function DashboardPage() {
             AWE-OS
           </Link>
 
-          {/* Center nav */}
+          {/* Center nav — desktop only */}
           <nav className="hidden sm:flex items-center gap-1">
-            <Link
-              to="/dashboard/marketplace"
-              className="px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
-            >
-              🏪 Marketplace
-            </Link>
-            <Link
-              to="/dashboard/store"
-              className="px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
-            >
-              🛠️ My Tools
-            </Link>
-            <Link
-              to="/dashboard/downloads"
-              className="px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
-            >
-              📥 Downloads
-            </Link>
-            <Link
-              to="/dashboard/analytics"
-              className="px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
-            >
-              📊 Analytics
-            </Link>
+            {NAV_LINKS.map(({ to, label }) => (
+              <Link
+                key={to}
+                to={to}
+                className="px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+              >
+                {label}
+              </Link>
+            ))}
             {role === 'admin' && (
               <Link
                 to="/admin"
@@ -76,20 +69,70 @@ export default function DashboardPage() {
             )}
           </nav>
 
-          {/* Right: email + logout */}
+          {/* Right: email + logout + hamburger */}
           <div className="flex items-center gap-3 shrink-0">
             <span className="text-gray-400 text-xs hidden md:inline truncate max-w-[160px]">
               {user?.email}
             </span>
             <button
               onClick={logout}
-              className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors"
+              className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors hidden sm:block"
+            >
+              Logout
+            </button>
+            {/* Hamburger — mobile only */}
+            <button
+              onClick={() => setMobileMenuOpen(o => !o)}
+              className="sm:hidden text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-700 transition-colors"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile nav dropdown */}
+      {mobileMenuOpen && (
+        <div className="sm:hidden bg-gray-800 border-b border-gray-700 px-4 py-3 space-y-1">
+          {NAV_LINKS.map(({ to, label }) => (
+            <Link
+              key={to}
+              to={to}
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+            >
+              {label}
+            </Link>
+          ))}
+          {role === 'admin' && (
+            <Link
+              to="/admin"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded-lg text-sm text-indigo-300 hover:text-white hover:bg-indigo-700 transition-colors"
+            >
+              Admin Panel
+            </Link>
+          )}
+          <div className="pt-2 border-t border-gray-700">
+            <p className="text-gray-500 text-xs px-3 py-1 truncate">{user?.email}</p>
+            <button
+              onClick={logout}
+              className="w-full mt-1 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors text-left"
             >
               Logout
             </button>
           </div>
         </div>
-      </header>
+      )}
 
       <div className="p-6">
       <div className="max-w-5xl mx-auto">

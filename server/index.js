@@ -1,14 +1,17 @@
 require('dotenv').config();
-const express   = require('express');
-const cors      = require('cors');
-const rateLimit = require('express-rate-limit');
+const express     = require('express');
+const cors        = require('cors');
+const helmet      = require('helmet');
+const compression = require('compression');
+const rateLimit   = require('express-rate-limit');
+const supabase    = require('./db/supabase');
 
 const resumeRoutes         = require('./routes/resume');
 const resumeVersionsRoutes = require('./routes/resume-versions.routes');
 const authRoutes           = require('./routes/auth');
 const { eventRouter, revenueRouter } = require('./routes/event.routes');
 const decisionRoutes                 = require('./routes/decision.routes');
-const toolRoutes                     = require('./routes/tools.routes');   // Phase 3 — replaces tool.routes.js
+const toolRoutes                     = require('./routes/tools.routes');
 const agentsRoutes                   = require('./routes/agents.routes');
 const adminRoutes                    = require('./routes/admin.routes');
 const billingRoutes                  = require('./routes/billing.routes');
@@ -23,8 +26,8 @@ const revenueAgentRoutes             = require('./routes/revenue.agent.routes');
 const marketingRoutes                = require('./routes/marketing.routes');
 const supportRoutes                  = require('./routes/support.routes');
 const invoiceRoutes                  = require('./routes/invoice.routes');
-const paymentRoutes                  = require('./routes/payment.routes');   // invoice payments
-const razorpayRoutes                 = require('./routes/razorpay.routes');  // premium upgrade
+const paymentRoutes                  = require('./routes/payment.routes');
+const razorpayRoutes                 = require('./routes/razorpay.routes');
 const productsRoutes                 = require('./routes/products.routes');
 const calculatorsRoutes              = require('./routes/calculators.routes');
 const factoryRoutes                  = require('./routes/factory.routes');
@@ -51,21 +54,67 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
   ? ['https://awe-os.vercel.app']
   : ['https://awe-os.vercel.app', 'http://localhost:5173'];
 
+// ── Security & performance middleware ────────────────────────
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+app.use(compression());
 app.use(cors({ origin: allowedOrigins, methods: ['GET','POST','PATCH','PUT','DELETE'], credentials: true }));
 app.use(express.json({ limit: '100kb' }));
 
+// ── Request logger ───────────────────────────────────────────
 app.use((req, res, next) => {
   const start = Date.now();
-  res.on('finish', () => console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} ${res.statusCode} ${Date.now()-start}ms`));
+  res.on('finish', () => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.info(`[${new Date().toISOString()}] ${req.method} ${req.path} ${res.statusCode} ${Date.now()-start}ms`);
+    }
+  });
   next();
 });
 
+// ── Rate limiters ────────────────────────────────────────────
 const globalLimiter  = rateLimit({ windowMs: 15*60*1000, max: 100, standardHeaders: true, legacyHeaders: false, message: { success: false, error: 'Too many requests, slow down.' } });
 const authLimiter    = rateLimit({ windowMs: 15*60*1000, max: 20,  standardHeaders: true, legacyHeaders: false, message: { success: false, error: 'Too many auth attempts, try again later.' } });
 const paymentLimiter = rateLimit({ windowMs: 60*60*1000, max: 10,  standardHeaders: true, legacyHeaders: false, message: { success: false, error: 'Too many payment attempts.' } });
 
 app.use(globalLimiter);
 
+// ── Sitemap ──────────────────────────────────────────────────
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const { data: calculators } = await supabase
+      .from('calculators')
+      .select('slug, updated_at')
+      .eq('is_published', true);
+
+    const calcUrls = (calculators || []).map(c => `
+  <url>
+    <loc>https://awe-os.vercel.app/calculators/${c.slug}</loc>
+    <lastmod>${c.updated_at?.split('T')[0] || new Date().toISOString().split('T')[0]}</lastmod>
+    <priority>0.8</priority>
+  </url>`).join('');
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://awe-os.vercel.app/</loc>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://awe-os.vercel.app/calculators</loc>
+    <priority>0.9</priority>
+  </url>${calcUrls}
+</urlset>`;
+
+    res.header('Content-Type', 'application/xml');
+    res.header('Cache-Control', 'public, max-age=86400');
+    res.send(xml);
+  } catch (err) {
+    console.error('[sitemap]', err.message);
+    res.status(500).send('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>');
+  }
+});
+
+// ── API routes ───────────────────────────────────────────────
 app.use('/api/auth',           authLimiter, authRoutes);
 app.use('/api/create-order',   paymentLimiter);
 app.use('/api/verify-payment', paymentLimiter);
@@ -93,21 +142,34 @@ app.use('/api/payment',        paymentLimiter, razorpayRoutes);
 app.use('/api/products',       productsRoutes);
 app.use('/api/calculators',    calculatorsRoutes);
 app.use('/api/factory',        factoryRoutes);
-app.use('/api/analytics',     analyticsRoutes);
+app.use('/api/analytics',      analyticsRoutes);
 app.use('/api/resume-versions', resumeVersionsRoutes);
 app.use('/api',                resumeRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'healthy', service: 'AWE-OS Backend', version: '2.0.0', time: new Date().toISOString(), checks: { database: 'ok' } }));
 app.get('/', (req, res) => res.send('AWE-OS Backend Running'));
-app.use((err, req, res, next) => { console.error('Unhandled Error:', err.message); res.status(500).json({ success: false, error: 'Internal Server Error' }); });
+
+// ── 404 + error handlers (must be last) ─────────────────────
+app.use((req, res) => {
+  res.status(404).json({ success: false, error: 'Route not found', path: req.path });
+});
+
+app.use((err, req, res, next) => {
+  console.error('Unhandled Error:', err.message);
+  res.status(500).json({
+    success: false,
+    error:   'Internal Server Error',
+    message: process.env.NODE_ENV !== 'production' ? err.message : undefined,
+  });
+});
 
 const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.info(`[SERVER] Running on port ${PORT}`);
   startAnalyticsCron();
-  console.log('[SERVER] All systems GO');
+  console.info('[SERVER] All systems GO');
 });
 
 process.on('SIGTERM', () => {
-  server.close(() => { console.log('[SERVER] Closed.'); process.exit(0); });
+  server.close(() => { console.info('[SERVER] Closed.'); process.exit(0); });
   setTimeout(() => process.exit(1), 10_000);
 });

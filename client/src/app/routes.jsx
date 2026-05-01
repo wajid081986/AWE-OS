@@ -6,6 +6,7 @@ import PublicRoute    from '../shared/components/PublicRoute'
 
 // ── Lazy pages ────────────────────────────────────────────────
 const LandingPage      = lazy(() => import('../modules/landing/pages/LandingPage'))
+const NotFoundPage     = lazy(() => import('../pages/NotFoundPage'))
 const LoginPage        = lazy(() => import('../modules/auth/pages/LoginPage'))
 const ResumePage       = lazy(() => import('../modules/tools/resume/pages/ResumePage'))
 const Dashboard        = lazy(() => import('../modules/user/pages/DashboardPage'))
@@ -97,7 +98,7 @@ export default function AppRoutes() {
       <Route path="/admin/agents"         element={<ProtectedRoute requiredRole="admin">{lazy$(<AgentControlPage />)}</ProtectedRoute>} />
 
       {/* 404 */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={lazy$(<NotFoundPage />)} />
     </Routes>
   )
 }

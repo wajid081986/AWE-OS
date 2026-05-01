@@ -9,7 +9,6 @@ const supabase    = require('../db/supabase');
 const requireAuth = require('../middleware/auth');
 
 const router = express.Router();
-console.log('✅ AUTH ROUTES LOADED');
 
 const RegisterSchema = z.object({
   email:    z.string().email('Invalid email').transform((e) => e.toLowerCase().trim()),
@@ -96,13 +95,9 @@ router.post('/login', async (req, res) => {
       .eq('email', email)
       .maybeSingle();
 
-    console.log('[LOGIN] User found:', user ? { id: user.id, email: user.email, hash_prefix: user.password_hash?.slice(0, 7) } : null);
-
     const passwordMatch = user
       ? await bcrypt.compare(password, user.password_hash)
       : false;
-
-    console.log('[LOGIN] Password match:', passwordMatch);
 
     if (!user || !passwordMatch) {
       return res.status(401).json({ success: false, error: 'Invalid email or password' });
@@ -157,9 +152,8 @@ router.post('/forgot-password', async (req, res) => {
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const resetLink   = `${frontendUrl}/reset-password?token=${resetToken}`;
-
-    // TODO: replace with real email (nodemailer / Resend / SendGrid)
-    console.log(`[FORGOT PASSWORD] Reset link for ${user.email}: ${resetLink}`);
+    // TODO: wire up email provider (nodemailer / Resend / SendGrid)
+    void resetLink;
 
     return safeResponse();
   } catch (err) {

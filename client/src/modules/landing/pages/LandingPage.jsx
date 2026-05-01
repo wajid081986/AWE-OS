@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 
 const API = import.meta.env.VITE_API_URL || 'https://awe-os.onrender.com'
 
@@ -180,6 +181,16 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
+      <Helmet>
+        <title>AWE-OS — AI-Powered Business Platform</title>
+        <meta name="description" content="Access powerful AI tools, digital products, and free calculators. Build smarter with AWE-OS." />
+        <meta name="keywords" content="AI tools, resume builder, invoice generator, EMI calculator, GST calculator, digital products" />
+        <meta property="og:title" content="AWE-OS — AI-Powered Business Platform" />
+        <meta property="og:description" content="Build smarter with AI tools, digital products, and free calculators." />
+        <meta property="og:type" content="website" />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://awe-os.vercel.app" />
+      </Helmet>
 
       <Navbar menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
