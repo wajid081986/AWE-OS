@@ -2,6 +2,8 @@ const { v4: uuidv4 }         = require('uuid');
 const supabase               = require('../db/supabase');
 const { applyRules }         = require('./decision-engine');
 const { generateToolConfig } = require('../services/ai-factory.service');
+const { testTool }           = require('./testing-agent');
+const { evaluateTool }       = require('./auto-approval-agent');
 
 // ── Safety constants ──────────────────────────────────────────
 const MAX_TOOLS_PER_RUN  = 10;   // hard cap — never process more than this
@@ -166,55 +168,46 @@ async function processOneTool(tool) {
     // BRANCH 1: idea → generate tool config via AI Factory
     // ────────────────────────────────────────────────────────────
     if (tool.status === 'idea') {
-      // Tool already has a config — only check auto-publish eligibility
+      // Tool already has a config — run testing + auto-approval pipeline
       if (tool.ai_prompt && tool.input_fields) {
-        const shouldAutoPublish =
-          tool.is_free === true ||
-          Number(tool.price) === 0 ||
-          tool.category === 'productivity';
+        // Step 1: test config quality
+        const testResult = await testTool(tool.id);
+        const test_score = testResult.test_score || 0;
 
-        if (shouldAutoPublish) {
-          const { error: publishErr } = await supabase
-            .from('saas_tools')
-            .update({ is_published: true })
-            .eq('id', tool.id);
+        // Step 2: evaluate quality and write decision to both tables
+        const approval = await evaluateTool(tool.id, test_score);
+        const decision = approval.decision;
 
-          if (publishErr) throw new Error(`Auto-publish failed: ${publishErr.message}`);
+        const actionLabel = decision === 'auto_live' ? 'auto_published'
+                          : decision === 'review'    ? 'awaiting_review'
+                          : 'kill_flagged';
 
-          await logAction({
-            tool_id: tool.id, tool_name: tool.name,
-            action:        'auto_published',
-            status_before: 'idea',
-            status_after:  'live',
-            notes:         `Auto-published (is_free=${tool.is_free}, price=${tool.price}, category=${tool.category})`,
-            is_auto_executed: true,
-          });
-          await supabase
-            .from('factory_jobs')
-            .insert({
-              status:            'completed',
-              category:          tool.category || 'general',
-              input_prompt:      tool.description || tool.name,
-              generated_tool_id: tool.id,
-              ai_response:       { name: tool.name, slug: tool.slug, action: 'auto_published' },
-              created_by:        null,
-              completed_at:      new Date(),
-            })
-            .select()
-            .single();
-          console.log(`[AUTONOMOUS AGENT] Auto-published: ${tool.name}`);
-          return { tool_id: tool.id, tool_name: tool.name, action_taken: 'auto_published' };
-        }
-
-        // Config exists but not eligible for auto-publish — wait for human review
         await logAction({
-          tool_id: tool.id, tool_name: tool.name,
-          action:  'awaiting_review',
-          notes:   'Tool config ready — pending manual review before publish',
-          is_auto_executed: false,
+          tool_id:          tool.id,
+          tool_name:        tool.name,
+          action:           actionLabel,
+          status_before:    'idea',
+          status_after:     decision === 'auto_live' ? 'live' : 'idea',
+          notes:            `Test: ${test_score}/100 | Complexity: ${approval.complexity} | Quality: ${approval.qualityScore} | Decision: ${decision}`,
+          is_auto_executed: decision === 'auto_live',
         });
-        console.log(`[AUTONOMOUS AGENT] ${tool.name} → awaiting manual review`);
-        return { skipped: true, reason: 'awaiting_review' };
+
+        await logFactoryJob({
+          status:            decision === 'auto_live' ? 'completed' : 'pending',
+          category:          tool.category   || 'general',
+          input_prompt:      tool.description || tool.name,
+          generated_tool_id: tool.id,
+          error_message:     decision === 'rejected'
+            ? `Rejected — quality score too low: ${approval.qualityScore}`
+            : null,
+        });
+
+        const resultLabel = decision === 'auto_live' ? 'LIVE'
+                          : decision === 'review'    ? 'REVIEW'
+                          : 'REJECTED';
+        console.log(`[AUTONOMOUS] Tool ${tool.name} → ${resultLabel}`);
+
+        return { tool_id: tool.id, tool_name: tool.name, action_taken: actionLabel };
       }
 
       // No config yet — generate via AI Factory
