@@ -35,6 +35,9 @@ const CRON_INTERVALS = {
   'support-weekly-kb':        7  * 24 * 60,
 };
 
+// ── State ──────────────────────────────────────────────────────────────────────
+let isRunning = false;   // prevents overlapping checks if one takes > 30 min
+
 // Recovery advice per service — logged at error level when a service is down
 const RECOVERY_HINTS = {
   backend:  'Check server logs and process manager (PM2/systemd). Verify PORT and ENV vars.',
@@ -91,6 +94,12 @@ function assessService(name, serviceData) {
 
 // ── Core execution ─────────────────────────────────────────────────────────────
 async function executeHealthCheck() {
+  if (isRunning) {
+    log('warn', 'Skipping — previous health check still in progress');
+    return;
+  }
+
+  isRunning = true;
   const startedAt = Date.now();
   log('info', 'Health check starting');
 
@@ -144,6 +153,8 @@ async function executeHealthCheck() {
       duration_ms: Date.now() - startedAt,
     });
     await recordCronRun(AGENT, 'error', err?.message || String(err));
+  } finally {
+    isRunning = false;
   }
 }
 

@@ -53,7 +53,7 @@ function log(level, message, data = {}) {
 async function hasRecentIdeasForCategory(category) {
   const since = new Date(Date.now() - DEDUP_WINDOW_DAYS * 86_400_000).toISOString();
   const { data, error } = await supabase
-    .from('saas_tools')
+    .from('tools')
     .select('id')
     .eq('status', 'idea')
     .eq('category', category)

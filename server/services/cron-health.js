@@ -9,13 +9,15 @@ const supabase = require('../db/supabase');
  * @param {string}      cronName  - Must match a cron_name in cron_health table
  * @param {'success'|'error'|'skipped'} status
  * @param {string|null} [error]   - Error message if status === 'error'
+ * @param {object|null} [metadata] - Optional run metrics (records_processed, anomalies, etc.)
  */
-async function recordCronRun(cronName, status, error = null) {
+async function recordCronRun(cronName, status, error = null, metadata = null) {
   try {
     const { error: rpcErr } = await supabase.rpc('record_cron_run', {
       p_cron_name: cronName,
       p_status:    status,
-      p_error:     error || null,
+      p_error:     error   || null,
+      p_meta:      metadata ? JSON.parse(JSON.stringify(metadata)) : null,
     });
 
     if (rpcErr) {
