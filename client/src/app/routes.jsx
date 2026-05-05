@@ -114,6 +114,7 @@ export default function AppRoutes() {
       <Route path="/admin/revenue"        element={<ProtectedRoute requiredRole="admin">{lazy$(<RevenuePage />)}</ProtectedRoute>} />
       <Route path="/admin/factory"        element={<ProtectedRoute requiredRole="admin">{lazy$(<AIFactoryPage />)}</ProtectedRoute>} />
       <Route path="/admin/agents"         element={<ProtectedRoute requiredRole="admin">{lazy$(<AgentControlPage />)}</ProtectedRoute>} />
+      <Route path="/admin/pipeline"       element={<ProtectedRoute requiredRole="admin">{lazy$(<AgentControlPage />)}</ProtectedRoute>} />
 
       {/* 404 */}
       <Route path="*" element={lazy$(<NotFoundPage />)} />
