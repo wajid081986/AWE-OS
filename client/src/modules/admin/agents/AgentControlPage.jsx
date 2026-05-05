@@ -11,6 +11,7 @@ const TABS = [
   { id: 'support',      label: '🎫 Support'      },
   { id: 'optimization', label: '🔧 Optimization' },
   { id: 'decisions',    label: '📋 Decisions'    },
+  { id: 'pipeline',     label: '📡 Pipeline'     },
 ]
 
 // ── Agent metadata for Overview cards ─────────────────────────
@@ -1042,6 +1043,262 @@ function DecisionsTab() {
   )
 }
 
+// ── Tab 9: Pipeline Health (Observability Dashboard) ──────────
+const POLL_INTERVAL_MS = 30_000
+
+function ConnectionBadge({ status }) {
+  const map = {
+    live:        { dot: 'bg-green-400', label: 'Live' },
+    polling:     { dot: 'bg-yellow-400', label: 'Polling' },
+    disconnected:{ dot: 'bg-red-500',   label: 'Disconnected' },
+  }
+  const cfg = map[status] || map.disconnected
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs text-gray-400">
+      <span className={`w-2 h-2 rounded-full ${cfg.dot} animate-pulse`} />
+      {cfg.label}
+    </span>
+  )
+}
+
+function GaugeBar({ value, max = 100, label, colorClass = 'bg-indigo-500' }) {
+  const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0
+  return (
+    <div>
+      <div className="flex justify-between text-xs text-gray-400 mb-1">
+        <span>{label}</span>
+        <span>{value} / {max}</span>
+      </div>
+      <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+        <div className={`h-full rounded-full transition-all duration-500 ${colorClass}`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  )
+}
+
+function MetricCard({ title, value, sub, accent = 'text-white' }) {
+  return (
+    <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
+      <p className="text-gray-400 text-xs mb-1">{title}</p>
+      <p className={`text-2xl font-bold ${accent}`}>{value}</p>
+      {sub && <p className="text-gray-500 text-xs mt-1">{sub}</p>}
+    </div>
+  )
+}
+
+function PipelineHealthTab() {
+  const [metrics, setMetrics]   = useState(null)
+  const [queues, setQueues]     = useState(null)
+  const [loading, setLoading]   = useState(true)
+  const [connStatus, setConn]   = useState('polling')
+  const [toast, setToast]       = useState(null)
+  const [cbTripped, setCbTripped] = useState(false)
+
+  const ALERT_THRESHOLD = parseFloat(import.meta.env.VITE_ALERT_FAILURE_RATE_THRESHOLD || '0.20')
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [mRes, qRes] = await Promise.allSettled([
+        api.get('/api/admin/pipeline-metrics'),
+        api.get('/api/admin/queue-stats'),
+      ])
+
+      if (mRes.status === 'fulfilled') {
+        setMetrics(mRes.value.data?.data || null)
+        setConn('live')
+      }
+      if (qRes.status === 'fulfilled') {
+        setQueues(qRes.value.data?.data || null)
+      }
+      if (mRes.status === 'rejected' && qRes.status === 'rejected') {
+        setConn('disconnected')
+      }
+    } catch {
+      setConn('polling')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchData()
+    const id = setInterval(fetchData, POLL_INTERVAL_MS)
+    return () => clearInterval(id)
+  }, [fetchData])
+
+  // Detect circuit breaker state from metrics
+  useEffect(() => {
+    if (!metrics) return
+    const failRate = metrics.failure_rate ?? 0
+    setCbTripped(failRate > 0.50)
+  }, [metrics])
+
+  const triggerRetention = async () => {
+    try {
+      await api.post('/api/admin/retention/trigger')
+      setToast({ msg: 'Retention job triggered', type: 'success' })
+    } catch (err) {
+      setToast({ msg: err.response?.data?.error || 'Failed', type: 'error' })
+    }
+  }
+
+  const failRate    = metrics?.failure_rate ?? 0
+  const successRate = metrics?.success_rate ?? 0
+  const showAlert   = failRate >= ALERT_THRESHOLD
+
+  if (loading) return <Spinner />
+
+  return (
+    <div className="space-y-6">
+      {toast && <Toast msg={toast.msg} type={toast.type} onDone={() => setToast(null)} />}
+
+      {/* Connection status + circuit breaker banner */}
+      <div className="flex items-center justify-between">
+        <ConnectionBadge status={connStatus} />
+        <button
+          onClick={fetchData}
+          className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+        >
+          Refresh
+        </button>
+      </div>
+
+      {showAlert && (
+        <div className="bg-red-900/40 border border-red-700 rounded-xl px-4 py-3 flex items-center gap-3">
+          <span className="text-red-400 text-lg">⚠</span>
+          <div>
+            <p className="text-red-300 font-medium text-sm">High Failure Rate Detected</p>
+            <p className="text-red-400 text-xs mt-0.5">
+              {(failRate * 100).toFixed(1)}% failure rate exceeds {(ALERT_THRESHOLD * 100).toFixed(0)}% threshold. Check error logs.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {cbTripped && (
+        <div className="bg-orange-900/40 border border-orange-700 rounded-xl px-4 py-3 flex items-center gap-3">
+          <span className="text-orange-400 text-lg">🔴</span>
+          <div>
+            <p className="text-orange-300 font-medium text-sm">Circuit Breaker Tripped</p>
+            <p className="text-orange-400 text-xs mt-0.5">
+              Failure rate exceeded 50% — pipeline auto-paused. Resolve errors before re-triggering.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* KPI cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <MetricCard
+          title="Success Rate (24h)"
+          value={`${(successRate * 100).toFixed(1)}%`}
+          sub={`${metrics?.total_runs ?? 0} total runs`}
+          accent={successRate >= 0.8 ? 'text-green-400' : successRate >= 0.6 ? 'text-yellow-400' : 'text-red-400'}
+        />
+        <MetricCard
+          title="Avg Build Time"
+          value={metrics?.avg_duration_ms != null ? `${(metrics.avg_duration_ms / 1000).toFixed(1)}s` : '—'}
+          sub="per pipeline run"
+        />
+        <MetricCard
+          title="Records Processed"
+          value={metrics?.total_records_processed?.toLocaleString() ?? '—'}
+          sub="last 24 hours"
+        />
+        <MetricCard
+          title="Failed Jobs (DB)"
+          value={metrics?.failed_jobs_count ?? '—'}
+          sub="unresolved"
+          accent={metrics?.failed_jobs_count > 0 ? 'text-red-400' : 'text-green-400'}
+        />
+      </div>
+
+      {/* Success / failure gauge */}
+      <div className="bg-gray-800 border border-gray-700 rounded-xl p-5 space-y-3">
+        <h3 className="text-white text-sm font-semibold mb-4">Cron Success Rate</h3>
+        <GaugeBar
+          value={Math.round(successRate * 100)}
+          max={100}
+          label="Success %"
+          colorClass={successRate >= 0.8 ? 'bg-green-500' : successRate >= 0.6 ? 'bg-yellow-500' : 'bg-red-500'}
+        />
+        <GaugeBar
+          value={Math.round(failRate * 100)}
+          max={100}
+          label="Failure %"
+          colorClass="bg-red-500"
+        />
+      </div>
+
+      {/* Per-cron breakdown */}
+      {metrics?.by_cron && metrics.by_cron.length > 0 && (
+        <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-700">
+            <h3 className="text-white text-sm font-semibold">Failure Rate by Cron (24h)</h3>
+          </div>
+          <div className="divide-y divide-gray-700">
+            {metrics.by_cron.map(row => {
+              const rate = row.total > 0 ? row.errors / row.total : 0
+              return (
+                <div key={row.cron_name} className="px-5 py-3 flex items-center gap-4">
+                  <p className="text-gray-300 text-sm flex-1 font-mono">{row.cron_name}</p>
+                  <div className="w-32">
+                    <GaugeBar
+                      value={row.errors}
+                      max={row.total}
+                      label=""
+                      colorClass={rate > 0.3 ? 'bg-red-500' : rate > 0.1 ? 'bg-yellow-500' : 'bg-green-500'}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-400 w-16 text-right">
+                    {row.errors}/{row.total}
+                  </p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Queue stats */}
+      {queues && (
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-5">
+          <h3 className="text-white text-sm font-semibold mb-4">BullMQ Queue Status</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {Object.values(queues).map(q => (
+              <div key={q.name} className="bg-gray-700/50 rounded-lg p-3">
+                <p className="text-gray-300 text-xs font-mono mb-2">{q.name}</p>
+                <div className="grid grid-cols-2 gap-1 text-xs">
+                  <span className="text-gray-400">Waiting</span><span className="text-white font-medium">{q.waiting ?? '—'}</span>
+                  <span className="text-gray-400">Active</span><span className="text-yellow-400 font-medium">{q.active ?? '—'}</span>
+                  <span className="text-gray-400">Failed</span><span className={`font-medium ${q.failed > 0 ? 'text-red-400' : 'text-green-400'}`}>{q.failed ?? '—'}</span>
+                  <span className="text-gray-400">Done</span><span className="text-green-400 font-medium">{q.completed ?? '—'}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex flex-wrap gap-3">
+        <button
+          onClick={triggerRetention}
+          className="text-sm bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors"
+        >
+          Run Data Retention Now
+        </button>
+        <a
+          href="/api/admin/pipeline-metrics?format=csv"
+          className="text-sm bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors"
+        >
+          Export Metrics CSV
+        </a>
+      </div>
+    </div>
+  )
+}
+
 // ── Main page ──────────────────────────────────────────────────
 export default function AgentControlPage() {
   const [tab, setTab] = useState('overview')
@@ -1055,6 +1312,7 @@ export default function AgentControlPage() {
     support:      <SupportTab />,
     optimization: <OptimizationTab />,
     decisions:    <DecisionsTab />,
+    pipeline:     <PipelineHealthTab />,
   }
 
   return (
