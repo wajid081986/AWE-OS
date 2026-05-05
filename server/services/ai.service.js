@@ -80,26 +80,33 @@ async function callOpenAI(prompt, options = {}) {
  * @returns {object} Parsed JSON
  */
 function parseJSONResponse(raw) {
-  const cleaned = raw
-    .replace(/^```(?:json)?\s*/i, '')
-    .replace(/\s*```\s*$/, '')
-    .trim();
+  // 1. Try to extract JSON from within a markdown code fence (```json ... ```)
+  const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  const candidate  = fenceMatch ? fenceMatch[1].trim() : raw.trim();
 
+  // 2. Attempt direct parse of the cleaned candidate
   try {
-    return JSON.parse(cleaned);
-  } catch (err) {
-    // ← YAHAN LOG ADD KIYA
-    console.error('[AI SERVICE] JSON parse failed!');
-    console.error('[AI SERVICE] Raw response length:', raw.length);
-    console.error('[AI SERVICE] Last 500 chars:', raw.slice(-500));
-    
-    const errMsg   = err instanceof Error ? err.message : String(err);
-    const parseErr = new Error(`Failed to parse AI response as JSON: ${errMsg}`);
-    parseErr.code  = 'PARSE_ERROR';
-    parseErr.status = 500;
-    parseErr.raw   = raw.slice(0, 300);
-    throw parseErr;
+    return JSON.parse(candidate);
+  } catch (_) {}
+
+  // 3. Last-resort: find the first { or [ and parse from there
+  const firstBrace = candidate.search(/[{[]/);
+  if (firstBrace !== -1) {
+    try {
+      return JSON.parse(candidate.slice(firstBrace));
+    } catch (_) {}
   }
+
+  // 4. All attempts failed — surface a clear error
+  const parseErr    = new Error(`Failed to parse AI response as JSON`);
+  parseErr.code     = 'PARSE_ERROR';
+  parseErr.status   = 500;
+  parseErr.raw      = raw.slice(0, 300);
+
+  console.error('[AI SERVICE] JSON parse failed — raw length:', raw.length);
+  console.error('[AI SERVICE] Last 300 chars:', raw.slice(-300));
+
+  throw parseErr;
 }
 
 module.exports = { callOpenAI, parseJSONResponse };

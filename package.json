@@ -2,6 +2,7 @@
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.103.3",
+    "dotenv": "^17.4.2",
     "razorpay": "^2.9.6"
   }
 }

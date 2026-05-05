@@ -2,7 +2,7 @@ const { v4: uuidv4 }         = require('uuid');
 const supabase               = require('../db/supabase');
 const { applyRules }         = require('./decision-engine');
 const { generateToolConfig } = require('../services/ai-factory.service');
-const { testTool }           = require('./testing-agent');
+const { testTool }           = require('./testing-agent.core');
 const { evaluateTool }       = require('./auto-approval-agent');
 
 // ── Safety constants ──────────────────────────────────────────
@@ -391,51 +391,49 @@ async function runAutonomousLoop({ limit = MAX_TOOLS_PER_RUN, triggered_by = 'cr
     return { skipped: true, reason: 'already_running' };
   }
 
-  // Set lock IMMEDIATELY before any await to prevent race condition
+  // Lock is set BEFORE the try block so the finally always fires,
+  // even if getRunsToday() or createRunRecord() throw unexpectedly.
   isRunning = true;
 
-  // ── Guard: daily run limit ────────────────────────────────────
-  const runsToday = await getRunsToday();
-  if (runsToday >= MAX_RUNS_PER_DAY) {
-    const msg = `Daily run limit reached (${runsToday}/${MAX_RUNS_PER_DAY}) — aborting`;
-    console.warn(`[AUTONOMOUS AGENT] ${msg}`);
-    await logAction({ tool_id: null, tool_name: null, action: 'skipped', notes: msg });
-    isRunning = false;
-    return { skipped: true, reason: 'daily_limit_reached' };
-  }
-  const safeLimit  = Math.min(Number(limit) || MAX_TOOLS_PER_RUN, MAX_TOOLS_PER_RUN);
-  const startedAt  = new Date();
-  const runId      = await createRunRecord(triggered_by);
-
-  console.log(`[AUTONOMOUS AGENT] Loop starting | run_id=${runId} | limit=${safeLimit}`);
-
-  const actions = {
-    plans_generated:   0,
-    scaled:            0,
-    improve_suggested: 0,
-    kill_flagged:      0,
-    observed:          0,
-    errors:            0,
-  };
-  let toolsProcessed = 0;
-  let toolsSkipped   = 0;
-
   try {
-    // ── Fetch: published (live) first, then unpublished (idea) ──────
+    // ── Guard: daily run limit ──────────────────────────────────
+    const runsToday = await getRunsToday();
+    if (runsToday >= MAX_RUNS_PER_DAY) {
+      const msg = `Daily run limit reached (${runsToday}/${MAX_RUNS_PER_DAY}) — aborting`;
+      console.warn(`[AUTONOMOUS AGENT] ${msg}`);
+      await logAction({ tool_id: null, tool_name: null, action: 'skipped', notes: msg });
+      return { skipped: true, reason: 'daily_limit_reached' };
+    }
+
+    const safeLimit = Math.min(Number(limit) || MAX_TOOLS_PER_RUN, MAX_TOOLS_PER_RUN);
+    const startedAt = new Date();
+    const runId     = await createRunRecord(triggered_by);
+
+    console.log(`[AUTONOMOUS AGENT] Loop starting | run_id=${runId} | limit=${safeLimit}`);
+
+    const actions = {
+      plans_generated:   0,
+      scaled:            0,
+      improve_suggested: 0,
+      kill_flagged:      0,
+      observed:          0,
+      errors:            0,
+    };
+    let toolsProcessed = 0;
+    let toolsSkipped   = 0;
+
+    // ── Fetch: published (live) first, then unpublished (idea) ──
     const { data: rawTools, error: fetchErr } = await supabase
       .from('saas_tools')
       .select('id, name, slug, is_published, updated_at, ai_prompt, input_fields, category, description, is_free, price')
-      .order('is_published', { ascending: false }) // true (published/live) first
-      .order('updated_at',   { ascending: true  }) // oldest first within each group
+      .order('is_published', { ascending: false })
+      .order('updated_at',   { ascending: true  })
       .limit(safeLimit);
 
     if (fetchErr) {
-      const err = new Error(`Failed to fetch tools: ${fetchErr.message}`);
-      console.error('[AUTONOMOUS AGENT]', err.message);
-      throw err;
+      throw new Error(`Failed to fetch tools: ${fetchErr.message}`);
     }
 
-    // Normalize to internal status format: is_published=true → 'live', false → 'idea'
     const tools = (rawTools || []).map(t => ({
       ...t,
       status: t.is_published ? 'live' : 'idea',
@@ -445,7 +443,7 @@ async function runAutonomousLoop({ limit = MAX_TOOLS_PER_RUN, triggered_by = 'cr
       console.log('[AUTONOMOUS AGENT] No tools found in saas_tools');
     }
 
-    // ── Process each tool with a safety gap ───────────────────────
+    // ── Process each tool with a safety gap ─────────────────────
     for (const tool of tools) {
       try {
         const result = await processOneTool(tool);
@@ -454,8 +452,6 @@ async function runAutonomousLoop({ limit = MAX_TOOLS_PER_RUN, triggered_by = 'cr
           toolsSkipped++;
         } else {
           toolsProcessed++;
-
-          // Accumulate action counters
           switch (result.action_taken) {
             case 'config_generated':      actions.plans_generated++;    break;
             case 'auto_published':        actions.scaled++;             break;
@@ -467,11 +463,9 @@ async function runAutonomousLoop({ limit = MAX_TOOLS_PER_RUN, triggered_by = 'cr
           }
         }
       } catch (toolErr) {
-        // One tool failure must never abort the rest
         console.error(`[AUTONOMOUS AGENT] Error processing "${tool.name}":`, toolErr.message);
         actions.errors++;
         toolsProcessed++;
-
         await logAction({
           tool_id:   tool.id,
           tool_name: tool.name,
@@ -481,7 +475,6 @@ async function runAutonomousLoop({ limit = MAX_TOOLS_PER_RUN, triggered_by = 'cr
         });
       }
 
-      // 1-second gap between tools to avoid hammering OpenAI
       await sleep(TOOL_DELAY_MS);
     }
 
@@ -508,7 +501,7 @@ async function runAutonomousLoop({ limit = MAX_TOOLS_PER_RUN, triggered_by = 'cr
     return summary;
 
   } finally {
-    // ── ALWAYS release the lock — no exception can bypass this ────
+    // Unconditionally releases the lock — no early return or throw can bypass this
     isRunning = false;
   }
 }

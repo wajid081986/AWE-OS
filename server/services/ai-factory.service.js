@@ -3,9 +3,40 @@ const { callOpenAI, parseJSONResponse } = require('./ai.service');
 
 const SYSTEM_PROMPT = `You are an AI tool builder for AWE-OS SaaS platform. When given a category or idea, you generate complete tool configurations. ALWAYS respond with valid JSON only. No markdown, no explanation. Just the JSON object.`;
 
+// Strip characters that could escape prompt context or inject instructions
+function sanitizeForPrompt(value, maxLength = 200) {
+  if (typeof value !== 'string') return '';
+  return value
+    .replace(/[`\\]/g, '')
+    .replace(/\n+/g, ' ')
+    .trim()
+    .slice(0, maxLength);
+}
+
+// Exponential backoff retry for transient OpenAI failures (429, 504, network errors)
+async function callWithRetry(promptFn, maxAttempts = 3) {
+  let lastErr;
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      return await promptFn();
+    } catch (err) {
+      lastErr = err;
+      const isRetryable = err.status === 429 || err.code === 'AI_TIMEOUT' || err.code === 'ECONNRESET';
+      if (!isRetryable || i === maxAttempts - 1) throw err;
+      const delayMs = Math.pow(2, i) * 2000 + Math.random() * 500;
+      console.warn(`[AI FACTORY] Retry ${i + 1}/${maxAttempts} after ${Math.round(delayMs)}ms — ${err.message}`);
+      await new Promise(r => setTimeout(r, delayMs));
+    }
+  }
+  throw lastErr;
+}
+
 const generateToolConfig = async (category, idea) => {
-  const prompt = `Generate a complete AI tool configuration for the "${category}" category.
-${idea ? `Specific idea: ${idea}` : ''}
+  const safeCategory = sanitizeForPrompt(category, 50);
+  const safeIdea     = sanitizeForPrompt(idea, 200);
+
+  const prompt = `Generate a complete AI tool configuration for the "${safeCategory}" category.
+${safeIdea ? `Specific idea: ${safeIdea}` : ''}
 
 Return ONLY this JSON structure:
 {
@@ -35,18 +66,20 @@ Rules:
 - Make it genuinely useful for businesses
 - price: 0 for free tools, 99-999 for paid tools`;
 
-  const text = await callOpenAI(prompt, {
-    model: 'gpt-4o',
-    max_tokens: 1000,
-    temperature: 0.7,
+  const text = await callWithRetry(() => callOpenAI(prompt, {
+    model:        'gpt-4o',
+    max_tokens:   1000,
+    temperature:  0.7,
     systemPrompt: SYSTEM_PROMPT,
-  });
+  }));
 
   return parseJSONResponse(text);
 };
 
 const generateToolIdeas = async (category, count = 5) => {
-  const prompt = `Generate ${count} unique AI tool ideas for the "${category}" category on a SaaS platform.
+  const safeCategory = sanitizeForPrompt(category, 50);
+  const safeCount    = Math.min(Math.max(Number(count) || 5, 1), 20);
+  const prompt = `Generate ${safeCount} unique AI tool ideas for the "${safeCategory}" category on a SaaS platform.
 
 Return ONLY this JSON array:
 [
@@ -61,12 +94,12 @@ Return ONLY this JSON array:
 
 Make ideas practical and marketable.`;
 
-  const text = await callOpenAI(prompt, {
-    model: 'gpt-4o',
-    max_tokens: 1500,
-    temperature: 0.8,
+  const text = await callWithRetry(() => callOpenAI(prompt, {
+    model:        'gpt-4o',
+    max_tokens:   1500,
+    temperature:  0.8,
     systemPrompt: SYSTEM_PROMPT,
-  });
+  }));
 
   return parseJSONResponse(text);
 };

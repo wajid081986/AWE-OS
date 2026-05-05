@@ -27,7 +27,11 @@
       "Bash(sed -n '5,20p' client/src/App.jsx)",
       "Bash(sed -n '195,235p' client/src/App.jsx)",
       "Bash(xargs wc *)",
-      "Bash(xargs ls *)"
+      "Bash(xargs ls *)",
+      "Bash(Get-ChildItem -Path \"D:\\\\MyProjects\\\\AWE-OS\" -Recurse -File -Exclude node_modules)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "PowerShell(head *)"
     ]
   }
 }

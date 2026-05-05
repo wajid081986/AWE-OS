@@ -32,23 +32,32 @@ const productsRoutes                 = require('./routes/products.routes');
 const calculatorsRoutes              = require('./routes/calculators.routes');
 const factoryRoutes                  = require('./routes/factory.routes');
 const analyticsRoutes                = require('./routes/analytics.routes');
-const { startAnalyticsCron }         = require('./jobs/analytics.cron');
-require('./jobs/autonomous.cron');
-require('./jobs/decision.cron');
-require('./jobs/idea.cron');
-require('./jobs/health.cron');
-require('./jobs/revenue.cron');
-require('./jobs/support.cron');
+const { startAnalyticsCron }  = require('./jobs/analytics.cron');
+const { startAutonomousCron } = require('./jobs/autonomous.cron');
+const { startIdeaCron }       = require('./jobs/idea.cron');
+const { startMarketingCrons } = require('./jobs/marketing.cron');
+const { startTestingCron }    = require('./jobs/testing.cron');
+require('./jobs/decision.cron');   // auto-starts on require (side-effect)
+require('./jobs/health.cron');     // auto-starts on require (side-effect)
+require('./jobs/revenue.cron');    // auto-starts on require (side-effect)
+require('./jobs/support.cron');    // auto-starts on require (side-effect)
 
 const app  = express();
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
 
-const REQUIRED_ENV = ['RAZORPAY_KEY_ID','RAZORPAY_KEY_SECRET','JWT_SECRET','SUPABASE_URL','SUPABASE_SERVICE_ROLE_KEY','OPENAI_API_KEY'];
-const missingEnv = REQUIRED_ENV.filter((key) => !process.env[key]);
-if (missingEnv.length > 0) {
-  console.warn(`Warning: ${missingEnv.length} required ENV variable(s) missing`);
-  if (process.env.NODE_ENV !== 'production') missingEnv.forEach((key) => console.warn(`   - Missing: ${key}`));
+const REQUIRED_ENV  = ['JWT_SECRET','SUPABASE_URL','SUPABASE_SERVICE_ROLE_KEY','OPENAI_API_KEY'];
+const OPTIONAL_ENV  = ['RAZORPAY_KEY_ID','RAZORPAY_KEY_SECRET','RAZORPAY_WEBHOOK_SECRET','RESEND_API_KEY'];
+
+const missingRequired = REQUIRED_ENV.filter((key) => !process.env[key]);
+if (missingRequired.length > 0) {
+  missingRequired.forEach((key) => console.error(`[SERVER] FATAL: required ENV "${key}" is missing`));
+  process.exit(1);
+}
+
+const missingOptional = OPTIONAL_ENV.filter((key) => !process.env[key]);
+if (missingOptional.length > 0) {
+  missingOptional.forEach((key) => console.warn(`[SERVER] Optional ENV "${key}" is not set — related features will be disabled`));
 }
 
 const allowedOrigins = process.env.NODE_ENV === 'production'
@@ -76,6 +85,7 @@ app.use((req, res, next) => {
 const globalLimiter  = rateLimit({ windowMs: 15*60*1000, max: 100, standardHeaders: true, legacyHeaders: false, message: { success: false, error: 'Too many requests, slow down.' } });
 const authLimiter    = rateLimit({ windowMs: 15*60*1000, max: 20,  standardHeaders: true, legacyHeaders: false, message: { success: false, error: 'Too many auth attempts, try again later.' } });
 const paymentLimiter = rateLimit({ windowMs: 60*60*1000, max: 10,  standardHeaders: true, legacyHeaders: false, message: { success: false, error: 'Too many payment attempts.' } });
+const adminLimiter   = rateLimit({ windowMs: 15*60*1000, max: 60,  standardHeaders: true, legacyHeaders: false, message: { success: false, error: 'Too many admin requests.' } });
 
 app.use(globalLimiter);
 
@@ -124,7 +134,7 @@ app.use('/api/revenue',        revenueRouter);
 app.use('/api/decision',       decisionRoutes);
 app.use('/api/tools',          toolRoutes);
 app.use('/api/agents',         agentsRoutes);
-app.use('/api/admin',          adminRoutes);
+app.use('/api/admin',          adminLimiter, adminRoutes);
 app.use('/api/billing',        paymentLimiter, billingRoutes);
 app.use('/api/builder',        builderRoutes);
 app.use('/api/autonomous',     autonomousRoutes);
@@ -167,10 +177,23 @@ app.use((err, req, res, next) => {
 const server = app.listen(PORT, () => {
   console.info(`[SERVER] Running on port ${PORT}`);
   startAnalyticsCron();
+  startAutonomousCron();
+  startIdeaCron();
+  startMarketingCrons();
+  startTestingCron();
   console.info('[SERVER] All systems GO');
 });
 
 process.on('SIGTERM', () => {
-  server.close(() => { console.info('[SERVER] Closed.'); process.exit(0); });
-  setTimeout(() => process.exit(1), 10_000);
+  const forceExit = setTimeout(() => {
+    console.error('[SERVER] Force shutdown after 10s timeout');
+    process.exit(1);
+  }, 10_000);
+  forceExit.unref();
+
+  server.close(() => {
+    clearTimeout(forceExit);
+    console.info('[SERVER] Closed gracefully.');
+    process.exit(0);
+  });
 });

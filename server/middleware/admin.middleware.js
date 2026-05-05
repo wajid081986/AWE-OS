@@ -2,6 +2,10 @@ const supabase    = require('../db/supabase');
 const requireAuth = require('./auth');
 
 async function requireAdmin(req, res, next) {
+  if (!req.user?.userId) {
+    return res.status(401).json({ success: false, error: 'Unauthorized' });
+  }
+
   try {
     const { data: user } = await supabase
       .from('users')
