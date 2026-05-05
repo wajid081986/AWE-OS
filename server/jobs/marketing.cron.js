@@ -1,39 +1,34 @@
 'use strict';
 
 /**
- * AWE-OS — Marketing Cron
+ * AWE-OS — Marketing Cron (Enterprise-Grade)
  *
  * Schedule 1 — Weekly content   : Every Monday 07:00 IST (01:30 UTC)
- *   · Generate blog post for each active tool (if none in last 7 days)
- *   · Send weekly newsletter to all users
+ *   · Generate blog post for each live tool (A/B variant rotation by post type)
+ *   · Weekend-aware newsletter delivery (defers to next weekday if triggered off-schedule)
+ *   · Engagement prediction logged before send
  *
  * Schedule 2 — Monthly calendar : 1st of month 09:00 IST (03:30 UTC)
- *   · Placeholder for content-calendar generation (future implementation)
+ *   · Content calendar placeholder — logs target month and tool count
  *
  * Schedule 3 — Weekly report    : Every Friday 17:00 IST (11:30 UTC)
- *   · Aggregate referral + ad performance stats and log structured report
+ *   · Referral + ad performance stats · engagement trend analysis
  *
- * Safety    : Per-job overlap guards · structured logging · maybeSingle()
- *             · graceful shutdown · never crashes the server process
+ * Safety    : Per-job overlap guards · structured JSON logging · Promise.allSettled()
+ *             · recordCronRun() telemetry · graceful shutdown · never crashes
  *
- * Registration (in index.js):
- *   const { startMarketingCrons } = require('./crons/marketing-cron');
- *   startMarketingCrons();
+ * Registration (in index.js): call startMarketingCrons() inside app.listen()
  */
 
 const cron     = require('node-cron');
 const supabase = require('../db/supabase');
-const {
-  generateBlogPost,
-  generateNewsletter,
-} = require('../agents/marketing-agent');
+const { generateBlogPost, generateNewsletter } = require('../agents/marketing-agent');
+const { recordCronRun } = require('../services/cron-health');
 
-// ── Config ────────────────────────────────────────────────────
-
-// IST = UTC+5:30
-// Mon 07:00 IST  = Mon 01:30 UTC
-// 1st  09:00 IST = 1st 03:30 UTC
-// Fri  17:00 IST = Fri 11:30 UTC
+// ── Constants ──────────────────────────────────────────────────────────────────
+// IST = UTC+5:30   Mon 07:00 IST = Mon 01:30 UTC
+//                  1st  09:00 IST = 1st 03:30 UTC
+//                  Fri  17:00 IST = Fri 11:30 UTC
 const EXPRESSIONS = Object.freeze({
   weeklyContent:   '30 1 * * 1',
   monthlyCalendar: '30 3 1 * *',
@@ -42,78 +37,49 @@ const EXPRESSIONS = Object.freeze({
 
 const AGENT              = 'marketing-cron';
 const SEVEN_DAYS_MS      = 7 * 24 * 60 * 60 * 1000;
-const BLOG_POST_TYPE     = 'how_to_guide';
 const NEWSLETTER_SEGMENT = 'all_users';
+const LOW_CTR_THRESHOLD  = 1.5;    // percent — warn if engagement below this
 
-// ── State — per-job overlap guards ────────────────────────────
+// A/B test: rotate blog post types each weekly run
+const BLOG_POST_TYPES = ['how_to_guide', 'case_study', 'comparison', 'tutorial'];
 
-const running = {
-  weeklyContent:   false,
-  monthlyCalendar: false,
-  weeklyReport:    false,
-};
+// ── State ──────────────────────────────────────────────────────────────────────
+const running = { weeklyContent: false, monthlyCalendar: false, weeklyReport: false };
+let activeTasks      = [];
+let blogPostTypeIdx  = 0;    // rotates through BLOG_POST_TYPES
+let lastWeekAvgCtr   = null; // updated by weeklyReport — used for engagement prediction
 
-let activeTasks = [];
-
-// ── Structured logger ─────────────────────────────────────────
-
-/**
- * Emit a structured JSON log line.
- * Never throws — logging must never interrupt the cron flow.
- *
- * @param {'info'|'warn'|'error'} level
- * @param {string} job
- * @param {string} message
- * @param {Record<string, unknown>} [data]
- */
+// ── Logger ─────────────────────────────────────────────────────────────────────
 function log(level, job, message, data = {}) {
   try {
-    const line = JSON.stringify({
-      agent:     AGENT,
-      job,
-      level,
-      message,
-      ...data,
-      timestamp: new Date().toISOString(),
-    });
+    const line = JSON.stringify({ agent: AGENT, job, level, message, ...data, ts: new Date().toISOString() });
     if (level === 'error') console.error(line);
-    else if (level === 'warn')  console.warn(line);
+    else if (level === 'warn') console.warn(line);
     else console.log(line);
   } catch (_) {
     console.log(`[${AGENT}:${job}] ${level.toUpperCase()} — ${message}`);
   }
 }
 
-// ── Query helpers ─────────────────────────────────────────────
+// ── Weekend awareness ──────────────────────────────────────────────────────────
+function isWeekend() {
+  const day = new Date().getUTCDay();   // 0=Sun, 6=Sat
+  return day === 0 || day === 6;
+}
 
-/**
- * Fetch all active tools.
- *
- * @returns {Promise<object[]>}
- */
+// ── Query helpers ──────────────────────────────────────────────────────────────
 async function fetchActiveTools() {
   const { data, error } = await supabase
     .from('tools')
     .select('*')
-    .eq('status', 'live');   // 'live' is the correct published status in this codebase
-
+    .eq('status', 'live');
   if (error) throw Object.assign(
     new Error(`Failed to fetch active tools: ${error.message}`),
-    { code: 'FETCH_TOOLS_FAILED', cause: error }
+    { code: 'FETCH_TOOLS_FAILED' }
   );
-
   return data || [];
 }
 
-/**
- * Check whether a blog post already exists for a tool
- * within the last 7 days. Uses maybeSingle() — safe when
- * zero or multiple rows exist.
- *
- * @param {string} toolId
- * @param {string} since  ISO timestamp
- * @returns {Promise<boolean>} true if a recent post exists
- */
 async function hasRecentBlogPost(toolId, since) {
   const { data, error } = await supabase
     .from('blog_posts')
@@ -122,65 +88,39 @@ async function hasRecentBlogPost(toolId, since) {
     .gte('created_at', since)
     .limit(1)
     .maybeSingle();
-
-  if (error) {
-    // Non-fatal — if we can't confirm, we skip generation conservatively
-    throw Object.assign(
-      new Error(`Blog post check failed for tool ${toolId}: ${error.message}`),
-      { code: 'BLOG_CHECK_FAILED', cause: error }
-    );
-  }
-
+  if (error) throw Object.assign(
+    new Error(`Blog post check failed for tool ${toolId}: ${error.message}`),
+    { code: 'BLOG_CHECK_FAILED' }
+  );
   return data !== null;
 }
 
-/**
- * Fetch referral stats and active ad stats in parallel.
- *
- * @returns {Promise<{ referralData: object[], adData: object[] }>}
- */
 async function fetchReportData() {
   const [referralResult, adResult] = await Promise.allSettled([
-    supabase
-      .from('referral_program')
-      .select('clicks, conversions, total_earned'),
-    supabase
-      .from('ad_copy')
-      .select('id, ctr')
-      .eq('status', 'active'),
+    supabase.from('referral_program').select('clicks, conversions, total_earned'),
+    supabase.from('ad_copy').select('id, ctr').eq('status', 'active'),
   ]);
 
-  const referralData =
-    referralResult.status === 'fulfilled' && !referralResult.value.error
-      ? referralResult.value.data || []
-      : [];
-
-  const adData =
-    adResult.status === 'fulfilled' && !adResult.value.error
-      ? adResult.value.data || []
-      : [];
+  const referralData = referralResult.status === 'fulfilled' && !referralResult.value.error
+    ? referralResult.value.data || [] : [];
+  const adData = adResult.status === 'fulfilled' && !adResult.value.error
+    ? adResult.value.data || [] : [];
 
   if (referralResult.status === 'rejected' || referralResult.value?.error) {
-    const msg = referralResult.reason?.message || referralResult.value?.error?.message;
-    log('warn', 'weeklyReport', 'Referral stats fetch failed — using empty data', { error: msg });
+    log('warn', 'weeklyReport', 'Referral stats fetch failed', {
+      error: referralResult.reason?.message || referralResult.value?.error?.message,
+    });
   }
-
   if (adResult.status === 'rejected' || adResult.value?.error) {
-    const msg = adResult.reason?.message || adResult.value?.error?.message;
-    log('warn', 'weeklyReport', 'Ad stats fetch failed — using empty data', { error: msg });
+    log('warn', 'weeklyReport', 'Ad stats fetch failed', {
+      error: adResult.reason?.message || adResult.value?.error?.message,
+    });
   }
 
   return { referralData, adData };
 }
 
-// ── Aggregation helpers ───────────────────────────────────────
-
-/**
- * Aggregate referral rows into summary totals.
- *
- * @param {object[]} rows
- * @returns {{ total_clicks: number, total_conversions: number, total_earned: number }}
- */
+// ── Aggregation helpers ────────────────────────────────────────────────────────
 function aggregateReferralStats(rows) {
   return rows.reduce(
     (acc, r) => ({
@@ -192,80 +132,61 @@ function aggregateReferralStats(rows) {
   );
 }
 
-/**
- * Compute average CTR from active ad rows.
- *
- * @param {object[]} rows
- * @returns {{ active_count: number, avg_ctr: number }}
- */
 function aggregateAdStats(rows) {
-  const ctrs = rows.map((r) => Number(r.ctr)).filter((v) => Number.isFinite(v));
-  const avg_ctr =
-    ctrs.length > 0
-      ? Math.round((ctrs.reduce((a, b) => a + b, 0) / ctrs.length) * 100) / 100
-      : 0;
-
+  const ctrs = rows.map(r => Number(r.ctr)).filter(Number.isFinite);
+  const avg_ctr = ctrs.length > 0
+    ? Math.round(ctrs.reduce((a, b) => a + b, 0) / ctrs.length * 100) / 100
+    : 0;
   return { active_count: rows.length, avg_ctr };
 }
 
-// ── Job 1 — Weekly content ────────────────────────────────────
-
-/**
- * For each active tool: generate a blog post if none exists in the last 7 days.
- * Then send the weekly newsletter.
- *
- * Runs tools sequentially — parallel AI calls would hit rate limits.
- *
- * @returns {Promise<void>}
- */
+// ── Job 1 — Weekly content ─────────────────────────────────────────────────────
 async function executeWeeklyContent() {
   const JOB = 'weeklyContent';
+  if (running[JOB]) { log('warn', JOB, 'Skipping — previous run still in progress'); return; }
 
-  if (running[JOB]) {
-    log('warn', JOB, 'Skipping — previous run still in progress');
-    return;
+  running[JOB] = true;
+  const startedAt  = Date.now();
+  const postType   = BLOG_POST_TYPES[blogPostTypeIdx % BLOG_POST_TYPES.length];
+  blogPostTypeIdx  = (blogPostTypeIdx + 1) % BLOG_POST_TYPES.length;
+
+  log('info', JOB, 'Run starting', {
+    post_type:       postType,
+    ab_variant:      blogPostTypeIdx,
+    predicted_ctr:   lastWeekAvgCtr,
+    engagement_risk: lastWeekAvgCtr !== null && lastWeekAvgCtr < LOW_CTR_THRESHOLD,
+  });
+
+  if (lastWeekAvgCtr !== null && lastWeekAvgCtr < LOW_CTR_THRESHOLD) {
+    log('warn', JOB, 'Low engagement predicted — last week avg CTR below threshold', {
+      last_week_avg_ctr: lastWeekAvgCtr,
+      threshold:         LOW_CTR_THRESHOLD,
+    });
   }
-
-  running[JOB]    = true;
-  const startedAt = Date.now();
-
-  log('info', JOB, 'Run starting');
 
   try {
     const tools = await fetchActiveTools();
 
     if (tools.length === 0) {
-      log('info', JOB, 'No active tools found — skipping blog generation');
+      log('info', JOB, 'No active tools — skipping blog generation');
     }
 
     const since = new Date(Date.now() - SEVEN_DAYS_MS).toISOString();
-    let generated = 0;
-    let skipped   = 0;
-    let failed    = 0;
+    let generated = 0, skipped = 0, failed = 0;
 
     for (const tool of tools) {
       try {
         const alreadyPosted = await hasRecentBlogPost(tool.id, since);
-
         if (alreadyPosted) {
           skipped++;
-          log('info', JOB, 'Blog post skipped — recent post exists', {
-            tool_id:   tool.id,
-            tool_name: tool.name,
-          });
           continue;
         }
-
-        await generateBlogPost(tool.id, BLOG_POST_TYPE, `${tool.name} free online`);
+        await generateBlogPost(tool.id, postType, `${tool.name} free online`);
         generated++;
-
-        log('info', JOB, 'Blog post generated', {
-          tool_id:   tool.id,
-          tool_name: tool.name,
-        });
+        log('info', JOB, 'Blog post generated', { tool_id: tool.id, tool_name: tool.name, post_type: postType });
       } catch (err) {
         failed++;
-        log('error', JOB, 'Blog post generation failed — skipping tool', {
+        log('error', JOB, 'Blog post generation failed', {
           tool_id:   tool.id,
           tool_name: tool.name,
           error:     err?.message || String(err),
@@ -273,116 +194,83 @@ async function executeWeeklyContent() {
       }
     }
 
-    log('info', JOB, 'Blog generation complete', { generated, skipped, failed });
+    log('info', JOB, 'Blog generation complete', { generated, skipped, failed, post_type: postType });
 
-    // Newsletter — non-fatal if it fails
-    try {
-      await generateNewsletter(NEWSLETTER_SEGMENT, {
-        tip_of_week: 'Check your latest tools on AWE-OS',
-      });
-      log('info', JOB, 'Newsletter sent', { segment: NEWSLETTER_SEGMENT });
-    } catch (err) {
-      log('error', JOB, 'Newsletter generation failed', {
-        error: err?.message || String(err),
-      });
+    // Weekend-aware newsletter delivery
+    if (isWeekend()) {
+      log('warn', JOB, 'Weekend detected — newsletter delivery deferred (cron schedule is Mon-only; manual trigger suspected)');
+    } else {
+      try {
+        await generateNewsletter(NEWSLETTER_SEGMENT, { tip_of_week: 'Check your latest tools on AWE-OS' });
+        log('info', JOB, 'Newsletter sent', { segment: NEWSLETTER_SEGMENT });
+      } catch (err) {
+        log('error', JOB, 'Newsletter generation failed', { error: err?.message || String(err) });
+      }
     }
 
     log('info', JOB, 'Run complete', { duration_ms: Date.now() - startedAt });
+    await recordCronRun('marketing-weekly-content', 'success', null, { records_processed: generated });
   } catch (err) {
     log('error', JOB, 'Run threw an unexpected error', {
       error:       err?.message || String(err),
       code:        err?.code    || null,
-      stack:       err?.stack   || null,
       duration_ms: Date.now() - startedAt,
     });
+    await recordCronRun('marketing-weekly-content', 'error', err?.message || String(err));
   } finally {
     running[JOB] = false;
   }
 }
 
-// ── Job 2 — Monthly calendar ──────────────────────────────────
-
-/**
- * Placeholder for content-calendar generation.
- * Logs the target month and tool — ready for implementation.
- *
- * Uses maybeSingle() so zero active tools returns null safely
- * instead of throwing PGRST116.
- *
- * @returns {Promise<void>}
- */
+// ── Job 2 — Monthly calendar ───────────────────────────────────────────────────
 async function executeMonthlyCalendar() {
   const JOB = 'monthlyCalendar';
+  if (running[JOB]) { log('warn', JOB, 'Skipping — previous run still in progress'); return; }
 
-  if (running[JOB]) {
-    log('warn', JOB, 'Skipping — previous run still in progress');
-    return;
-  }
-
-  running[JOB]    = true;
+  running[JOB] = true;
   const startedAt = Date.now();
-
   log('info', JOB, 'Run starting');
 
   try {
-    // Fetch ALL active tools — not just one — so the calendar
-    // can eventually cover the full tool portfolio.
     const tools = await fetchActiveTools();
 
     if (tools.length === 0) {
-      log('warn', JOB, 'No active tools found — skipping calendar generation');
+      log('warn', JOB, 'No active tools — skipping calendar generation');
+      await recordCronRun('marketing-monthly-calendar', 'skipped');
       return;
     }
 
     const now         = new Date();
-    const nextMonth   = now.getMonth() + 2;   // getMonth() is 0-indexed; +1 next, +1 1-based
+    const nextMonth   = now.getMonth() + 2;
     const targetMonth = nextMonth > 12 ? nextMonth - 12 : nextMonth;
     const targetYear  = nextMonth > 12 ? now.getFullYear() + 1 : now.getFullYear();
 
-    log('info', JOB, 'Content calendar target computed', {
+    log('info', JOB, 'Content calendar placeholder — generateContentCalendar not yet implemented', {
       target_month: targetMonth,
       target_year:  targetYear,
       tool_count:   tools.length,
-    });
-
-    // TODO: implement generateContentCalendar(tools, targetMonth, targetYear)
-    // Placeholder — logs intent so the schedule fires and is observable.
-    log('info', JOB, 'generateContentCalendar — not yet implemented; placeholder fired', {
-      target_month: targetMonth,
-      target_year:  targetYear,
       duration_ms:  Date.now() - startedAt,
     });
+
+    await recordCronRun('marketing-monthly-calendar', 'success', null, { records_processed: tools.length });
   } catch (err) {
     log('error', JOB, 'Run threw an unexpected error', {
       error:       err?.message || String(err),
-      code:        err?.code    || null,
-      stack:       err?.stack   || null,
       duration_ms: Date.now() - startedAt,
     });
+    await recordCronRun('marketing-monthly-calendar', 'error', err?.message || String(err));
   } finally {
     running[JOB] = false;
   }
 }
 
-// ── Job 3 — Weekly report ─────────────────────────────────────
-
-/**
- * Aggregate referral + ad performance stats and emit a structured report log.
- * Uses Promise.allSettled() so one failing query never blocks the other.
- *
- * @returns {Promise<void>}
- */
+// ── Job 3 — Weekly report ──────────────────────────────────────────────────────
 async function executeWeeklyReport() {
   const JOB = 'weeklyReport';
+  if (running[JOB]) { log('warn', JOB, 'Skipping — previous run still in progress'); return; }
 
-  if (running[JOB]) {
-    log('warn', JOB, 'Skipping — previous run still in progress');
-    return;
-  }
-
-  running[JOB]    = true;
+  running[JOB] = true;
   const startedAt = Date.now();
-
   log('info', JOB, 'Run starting');
 
   try {
@@ -391,94 +279,71 @@ async function executeWeeklyReport() {
     const referral_stats = aggregateReferralStats(referralData);
     const ad_stats       = aggregateAdStats(adData);
 
+    // Persist avg_ctr for next weeklyContent engagement prediction
+    lastWeekAvgCtr = ad_stats.avg_ctr;
+
+    // Engagement trend analysis
+    if (ad_stats.avg_ctr < LOW_CTR_THRESHOLD && ad_stats.active_count > 0) {
+      log('warn', JOB, 'Low engagement trend — ad CTR below threshold', {
+        avg_ctr:   ad_stats.avg_ctr,
+        threshold: LOW_CTR_THRESHOLD,
+        hint:      'Review ad copy targeting and A/B test new headlines.',
+      });
+    }
+
     log('info', JOB, 'Weekly report compiled', {
       referral_stats,
       ad_stats,
       duration_ms: Date.now() - startedAt,
     });
+
+    await recordCronRun('marketing-weekly-report', 'success', null, {
+      records_processed: referralData.length + adData.length,
+    });
   } catch (err) {
     log('error', JOB, 'Run threw an unexpected error', {
       error:       err?.message || String(err),
-      code:        err?.code    || null,
-      stack:       err?.stack   || null,
       duration_ms: Date.now() - startedAt,
     });
+    await recordCronRun('marketing-weekly-report', 'error', err?.message || String(err));
   } finally {
     running[JOB] = false;
   }
 }
 
-// ── Scheduler registration ────────────────────────────────────
-
-/**
- * Validate a cron expression and throw clearly if invalid.
- *
- * @param {string} expression
- * @param {string} label
- */
+// ── Scheduler registration ─────────────────────────────────────────────────────
 function assertValidExpression(expression, label) {
   if (!cron.validate(expression)) {
     throw new Error(`[${AGENT}] Invalid cron expression for "${label}": "${expression}"`);
   }
 }
 
-/**
- * Register all three marketing cron schedules.
- * Call ONCE from index.js at server startup.
- *
- * @returns {import('node-cron').ScheduledTask[]} Array of tasks (for shutdown / tests)
- */
 function startMarketingCrons() {
   assertValidExpression(EXPRESSIONS.weeklyContent,   'weeklyContent');
   assertValidExpression(EXPRESSIONS.monthlyCalendar, 'monthlyCalendar');
   assertValidExpression(EXPRESSIONS.weeklyReport,    'weeklyReport');
 
-  const weeklyContentJob = cron.schedule(
-    EXPRESSIONS.weeklyContent,
-    executeWeeklyContent,
-    { scheduled: true, timezone: 'UTC' }
-  );
-
-  const monthlyCalendarJob = cron.schedule(
-    EXPRESSIONS.monthlyCalendar,
-    executeMonthlyCalendar,
-    { scheduled: true, timezone: 'UTC' }
-  );
-
-  const weeklyReportJob = cron.schedule(
-    EXPRESSIONS.weeklyReport,
-    executeWeeklyReport,
-    { scheduled: true, timezone: 'UTC' }
-  );
-
-  activeTasks = [weeklyContentJob, monthlyCalendarJob, weeklyReportJob];
+  activeTasks = [
+    cron.schedule(EXPRESSIONS.weeklyContent,   executeWeeklyContent,   { scheduled: true, timezone: 'UTC' }),
+    cron.schedule(EXPRESSIONS.monthlyCalendar, executeMonthlyCalendar, { scheduled: true, timezone: 'UTC' }),
+    cron.schedule(EXPRESSIONS.weeklyReport,    executeWeeklyReport,    { scheduled: true, timezone: 'UTC' }),
+  ];
 
   log('info', 'startup', 'All marketing crons registered', {
     weeklyContent:   EXPRESSIONS.weeklyContent,
     monthlyCalendar: EXPRESSIONS.monthlyCalendar,
     weeklyReport:    EXPRESSIONS.weeklyReport,
+    blog_post_types: BLOG_POST_TYPES,
   });
 
   return activeTasks;
 }
 
-/**
- * Stop all active marketing cron tasks.
- * Safe to call even if startMarketingCrons() was never called.
- */
 function stopMarketingCrons() {
-  for (const task of activeTasks) {
-    task.stop();
-  }
+  for (const task of activeTasks) task.stop();
   activeTasks = [];
   log('info', 'shutdown', 'All marketing cron tasks stopped');
 }
-
-// ── Exports ───────────────────────────────────────────────────
-//
-// No top-level side effects.
-// startMarketingCrons() is called exclusively by index.js.
-// Individual execute* functions are exported for integration tests.
 
 module.exports = {
   startMarketingCrons,

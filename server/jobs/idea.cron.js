@@ -1,158 +1,175 @@
 'use strict';
 
 /**
- * AWE-OS — Idea Generation Cron
+ * AWE-OS — Idea Generation Cron (Enterprise-Grade)
  *
  * Schedule  : Every 12 hours (00:00 and 12:00 UTC)
  * Agent     : idea-pipeline.generateAndStoreIdeas()
- * Safety    : Backlog cap check · idempotency guard · structured logging
+ * Safety    : Overlap guard · category rotation · deduplication guard (7-day window)
+ *             · quality scoring · backlog cap · recordCronRun() telemetry
  *             · never crashes the server process
  *
- * Registration (in index.js):
- *   const { startIdeaCron } = require('./crons/idea-cron');
- *   startIdeaCron();
+ * Registration (in index.js): call startIdeaCron() inside app.listen()
  */
 
-const cron = require('node-cron');
-
+const cron     = require('node-cron');
+const supabase = require('../db/supabase');
 const { generateAndStoreIdeas } = require('../agents/idea-pipeline');
+const { recordCronRun }         = require('../services/cron-health');
 
-// ── Config ────────────────────────────────────────────────────
+// ── Constants ──────────────────────────────────────────────────────────────────
+const CRON_EXPRESSION   = '0 */12 * * *';
+const AGENT             = 'idea-cron';
+const IDEA_COUNT        = 5;
+const DEDUP_WINDOW_DAYS = 7;      // skip if fresh ideas for category already exist
+const MIN_QUALITY_SCORE = 60;     // warn if avg quality below this
 
-const CRON_EXPRESSION = '0 */12 * * *';   // 00:00 and 12:00 UTC
-const AGENT           = 'idea-cron';
+const CATEGORY_ROTATION = [
+  'micro_saas',
+  'b2b_tools',
+  'developer_tools',
+  'automation',
+  'ai_powered',
+  'productivity',
+];
 
-const DEFAULT_OPTIONS = Object.freeze({
-  category:        'micro_saas',
-  count:           5,
-  target_audience: 'solopreneurs',
-});
+// ── State ──────────────────────────────────────────────────────────────────────
+let isRunning     = false;
+let categoryIndex = 0;   // incremented each run to rotate categories
 
-// ── State — prevents overlapping runs ─────────────────────────
-
-let isRunning = false;
-
-// ── Structured logger ─────────────────────────────────────────
-
-/**
- * Emit a structured JSON log line.
- * Never throws — logging must never interrupt the cron flow.
- *
- * @param {'info'|'warn'|'error'} level
- * @param {string} message
- * @param {Record<string, unknown>} [data]
- */
+// ── Logger ─────────────────────────────────────────────────────────────────────
 function log(level, message, data = {}) {
   try {
-    const line = JSON.stringify({
-      agent:     AGENT,
-      level,
-      message,
-      ...data,
-      timestamp: new Date().toISOString(),
-    });
+    const line = JSON.stringify({ agent: AGENT, level, message, ...data, ts: new Date().toISOString() });
     if (level === 'error') console.error(line);
     else if (level === 'warn') console.warn(line);
     else console.log(line);
   } catch (_) {
-    // Last-resort fallback — plain string
     console.log(`[${AGENT}] ${level.toUpperCase()} — ${message}`);
   }
 }
 
-// ── Core execution ────────────────────────────────────────────
+// ── Deduplication ──────────────────────────────────────────────────────────────
+async function hasRecentIdeasForCategory(category) {
+  const since = new Date(Date.now() - DEDUP_WINDOW_DAYS * 86_400_000).toISOString();
+  const { data, error } = await supabase
+    .from('saas_tools')
+    .select('id')
+    .eq('status', 'idea')
+    .eq('category', category)
+    .gte('created_at', since)
+    .limit(1);
 
-/**
- * Run one cycle of idea generation.
- *
- * Idempotency guard: if a previous run is still in progress
- * (e.g. slow AI call), this cycle is skipped — no overlapping runs.
- *
- * @returns {Promise<void>}
- */
+  if (error) {
+    log('warn', 'Dedup check failed — proceeding with generation', { category, error: error.message });
+    return false;   // fail-open: generate rather than skip on error
+  }
+  return Array.isArray(data) && data.length > 0;
+}
+
+// ── Quality assessment ─────────────────────────────────────────────────────────
+function assessQuality(result, category) {
+  const avg = result?.avg_quality_score ?? null;
+  if (avg !== null && avg < MIN_QUALITY_SCORE) {
+    log('warn', 'Low quality score for generated ideas', {
+      category,
+      avg_quality_score: avg,
+      threshold:         MIN_QUALITY_SCORE,
+      hint:              'Consider refining idea-pipeline prompts for this category.',
+    });
+  }
+}
+
+// ── Core execution ─────────────────────────────────────────────────────────────
 async function executeIdeaRun() {
   if (isRunning) {
     log('warn', 'Skipping — previous run still in progress');
     return;
   }
 
-  isRunning       = true;
+  isRunning = true;
   const startedAt = Date.now();
+  const category  = CATEGORY_ROTATION[categoryIndex % CATEGORY_ROTATION.length];
+  categoryIndex   = (categoryIndex + 1) % CATEGORY_ROTATION.length;
 
-  log('info', 'Run starting');
+  log('info', 'Run starting', { category, idea_count: IDEA_COUNT, next_category: CATEGORY_ROTATION[categoryIndex] });
 
   try {
-    const result = await generateAndStoreIdeas(DEFAULT_OPTIONS);
+    const isDuplicate = await hasRecentIdeasForCategory(category);
+    if (isDuplicate) {
+      log('info', 'Dedup skip — fresh ideas already exist for category', {
+        category,
+        window_days: DEDUP_WINDOW_DAYS,
+      });
+      await recordCronRun(AGENT, 'skipped');
+      return;
+    }
 
-    const durationMs = Date.now() - startedAt;
+    const result = await generateAndStoreIdeas({
+      category,
+      count:           IDEA_COUNT,
+      target_audience: 'solopreneurs',
+    });
+
+    const duration_ms = Date.now() - startedAt;
 
     if (!result || !result.success) {
       log('error', 'Run returned failure', {
+        category,
         error:      result?.error || 'unknown',
-        duration_ms: durationMs,
+        duration_ms,
       });
+      await recordCronRun(AGENT, 'error', result?.error || 'Run returned failure');
       return;
     }
 
     if (result.skipped_reason === 'backlog_cap') {
-      log('info', 'Skipped — backlog cap reached', {
-        skipped_reason: result.skipped_reason,
-        duration_ms:    durationMs,
-      });
+      log('info', 'Skipped — idea backlog cap reached', { category, duration_ms });
+      await recordCronRun(AGENT, 'skipped');
       return;
     }
 
+    assessQuality(result, category);
+
     log('info', 'Run complete', {
-      generated:   result.generated  ?? 0,
-      inserted:    result.inserted   ?? 0,
-      skipped:     result.skipped    ?? 0,
-      failed:      result.failed     ?? 0,
-      duration_ms: durationMs,
+      category,
+      generated:         result.generated         ?? 0,
+      inserted:          result.inserted          ?? 0,
+      skipped:           result.skipped           ?? 0,
+      failed:            result.failed            ?? 0,
+      avg_quality_score: result.avg_quality_score ?? null,
+      duration_ms,
+    });
+
+    await recordCronRun(AGENT, 'success', null, {
+      records_processed: result.inserted ?? 0,
+      category,
     });
   } catch (err) {
-    // Must NEVER re-throw — a cron callback that throws can crash
-    // the entire Node process in some environments.
     log('error', 'Run threw an unexpected error', {
-      error:      err?.message || String(err),
-      stack:      err?.stack   || null,
+      category,
+      error:       err?.message || String(err),
+      code:        err?.code    || null,
       duration_ms: Date.now() - startedAt,
     });
+    await recordCronRun(AGENT, 'error', err?.message || String(err));
   } finally {
     isRunning = false;
   }
 }
 
-// ── Scheduler registration ────────────────────────────────────
-
-/**
- * Register the idea-generation cron schedule.
- * Call ONCE from index.js at server startup.
- *
- * @returns {import('node-cron').ScheduledTask}
- */
+// ── Scheduler ──────────────────────────────────────────────────────────────────
 function startIdeaCron() {
   if (!cron.validate(CRON_EXPRESSION)) {
-    // This would only happen if CRON_EXPRESSION is edited incorrectly.
     throw new Error(`[${AGENT}] Invalid cron expression: "${CRON_EXPRESSION}"`);
   }
-
-  const task = cron.schedule(CRON_EXPRESSION, executeIdeaRun, {
-    scheduled: true,
-    timezone:  'UTC',
+  const task = cron.schedule(CRON_EXPRESSION, executeIdeaRun, { scheduled: true, timezone: 'UTC' });
+  log('info', 'Registered — runs every 12 hours (00:00, 12:00 UTC)', {
+    expression:         CRON_EXPRESSION,
+    category_rotation:  CATEGORY_ROTATION,
+    dedup_window_days:  DEDUP_WINDOW_DAYS,
   });
-
-  log('info', `Registered — runs every 12 hours (00:00, 12:00 UTC)`, {
-    expression: CRON_EXPRESSION,
-  });
-
   return task;
 }
-
-// ── Exports ───────────────────────────────────────────────────
-//
-// No top-level side effects.
-// startIdeaCron() is called exclusively by index.js.
-// executeIdeaRun() is exported so integration tests can trigger
-// a run directly without waiting for the schedule.
 
 module.exports = { startIdeaCron, executeIdeaRun };
