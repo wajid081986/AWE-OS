@@ -2,6 +2,7 @@ const express  = require('express');
 const OpenAI   = require('openai');
 const supabase = require('../db/supabase');
 const { requireAuth, requireAdmin } = require('../middleware/admin.middleware');
+const { getPublicTools, getPublicTool } = require('../controllers/tools.controller');
 
 const router = express.Router();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -100,6 +101,11 @@ router.post('/', requireAuth, requireAdmin, async (req, res) => {
     res.status(400).json({ success: false, error: err.message });
   }
 });
+
+// ── GET /api/tools/public — public list (paginated, filtered, searchable) ──
+// MUST be before /:slugOrId wildcard
+router.get('/public',      getPublicTools);
+router.get('/public/:slug', getPublicTool);
 
 // ── GET /api/tools/:slugOrId — single tool ────────────────────────────────
 router.get('/:slugOrId', async (req, res) => {

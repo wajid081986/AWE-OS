@@ -1,9 +1,21 @@
 User-agent: *
 Allow: /
+Allow: /tools/
+Allow: /tools/*
 Allow: /calculators/
 Allow: /calculators/*
+Allow: /about
+Allow: /privacy
+Allow: /terms
+Allow: /contact
+
+# Private — do not index
 Disallow: /dashboard/
 Disallow: /admin/
 Disallow: /api/
+Disallow: /login
+Disallow: /home
 
-Sitemap: https://awe-os.vercel.app/sitemap.xml
+Crawl-delay: 1
+
+Sitemap: https://awe-os.com/sitemap.xml

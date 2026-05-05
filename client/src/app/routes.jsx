@@ -4,7 +4,16 @@ import { useAuth } from '../modules/auth/context/AuthContext'
 import ProtectedRoute from '../shared/components/ProtectedRoute'
 import PublicRoute    from '../shared/components/PublicRoute'
 
-// ── Lazy pages ────────────────────────────────────────────────
+// ── Public pages ─────────────────────────────────────────────
+const Home           = lazy(() => import('../pages/Home'))
+const ToolsPage      = lazy(() => import('../pages/ToolsPage'))
+const ToolDetailPage = lazy(() => import('../pages/ToolDetailPage'))
+const AboutPage      = lazy(() => import('../pages/AboutPage'))
+const PrivacyPolicy  = lazy(() => import('../pages/PrivacyPolicy'))
+const Terms          = lazy(() => import('../pages/Terms'))
+const ContactPage    = lazy(() => import('../pages/ContactPage'))
+
+// ── Other pages ───────────────────────────────────────────────
 const LandingPage      = lazy(() => import('../modules/landing/pages/LandingPage'))
 const NotFoundPage     = lazy(() => import('../pages/NotFoundPage'))
 const LoginPage        = lazy(() => import('../modules/auth/pages/LoginPage'))
@@ -59,8 +68,17 @@ const lazy$ = (el) => <Suspense fallback={<PageLoader />}>{el}</Suspense>
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Root — public landing page */}
-      <Route path="/" element={lazy$(<LandingPage />)} />
+      {/* Public website */}
+      <Route path="/"        element={lazy$(<Home />)}           />
+      <Route path="/tools"   element={lazy$(<ToolsPage />)}      />
+      <Route path="/tools/:slug" element={lazy$(<ToolDetailPage />)} />
+      <Route path="/about"   element={lazy$(<AboutPage />)}      />
+      <Route path="/privacy" element={lazy$(<PrivacyPolicy />)}  />
+      <Route path="/terms"   element={lazy$(<Terms />)}          />
+      <Route path="/contact" element={lazy$(<ContactPage />)}    />
+
+      {/* Legacy landing page (kept at /home for existing links) */}
+      <Route path="/home" element={lazy$(<LandingPage />)} />
 
       {/* Auth */}
       <Route path="/login" element={lazy$(<LoginPage />)} />
