@@ -26,6 +26,21 @@ const WordCounter          = lazy(() => import('../pages/tools/WordCounter'))
 const PasswordGenerator    = lazy(() => import('../pages/tools/PasswordGenerator'))
 const ColorPicker          = lazy(() => import('../pages/tools/ColorPicker'))
 
+// ── PDF tools (browser-side, pdf-lib / jsPDF) ────────────────
+const MergePDF        = lazy(() => import('../pages/tools/pdf/MergePDF'))
+const SplitPDF        = lazy(() => import('../pages/tools/pdf/SplitPDF'))
+const CompressPDF     = lazy(() => import('../pages/tools/pdf/CompressPDF'))
+const RotatePDF       = lazy(() => import('../pages/tools/pdf/RotatePDF'))
+const RemovePagesPDF  = lazy(() => import('../pages/tools/pdf/RemovePagesPDF'))
+const ExtractPagesPDF = lazy(() => import('../pages/tools/pdf/ExtractPagesPDF'))
+const OrganizePDF     = lazy(() => import('../pages/tools/pdf/OrganizePDF'))
+const JPGtoPDF        = lazy(() => import('../pages/tools/pdf/JPGtoPDF'))
+const PDFtoJPG        = lazy(() => import('../pages/tools/pdf/PDFtoJPG'))
+const ProtectPDF      = lazy(() => import('../pages/tools/pdf/ProtectPDF'))
+const UnlockPDF       = lazy(() => import('../pages/tools/pdf/UnlockPDF'))
+const WatermarkPDF    = lazy(() => import('../pages/tools/pdf/WatermarkPDF'))
+const PageNumbersPDF  = lazy(() => import('../pages/tools/pdf/PageNumbersPDF'))
+
 // ── Standalone pages ──────────────────────────────────────────
 const LandingPage = lazy(() => import('../modules/landing/pages/LandingPage'))
 const LoginPage   = lazy(() => import('../modules/auth/pages/LoginPage'))
@@ -89,7 +104,22 @@ export default function AppRoutes() {
         <Route path="/tools/word-counter"         element={lazy$(<WordCounter />)}           />
         <Route path="/tools/password-generator"   element={lazy$(<PasswordGenerator />)}     />
         <Route path="/tools/color-picker"         element={lazy$(<ColorPicker />)}           />
-        <Route path="/tools/:slug"                element={lazy$(<ToolDetailPage />)}        />
+        {/* PDF tools */}
+        <Route path="/tools/merge-pdf"           element={lazy$(<MergePDF />)}              />
+        <Route path="/tools/split-pdf"           element={lazy$(<SplitPDF />)}              />
+        <Route path="/tools/compress-pdf"        element={lazy$(<CompressPDF />)}           />
+        <Route path="/tools/rotate-pdf"          element={lazy$(<RotatePDF />)}             />
+        <Route path="/tools/remove-pages-pdf"    element={lazy$(<RemovePagesPDF />)}        />
+        <Route path="/tools/extract-pages-pdf"   element={lazy$(<ExtractPagesPDF />)}       />
+        <Route path="/tools/organize-pdf"        element={lazy$(<OrganizePDF />)}           />
+        <Route path="/tools/jpg-to-pdf"          element={lazy$(<JPGtoPDF />)}              />
+        <Route path="/tools/image-to-pdf"        element={lazy$(<JPGtoPDF />)}              />
+        <Route path="/tools/pdf-to-jpg"          element={lazy$(<PDFtoJPG />)}              />
+        <Route path="/tools/protect-pdf"         element={lazy$(<ProtectPDF />)}            />
+        <Route path="/tools/unlock-pdf"          element={lazy$(<UnlockPDF />)}             />
+        <Route path="/tools/watermark-pdf"       element={lazy$(<WatermarkPDF />)}          />
+        <Route path="/tools/page-numbers-pdf"    element={lazy$(<PageNumbersPDF />)}        />
+        <Route path="/tools/:slug"               element={lazy$(<ToolDetailPage />)}        />
         <Route path="/about"       element={lazy$(<AboutPage />)}      />
         <Route path="/privacy"     element={lazy$(<PrivacyPolicy />)}  />
         <Route path="/terms"       element={lazy$(<Terms />)}          />
