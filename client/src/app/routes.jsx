@@ -15,6 +15,17 @@ const Terms          = lazy(() => import('../pages/Terms'))
 const ContactPage    = lazy(() => import('../pages/ContactPage'))
 const NotFoundPage   = lazy(() => import('../pages/NotFoundPage'))
 
+// ── Free tool pages (browser-side, no API) ───────────────────
+const BMICalculator        = lazy(() => import('../pages/tools/BMICalculator'))
+const AgeCalculator        = lazy(() => import('../pages/tools/AgeCalculator'))
+const LoanCalculator       = lazy(() => import('../pages/tools/LoanCalculator'))
+const PercentageCalculator = lazy(() => import('../pages/tools/PercentageCalculator'))
+const GPACalculator        = lazy(() => import('../pages/tools/GPACalculator'))
+const UnitConverter        = lazy(() => import('../pages/tools/UnitConverter'))
+const WordCounter          = lazy(() => import('../pages/tools/WordCounter'))
+const PasswordGenerator    = lazy(() => import('../pages/tools/PasswordGenerator'))
+const ColorPicker          = lazy(() => import('../pages/tools/ColorPicker'))
+
 // ── Standalone pages ──────────────────────────────────────────
 const LandingPage = lazy(() => import('../modules/landing/pages/LandingPage'))
 const LoginPage   = lazy(() => import('../modules/auth/pages/LoginPage'))
@@ -68,8 +79,17 @@ export default function AppRoutes() {
       {/* Public website — shared PublicLayout shell (Header + Footer) */}
       <Route element={<PublicLayout />}>
         <Route path="/"            element={lazy$(<Home />)}           />
-        <Route path="/tools"       element={lazy$(<ToolsPage />)}      />
-        <Route path="/tools/:slug" element={lazy$(<ToolDetailPage />)} />
+        <Route path="/tools"                      element={lazy$(<ToolsPage />)}             />
+        <Route path="/tools/bmi-calculator"       element={lazy$(<BMICalculator />)}         />
+        <Route path="/tools/age-calculator"       element={lazy$(<AgeCalculator />)}         />
+        <Route path="/tools/loan-calculator"      element={lazy$(<LoanCalculator />)}        />
+        <Route path="/tools/percentage-calculator" element={lazy$(<PercentageCalculator />)} />
+        <Route path="/tools/gpa-calculator"       element={lazy$(<GPACalculator />)}         />
+        <Route path="/tools/unit-converter"       element={lazy$(<UnitConverter />)}         />
+        <Route path="/tools/word-counter"         element={lazy$(<WordCounter />)}           />
+        <Route path="/tools/password-generator"   element={lazy$(<PasswordGenerator />)}     />
+        <Route path="/tools/color-picker"         element={lazy$(<ColorPicker />)}           />
+        <Route path="/tools/:slug"                element={lazy$(<ToolDetailPage />)}        />
         <Route path="/about"       element={lazy$(<AboutPage />)}      />
         <Route path="/privacy"     element={lazy$(<PrivacyPolicy />)}  />
         <Route path="/terms"       element={lazy$(<Terms />)}          />
