@@ -26,6 +26,22 @@ const WordCounter          = lazy(() => import('../pages/tools/WordCounter'))
 const PasswordGenerator    = lazy(() => import('../pages/tools/PasswordGenerator'))
 const ColorPicker          = lazy(() => import('../pages/tools/ColorPicker'))
 
+// ── PDF conversion tools ──────────────────────────────────────
+const WordToPDF       = lazy(() => import('../pages/tools/pdf/WordToPDF'))
+const ExcelToPDF      = lazy(() => import('../pages/tools/pdf/ExcelToPDF'))
+const PowerPointToPDF = lazy(() => import('../pages/tools/pdf/PowerPointToPDF'))
+const PDFtoWord       = lazy(() => import('../pages/tools/pdf/PDFtoWord'))
+const PDFtoExcel      = lazy(() => import('../pages/tools/pdf/PDFtoExcel'))
+
+// ── More browser tools ────────────────────────────────────────
+const QRCodeGenerator = lazy(() => import('../pages/tools/QRCodeGenerator'))
+const ImageCompressor = lazy(() => import('../pages/tools/ImageCompressor'))
+const CSVtoJSON       = lazy(() => import('../pages/tools/CSVtoJSON'))
+
+// ── AI-powered tools ──────────────────────────────────────────
+const ResumeBuilder   = lazy(() => import('../pages/tools/ai/ResumeBuilder'))
+const ContentWriter   = lazy(() => import('../pages/tools/ai/ContentWriter'))
+
 // ── PDF tools (browser-side, pdf-lib / jsPDF) ────────────────
 const MergePDF        = lazy(() => import('../pages/tools/pdf/MergePDF'))
 const SplitPDF        = lazy(() => import('../pages/tools/pdf/SplitPDF'))
@@ -119,6 +135,19 @@ export default function AppRoutes() {
         <Route path="/tools/unlock-pdf"          element={lazy$(<UnlockPDF />)}             />
         <Route path="/tools/watermark-pdf"       element={lazy$(<WatermarkPDF />)}          />
         <Route path="/tools/page-numbers-pdf"    element={lazy$(<PageNumbersPDF />)}        />
+        {/* PDF conversion tools */}
+        <Route path="/tools/word-to-pdf"         element={lazy$(<WordToPDF />)}             />
+        <Route path="/tools/excel-to-pdf"        element={lazy$(<ExcelToPDF />)}            />
+        <Route path="/tools/powerpoint-to-pdf"   element={lazy$(<PowerPointToPDF />)}       />
+        <Route path="/tools/pdf-to-word"         element={lazy$(<PDFtoWord />)}             />
+        <Route path="/tools/pdf-to-excel"        element={lazy$(<PDFtoExcel />)}            />
+        {/* More browser tools */}
+        <Route path="/tools/qr-code-generator"   element={lazy$(<QRCodeGenerator />)}       />
+        <Route path="/tools/image-compressor"    element={lazy$(<ImageCompressor />)}       />
+        <Route path="/tools/csv-to-json"         element={lazy$(<CSVtoJSON />)}             />
+        {/* AI tools */}
+        <Route path="/tools/resume-builder"      element={lazy$(<ResumeBuilder />)}         />
+        <Route path="/tools/ai-content-writer"   element={lazy$(<ContentWriter />)}         />
         <Route path="/tools/:slug"               element={lazy$(<ToolDetailPage />)}        />
         <Route path="/about"       element={lazy$(<AboutPage />)}      />
         <Route path="/privacy"     element={lazy$(<PrivacyPolicy />)}  />

@@ -29,17 +29,17 @@ export const TOOL_CATALOGUE = {
         title: 'Convert to PDF',
         items: [
           { icon: '🖼️', label: 'JPG to PDF',       to: '/tools/jpg-to-pdf'       },
-          { icon: '📝', label: 'Word to PDF',      to: '/tools/word-to-pdf',     comingSoon: true },
-          { icon: '📊', label: 'PowerPoint to PDF',to: '/tools/powerpoint-to-pdf',comingSoon: true},
-          { icon: '📈', label: 'Excel to PDF',     to: '/tools/excel-to-pdf',    comingSoon: true },
+          { icon: '📝', label: 'Word to PDF',       to: '/tools/word-to-pdf'        },
+          { icon: '📊', label: 'PowerPoint to PDF', to: '/tools/powerpoint-to-pdf'  },
+          { icon: '📈', label: 'Excel to PDF',      to: '/tools/excel-to-pdf'       },
         ],
       },
       {
         title: 'Convert from PDF',
         items: [
           { icon: '📸', label: 'PDF to JPG',       to: '/tools/pdf-to-jpg'       },
-          { icon: '📝', label: 'PDF to Word',      to: '/tools/pdf-to-word',     comingSoon: true },
-          { icon: '📈', label: 'PDF to Excel',     to: '/tools/pdf-to-excel',    comingSoon: true },
+          { icon: '📝', label: 'PDF to Word',       to: '/tools/pdf-to-word'        },
+          { icon: '📈', label: 'PDF to Excel',      to: '/tools/pdf-to-excel'       },
         ],
       },
       {
@@ -96,7 +96,7 @@ export const TOOL_CATALOGUE = {
     label: 'Converters',
     icon: '🔄',
     to: '/tools?cat=converters',
-    count: '8+',
+    count: '9+',
     description: 'Unit conversion, text tools, file converters',
     accent: 'purple',
     sections: [
@@ -117,8 +117,9 @@ export const TOOL_CATALOGUE = {
       {
         title: 'File Conversion',
         items: [
-          { icon: '📊', label: 'CSV to JSON',           to: '/tools/csv-to-json',          comingSoon: true },
-          { icon: '🖼️', label: 'Image Compressor',      to: '/tools/image-compressor',     comingSoon: true },
+          { icon: '📊', label: 'CSV to JSON',           to: '/tools/csv-to-json'           },
+          { icon: '🖼️', label: 'Image Compressor',      to: '/tools/image-compressor'      },
+          { icon: '⬛', label: 'QR Code Generator',     to: '/tools/qr-code-generator'     },
         ],
       },
     ],
@@ -135,8 +136,8 @@ export const TOOL_CATALOGUE = {
       {
         title: 'Writing',
         items: [
-          { icon: '✍️', label: 'AI Content Writer',    to: '/tools/ai-content-writer',    comingSoon: true },
-          { icon: '📄', label: 'Resume Builder',       to: '/tools/resume-builder',       comingSoon: true },
+          { icon: '✍️', label: 'AI Content Writer',    to: '/tools/ai-content-writer'     },
+          { icon: '📄', label: 'Resume Builder',       to: '/tools/resume-builder'        },
         ],
       },
       {
