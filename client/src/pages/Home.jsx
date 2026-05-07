@@ -10,18 +10,19 @@ import { MOCK_TOOLS } from './mockTools'
 import api from '../services/api.service'
 
 const POPULAR_TAGS = [
-  { label: 'Resume Builder', to: '/tools/resume-builder'   },
-  { label: 'PDF Tools',      to: '/tools?cat=converters'   },
-  { label: 'Image Tools',    to: '/tools?cat=converters'   },
-  { label: 'Calculator',     to: '/calculators'            },
-  { label: 'AI Writing',     to: '/tools?cat=ai_tools'     },
+  { label: 'Merge PDF',          to: '/tools/merge-pdf'          },
+  { label: 'PDF to JPG',         to: '/tools/pdf-to-jpg'         },
+  { label: 'BMI Calculator',     to: '/tools/bmi-calculator'     },
+  { label: 'Word Counter',       to: '/tools/word-counter'       },
+  { label: 'Compress PDF',       to: '/tools/compress-pdf'       },
+  { label: 'Password Generator', to: '/tools/password-generator' },
 ]
 
 const CATEGORIES = [
-  { icon: '🧠', title: 'AI Tools',    description: 'Smart AI-powered tools for every task',    count: 25, to: '/tools?cat=ai_tools',   accent: 'blue'   },
-  { icon: '🔄', title: 'Converters',  description: 'Convert any file format in seconds',       count: 30, to: '/tools?cat=converters', accent: 'purple' },
-  { icon: '🧮', title: 'Calculators', description: 'Calculate anything instantly',              count: 50, to: '/calculators',          accent: 'green'  },
-  { icon: '💰', title: 'Products',    description: 'Premium digital downloads for creators',   count: 15, to: '/tools?cat=products',   accent: 'orange' },
+  { icon: '📄', title: 'PDF Tools',    description: 'Merge, split, compress, convert and secure PDFs', count: 14, to: '/tools?cat=pdf',         accent: 'red'    },
+  { icon: '🧮', title: 'Calculators',  description: 'BMI, Loan, GPA, Age and Percentage calculators',  count: 6,  to: '/tools?cat=calculators',  accent: 'green'  },
+  { icon: '🔄', title: 'Converters',   description: 'Unit converter, word counter, color picker',       count: 8,  to: '/tools?cat=converters',   accent: 'purple' },
+  { icon: '🤖', title: 'AI Tools',     description: 'AI-powered writing and content creation',          count: 2,  to: '/tools?cat=ai_tools',     accent: 'blue'   },
 ]
 
 const STATS = [
