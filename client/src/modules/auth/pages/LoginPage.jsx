@@ -4,7 +4,6 @@ import { Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://awe-os.onrender.com'
-const TOKEN_KEY = 'awe_token'
 
 const input =
   'w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 ' +
@@ -130,8 +129,7 @@ export default function LoginPage() {
       })
       const data = await res.json()
       if (!data.success) throw new Error(data.error || 'Registration failed')
-      localStorage.setItem(TOKEN_KEY, data.token)
-      updateUser(data.user)
+      updateUser({ ...data.user, token: data.token })
       navigate('/dashboard', { replace: true })
     } catch (err) {
       setError(err.message)

@@ -149,7 +149,7 @@ export default function UserManager() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
+    <div className="p-6">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-2xl font-bold text-white mb-6">User Manager</h1>
 

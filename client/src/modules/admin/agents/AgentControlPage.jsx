@@ -1316,7 +1316,7 @@ export default function AgentControlPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div>
       {/* Header */}
       <div className="bg-gray-800 border-b border-gray-700 px-6 py-4">
         <h1 className="text-white font-bold text-xl">Agent Control Center</h1>

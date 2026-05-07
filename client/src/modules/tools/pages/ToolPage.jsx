@@ -6,7 +6,7 @@ import ToolRenderer from '../components/ToolRenderer'
 
 function PageSpinner() {
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+    <div className="flex flex-1 items-center justify-center min-h-[200px]">
       <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
     </div>
   )
@@ -95,7 +95,7 @@ export default function ToolPage() {
 
   if (error || !tool) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="flex flex-1 items-center justify-center min-h-[300px]">
         <div className="text-center">
           <p className="text-red-400 mb-4">{error || 'Tool not found'}</p>
           <Link to="/dashboard/store" className="text-indigo-400 hover:underline text-sm">
@@ -107,7 +107,7 @@ export default function ToolPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
+    <div className="p-6">
       <div className="max-w-3xl mx-auto">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-gray-400 mb-6">

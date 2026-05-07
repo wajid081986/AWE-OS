@@ -1,5 +1,4 @@
 import { Helmet } from 'react-helmet-async'
-import PublicLayout from '../components/PublicLayout'
 
 const TEAM = [
   { name: 'Wajid',      role: 'Founder & CEO',        avatar: '👨‍💼', bio: 'Passionate about making AI accessible to everyone.' },
@@ -16,7 +15,7 @@ const VALUES = [
 
 export default function AboutPage() {
   return (
-    <PublicLayout>
+    <>
       <Helmet>
         <title>About Us — AWE-OS AI Tools Platform</title>
         <meta name="description" content="Learn about AWE-OS — our mission to make AI-powered tools free and accessible to everyone." />
@@ -99,6 +98,6 @@ export default function AboutPage() {
           </a>
         </div>
       </section>
-    </PublicLayout>
+    </>
   )
 }

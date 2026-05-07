@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import PublicLayout from '../components/PublicLayout'
 import SearchBar    from '../components/SearchBar'
 import ToolCard     from '../components/ToolCard'
 import CategoryCard from '../components/CategoryCard'
@@ -47,7 +46,7 @@ export default function Home() {
   const recent      = [...allTools].sort((a, b) => (b.id - a.id)).slice(0, 4)
 
   return (
-    <PublicLayout>
+    <>
       <Helmet>
         <title>AWE-OS — Free AI-Powered Tools for Everyone</title>
         <meta name="description" content="Discover 100+ free AI-powered tools — Resume Builder, PDF Tools, Calculators, Converters and more. Fast, free, and easy to use." />
@@ -188,6 +187,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </PublicLayout>
+    </>
   )
 }

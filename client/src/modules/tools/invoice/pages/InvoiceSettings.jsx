@@ -42,7 +42,7 @@ export default function InvoiceSettings() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
+    <div className="p-6">
       <h1 className="text-2xl text-white mb-6">Invoice Settings</h1>
 
       {error && <div className="p-3 bg-red-900/30 border border-red-500 rounded text-red-300 mb-4">{error}</div>}

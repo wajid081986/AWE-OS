@@ -54,7 +54,7 @@ export default function UserAnalyticsPage() {
   useEffect(() => { fetchData() }, [])
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
+    <div className="p-6">
       <div className="max-w-4xl mx-auto">
 
         {/* Header */}

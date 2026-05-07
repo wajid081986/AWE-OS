@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import PublicLayout    from '../components/PublicLayout'
 import ToolCard        from '../components/ToolCard'
 import AdBanner        from '../components/AdBanner'
 import Pagination      from '../components/Pagination'
@@ -67,7 +66,7 @@ export default function ToolsPage() {
   const catLabel = CATEGORIES.find(c => c.id === cat)?.label || 'All Tools'
 
   return (
-    <PublicLayout>
+    <>
       <Helmet>
         <title>{catLabel} — AWE-OS Free Online Tools</title>
         <meta name="description" content={`Browse ${catLabel} on AWE-OS. Free, fast and easy-to-use online tools for everyone.`} />
@@ -151,6 +150,6 @@ export default function ToolsPage() {
           </>
         )}
       </div>
-    </PublicLayout>
+    </>
   )
 }

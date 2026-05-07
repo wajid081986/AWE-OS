@@ -237,7 +237,7 @@ export default function InvoiceDashboard() {
   if (loading) return <Spinner />;
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="bg-gray-950 text-white flex-1 flex flex-col">
       {toast && <Toast {...toast} />}
 
       {/* ── Header ── */}

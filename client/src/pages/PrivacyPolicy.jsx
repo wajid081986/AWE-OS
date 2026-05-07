@@ -1,5 +1,4 @@
 import { Helmet } from 'react-helmet-async'
-import PublicLayout from '../components/PublicLayout'
 
 function Section({ title, children }) {
   return (
@@ -12,7 +11,7 @@ function Section({ title, children }) {
 
 export default function PrivacyPolicy() {
   return (
-    <PublicLayout>
+    <>
       <Helmet>
         <title>Privacy Policy — AWE-OS</title>
         <meta name="description" content="AWE-OS Privacy Policy — how we collect, use and protect your data. GDPR compliant." />
@@ -123,6 +122,6 @@ export default function PrivacyPolicy() {
           <p><strong>Website:</strong> <a href="/contact" className="text-blue-600 hover:underline">awe-os.com/contact</a></p>
         </Section>
       </div>
-    </PublicLayout>
+    </>
   )
 }

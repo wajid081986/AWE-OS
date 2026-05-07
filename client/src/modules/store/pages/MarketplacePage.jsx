@@ -22,7 +22,7 @@ export default function MarketplacePage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div>
 
       {/* ── Header + Tabs ── */}
       <div className="border-b border-gray-800 bg-gray-900 px-6 pt-6">

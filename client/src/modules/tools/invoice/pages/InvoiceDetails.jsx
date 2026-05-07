@@ -54,7 +54,7 @@ export default function InvoiceDetails() {
   if (!data) return <div className="text-center py-12 text-gray-400">Invoice not found.</div>;
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
+    <div className="p-6">
       <div className="bg-gray-800 p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-bold text-white mb-4">Invoice Details</h2>
         <p className="text-gray-300">Invoice ID: {data.id}</p>

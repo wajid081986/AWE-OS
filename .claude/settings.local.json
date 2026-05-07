@@ -31,7 +31,8 @@
       "Bash(Get-ChildItem -Path \"D:\\\\MyProjects\\\\AWE-OS\" -Recurse -File -Exclude node_modules)",
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(Sort-Object)",
-      "PowerShell(head *)"
+      "PowerShell(head *)",
+      "Bash(del *)"
     ]
   }
 }

@@ -35,14 +35,14 @@ export default function DownloadsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="flex flex-1 items-center justify-center min-h-[200px]">
         <Spinner />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
+    <div className="p-6">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold text-white mb-1">My Downloads</h1>
         <p className="text-gray-400 text-sm mb-8">Your purchased digital products</p>

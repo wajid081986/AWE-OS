@@ -1,8 +1,9 @@
 import { lazy, Suspense } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
-import { useAuth } from '../modules/auth/context/AuthContext'
+import { Routes, Route } from 'react-router-dom'
+import PublicLayout  from '../components/PublicLayout'
+import AppShell      from '../shared/components/AppShell'
+import AdminShell    from '../shared/components/AdminShell'
 import ProtectedRoute from '../shared/components/ProtectedRoute'
-import PublicRoute    from '../shared/components/PublicRoute'
 
 // ── Public pages ─────────────────────────────────────────────
 const Home           = lazy(() => import('../pages/Home'))
@@ -12,54 +13,49 @@ const AboutPage      = lazy(() => import('../pages/AboutPage'))
 const PrivacyPolicy  = lazy(() => import('../pages/PrivacyPolicy'))
 const Terms          = lazy(() => import('../pages/Terms'))
 const ContactPage    = lazy(() => import('../pages/ContactPage'))
+const NotFoundPage   = lazy(() => import('../pages/NotFoundPage'))
 
-// ── Other pages ───────────────────────────────────────────────
-const LandingPage      = lazy(() => import('../modules/landing/pages/LandingPage'))
-const NotFoundPage     = lazy(() => import('../pages/NotFoundPage'))
-const LoginPage        = lazy(() => import('../modules/auth/pages/LoginPage'))
-const ResumePage       = lazy(() => import('../modules/tools/resume/pages/ResumePage'))
-const Dashboard        = lazy(() => import('../modules/user/pages/DashboardPage'))
-const Admin            = lazy(() => import('../modules/admin/pages/AdminPage'))
+// ── Standalone pages ──────────────────────────────────────────
+const LandingPage = lazy(() => import('../modules/landing/pages/LandingPage'))
+const LoginPage   = lazy(() => import('../modules/auth/pages/LoginPage'))
+const ResumePage  = lazy(() => import('../modules/tools/resume/pages/ResumePage'))
+
+// ── Calculators (public, standalone dark theme) ───────────────
+const CalculatorsListPage = lazy(() => import('../modules/calculators/pages/CalculatorsListPage'))
+const CalculatorPage      = lazy(() => import('../modules/calculators/pages/CalculatorPage'))
+
+// ── User dashboard ────────────────────────────────────────────
+const Dashboard         = lazy(() => import('../modules/user/pages/DashboardPage'))
+const StorePage         = lazy(() => import('../modules/store/pages/StorePage'))
+const MarketplacePage   = lazy(() => import('../modules/store/pages/MarketplacePage'))
+const ProductsStorePage = lazy(() => import('../modules/products/pages/ProductsStorePage'))
+const DownloadsPage     = lazy(() => import('../modules/products/pages/DownloadsPage'))
+const UserAnalyticsPage = lazy(() => import('../modules/user/pages/UserAnalyticsPage'))
+const ToolPage          = lazy(() => import('../modules/tools/pages/ToolPage'))
+
+// ── Invoice tools ─────────────────────────────────────────────
 const InvoiceDashboard = lazy(() => import('../modules/tools/invoice/pages/InvoiceDashboard'))
 const CreateInvoice    = lazy(() => import('../modules/tools/invoice/pages/CreateInvoice'))
 const InvoiceDetails   = lazy(() => import('../modules/tools/invoice/pages/InvoiceDetails'))
 const InvoiceSettings  = lazy(() => import('../modules/tools/invoice/pages/InvoiceSettings'))
 
-// ── Admin sub-pages ───────────────────────────────────────────
+// ── Admin pages ───────────────────────────────────────────────
+const Admin             = lazy(() => import('../modules/admin/pages/AdminPage'))
 const ToolBuilder       = lazy(() => import('../modules/admin/tools/builder/ToolBuilder'))
 const ProductManager    = lazy(() => import('../modules/admin/products/ProductManager'))
 const CalculatorBuilder = lazy(() => import('../modules/admin/calculators/CalculatorBuilder'))
 const UserManager       = lazy(() => import('../modules/admin/users/UserManager'))
-const AdminRevenuePage  = lazy(() => import('../modules/admin/pages/AdminRevenuePage'))
 const RevenuePage       = lazy(() => import('../modules/admin/revenue/RevenuePage'))
-const UserAnalyticsPage = lazy(() => import('../modules/user/pages/UserAnalyticsPage'))
 const AIFactoryPage     = lazy(() => import('../modules/admin/factory/AIFactoryPage'))
 const AgentControlPage  = lazy(() => import('../modules/admin/agents/AgentControlPage'))
-
-// ── Tool pages ────────────────────────────────────────────────
-const ToolPage             = lazy(() => import('../modules/tools/pages/ToolPage'))
-
-// ── User sub-pages ────────────────────────────────────────────
-const StorePage            = lazy(() => import('../modules/store/pages/StorePage'))
-const MarketplacePage      = lazy(() => import('../modules/store/pages/MarketplacePage'))
-const ProductsStorePage    = lazy(() => import('../modules/products/pages/ProductsStorePage'))
-const DownloadsPage        = lazy(() => import('../modules/products/pages/DownloadsPage'))
-const CalculatorsListPage  = lazy(() => import('../modules/calculators/pages/CalculatorsListPage'))
-const CalculatorPage       = lazy(() => import('../modules/calculators/pages/CalculatorPage'))
 
 // ── Shared UI ─────────────────────────────────────────────────
 function PageLoader() {
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+    <div className="flex flex-1 items-center justify-center min-h-[200px]">
       <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
     </div>
   )
-}
-
-function RootRedirect() {
-  const { isAuthenticated, isLoading } = useAuth()
-  if (isLoading) return <PageLoader />
-  return <Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />
 }
 
 const lazy$ = (el) => <Suspense fallback={<PageLoader />}>{el}</Suspense>
@@ -68,56 +64,56 @@ const lazy$ = (el) => <Suspense fallback={<PageLoader />}>{el}</Suspense>
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Public website */}
-      <Route path="/"        element={lazy$(<Home />)}           />
-      <Route path="/tools"   element={lazy$(<ToolsPage />)}      />
-      <Route path="/tools/:slug" element={lazy$(<ToolDetailPage />)} />
-      <Route path="/about"   element={lazy$(<AboutPage />)}      />
-      <Route path="/privacy" element={lazy$(<PrivacyPolicy />)}  />
-      <Route path="/terms"   element={lazy$(<Terms />)}          />
-      <Route path="/contact" element={lazy$(<ContactPage />)}    />
 
-      {/* Legacy landing page (kept at /home for existing links) */}
-      <Route path="/home" element={lazy$(<LandingPage />)} />
+      {/* Public website — shared PublicLayout shell (Header + Footer) */}
+      <Route element={<PublicLayout />}>
+        <Route path="/"            element={lazy$(<Home />)}           />
+        <Route path="/tools"       element={lazy$(<ToolsPage />)}      />
+        <Route path="/tools/:slug" element={lazy$(<ToolDetailPage />)} />
+        <Route path="/about"       element={lazy$(<AboutPage />)}      />
+        <Route path="/privacy"     element={lazy$(<PrivacyPolicy />)}  />
+        <Route path="/terms"       element={lazy$(<Terms />)}          />
+        <Route path="/contact"     element={lazy$(<ContactPage />)}    />
+      </Route>
 
-      {/* Auth */}
-      <Route path="/login" element={lazy$(<LoginPage />)} />
+      {/* Standalone — no shared shell */}
+      <Route path="/home"          element={lazy$(<LandingPage />)}         />
+      <Route path="/login"         element={lazy$(<LoginPage />)}           />
+      <Route path="/tools/resume"  element={lazy$(<ResumePage />)}          />
+      <Route path="/calculators"       element={lazy$(<CalculatorsListPage />)} />
+      <Route path="/calculators/:slug" element={lazy$(<CalculatorPage />)}      />
 
-      {/* Resume Builder — public tool, no auth required */}
-      <Route path="/tools/resume" element={lazy$(<ResumePage />)} />
+      {/* Authenticated — shared AppShell (persistent dark nav) */}
+      <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
+        <Route path="/dashboard"              element={lazy$(<Dashboard />)}         />
+        <Route path="/dashboard/store"        element={lazy$(<StorePage />)}         />
+        <Route path="/dashboard/tools/:slug"  element={lazy$(<ToolPage />)}          />
+        <Route path="/dashboard/products"     element={lazy$(<ProductsStorePage />)} />
+        <Route path="/dashboard/downloads"    element={lazy$(<DownloadsPage />)}     />
+        <Route path="/dashboard/marketplace"  element={lazy$(<MarketplacePage />)}   />
+        <Route path="/dashboard/analytics"    element={lazy$(<UserAnalyticsPage />)} />
+        <Route path="/tools/invoice"          element={lazy$(<InvoiceDashboard />)}  />
+        <Route path="/tools/invoice/create"   element={lazy$(<CreateInvoice />)}     />
+        <Route path="/tools/invoice/:id"      element={lazy$(<InvoiceDetails />)}    />
+        <Route path="/tools/invoice/settings" element={lazy$(<InvoiceSettings />)}   />
 
-      {/* Calculators — public, SEO-crawlable */}
-      <Route path="/calculators"       element={<PublicRoute>{lazy$(<CalculatorsListPage />)}</PublicRoute>} />
-      <Route path="/calculators/:slug" element={<PublicRoute>{lazy$(<CalculatorPage />)}</PublicRoute>} />
+        {/* Admin — AdminShell (sidebar) nested inside AppShell */}
+        <Route element={<ProtectedRoute requiredRole="admin"><AdminShell /></ProtectedRoute>}>
+          <Route path="/admin"               element={lazy$(<Admin />)}             />
+          <Route path="/admin/tools/builder" element={lazy$(<ToolBuilder />)}       />
+          <Route path="/admin/products"      element={lazy$(<ProductManager />)}    />
+          <Route path="/admin/calculators"   element={lazy$(<CalculatorBuilder />)} />
+          <Route path="/admin/users"         element={lazy$(<UserManager />)}       />
+          <Route path="/admin/revenue"       element={lazy$(<RevenuePage />)}       />
+          <Route path="/admin/factory"       element={lazy$(<AIFactoryPage />)}     />
+          <Route path="/admin/agents"        element={lazy$(<AgentControlPage />)}  />
+          <Route path="/admin/pipeline"      element={lazy$(<AgentControlPage />)}  />
+        </Route>
+      </Route>
 
-      {/* User Dashboard */}
-      <Route path="/dashboard"           element={<ProtectedRoute>{lazy$(<Dashboard />)}</ProtectedRoute>} />
-      <Route path="/dashboard/store"     element={<ProtectedRoute>{lazy$(<StorePage />)}</ProtectedRoute>} />
-      <Route path="/dashboard/tools/:slug" element={<ProtectedRoute>{lazy$(<ToolPage />)}</ProtectedRoute>} />
-      <Route path="/dashboard/products"  element={<ProtectedRoute>{lazy$(<ProductsStorePage />)}</ProtectedRoute>} />
-      <Route path="/dashboard/downloads"    element={<ProtectedRoute>{lazy$(<DownloadsPage />)}</ProtectedRoute>} />
-      <Route path="/dashboard/marketplace" element={<ProtectedRoute>{lazy$(<MarketplacePage />)}</ProtectedRoute>} />
-      <Route path="/dashboard/analytics"  element={<ProtectedRoute>{lazy$(<UserAnalyticsPage />)}</ProtectedRoute>} />
-
-      {/* Invoice tools */}
-      <Route path="/tools/invoice"          element={<ProtectedRoute>{lazy$(<InvoiceDashboard />)}</ProtectedRoute>} />
-      <Route path="/tools/invoice/create"   element={<ProtectedRoute>{lazy$(<CreateInvoice />)}</ProtectedRoute>} />
-      <Route path="/tools/invoice/:id"      element={<ProtectedRoute>{lazy$(<InvoiceDetails />)}</ProtectedRoute>} />
-      <Route path="/tools/invoice/settings" element={<ProtectedRoute>{lazy$(<InvoiceSettings />)}</ProtectedRoute>} />
-
-      {/* Admin */}
-      <Route path="/admin"                element={<ProtectedRoute requiredRole="admin">{lazy$(<Admin />)}</ProtectedRoute>} />
-      <Route path="/admin/tools/builder"  element={<ProtectedRoute requiredRole="admin">{lazy$(<ToolBuilder />)}</ProtectedRoute>} />
-      <Route path="/admin/products"       element={<ProtectedRoute requiredRole="admin">{lazy$(<ProductManager />)}</ProtectedRoute>} />
-      <Route path="/admin/calculators"    element={<ProtectedRoute requiredRole="admin">{lazy$(<CalculatorBuilder />)}</ProtectedRoute>} />
-      <Route path="/admin/users"          element={<ProtectedRoute requiredRole="admin">{lazy$(<UserManager />)}</ProtectedRoute>} />
-      <Route path="/admin/revenue"        element={<ProtectedRoute requiredRole="admin">{lazy$(<RevenuePage />)}</ProtectedRoute>} />
-      <Route path="/admin/factory"        element={<ProtectedRoute requiredRole="admin">{lazy$(<AIFactoryPage />)}</ProtectedRoute>} />
-      <Route path="/admin/agents"         element={<ProtectedRoute requiredRole="admin">{lazy$(<AgentControlPage />)}</ProtectedRoute>} />
-      <Route path="/admin/pipeline"       element={<ProtectedRoute requiredRole="admin">{lazy$(<AgentControlPage />)}</ProtectedRoute>} />
-
-      {/* 404 */}
+      {/* 404 — standalone, uses its own PublicLayout wrapper */}
       <Route path="*" element={lazy$(<NotFoundPage />)} />
+
     </Routes>
   )
 }

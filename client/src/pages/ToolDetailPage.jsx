@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import PublicLayout from '../components/PublicLayout'
 import ToolCard     from '../components/ToolCard'
 import AdBanner     from '../components/AdBanner'
 import { MOCK_TOOLS } from './mockTools'
@@ -120,17 +119,17 @@ export default function ToolDetailPage() {
 
   if (loading) {
     return (
-      <PublicLayout>
+      <>
         <div className="flex items-center justify-center min-h-[40vh]">
           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
         </div>
-      </PublicLayout>
+      </>
     )
   }
 
   if (!tool) {
     return (
-      <PublicLayout>
+      <>
         <Helmet><title>Tool Not Found — AWE-OS</title></Helmet>
         <div className="max-w-xl mx-auto px-4 py-24 text-center">
           <p className="text-6xl mb-4">🔍</p>
@@ -140,7 +139,7 @@ export default function ToolDetailPage() {
             Browse All Tools →
           </Link>
         </div>
-      </PublicLayout>
+      </>
     )
   }
 
@@ -153,7 +152,7 @@ export default function ToolDetailPage() {
   ]
 
   return (
-    <PublicLayout>
+    <>
       <Helmet>
         <title>{tool.name} — Free Online Tool | AWE-OS</title>
         <meta name="description" content={`${tool.description} Free, fast and easy to use. No sign-up required.`} />
@@ -287,6 +286,6 @@ export default function ToolDetailPage() {
           </aside>
         </div>
       </div>
-    </PublicLayout>
+    </>
   )
 }

@@ -149,7 +149,7 @@ export default function ToolBuilder() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
+    <div className="p-6">
       <div className="max-w-4xl mx-auto space-y-6">
         <h1 className="text-2xl font-bold text-white">{editId ? 'Edit Tool' : 'Build New Tool'}</h1>
 

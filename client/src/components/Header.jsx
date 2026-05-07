@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../modules/auth/context/AuthContext'
 
 const NAV_LINKS = [
   { label: 'Tools',       to: '/tools'       },
@@ -10,6 +11,7 @@ const NAV_LINKS = [
 ]
 
 export default function Header() {
+  const { isAuthenticated } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled,  setScrolled]  = useState(false)
   const [searching, setSearching] = useState(false)
@@ -86,12 +88,21 @@ export default function Header() {
             </button>
           )}
 
-          <Link
-            to="/login"
-            className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            Login
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              to="/dashboard"
+              className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+            >
+              Dashboard →
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              Login
+            </Link>
+          )}
 
           {/* Mobile hamburger */}
           <button
@@ -117,13 +128,23 @@ export default function Header() {
               {label}
             </Link>
           ))}
-          <Link
-            to="/login"
-            onClick={() => setMenuOpen(false)}
-            className="mt-2 px-3 py-2.5 text-sm font-medium bg-blue-600 text-white rounded-lg text-center transition-colors hover:bg-blue-700"
-          >
-            Login / Sign Up
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              to="/dashboard"
+              onClick={() => setMenuOpen(false)}
+              className="mt-2 px-3 py-2.5 text-sm font-medium bg-indigo-600 text-white rounded-lg text-center transition-colors hover:bg-indigo-700"
+            >
+              Dashboard →
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              onClick={() => setMenuOpen(false)}
+              className="mt-2 px-3 py-2.5 text-sm font-medium bg-blue-600 text-white rounded-lg text-center transition-colors hover:bg-blue-700"
+            >
+              Login / Sign Up
+            </Link>
+          )}
         </div>
       )}
     </header>

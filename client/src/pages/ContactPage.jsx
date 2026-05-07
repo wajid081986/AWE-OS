@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
-import PublicLayout from '../components/PublicLayout'
 import api from '../services/api.service'
 
 export default function ContactPage() {
@@ -26,7 +25,7 @@ export default function ContactPage() {
   const inputClass = 'w-full px-4 py-3 border border-gray-300 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 
   return (
-    <PublicLayout>
+    <>
       <Helmet>
         <title>Contact Us — AWE-OS</title>
         <meta name="description" content="Get in touch with the AWE-OS team. We respond within 24 hours." />
@@ -103,6 +102,6 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
-    </PublicLayout>
+    </>
   )
 }

@@ -58,7 +58,7 @@ export default function RevenuePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="flex flex-1 items-center justify-center min-h-[300px]">
         <div className="text-center">
           <p className="text-red-400 mb-4">{error}</p>
           <button
@@ -85,7 +85,7 @@ export default function RevenuePage() {
   const periodLabel = period === 3650 ? 'all time' : `${period} days`
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
+    <div className="p-6">
       <div className="max-w-7xl mx-auto">
 
         {/* Header + Period Selector */}

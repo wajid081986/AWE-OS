@@ -225,11 +225,11 @@ export default function CreateInvoice() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="bg-gray-950 text-white flex-1 flex flex-col">
       {toast && <Toast {...toast} onDone={() => setToast(null)} />}
 
       {/* ── Sticky Top Bar ── */}
-      <div className="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between sticky top-0 z-40 shadow-lg">
+      <div className="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between sticky top-14 z-40 shadow-lg">
         <div className="flex items-center gap-3 text-sm">
           <a href="/tools/invoice" className="text-gray-400 hover:text-white transition-colors">← Invoices</a>
           <span className="text-gray-700">/</span>
