@@ -101,7 +101,7 @@ app.get('/sitemap.xml', async (req, res) => {
 
     const calcUrls = (calculators || []).map(c => `
   <url>
-    <loc>https://awe-os.vercel.app/calculators/${c.slug}</loc>
+    <loc>${process.env.FRONTEND_URL || 'https://www.awe-os.com'}/calculators/${c.slug}</loc>
     <lastmod>${c.updated_at?.split('T')[0] || new Date().toISOString().split('T')[0]}</lastmod>
     <priority>0.8</priority>
   </url>`).join('');
@@ -109,11 +109,11 @@ app.get('/sitemap.xml', async (req, res) => {
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://awe-os.vercel.app/</loc>
+    <loc>${process.env.FRONTEND_URL || 'https://www.awe-os.com'}/</loc>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://awe-os.vercel.app/calculators</loc>
+    <loc>${process.env.FRONTEND_URL || 'https://www.awe-os.com'}/calculators</loc>
     <priority>0.9</priority>
   </url>${calcUrls}
 </urlset>`;
