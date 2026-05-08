@@ -16,6 +16,7 @@ const ToolDetailPage = lazy(() => import('../pages/ToolDetailPage'))
 const AboutPage      = lazy(() => import('../pages/AboutPage'))
 const PrivacyPolicy  = lazy(() => import('../pages/PrivacyPolicy'))
 const Terms          = lazy(() => import('../pages/Terms'))
+const Disclaimer     = lazy(() => import('../pages/Disclaimer'))
 const ContactPage    = lazy(() => import('../pages/ContactPage'))
 const NotFoundPage   = lazy(() => import('../pages/NotFoundPage'))
 
@@ -154,10 +155,12 @@ export default function AppRoutes() {
         <Route path="/tools/resume-builder"      element={lazy$(<ResumeBuilder />)}         />
         <Route path="/tools/ai-content-writer"   element={lazy$(<ContentWriter />)}         />
         <Route path="/tools/:slug"               element={lazy$(<ToolDetailPage />)}        />
-        <Route path="/about"       element={lazy$(<AboutPage />)}      />
-        <Route path="/privacy"     element={lazy$(<PrivacyPolicy />)}  />
-        <Route path="/terms"       element={lazy$(<Terms />)}          />
-        <Route path="/contact"     element={lazy$(<ContactPage />)}    />
+        <Route path="/about"          element={lazy$(<AboutPage />)}      />
+        <Route path="/privacy"        element={lazy$(<PrivacyPolicy />)}  />
+        <Route path="/privacy-policy" element={lazy$(<PrivacyPolicy />)}  />
+        <Route path="/terms"          element={lazy$(<Terms />)}          />
+        <Route path="/disclaimer"     element={lazy$(<Disclaimer />)}     />
+        <Route path="/contact"        element={lazy$(<ContactPage />)}    />
         <Route path="/pricing"     element={lazy$(<PricingPage />)}    />
         <Route path="/payment/success" element={lazy$(<PaymentSuccess />)} />
       </Route>

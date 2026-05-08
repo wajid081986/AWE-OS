@@ -17,7 +17,7 @@ export default function ContactPage() {
       setForm({ name: '', email: '', subject: '', message: '' })
     } catch {
       // Fallback: open mail client
-      window.location.href = `mailto:support@awe-os.com?subject=${encodeURIComponent(form.subject)}&body=${encodeURIComponent(form.message)}`
+      window.location.href = `mailto:wajid081986@gmail.com?subject=${encodeURIComponent(form.subject)}&body=${encodeURIComponent(form.message)}`
       setStatus(null)
     }
   }
@@ -45,7 +45,7 @@ export default function ContactPage() {
           {/* Info sidebar */}
           <div className="space-y-6">
             {[
-              { icon: '📧', title: 'Email',         text: 'support@awe-os.com' },
+              { icon: '📧', title: 'Email',         text: 'wajid081986@gmail.com' },
               { icon: '⏱️', title: 'Response Time',  text: 'Within 24 hours on weekdays' },
               { icon: '🕐', title: 'Support Hours',  text: 'Mon–Fri, 9 AM – 6 PM IST' },
             ].map(({ icon, title, text }) => (
