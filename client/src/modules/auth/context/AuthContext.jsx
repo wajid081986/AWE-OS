@@ -75,15 +75,28 @@ export function AuthProvider({ children }) {
     setUser(updatedUser)
   }, [])
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const data = await authFetch('/api/auth/me')
+      if (data.success) setUser(data.user)
+    } catch { /* ignore */ }
+  }, [authFetch])
+
+  const PRO_PLANS = ['pro_monthly', 'pro_yearly']
+  const isPro     = PRO_PLANS.includes(user?.subscriptionPlan)
+
   const value = {
     user,
-    role:            user?.role        ?? null,
-    permissions:     user?.permissions ?? [],
-    isAuthenticated: !!user,
+    role:             user?.role             ?? null,
+    permissions:      user?.permissions      ?? [],
+    isAuthenticated:  !!user,
     isLoading,
+    isPro,
+    subscriptionPlan: user?.subscriptionPlan ?? 'free',
     login,
     logout,
     updateUser,
+    refreshUser,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

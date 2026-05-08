@@ -5,6 +5,10 @@ import AppShell      from '../shared/components/AppShell'
 import AdminShell    from '../shared/components/AdminShell'
 import ProtectedRoute from '../shared/components/ProtectedRoute'
 
+// ── Payment pages ─────────────────────────────────────────────
+const PricingPage    = lazy(() => import('../pages/PricingPage'))
+const PaymentSuccess = lazy(() => import('../pages/PaymentSuccess'))
+
 // ── Public pages ─────────────────────────────────────────────
 const Home           = lazy(() => import('../pages/Home'))
 const ToolsPage      = lazy(() => import('../pages/ToolsPage'))
@@ -153,6 +157,8 @@ export default function AppRoutes() {
         <Route path="/privacy"     element={lazy$(<PrivacyPolicy />)}  />
         <Route path="/terms"       element={lazy$(<Terms />)}          />
         <Route path="/contact"     element={lazy$(<ContactPage />)}    />
+        <Route path="/pricing"     element={lazy$(<PricingPage />)}    />
+        <Route path="/payment/success" element={lazy$(<PaymentSuccess />)} />
       </Route>
 
       {/* Standalone — no shared shell */}

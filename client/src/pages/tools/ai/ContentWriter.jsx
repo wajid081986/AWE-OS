@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import api from '../../../services/api.service'
+import ProGate from '../../../components/ProGate'
 
 const CONTENT_TYPES = ['Blog Post', 'Product Description', 'Social Media Post', 'Email Newsletter', 'Ad Copy', 'Press Release', 'Landing Page Copy']
 const TONES = ['Professional', 'Casual', 'Persuasive', 'Informative', 'Friendly', 'Humorous', 'Authoritative']
@@ -52,9 +53,9 @@ export default function ContentWriter() {
   const wordCount = result.trim() ? result.trim().split(/\s+/).length : 0
 
   return (
-    <>
+    <ProGate toolName="AI Content Writer" toolSlug="ai-content-writer" payPerUsePlan="content_writer" payPerUsePrice="0.99">
       <Helmet>
-        <title>AI Content Writer — AWE-OS Free Tools</title>
+        <title>AI Content Writer — AWE-OS</title>
         <meta name="description" content="Generate professional blog posts, ad copy, product descriptions and more with AI. Free, no sign-up." />
       </Helmet>
 
@@ -182,6 +183,6 @@ export default function ContentWriter() {
           </div>
         </div>
       </div>
-    </>
+    </ProGate>
   )
 }

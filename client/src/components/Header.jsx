@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../modules/auth/context/AuthContext'
 import { TOOL_CATALOGUE } from '../data/toolCatalogue'
+import PaymentModal from './PaymentModal'
 
 // ── Shared: one tool link inside a dropdown ──────────────────────────────────
 function DropdownItem({ icon, label, to, comingSoon, onClick }) {
@@ -98,12 +99,13 @@ function MobileAccordion({ catKey, data, onClose }) {
 
 // ── Main Header ───────────────────────────────────────────────────────────────
 export default function Header() {
-  const { isAuthenticated } = useAuth()
-  const [openMenu, setOpenMenu]   = useState(null) // desktop dropdown key
+  const { isAuthenticated, isPro } = useAuth()
+  const [openMenu, setOpenMenu]   = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled]   = useState(false)
   const [searching, setSearching] = useState(false)
   const [q, setQ]                 = useState('')
+  const [upgradeModal, setUpgradeModal] = useState(false)
   const navigate  = useNavigate()
   const location  = useLocation()
   const navRef    = useRef(null)
@@ -192,6 +194,12 @@ export default function Header() {
             >
               All Tools
             </Link>
+            <Link
+              to="/pricing"
+              className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors whitespace-nowrap"
+            >
+              Pricing
+            </Link>
           </nav>
 
           {/* ── Right actions ─────────────────────────────────────── */}
@@ -218,15 +226,31 @@ export default function Header() {
             )}
 
             {isAuthenticated ? (
-              <Link to="/dashboard"
-                className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors">
-                Dashboard →
-              </Link>
+              <>
+                {!isPro && (
+                  <button
+                    onClick={() => setUpgradeModal(true)}
+                    className="hidden sm:inline-flex items-center px-3 py-1.5 text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg transition-colors border border-blue-500"
+                  >
+                    ⚡ Upgrade
+                  </button>
+                )}
+                <Link to="/dashboard"
+                  className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors">
+                  Dashboard →
+                </Link>
+              </>
             ) : (
-              <Link to="/login"
-                className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-                Login
-              </Link>
+              <>
+                <Link to="/pricing"
+                  className="hidden sm:inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+                  Pricing
+                </Link>
+                <Link to="/login"
+                  className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                  Login
+                </Link>
+              </>
             )}
 
             {/* Mobile hamburger */}
@@ -304,6 +328,14 @@ export default function Header() {
             </div>
           </div>
         </div>
+      )}
+
+      {upgradeModal && (
+        <PaymentModal
+          plan="pro_monthly"
+          onClose={() => setUpgradeModal(false)}
+          onSuccess={() => setUpgradeModal(false)}
+        />
       )}
     </>
   )

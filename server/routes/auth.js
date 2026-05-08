@@ -102,7 +102,7 @@ router.post('/login', async (req, res) => {
   try {
     const { data: user } = await supabase
       .from('users')
-      .select('id, email, password_hash, is_premium, role, permissions, subscription_status')
+      .select('id, email, password_hash, is_premium, role, permissions, subscription_status, subscription_plan')
       .eq('email', email)
       .maybeSingle();
 
@@ -126,6 +126,7 @@ router.post('/login', async (req, res) => {
         permissions:        user.permissions         ?? [],
         isPremium:          user.is_premium          ?? false,
         subscriptionStatus: user.subscription_status ?? 'free',
+        subscriptionPlan:   user.subscription_plan   ?? 'free',
       },
     });
   } catch (err) {
@@ -256,7 +257,7 @@ router.get('/me', requireAuth, async (req, res) => {
   try {
     const { data: user, error } = await supabase
       .from('users')
-      .select('id, email, is_premium, role, permissions, subscription_status')
+      .select('id, email, is_premium, role, permissions, subscription_status, subscription_plan')
       .eq('id', req.user.userId)
       .maybeSingle();
 
@@ -272,6 +273,7 @@ router.get('/me', requireAuth, async (req, res) => {
         permissions:        user.permissions         ?? [],
         isPremium:          user.is_premium          ?? false,
         subscriptionStatus: user.subscription_status ?? 'free',
+        subscriptionPlan:   user.subscription_plan   ?? 'free',
       },
     });
   } catch (err) {

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { jsPDF } from 'jspdf'
 import api from '../../../services/api.service'
+import ProGate from '../../../components/ProGate'
 
 const STEPS_META = [
   { id: 1, label: 'Personal Info', icon: '👤' },
@@ -94,9 +95,9 @@ export default function ResumeBuilder() {
   }
 
   return (
-    <>
+    <ProGate toolName="AI Resume Builder" toolSlug="resume-builder" payPerUsePlan="resume_builder" payPerUsePrice="1.99">
       <Helmet>
-        <title>AI Resume Builder — AWE-OS Free Tools</title>
+        <title>AI Resume Builder — AWE-OS</title>
         <meta name="description" content="Build a professional resume with AI in minutes. Free, no sign-up required." />
       </Helmet>
 
@@ -258,6 +259,6 @@ export default function ResumeBuilder() {
           )}
         </div>
       </div>
-    </>
+    </ProGate>
   )
 }
