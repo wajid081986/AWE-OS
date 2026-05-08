@@ -61,8 +61,9 @@ if (missingOptional.length > 0) {
   missingOptional.forEach((key) => console.warn(`[SERVER] Optional ENV "${key}" is not set — related features will be disabled`));
 }
 
-const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? ['https://awe-os.vercel.app']
+// ✅ Naya code — ENV se read karta hai
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
   : ['https://awe-os.vercel.app', 'http://localhost:5173'];
 
 // ── Security & performance middleware ────────────────────────
