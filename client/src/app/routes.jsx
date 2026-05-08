@@ -94,6 +94,7 @@ const UserManager       = lazy(() => import('../modules/admin/users/UserManager'
 const RevenuePage       = lazy(() => import('../modules/admin/revenue/RevenuePage'))
 const AIFactoryPage     = lazy(() => import('../modules/admin/factory/AIFactoryPage'))
 const AgentControlPage  = lazy(() => import('../modules/admin/agents/AgentControlPage'))
+const AgentsMonitor     = lazy(() => import('../modules/admin/agents/AgentsMonitor'))
 
 // ── Shared UI ─────────────────────────────────────────────────
 function PageLoader() {
@@ -191,7 +192,7 @@ export default function AppRoutes() {
           <Route path="/admin/users"         element={lazy$(<UserManager />)}       />
           <Route path="/admin/revenue"       element={lazy$(<RevenuePage />)}       />
           <Route path="/admin/factory"       element={lazy$(<AIFactoryPage />)}     />
-          <Route path="/admin/agents"        element={lazy$(<AgentControlPage />)}  />
+          <Route path="/admin/agents"        element={lazy$(<AgentsMonitor />)}     />
           <Route path="/admin/pipeline"      element={lazy$(<AgentControlPage />)}  />
         </Route>
       </Route>

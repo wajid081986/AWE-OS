@@ -1,5 +1,5 @@
 const supabase = require('../db/supabase');
-const { callOpenAI, parseJSONResponse } = require('./ai.service');
+const { callClaude, parseJSONResponse } = require('./ai.service');
 
 const SYSTEM_PROMPT = `You are an AI tool builder for AWE-OS SaaS platform. When given a category or idea, you generate complete tool configurations. ALWAYS respond with valid JSON only. No markdown, no explanation. Just the JSON object.`;
 
@@ -66,10 +66,9 @@ Rules:
 - Make it genuinely useful for businesses
 - price: 0 for free tools, 99-999 for paid tools`;
 
-  const text = await callWithRetry(() => callOpenAI(prompt, {
-    model:        'gpt-4o',
-    max_tokens:   1000,
-    temperature:  0.7,
+  const text = await callWithRetry(() => callClaude(prompt, {
+    model:        'claude-sonnet-4-6',
+    max_tokens:   1024,
     systemPrompt: SYSTEM_PROMPT,
   }));
 
@@ -94,10 +93,9 @@ Return ONLY this JSON array:
 
 Make ideas practical and marketable.`;
 
-  const text = await callWithRetry(() => callOpenAI(prompt, {
-    model:        'gpt-4o',
-    max_tokens:   1500,
-    temperature:  0.8,
+  const text = await callWithRetry(() => callClaude(prompt, {
+    model:        'claude-sonnet-4-6',
+    max_tokens:   2048,
     systemPrompt: SYSTEM_PROMPT,
   }));
 

@@ -1,7 +1,8 @@
 'use strict';
 
-const { randomUUID } = require('crypto');
-const supabase = require('../db/supabase');
+const { randomUUID }     = require('crypto');
+const supabase           = require('../db/supabase');
+const { logToAgentLogs } = require('../db/agent-logger');
 const { buildPatternSignature, hasLastThreeMatchingFailures } = require('./pattern-detector');
 const { trackPerformance, logLearningDecision } = require('./performance-tracker');
 const { DEFAULT_STRATEGY, getLearningScore, selectStrategy } = require('./strategy-optimizer');
@@ -96,6 +97,9 @@ async function getLearningDecision(toolOrId, context = {}) {
       hasLastThreeMatchingFailures(history, decision.pattern_signature);
 
     if (shouldSkip) {
+      await logToAgentLogs('learning', 'warn',
+        `Skipping tool ${tool.id} — repeated low-confidence pattern`,
+        { tool_id: tool.id, totalAttempts, pattern_signature: decision.pattern_signature, learning_score: decision.learning_score });
       logLearningDecision({
         trace_id: traceId,
         run_id: context.runId,

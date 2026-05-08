@@ -48,7 +48,7 @@ app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
 
 const REQUIRED_ENV  = ['JWT_SECRET','SUPABASE_URL','SUPABASE_SERVICE_ROLE_KEY','OPENAI_API_KEY'];
-const OPTIONAL_ENV  = ['RAZORPAY_KEY_ID','RAZORPAY_KEY_SECRET','RAZORPAY_WEBHOOK_SECRET','RESEND_API_KEY'];
+const OPTIONAL_ENV  = ['RAZORPAY_KEY_ID','RAZORPAY_KEY_SECRET','RAZORPAY_WEBHOOK_SECRET','RESEND_API_KEY','ANTHROPIC_API_KEY'];
 
 const missingRequired = REQUIRED_ENV.filter((key) => !process.env[key]);
 if (missingRequired.length > 0) {

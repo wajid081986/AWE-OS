@@ -10,6 +10,7 @@
 
 const { randomUUID }            = require('crypto');
 const supabase                  = require('../db/supabase');
+const { logToAgentLogs }        = require('../db/agent-logger');
 const { getLearningDecision,
         recordLearningOutcome } = require('./learning-engine');
 
@@ -535,6 +536,7 @@ async function testTool(toolId, runId = null) {
 async function runTestingAgent() {
   const runId = randomUUID();
 
+  await logToAgentLogs('testing', 'info', 'Batch testing started', { runId });
   log('info', {
     operation: 'run_testing_agent',
     message:   'Batch testing started',
@@ -618,6 +620,7 @@ async function runTestingAgent() {
       failed:  normalisedResults.filter((r) => r.testStatus === 'fail').length,
     };
 
+    await logToAgentLogs('testing', 'info', 'Batch testing complete', { runId, ...summary });
     log('info', {
       operation: 'run_testing_agent',
       message:   'Batch testing complete',
@@ -627,6 +630,7 @@ async function runTestingAgent() {
     return normalisedResults;
 
   } catch (err) {
+    await logToAgentLogs('testing', 'error', 'Batch testing failed at top level', { error: toErrorMessage(err) });
     log('error', {
       operation: 'run_testing_agent',
       message:   'Batch testing failed at top level – returning empty results',

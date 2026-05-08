@@ -1,5 +1,6 @@
 const { v4: uuidv4 }         = require('uuid');
 const supabase               = require('../db/supabase');
+const { logToAgentLogs }     = require('../db/agent-logger');
 const { applyRules }         = require('./decision-engine');
 const { generateToolConfig } = require('../services/ai-factory.service');
 const { testTool }           = require('./testing-agent.core');
@@ -409,6 +410,7 @@ async function runAutonomousLoop({ limit = MAX_TOOLS_PER_RUN, triggered_by = 'cr
     const startedAt = new Date();
     const runId     = await createRunRecord(triggered_by);
 
+    await logToAgentLogs('autonomous', 'info', `Loop starting | run_id=${runId} | limit=${safeLimit}`, { runId, safeLimit, triggered_by });
     console.log(`[AUTONOMOUS AGENT] Loop starting | run_id=${runId} | limit=${safeLimit}`);
 
     const actions = {
@@ -490,6 +492,10 @@ async function runAutonomousLoop({ limit = MAX_TOOLS_PER_RUN, triggered_by = 'cr
     };
 
     await finaliseRunRecord(runId, summary);
+
+    await logToAgentLogs('autonomous', 'info',
+      `Loop complete: ${toolsProcessed} tools in ${summary.duration_ms}ms`,
+      { runId, tools_processed: toolsProcessed, tools_skipped: toolsSkipped, actions });
 
     console.log(
       `[AUTONOMOUS AGENT] Loop complete: ${toolsProcessed} tools in ${summary.duration_ms}ms` +

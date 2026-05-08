@@ -155,4 +155,125 @@ router.post('/retention/trigger', requireAuth, requireAdmin, async (req, res) =>
   }
 });
 
+// ── Agent monitoring endpoints ───────────────────────────────────────────────
+
+// GET /api/admin/agents/metrics — 24h summary across all agents
+router.get('/agents/metrics', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+    const { data: logs } = await supabase
+      .from('agent_logs')
+      .select('agent_name, level, created_at')
+      .gte('created_at', since);
+
+    const rows         = logs || [];
+    const totalRuns24h = rows.filter(r => r.level === 'info' && r.agent_name).length;
+    const errorCount   = rows.filter(r => r.level === 'error').length;
+    const successCount = totalRuns24h - errorCount;
+    const successRate  = totalRuns24h > 0 ? successCount / totalRuns24h : 0;
+
+    const counts = {};
+    for (const r of rows) {
+      counts[r.agent_name] = (counts[r.agent_name] || 0) + 1;
+    }
+    const mostActive = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+
+    res.json({ success: true, totalRuns24h, successRate, errorCount, mostActive });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/admin/agents/status — per-agent status from recent agent_logs
+router.get('/agents/status', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+    const { data: logs } = await supabase
+      .from('agent_logs')
+      .select('agent_name, level, message, created_at')
+      .gte('created_at', since)
+      .order('created_at', { ascending: false });
+
+    // Also pull autonomous_runs for the autonomous agent
+    const { data: autoRuns } = await supabase
+      .from('autonomous_runs')
+      .select('started_at, completed_at, errors')
+      .gte('started_at', since)
+      .order('started_at', { ascending: false })
+      .limit(20);
+
+    const rows = logs || [];
+    const agentNames = ['autonomous', 'auto-debug', 'testing', 'learning', 'idea-pipeline',
+                        'decision', 'revenue', 'deployment', 'marketing', 'support', 'optimization'];
+
+    const agents = {};
+    for (const name of agentNames) {
+      const agentRows   = rows.filter(r => r.agent_name === name);
+      const errorRows   = agentRows.filter(r => r.level === 'error');
+      const lastEntry   = agentRows[0] || null;
+      const totalRuns   = agentRows.filter(r => r.message?.includes('complete') || r.message?.includes('started')).length;
+      const successRate = totalRuns > 0 ? Math.max(0, (totalRuns - errorRows.length) / totalRuns) : 0;
+
+      agents[name] = {
+        status:       lastEntry?.level === 'error' ? 'error' : lastEntry ? 'idle' : 'idle',
+        lastRun:      lastEntry?.created_at || null,
+        totalRuns24h: name === 'autonomous' ? (autoRuns?.length || 0) : totalRuns,
+        successRate,
+      };
+    }
+
+    res.json({ success: true, agents });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/admin/agents/logs/:agentName — last 20 log entries for one agent
+router.get('/agents/logs/:agentName', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { agentName } = req.params;
+    const { data: logs, error } = await supabase
+      .from('agent_logs')
+      .select('id, agent_name, level, message, metadata, created_at')
+      .eq('agent_name', agentName)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (error) throw error;
+    res.json({ success: true, logs: logs || [] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/admin/agents/trigger/:agentName — fire an agent manually
+router.post('/agents/trigger/:agentName', requireAuth, requireAdmin, async (req, res) => {
+  const { agentName } = req.params;
+
+  const TRIGGERS = {
+    'autonomous': () => require('../agents/autonomous-agent').runAutonomousLoop({ triggered_by: 'admin' }),
+    'auto-debug': () => require('../agents/auto-debug-agent').runAutoDebugAgent(),
+    'testing':    () => require('../agents/testing-agent.core').runTestingAgent(),
+  };
+
+  const trigger = TRIGGERS[agentName];
+  if (trigger) {
+    // Fire-and-forget — respond immediately
+    trigger().catch(e => console.error(`[ADMIN TRIGGER] ${agentName} error:`, e?.message));
+    return res.json({ success: true, message: `Agent "${agentName}" triggered` });
+  }
+
+  // For other agents without a direct import: log the trigger and return success
+  await supabase.from('agent_logs').insert({
+    agent_name: agentName,
+    level:      'info',
+    message:    `Manual trigger requested by admin`,
+    metadata:   { triggered_by: 'admin' },
+  }).catch(() => {});
+
+  res.json({ success: true, message: `Trigger signal sent to "${agentName}"` });
+});
+
 module.exports = router;

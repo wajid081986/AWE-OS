@@ -1,7 +1,8 @@
 'use strict';
 
-const { randomUUID } = require('crypto');
-const supabase = require('../db/supabase');
+const { randomUUID }     = require('crypto');
+const supabase           = require('../db/supabase');
+const { logToAgentLogs } = require('../db/agent-logger');
 const { classifyError } = require('../services/error-classifier');
 const { getDebugStrategy, strategyToStatus } = require('../services/debug-strategy-engine');
 const { getRetryDecision, MAX_DEBUG_ATTEMPTS } = require('../services/retry-controller');
@@ -350,6 +351,7 @@ async function runAutoDebugAgent() {
   const debugRunId = randomUUID();
 
   try {
+    await logToAgentLogs('auto-debug', 'info', 'Starting auto debug run', { debugRunId });
     log('info', {
       trace_id: randomUUID(),
       debug_run_id: debugRunId,
@@ -377,6 +379,7 @@ async function runAutoDebugAgent() {
       }
     }
 
+    await logToAgentLogs('auto-debug', 'info', 'Completed auto debug run', { debugRunId, processed: results.length });
     log('info', {
       trace_id: randomUUID(),
       debug_run_id: debugRunId,
@@ -387,6 +390,7 @@ async function runAutoDebugAgent() {
 
     return results;
   } catch (err) {
+    await logToAgentLogs('auto-debug', 'error', 'Auto debug run failed safely', { debugRunId, error: err?.message });
     log('error', {
       trace_id: randomUUID(),
       debug_run_id: debugRunId,
