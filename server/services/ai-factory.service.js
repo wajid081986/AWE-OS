@@ -1,7 +1,7 @@
 const supabase = require('../db/supabase');
 const { callClaude, parseJSONResponse } = require('./ai.service');
 
-const SYSTEM_PROMPT = `You are an AI tool builder for AWE-OS SaaS platform. When given a category or idea, you generate complete tool configurations. ALWAYS respond with valid JSON only. No markdown, no explanation. Just the JSON object.`;
+const SYSTEM_PROMPT = `You are an AI tool builder for AWE-OS SaaS platform. When given a category or idea, you generate complete tool configurations. Respond with ONLY a valid JSON object. No markdown, no backticks, no explanation. Just raw JSON.`;
 
 // Strip characters that could escape prompt context or inject instructions
 function sanitizeForPrompt(value, maxLength = 200) {
@@ -64,7 +64,9 @@ Rules:
 - 2-4 input fields max
 - ai_prompt must use {{fieldName}} placeholders
 - Make it genuinely useful for businesses
-- price: 0 for free tools, 99-999 for paid tools`;
+- price: 0 for free tools, 99-999 for paid tools
+
+IMPORTANT: Respond with ONLY a valid JSON object. No markdown, no backticks, no explanation. Just raw JSON.`;
 
   const text = await callWithRetry(() => callClaude(prompt, {
     model:        'claude-sonnet-4-6',
@@ -91,7 +93,9 @@ Return ONLY this JSON array:
   }
 ]
 
-Make ideas practical and marketable.`;
+Make ideas practical and marketable.
+
+IMPORTANT: Respond with ONLY a valid JSON array. No markdown, no backticks, no explanation. Just raw JSON.`;
 
   const text = await callWithRetry(() => callClaude(prompt, {
     model:        'claude-sonnet-4-6',

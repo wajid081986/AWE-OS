@@ -23,7 +23,7 @@ router.post('/generate', requireAuth, requireAdmin, factoryLimiter, async (req, 
     const { data: job, error } = await supabase
       .from('factory_jobs')
       .insert({
-        status:       'pending',
+        status:       'running',
         category,
         input_prompt: idea || category,
         created_by:   userId,
@@ -33,10 +33,13 @@ router.post('/generate', requireAuth, requireAdmin, factoryLimiter, async (req, 
 
     if (error) throw new Error(error.message);
 
-    // Fire-and-forget — don't await
-    runFactory(job.id, category, idea, userId);
+    const result = await runFactory(job.id, category, idea, userId);
 
-    res.json({ jobId: job.id, message: 'Tool generation started', status: 'pending' });
+    if (!result.success) {
+      return res.status(500).json({ error: result.error || 'Tool generation failed' });
+    }
+
+    res.json({ jobId: job.id, status: 'completed', tool: result.tool });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
