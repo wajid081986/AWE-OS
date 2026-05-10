@@ -1,0 +1,1861 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Cover Letter Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET & BASE ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0D0D0D;
+  --surface: #1A1A2E;
+  --surface2: #16213E;
+  --border: rgba(79,142,247,0.18);
+  --accent: #4F8EF7;
+  --accent2: #7B5EA7;
+  --text: #E8E8F0;
+  --text2: #9898B8;
+  --text3: #5A5A7A;
+  --success: #27E8A0;
+  --warn: #F7C04F;
+  --danger: #F75F5F;
+  --glass: rgba(26,26,46,0.72);
+  --shadow: 0 8px 32px rgba(0,0,0,0.48);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --transition: 0.22s cubic-bezier(.4,0,.2,1);
+}
+
+[data-theme="light"] {
+  --bg: #F0F2F8;
+  --surface: #FFFFFF;
+  --surface2: #F5F6FF;
+  --border: rgba(79,142,247,0.22);
+  --text: #1A1A2E;
+  --text2: #5A5A7A;
+  --text3: #9898B8;
+  --glass: rgba(255,255,255,0.80);
+  --shadow: 0 8px 32px rgba(0,0,60,0.12);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Sora', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background var(--transition), color var(--transition);
+  overflow-x: hidden;
+}
+
+/* ─── SCROLLBAR ─────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ─── LAYOUT ────────────────────────────────────────────────────── */
+.app-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  grid-template-rows: 64px 1fr;
+  min-height: 100vh;
+}
+
+header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(16px);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.logo svg { flex-shrink: 0; }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ─── SIDEBAR (HISTORY) ─────────────────────────────────────────── */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 20px 0;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+}
+
+.sidebar-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 0 20px 12px;
+}
+
+.history-list { padding: 0 12px; }
+
+.history-item {
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition);
+  margin-bottom: 6px;
+  border: 1px solid transparent;
+}
+
+.history-item:hover {
+  background: var(--surface2);
+  border-color: var(--border);
+}
+
+.history-item.active {
+  background: rgba(79,142,247,0.1);
+  border-color: var(--accent);
+}
+
+.history-item-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-item-meta {
+  font-size: 0.72rem;
+  color: var(--text3);
+}
+
+.history-empty {
+  padding: 16px 20px;
+  font-size: 0.8rem;
+  color: var(--text3);
+  text-align: center;
+}
+
+/* ─── MAIN CONTENT ──────────────────────────────────────────────── */
+.main {
+  padding: 28px 32px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ─── CARDS / GLASS ─────────────────────────────────────────────── */
+.card {
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 28px;
+}
+
+/* ─── PROGRESS BAR ──────────────────────────────────────────────── */
+.progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 8px;
+}
+
+.step-dot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  z-index: 1;
+}
+
+.step-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  transition: all var(--transition);
+  background: var(--surface);
+  color: var(--text3);
+  cursor: pointer;
+}
+
+.step-circle.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 16px rgba(79,142,247,0.5);
+}
+
+.step-circle.done {
+  border-color: var(--success);
+  background: var(--success);
+  color: #0D0D0D;
+}
+
+.step-label {
+  font-size: 0.68rem;
+  color: var(--text3);
+  white-space: nowrap;
+  font-weight: 500;
+  transition: color var(--transition);
+}
+
+.step-dot.active .step-label, .step-dot.done .step-label { color: var(--text); }
+
+.step-line {
+  flex: 1;
+  height: 2px;
+  background: var(--border);
+  margin: 0 8px;
+  margin-bottom: 22px;
+  transition: background var(--transition);
+}
+
+.step-line.done { background: var(--success); }
+.step-line.active { background: var(--accent); }
+
+/* ─── FORM STEPS ────────────────────────────────────────────────── */
+.steps-container { position: relative; overflow: hidden; min-height: 360px; }
+
+.step-panel {
+  position: absolute;
+  width: 100%;
+  opacity: 0;
+  transform: translateX(60px);
+  transition: all 0.38s cubic-bezier(.4,0,.2,1);
+  pointer-events: none;
+}
+
+.step-panel.active {
+  position: relative;
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.step-panel.exit-left {
+  opacity: 0;
+  transform: translateX(-60px);
+}
+
+/* ─── FORM FIELDS ────────────────────────────────────────────────── */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+
+.form-group:last-child { margin-bottom: 0; }
+
+label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text2);
+  letter-spacing: 0.03em;
+}
+
+input[type="text"],
+input[type="email"],
+textarea,
+select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  color: var(--text);
+  font-family: 'Sora', sans-serif;
+  font-size: 0.9rem;
+  transition: border var(--transition), box-shadow var(--transition);
+  outline: none;
+  resize: vertical;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(79,142,247,0.15);
+}
+
+textarea { min-height: 120px; line-height: 1.6; }
+
+select option { background: var(--surface); }
+
+/* ─── TAGS INPUT ─────────────────────────────────────────────────── */
+.tags-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  min-height: 46px;
+  cursor: text;
+  transition: border var(--transition), box-shadow var(--transition);
+}
+
+.tags-wrap:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(79,142,247,0.15);
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(79,142,247,0.18);
+  border: 1px solid rgba(79,142,247,0.35);
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.tag-del {
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity var(--transition);
+}
+
+.tag-del:hover { opacity: 1; }
+
+.tags-input {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-family: 'Sora', sans-serif;
+  font-size: 0.88rem;
+  outline: none;
+  flex: 1;
+  min-width: 80px;
+}
+
+/* ─── SLIDER ─────────────────────────────────────────────────────── */
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(79,142,247,0.6);
+  cursor: pointer;
+  transition: box-shadow var(--transition);
+}
+
+input[type="range"]:hover::-webkit-slider-thumb {
+  box-shadow: 0 0 14px rgba(79,142,247,0.9);
+}
+
+.slider-val {
+  min-width: 36px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--accent);
+}
+
+/* ─── OPTION PILLS ───────────────────────────────────────────────── */
+.pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  padding: 8px 18px;
+  border-radius: 24px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  user-select: none;
+}
+
+.pill:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.pill.selected {
+  background: rgba(79,142,247,0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 10px rgba(79,142,247,0.2);
+}
+
+/* ─── BUTTONS ─────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 22px;
+  border-radius: var(--radius-sm);
+  border: none;
+  font-family: 'Sora', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(79,142,247,0.35);
+}
+
+.btn-primary:hover {
+  background: #6B9EFF;
+  box-shadow: 0 4px 28px rgba(79,142,247,0.55);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  background: var(--surface2);
+  color: var(--text2);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text2);
+  border: 1px solid transparent;
+}
+
+.btn-ghost:hover { background: var(--surface2); color: var(--text); }
+
+.btn-danger {
+  background: rgba(247,95,95,0.15);
+  color: var(--danger);
+  border: 1px solid rgba(247,95,95,0.3);
+}
+
+.btn-danger:hover { background: rgba(247,95,95,0.28); }
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn-sm { padding: 7px 14px; font-size: 0.78rem; }
+
+.step-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+/* ─── GENERATE BTN (BIG) ─────────────────────────────────────────── */
+.btn-generate {
+  width: 100%;
+  justify-content: center;
+  padding: 16px;
+  font-size: 1rem;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  color: #fff;
+  box-shadow: 0 6px 28px rgba(79,142,247,0.4);
+  letter-spacing: 0.02em;
+}
+
+.btn-generate:hover {
+  box-shadow: 0 8px 36px rgba(79,142,247,0.6);
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+}
+
+/* ─── OUTPUT PANEL ───────────────────────────────────────────────── */
+.output-section { display: flex; flex-direction: column; gap: 16px; }
+
+.output-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.output-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.output-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+}
+
+.badge-accent { background: rgba(79,142,247,0.15); border-color: var(--accent); color: var(--accent); }
+.badge-success { background: rgba(39,232,160,0.12); border-color: var(--success); color: var(--success); }
+.badge-warn { background: rgba(247,192,79,0.12); border-color: var(--warn); color: var(--warn); }
+
+/* ─── ATS METER ──────────────────────────────────────────────────── */
+.ats-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ats-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text2);
+  white-space: nowrap;
+}
+
+.ats-bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--surface2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.ats-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.8s cubic-bezier(.4,0,.2,1), background 0.5s;
+  background: linear-gradient(90deg, var(--danger), var(--warn), var(--success));
+  background-size: 200% 100%;
+  width: 0%;
+}
+
+.ats-score {
+  font-size: 1rem;
+  font-weight: 700;
+  min-width: 44px;
+  text-align: right;
+}
+
+/* ─── OUTPUT TEXT ────────────────────────────────────────────────── */
+.output-text-wrap {
+  position: relative;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-height: 260px;
+}
+
+#output-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  line-height: 1.75;
+  color: var(--text);
+  padding: 22px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  outline: none;
+  min-height: 260px;
+}
+
+.cursor-blink::after {
+  content: '▋';
+  color: var(--accent);
+  animation: blink 0.9s infinite;
+  margin-left: 1px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.placeholder-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: var(--text3);
+  pointer-events: none;
+}
+
+.placeholder-text svg { margin-bottom: 10px; opacity: 0.4; }
+.placeholder-text p { font-size: 0.88rem; }
+
+/* ─── KEYWORDS ───────────────────────────────────────────────────── */
+.keywords-section { }
+
+.keywords-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+
+.keywords-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.keyword-chip {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  border: 1px solid;
+}
+
+.keyword-chip.matched {
+  background: rgba(39,232,160,0.1);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.keyword-chip.missing {
+  background: rgba(247,95,95,0.08);
+  border-color: rgba(247,95,95,0.4);
+  color: var(--danger);
+}
+
+/* ─── ACTION BUTTONS ROW ─────────────────────────────────────────── */
+.actions-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ─── THEME TOGGLE ───────────────────────────────────────────────── */
+.theme-toggle {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  font-size: 1.1rem;
+}
+
+.theme-toggle:hover { border-color: var(--accent); }
+
+/* ─── MODAL ──────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition);
+}
+
+.modal-overlay.open { opacity: 1; pointer-events: auto; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 36px;
+  max-width: 440px;
+  width: 90%;
+  box-shadow: var(--shadow);
+  transform: scale(0.94);
+  transition: transform var(--transition);
+}
+
+.modal-overlay.open .modal { transform: scale(1); }
+
+.modal-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+
+.modal-desc {
+  font-size: 0.85rem;
+  color: var(--text2);
+  margin-bottom: 22px;
+  line-height: 1.6;
+}
+
+.modal-input-row { display: flex; gap: 10px; }
+
+.api-key-input {
+  flex: 1;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+}
+
+/* ─── CONTEXT MENU ───────────────────────────────────────────────── */
+.ctx-menu {
+  position: fixed;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  padding: 5px;
+  z-index: 900;
+  min-width: 180px;
+  opacity: 0;
+  transform: scale(0.92);
+  pointer-events: none;
+  transition: all 0.15s cubic-bezier(.4,0,.2,1);
+}
+
+.ctx-menu.open {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 13px;
+  border-radius: 6px;
+  font-size: 0.84rem;
+  cursor: pointer;
+  transition: background var(--transition);
+  color: var(--text);
+}
+
+.ctx-item:hover { background: var(--surface2); color: var(--accent); }
+
+.ctx-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+/* ─── LOADER / SPINNER ───────────────────────────────────────────── */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── TOAST ──────────────────────────────────────────────────────── */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 2000;
+}
+
+.toast {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 18px;
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: var(--text);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  transform: translateX(30px);
+  animation: toast-in 0.28s forwards, toast-out 0.28s 2.5s forwards;
+}
+
+.toast-success { border-left: 3px solid var(--success); }
+.toast-error { border-left: 3px solid var(--danger); }
+.toast-info { border-left: 3px solid var(--accent); }
+
+@keyframes toast-in {
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes toast-out {
+  to { opacity: 0; transform: translateX(30px); }
+}
+
+/* ─── SECTION HEADINGS ───────────────────────────────────────────── */
+.section-h {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.section-h::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  margin-left: 6px;
+}
+
+/* ─── MOBILE ─────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .app-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: 64px auto 1fr;
+  }
+
+  header { grid-column: 1; }
+
+  .sidebar {
+    grid-row: 2;
+    position: static;
+    height: auto;
+    max-height: 200px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .history-list { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; }
+  .history-item { flex-shrink: 0; min-width: 160px; }
+
+  .main { padding: 16px; }
+  .form-row { grid-template-columns: 1fr; }
+  .card { padding: 18px; }
+  .actions-row .btn span { display: none; }
+}
+
+/* ─── GLOW EFFECTS ───────────────────────────────────────────────── */
+.glow-blue { text-shadow: 0 0 18px rgba(79,142,247,0.6); }
+
+.generating-pulse {
+  animation: glow-pulse 1.5s infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(79,142,247,0.3); }
+  50% { box-shadow: 0 0 22px 4px rgba(79,142,247,0.18); }
+}
+
+/* ─── HIGHLIGHTED TEXT IN OUTPUT ─────────────────────────────────── */
+.kw-highlight {
+  background: rgba(39,232,160,0.18);
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
+/* ─── IMPROVE SELECTION LABEL ────────────────────────────────────── */
+.selection-hint {
+  font-size: 0.72rem;
+  color: var(--text3);
+  padding: 4px 10px;
+  background: var(--surface2);
+  border-radius: 20px;
+  border: 1px solid var(--border);
+}
+</style>
+</head>
+<body>
+
+<!-- API KEY MODAL -->
+<div class="modal-overlay" id="apiModal">
+  <div class="modal">
+    <div style="font-size:2rem;margin-bottom:12px;">🔑</div>
+    <div class="modal-title">Enter your Anthropic API Key</div>
+    <div class="modal-desc">Your key is stored only in your browser's localStorage and never sent anywhere except directly to Anthropic's API.</div>
+    <div class="form-group">
+      <label>API Key</label>
+      <div class="modal-input-row">
+        <input type="password" class="api-key-input" id="apiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off">
+        <button class="btn btn-primary" id="saveApiKey">Save</button>
+      </div>
+    </div>
+    <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:0.76rem;color:var(--text3)">Your key is never stored on a server</span>
+      <button class="btn btn-ghost btn-sm" id="skipApiKey">Skip for now</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div class="ctx-menu" id="ctxMenu">
+  <div class="ctx-item" data-action="formal">
+    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    Make more formal
+  </div>
+  <div class="ctx-item" data-action="details">
+    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+    Add more details
+  </div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" data-action="shorten">
+    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg>
+    Shorten this
+  </div>
+  <div class="ctx-item" data-action="enthusiastic">
+    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    Make more enthusiastic
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- APP -->
+<div class="app-grid">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+        <rect width="26" height="26" rx="7" fill="#4F8EF7" fill-opacity="0.15"/>
+        <path d="M7 19L13 7l6 12" stroke="#4F8EF7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M9 15h8" stroke="#4F8EF7" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      CoverCraft AI
+    </div>
+    <div class="header-right">
+      <span class="selection-hint" id="selectionHint" style="display:none">Right-click selected text to improve</span>
+      <button class="btn btn-ghost btn-sm" id="apiKeyBtn">🔑 API Key</button>
+      <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-title">History</div>
+    <div class="history-list" id="historyList">
+      <div class="history-empty">No letters generated yet</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- FORM CARD -->
+    <div class="card">
+      <!-- Progress -->
+      <div class="progress-wrap" id="progressWrap">
+        <div class="step-dot active" data-step="1">
+          <div class="step-circle active" id="sc1">1</div>
+          <span class="step-label active">Job Details</span>
+        </div>
+        <div class="step-line" id="sl1"></div>
+        <div class="step-dot" data-step="2">
+          <div class="step-circle" id="sc2">2</div>
+          <span class="step-label">Your Profile</span>
+        </div>
+        <div class="step-line" id="sl2"></div>
+        <div class="step-dot" data-step="3">
+          <div class="step-circle" id="sc3">3</div>
+          <span class="step-label">Customize</span>
+        </div>
+      </div>
+
+      <!-- Steps -->
+      <div class="steps-container" id="stepsContainer">
+
+        <!-- STEP 1: JOB DETAILS -->
+        <div class="step-panel active" id="step1">
+          <div class="section-h" style="margin-top:20px">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+            Job Details
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="jobTitle">Job Title *</label>
+              <input type="text" id="jobTitle" placeholder="e.g. Senior Product Manager">
+            </div>
+            <div class="form-group">
+              <label for="companyName">Company Name *</label>
+              <input type="text" id="companyName" placeholder="e.g. Stripe">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="jobDesc">Job Description *</label>
+            <textarea id="jobDesc" rows="7" placeholder="Paste the full job description here — the more detail you provide, the better the cover letter will be tailored..."></textarea>
+          </div>
+          <div class="step-nav">
+            <div></div>
+            <button class="btn btn-primary" onclick="goStep(2)">
+              Next: Your Profile
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 2: YOUR PROFILE -->
+        <div class="step-panel" id="step2">
+          <div class="section-h" style="margin-top:20px">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Your Profile
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fullName">Full Name *</label>
+              <input type="text" id="fullName" placeholder="e.g. Alex Johnson">
+            </div>
+            <div class="form-group">
+              <label for="currentRole">Current Role</label>
+              <input type="text" id="currentRole" placeholder="e.g. Product Manager at Meta">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Key Skills <span style="color:var(--text3);font-weight:400">(press Enter or comma to add)</span></label>
+            <div class="tags-wrap" id="tagsWrap">
+              <input class="tags-input" id="tagsInput" placeholder="Type a skill and press Enter...">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Years of Experience</label>
+            <div class="slider-row">
+              <input type="range" id="yearsExp" min="0" max="30" value="5" step="1">
+              <div class="slider-val" id="yearsVal">5</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="achievements">Key Achievements <span style="color:var(--text3);font-weight:400">(optional)</span></label>
+            <textarea id="achievements" rows="3" placeholder="e.g. Grew revenue by 40%, Led team of 12 engineers, Launched product used by 2M users..."></textarea>
+          </div>
+          <div class="step-nav">
+            <button class="btn btn-secondary" onclick="goStep(1)">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+              Back
+            </button>
+            <button class="btn btn-primary" onclick="goStep(3)">
+              Next: Customize
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 3: CUSTOMIZE -->
+        <div class="step-panel" id="step3">
+          <div class="section-h" style="margin-top:20px">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Customize Your Letter
+          </div>
+          <div class="form-group">
+            <label>Tone</label>
+            <div class="pill-group" id="toneGroup">
+              <div class="pill selected" data-val="professional">Professional</div>
+              <div class="pill" data-val="enthusiastic">Enthusiastic</div>
+              <div class="pill" data-val="creative">Creative</div>
+              <div class="pill" data-val="executive">Executive</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Letter Length</label>
+            <div class="pill-group" id="lengthGroup">
+              <div class="pill" data-val="short">Short (~200 words)</div>
+              <div class="pill selected" data-val="medium">Medium (~350 words)</div>
+              <div class="pill" data-val="long">Long (~500 words)</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Primary Focus</label>
+            <div class="pill-group" id="focusGroup">
+              <div class="pill selected" data-val="skills">Skills & Expertise</div>
+              <div class="pill" data-val="achievements">Achievements</div>
+              <div class="pill" data-val="cultural">Cultural Fit</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="extraNotes">Extra Instructions <span style="color:var(--text3);font-weight:400">(optional)</span></label>
+            <textarea id="extraNotes" rows="2" placeholder="e.g. Mention my MBA, reference a specific product they launched, keep it conversational..."></textarea>
+          </div>
+          <div class="step-nav">
+            <button class="btn btn-secondary" onclick="goStep(2)">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+              Back
+            </button>
+            <button class="btn btn-primary btn-generate generating-pulse" id="generateBtn" onclick="generateLetter()">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              Generate Cover Letter
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- OUTPUT CARD -->
+    <div class="card output-section" id="outputCard">
+
+      <div class="output-header">
+        <div class="output-title">Generated Cover Letter</div>
+        <div class="output-meta">
+          <span class="badge" id="wordCountBadge">0 words</span>
+          <span class="badge" id="charCountBadge">0 chars</span>
+          <span class="badge badge-accent" id="statusBadge">Ready</span>
+        </div>
+      </div>
+
+      <!-- ATS Meter -->
+      <div class="ats-row">
+        <span class="ats-label">ATS Score</span>
+        <div class="ats-bar-track">
+          <div class="ats-bar-fill" id="atsBar"></div>
+        </div>
+        <span class="ats-score" id="atsScore" style="color:var(--text3)">—</span>
+      </div>
+
+      <!-- Output Text -->
+      <div class="output-text-wrap">
+        <div class="placeholder-text" id="placeholder">
+          <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
+          <p>Fill in the form above and click<br><strong style="color:var(--accent)">Generate Cover Letter</strong></p>
+        </div>
+        <div id="output-text" contenteditable="true" spellcheck="false"></div>
+      </div>
+
+      <!-- Keyword Matches -->
+      <div class="keywords-section" id="keywordsSection" style="display:none">
+        <div class="keywords-title">Keyword Match Analysis</div>
+        <div class="keywords-list" id="keywordsList"></div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions-row">
+        <button class="btn btn-primary btn-sm" id="copyBtn" onclick="copyLetter()">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          <span>Copy</span>
+        </button>
+        <button class="btn btn-secondary btn-sm" id="dlTxtBtn" onclick="downloadTxt()">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Download .txt</span>
+        </button>
+        <button class="btn btn-secondary btn-sm" id="dlDocBtn" onclick="downloadDocx()">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+          <span>Download .docx</span>
+        </button>
+        <button class="btn btn-ghost btn-sm" id="regenBtn" onclick="generateLetter()">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          <span>Regenerate</span>
+        </button>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+/* ================================================================
+   STATE
+================================================================ */
+let currentStep = 1;
+let tags = [];
+let generatedText = '';
+let isGenerating = false;
+let history = JSON.parse(localStorage.getItem('clg_history') || '[]');
+let selectedImproveTxt = '';
+let selectedImproveRange = null;
+
+const toneMap = { professional:'professional', enthusiastic:'enthusiastic', creative:'creative', executive:'executive' };
+const lengthMap = { short: '200 words', medium: '350 words', long: '500 words' };
+const focusMap  = { skills: 'skills and expertise', achievements: 'achievements and impact', cultural: 'cultural fit and values' };
+
+/* ================================================================
+   INIT
+================================================================ */
+window.addEventListener('DOMContentLoaded', () => {
+  initApiKey();
+  initTags();
+  initSlider();
+  initPills();
+  initContextMenu();
+  renderHistory();
+  initTheme();
+
+  document.getElementById('saveApiKey').addEventListener('click', saveApiKey);
+  document.getElementById('skipApiKey').addEventListener('click', () => closeModal('apiModal'));
+  document.getElementById('apiKeyBtn').addEventListener('click', () => openModal('apiModal'));
+  document.getElementById('apiKeyInput').addEventListener('keydown', e => { if (e.key==='Enter') saveApiKey(); });
+});
+
+/* ================================================================
+   API KEY
+================================================================ */
+function initApiKey() {
+  const key = localStorage.getItem('anthropic_api_key');
+  if (!key) openModal('apiModal');
+  else window.ANTHROPIC_API_KEY = key;
+}
+
+function saveApiKey() {
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if (!val) { toast('Please enter your API key', 'error'); return; }
+  localStorage.setItem('anthropic_api_key', val);
+  window.ANTHROPIC_API_KEY = val;
+  closeModal('apiModal');
+  toast('API key saved', 'success');
+}
+
+/* ================================================================
+   THEME
+================================================================ */
+function initTheme() {
+  const saved = localStorage.getItem('clg_theme') || 'dark';
+  setTheme(saved);
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    setTheme(cur === 'dark' ? 'light' : 'dark');
+  });
+}
+
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('themeToggle').textContent = t === 'dark' ? '☀️' : '🌙';
+  localStorage.setItem('clg_theme', t);
+}
+
+/* ================================================================
+   MODAL
+================================================================ */
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+/* ================================================================
+   STEP NAVIGATION
+================================================================ */
+function goStep(n) {
+  if (n > currentStep && !validateStep(currentStep)) return;
+  const panels = document.querySelectorAll('.step-panel');
+  panels.forEach(p => { p.classList.remove('active', 'exit-left'); });
+  if (n > currentStep) {
+    document.getElementById(`step${currentStep}`).classList.add('exit-left');
+  }
+  currentStep = n;
+  document.getElementById(`step${n}`).classList.add('active');
+  updateProgress();
+}
+
+function validateStep(step) {
+  if (step === 1) {
+    const jt = document.getElementById('jobTitle').value.trim();
+    const cn = document.getElementById('companyName').value.trim();
+    const jd = document.getElementById('jobDesc').value.trim();
+    if (!jt || !cn || !jd) { toast('Please fill in all required fields', 'error'); return false; }
+  }
+  if (step === 2) {
+    const fn = document.getElementById('fullName').value.trim();
+    if (!fn) { toast('Please enter your full name', 'error'); return false; }
+  }
+  return true;
+}
+
+function updateProgress() {
+  for (let i = 1; i <= 3; i++) {
+    const sc = document.getElementById(`sc${i}`);
+    const dot = sc.closest('.step-dot');
+    sc.className = 'step-circle';
+    dot.className = 'step-dot';
+    if (i < currentStep) { sc.classList.add('done'); sc.textContent = '✓'; dot.classList.add('done'); }
+    else if (i === currentStep) { sc.classList.add('active'); sc.textContent = i; dot.classList.add('active'); }
+    else { sc.textContent = i; }
+  }
+  for (let i = 1; i <= 2; i++) {
+    const sl = document.getElementById(`sl${i}`);
+    sl.className = 'step-line';
+    if (i < currentStep) sl.classList.add('done');
+    else if (i === currentStep) sl.classList.add('active');
+  }
+}
+
+/* ================================================================
+   TAGS INPUT
+================================================================ */
+function initTags() {
+  const input = document.getElementById('tagsInput');
+  const wrap = document.getElementById('tagsWrap');
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const val = input.value.trim().replace(/,$/, '');
+      if (val && !tags.includes(val)) {
+        tags.push(val);
+        renderTags();
+      }
+      input.value = '';
+    } else if (e.key === 'Backspace' && !input.value && tags.length) {
+      tags.pop();
+      renderTags();
+    }
+  });
+
+  wrap.addEventListener('click', () => input.focus());
+}
+
+function renderTags() {
+  const wrap = document.getElementById('tagsWrap');
+  const input = document.getElementById('tagsInput');
+  wrap.innerHTML = '';
+  tags.forEach((t, i) => {
+    const el = document.createElement('div');
+    el.className = 'tag';
+    el.innerHTML = `${escHtml(t)}<span class="tag-del" data-i="${i}">×</span>`;
+    el.querySelector('.tag-del').addEventListener('click', () => { tags.splice(i,1); renderTags(); });
+    wrap.appendChild(el);
+  });
+  wrap.appendChild(input);
+  input.focus();
+}
+
+/* ================================================================
+   SLIDER
+================================================================ */
+function initSlider() {
+  const slider = document.getElementById('yearsExp');
+  const val = document.getElementById('yearsVal');
+  slider.addEventListener('input', () => { val.textContent = slider.value; });
+}
+
+/* ================================================================
+   PILL GROUPS
+================================================================ */
+function initPills() {
+  ['toneGroup','lengthGroup','focusGroup'].forEach(gid => {
+    document.getElementById(gid).addEventListener('click', e => {
+      const pill = e.target.closest('.pill');
+      if (!pill) return;
+      pill.parentElement.querySelectorAll('.pill').forEach(p => p.classList.remove('selected'));
+      pill.classList.add('selected');
+    });
+  });
+}
+
+function getPillVal(gid) {
+  const sel = document.getElementById(gid).querySelector('.pill.selected');
+  return sel ? sel.dataset.val : '';
+}
+
+/* ================================================================
+   GENERATE
+================================================================ */
+async function generateLetter() {
+  if (isGenerating) return;
+
+  if (!validateStep(1) || !validateStep(2)) { goStep(1); return; }
+
+  const apiKey = localStorage.getItem('anthropic_api_key') || window.ANTHROPIC_API_KEY;
+  if (!apiKey) { openModal('apiModal'); return; }
+
+  const data = collectFormData();
+  const prompt = buildPrompt(data);
+
+  setGenerating(true);
+  document.getElementById('placeholder').style.display = 'none';
+  const outEl = document.getElementById('output-text');
+  outEl.textContent = '';
+  outEl.classList.add('cursor-blink');
+  generatedText = '';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1200,
+        stream: true,
+        system: "You are an expert career coach and professional writer. Generate compelling, ATS-optimized cover letters that are personalized, specific, and avoid clichés. Output ONLY the cover letter text — no preamble, no meta-commentary, no explanation.",
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error ${res.status}`);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const raw = line.slice(6).trim();
+        if (raw === '[DONE]') continue;
+        try {
+          const ev = JSON.parse(raw);
+          if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta') {
+            generatedText += ev.delta.text;
+            outEl.textContent = generatedText;
+            outEl.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            updateCounts(generatedText);
+          }
+        } catch {}
+      }
+    }
+
+    outEl.classList.remove('cursor-blink');
+    computeATS(data.jobDesc, generatedText);
+    saveToHistory(data, generatedText);
+    setGenerating(false);
+    toast('Cover letter generated!', 'success');
+
+  } catch (err) {
+    outEl.classList.remove('cursor-blink');
+    setGenerating(false);
+    toast(err.message || 'Generation failed', 'error');
+    if (err.message && err.message.includes('401')) {
+      openModal('apiModal');
+    }
+  }
+}
+
+function collectFormData() {
+  return {
+    jobTitle: document.getElementById('jobTitle').value.trim(),
+    companyName: document.getElementById('companyName').value.trim(),
+    jobDesc: document.getElementById('jobDesc').value.trim(),
+    fullName: document.getElementById('fullName').value.trim(),
+    currentRole: document.getElementById('currentRole').value.trim(),
+    skills: [...tags],
+    years: document.getElementById('yearsExp').value,
+    achievements: document.getElementById('achievements').value.trim(),
+    tone: getPillVal('toneGroup'),
+    length: getPillVal('lengthGroup'),
+    focus: getPillVal('focusGroup'),
+    notes: document.getElementById('extraNotes').value.trim()
+  };
+}
+
+function buildPrompt(d) {
+  const toneDesc = {
+    professional: 'formal and professional',
+    enthusiastic: 'enthusiastic and energetic',
+    creative: 'creative and distinctive',
+    executive: 'executive-level, authoritative, and strategic'
+  }[d.tone] || 'professional';
+
+  const wordCount = { short: '180-220', medium: '320-380', long: '460-540' }[d.length] || '320-380';
+  const focusDesc = focusMap[d.focus] || 'skills';
+
+  let p = `Write a cover letter for the following position:
+
+POSITION: ${d.jobTitle} at ${d.companyName}
+
+JOB DESCRIPTION:
+${d.jobDesc}
+
+CANDIDATE:
+- Name: ${d.fullName}
+- Current Role: ${d.currentRole || 'Not specified'}
+- Years of Experience: ${d.years}
+- Skills: ${d.skills.length ? d.skills.join(', ') : 'Not specified'}
+${d.achievements ? `- Key Achievements: ${d.achievements}` : ''}
+
+REQUIREMENTS:
+- Tone: ${toneDesc}
+- Length: ${wordCount} words
+- Primary focus: ${focusDesc}
+- Make it ATS-optimized by naturally incorporating keywords from the job description
+- Be specific, avoid clichés, reference the company by name
+- Start with a compelling opening hook, not "I am applying for..."
+${d.notes ? `- Additional instructions: ${d.notes}` : ''}`;
+
+  return p;
+}
+
+/* ================================================================
+   IMPROVE SECTION (CONTEXT MENU)
+================================================================ */
+function initContextMenu() {
+  const menu = document.getElementById('ctxMenu');
+  const outEl = document.getElementById('output-text');
+  const hint = document.getElementById('selectionHint');
+
+  outEl.addEventListener('mouseup', () => {
+    const sel = window.getSelection();
+    if (sel && sel.toString().trim().length > 5) {
+      hint.style.display = 'inline-flex';
+    } else {
+      hint.style.display = 'none';
+    }
+  });
+
+  outEl.addEventListener('contextmenu', e => {
+    const sel = window.getSelection();
+    const txt = sel ? sel.toString().trim() : '';
+    if (!txt || txt.length < 5) return;
+    e.preventDefault();
+    selectedImproveTxt = txt;
+
+    const x = Math.min(e.clientX, window.innerWidth - 200);
+    const y = Math.min(e.clientY, window.innerHeight - 160);
+    menu.style.left = x + 'px';
+    menu.style.top = y + 'px';
+    menu.classList.add('open');
+  });
+
+  document.addEventListener('click', () => {
+    menu.classList.remove('open');
+  });
+
+  menu.querySelectorAll('.ctx-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const action = item.dataset.action;
+      improveSection(selectedImproveTxt, action);
+      menu.classList.remove('open');
+    });
+  });
+}
+
+async function improveSection(selectedText, action) {
+  if (!selectedText || isGenerating) return;
+
+  const apiKey = localStorage.getItem('anthropic_api_key') || window.ANTHROPIC_API_KEY;
+  if (!apiKey) { openModal('apiModal'); return; }
+
+  const actionMap = {
+    formal: 'Rewrite this text to be more formal and professional',
+    details: 'Expand this text with more specific and compelling details',
+    shorten: 'Shorten this text while keeping the key message',
+    enthusiastic: 'Rewrite this with more enthusiasm and energy'
+  };
+
+  const instruction = actionMap[action] || 'Improve this text';
+
+  toast('Improving section...', 'info');
+  setGenerating(true);
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 400,
+        system: "You are an expert professional writer. When asked to improve a section of text, output ONLY the improved replacement text — no preamble, no quotes, no explanation.",
+        messages: [{
+          role: 'user',
+          content: `${instruction}. Output ONLY the improved text:\n\n${selectedText}`
+        }]
+      })
+    });
+
+    if (!res.ok) throw new Error(`API error ${res.status}`);
+
+    const json = await res.json();
+    const improved = json.content?.[0]?.text || '';
+
+    if (improved) {
+      generatedText = generatedText.replace(selectedText, improved);
+      document.getElementById('output-text').textContent = generatedText;
+      updateCounts(generatedText);
+      computeATS(document.getElementById('jobDesc').value, generatedText);
+      toast('Section improved!', 'success');
+    }
+  } catch (err) {
+    toast('Improvement failed: ' + err.message, 'error');
+  } finally {
+    setGenerating(false);
+  }
+}
+
+/* ================================================================
+   ATS SCORE
+================================================================ */
+function computeATS(jobDesc, coverLetter) {
+  if (!jobDesc || !coverLetter) return;
+
+  const jdWords = extractKeywords(jobDesc);
+  const clLower = coverLetter.toLowerCase();
+  const clWords = new Set(clLower.match(/\b\w{4,}\b/g) || []);
+
+  let matched = [];
+  let missing = [];
+
+  jdWords.forEach(kw => {
+    if (clLower.includes(kw.toLowerCase())) matched.push(kw);
+    else missing.push(kw);
+  });
+
+  const score = jdWords.length ? Math.round((matched.length / jdWords.length) * 100) : 0;
+  const clamped = Math.min(100, Math.max(0, score));
+
+  document.getElementById('atsBar').style.width = clamped + '%';
+  const scoreEl = document.getElementById('atsScore');
+  scoreEl.textContent = clamped + '%';
+  scoreEl.style.color = clamped >= 70 ? 'var(--success)' : clamped >= 45 ? 'var(--warn)' : 'var(--danger)';
+
+  const kwSection = document.getElementById('keywordsSection');
+  const kwList = document.getElementById('keywordsList');
+  kwList.innerHTML = '';
+  kwSection.style.display = 'block';
+
+  [...matched.slice(0, 12), ...missing.slice(0, 8)].forEach(kw => {
+    const el = document.createElement('span');
+    el.className = 'keyword-chip ' + (matched.includes(kw) ? 'matched' : 'missing');
+    el.textContent = kw + (matched.includes(kw) ? ' ✓' : ' ✗');
+    kwList.appendChild(el);
+  });
+}
+
+function extractKeywords(text) {
+  const stop = new Set(['with','that','this','from','have','they','will','your','been','into','their','there','which','about','would','could','should','other','these','those','being','some','also','more','when','what','where','both','than','well','each','over','such','only','very','then','make','most','much','through','while','before','after','between','however','including','provide','ensure','experience','skills','work','team','role','position','company','looking','years']);
+  const words = text.toLowerCase().match(/\b[a-z][a-z\-]{3,}\b/g) || [];
+  const freq = {};
+  words.forEach(w => { if (!stop.has(w)) freq[w] = (freq[w]||0)+1; });
+  return Object.entries(freq)
+    .sort((a,b) => b[1]-a[1])
+    .slice(0, 20)
+    .map(e => e[0]);
+}
+
+/* ================================================================
+   COUNTS / STATUS
+================================================================ */
+function updateCounts(text) {
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const chars = text.length;
+  document.getElementById('wordCountBadge').textContent = words + ' words';
+  document.getElementById('charCountBadge').textContent = chars + ' chars';
+}
+
+function setGenerating(val) {
+  isGenerating = val;
+  const btn = document.getElementById('generateBtn');
+  const statusBadge = document.getElementById('statusBadge');
+  if (val) {
+    btn.disabled = true;
+    btn.innerHTML = `<div class="spinner"></div> Generating...`;
+    statusBadge.className = 'badge badge-accent';
+    statusBadge.textContent = 'Generating...';
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Generate Cover Letter`;
+    statusBadge.className = 'badge badge-success';
+    statusBadge.textContent = 'Done';
+  }
+}
+
+/* ================================================================
+   HISTORY
+================================================================ */
+function saveToHistory(data, text) {
+  const entry = {
+    id: Date.now(),
+    jobTitle: data.jobTitle,
+    company: data.companyName,
+    text,
+    ts: new Date().toISOString()
+  };
+  history.unshift(entry);
+  if (history.length > 5) history = history.slice(0, 5);
+  localStorage.setItem('clg_history', JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (!history.length) {
+    list.innerHTML = '<div class="history-empty">No letters generated yet</div>';
+    return;
+  }
+  list.innerHTML = history.map((h, i) => `
+    <div class="history-item ${i===0?'active':''}" onclick="loadHistory(${h.id})">
+      <div class="history-item-title">${escHtml(h.jobTitle)} @ ${escHtml(h.company)}</div>
+      <div class="history-item-meta">${formatDate(h.ts)} · ${countWords(h.text)} words</div>
+    </div>
+  `).join('');
+}
+
+function loadHistory(id) {
+  const entry = history.find(h => h.id === id);
+  if (!entry) return;
+  generatedText = entry.text;
+  document.getElementById('output-text').textContent = entry.text;
+  document.getElementById('placeholder').style.display = 'none';
+  updateCounts(entry.text);
+  computeATS(document.getElementById('jobDesc').value || '', entry.text);
+  document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  toast('History loaded', 'info');
+}
+
+/* ================================================================
+   COPY / DOWNLOAD
+================================================================ */
+function copyLetter() {
+  if (!generatedText) { toast('Nothing to copy yet', 'error'); return; }
+  navigator.clipboard.writeText(generatedText)
+    .then(() => toast('Copied to clipboard!', 'success'))
+    .catch(() => toast('Copy failed', 'error'));
+}
+
+function downloadTxt() {
+  if (!generatedText) { toast('Nothing to download', 'error'); return; }
+  const fname = `cover-letter-${Date.now()}.txt`;
+  const blob = new Blob([generatedText], { type: 'text/plain' });
+  triggerDownload(blob, fname);
+  toast('Downloaded .txt', 'success');
+}
+
+function downloadDocx() {
+  if (!generatedText) { toast('Nothing to download', 'error'); return; }
+
+  /* RTF packed as .docx — a real Word-compatible simple document */
+  const rtf = `{\\rtf1\\ansi\\ansicpg1252\\deff0
+{\\fonttbl{\\f0\\fnil\\fcharset0 Calibri;}}
+{\\*\\generator CoverCraft AI;}
+\\f0\\fs24
+${generatedText.replace(/\n/g, '\\par ')}
+}`;
+  const blob = new Blob([rtf], { type: 'application/rtf' });
+  triggerDownload(blob, `cover-letter-${Date.now()}.rtf`);
+  toast('Downloaded .rtf (open in Word)', 'success');
+}
+
+function triggerDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ================================================================
+   TOAST
+================================================================ */
+function toast(msg, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  const icon = { success:'✓', error:'✗', info:'ℹ' }[type] || '';
+  el.className = `toast toast-${type}`;
+  el.innerHTML = `<span>${icon}</span>${escHtml(msg)}`;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 2900);
+}
+
+/* ================================================================
+   HELPERS
+================================================================ */
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function countWords(t) { return t.trim() ? t.trim().split(/\s+/).length : 0; }
+
+function formatDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+</script>
+</body>
+</html>
