@@ -1,7 +1,7 @@
 const supabase = require('../db/supabase');
 const { callClaude, parseJSONResponse } = require('./ai.service');
 
-const SYSTEM_PROMPT = `You are an AI tool builder for AWE-OS SaaS platform. When given a category or idea, you generate complete tool configurations. Respond with ONLY a valid JSON object. No markdown, no backticks, no explanation. Just raw JSON.`;
+const SYSTEM_PROMPT = `You are an AI tool builder for AWE-OS SaaS platform. When given a category or idea, you generate complete tool configurations. You MUST respond with ONLY a valid JSON object. No markdown. No backticks. No explanation. Start your response with { and end with }`;
 
 // Strip characters that could escape prompt context or inject instructions
 function sanitizeForPrompt(value, maxLength = 200) {
@@ -68,13 +68,23 @@ Rules:
 
 IMPORTANT: Respond with ONLY a valid JSON object. No markdown, no backticks, no explanation. Just raw JSON.`;
 
-  const text = await callWithRetry(() => callClaude(prompt, {
+  const rawResponse = await callWithRetry(() => callClaude(prompt, {
     model:        'claude-sonnet-4-6',
     max_tokens:   1024,
     systemPrompt: SYSTEM_PROMPT,
   }));
 
-  return parseJSONResponse(text);
+  const cleaned = rawResponse
+    .replace(/```json/g, '')
+    .replace(/```/g, '')
+    .trim();
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (err) {
+    console.error('RAW AI RESPONSE:', rawResponse);
+    throw new Error(`Failed to parse AI response as JSON: ${err.message}`);
+  }
 };
 
 const generateToolIdeas = async (category, count = 5) => {
