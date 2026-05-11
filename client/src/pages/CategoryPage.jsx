@@ -17,7 +17,7 @@
 
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import AdBanner from '../components/AdBanner'
+import AdContainer from '../components/tool-engine/AdContainer'
 import {
   getCategoryMeta,
   getCatalogueSections,
@@ -112,7 +112,7 @@ export default function CategoryPage({ category }) {
       </Helmet>
 
       {/* ── Category hero ─────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-b from-gray-50 to-white border-b border-gray-200 px-4 py-10">
+      <div className="bg-gradient-to-b from-gray-50 to-white border-b border-gray-200 px-4 sm:px-6 py-10">
         <div className="max-w-7xl mx-auto">
           {/* Breadcrumb */}
           <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-gray-400 mb-5">
@@ -149,10 +149,10 @@ export default function CategoryPage({ category }) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
 
-        {/* ── Ad banner ───────────────────────────────────────────────────── */}
-        <AdBanner size="leaderboard" />
+        {/* ── Ad banner (top-banner = eager) ──────────────────────────────── */}
+        <AdContainer slot="top-banner" />
 
         {/* ── Tool sections ───────────────────────────────────────────────── */}
         <div className="mt-10 space-y-10">
@@ -218,16 +218,16 @@ export default function CategoryPage({ category }) {
           <p className="text-blue-100 text-sm mb-5">
             Create a free account to save your work, access your history, and unlock AI-powered features.
           </p>
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex flex-col sm:flex-row justify-center gap-3">
             <Link
               to="/login"
-              className="px-5 py-2.5 bg-white text-blue-600 rounded-xl text-sm font-semibold hover:bg-blue-50 transition-colors shadow-sm"
+              className="px-5 py-3 bg-white text-blue-600 rounded-xl text-sm font-semibold hover:bg-blue-50 transition-colors shadow-sm text-center"
             >
               Create Free Account →
             </Link>
             <Link
               to="/tools"
-              className="px-5 py-2.5 bg-blue-700 text-white rounded-xl text-sm font-semibold hover:bg-blue-800 transition-colors border border-blue-500"
+              className="px-5 py-3 bg-blue-700 text-white rounded-xl text-sm font-semibold hover:bg-blue-800 transition-colors border border-blue-500 text-center"
             >
               Browse All Tools
             </Link>

@@ -39,7 +39,7 @@ export default function Footer() {
           {/* Brand column */}
           <div className="col-span-2 md:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-3">
-              <span className="text-2xl">🤖</span>
+              <span className="text-2xl" aria-hidden="true">🤖</span>
               <span className="text-white font-bold text-xl">AWE-OS</span>
             </Link>
             <p className="text-sm text-gray-400 leading-relaxed mb-5">
@@ -58,9 +58,9 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="w-8 h-8 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center justify-center text-xs text-gray-400 hover:text-white transition-colors"
+                  className="w-9 h-9 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center justify-center text-xs text-gray-400 hover:text-white transition-colors"
                 >
-                  {icon}
+                  <span aria-hidden="true">{icon}</span>
                 </a>
               ))}
             </div>
@@ -68,7 +68,7 @@ export default function Footer() {
 
           {/* Link columns */}
           {COLS.map(col => (
-            <div key={col.title}>
+            <nav key={col.title} aria-label={col.title}>
               <h4 className="text-white font-semibold text-sm mb-4">{col.title}</h4>
               <ul className="space-y-2.5">
                 {col.links.map(({ label, to }) => (
@@ -82,19 +82,19 @@ export default function Footer() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </nav>
           ))}
         </div>
 
         {/* Bottom bar */}
         <div className="mt-12 pt-6 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
           <p>© {new Date().getFullYear()} AWE-OS. All rights reserved.</p>
-          <div className="flex gap-4">
+          <nav aria-label="Legal links" className="flex gap-4">
             <Link to="/privacy"     className="hover:text-gray-300 transition-colors">Privacy</Link>
             <Link to="/terms"       className="hover:text-gray-300 transition-colors">Terms</Link>
             <Link to="/disclaimer"  className="hover:text-gray-300 transition-colors">Disclaimer</Link>
             <Link to="/contact"     className="hover:text-gray-300 transition-colors">Contact</Link>
-          </div>
+          </nav>
         </div>
       </div>
     </footer>

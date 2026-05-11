@@ -9,7 +9,7 @@ function DropdownItem({ icon, label, to, comingSoon, onClick }) {
   if (comingSoon) {
     return (
       <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg opacity-45 cursor-not-allowed select-none">
-        <span className="text-base shrink-0">{icon}</span>
+        <span className="text-base shrink-0" aria-hidden="true">{icon}</span>
         <span className="text-sm text-gray-500 flex-1">{label}</span>
         <span className="text-[9px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded-full font-medium shrink-0">Soon</span>
       </div>
@@ -21,7 +21,7 @@ function DropdownItem({ icon, label, to, comingSoon, onClick }) {
       onClick={onClick}
       className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-blue-50 group transition-colors"
     >
-      <span className="text-base shrink-0">{icon}</span>
+      <span className="text-base shrink-0" aria-hidden="true">{icon}</span>
       <span className="text-sm text-gray-700 group-hover:text-blue-700 transition-colors">{label}</span>
     </Link>
   )
@@ -30,15 +30,15 @@ function DropdownItem({ icon, label, to, comingSoon, onClick }) {
 // ── Desktop mega-dropdown panel ───────────────────────────────────────────────
 function DesktopDropdown({ catKey, data, onClose }) {
   const isPdf = catKey === 'pdf'
-  const cols = isPdf ? 3 : 2
   return (
     <div
       className="absolute left-0 top-full mt-1.5 z-[60] bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden"
-      style={{ minWidth: isPdf ? 700 : 380 }}
+      style={{ minWidth: isPdf ? 640 : 360, maxWidth: 'calc(100vw - 2rem)' }}
+      role="menu"
     >
       <div className={isPdf ? 'grid grid-cols-3 divide-x divide-gray-50' : 'grid grid-cols-2 divide-x divide-gray-50'}>
         {data.sections.map((section) => (
-          <div key={section.title} className="p-5 min-w-0">
+          <div key={section.title} className="p-4 min-w-0">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2.5 px-2">
               {section.title}
             </p>
@@ -67,32 +67,45 @@ function DesktopDropdown({ catKey, data, onClose }) {
 // ── Mobile accordion section ──────────────────────────────────────────────────
 function MobileAccordion({ catKey, data, onClose }) {
   const [open, setOpen] = useState(false)
+  const panelId = `mobile-panel-${catKey}`
+  const buttonId = `mobile-btn-${catKey}`
+
   return (
     <div className="border-b border-gray-100">
       <button
+        id={buttonId}
         onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        aria-controls={panelId}
         className="flex items-center justify-between w-full py-4 text-left"
       >
         <span className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-          <span>{data.icon}</span>
+          <span aria-hidden="true">{data.icon}</span>
           {data.label}
         </span>
-        <span className={`text-gray-400 text-lg transition-transform duration-200 ${open ? 'rotate-45' : ''}`}>+</span>
+        <span
+          className={`text-gray-400 text-lg transition-transform duration-200 ${open ? 'rotate-45' : ''}`}
+          aria-hidden="true"
+        >+</span>
       </button>
-      {open && (
-        <div className="pb-4 space-y-3">
-          {data.sections.map(section => (
-            <div key={section.title}>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 px-1">
-                {section.title}
-              </p>
-              {section.items.map(item => (
-                <DropdownItem key={item.label} {...item} onClick={onClose} />
-              ))}
-            </div>
-          ))}
-        </div>
-      )}
+      <div
+        id={panelId}
+        role="region"
+        aria-labelledby={buttonId}
+        hidden={!open}
+        className={open ? 'pb-4 space-y-3' : ''}
+      >
+        {open && data.sections.map(section => (
+          <div key={section.title}>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 px-1">
+              {section.title}
+            </p>
+            {section.items.map(item => (
+              <DropdownItem key={item.label} {...item} onClick={onClose} />
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -158,16 +171,18 @@ export default function Header() {
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 shrink-0 mr-6">
-            <span className="text-2xl">🤖</span>
+            <span className="text-2xl" aria-hidden="true">🤖</span>
             <span className="text-gray-900 font-bold text-xl tracking-tight">AWE-OS</span>
           </Link>
 
           {/* ── Desktop nav ──────────────────────────────────────── */}
-          <nav ref={navRef} className="hidden lg:flex items-center gap-0.5 flex-1">
+          <nav ref={navRef} className="hidden lg:flex items-center gap-0.5 flex-1" aria-label="Main navigation">
             {Object.entries(TOOL_CATALOGUE).map(([key, cat]) => (
               <div key={key} className="relative">
                 <button
                   onClick={() => toggleMenu(key)}
+                  aria-expanded={openMenu === key}
+                  aria-haspopup="true"
                   className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                     openMenu === key
                       ? 'text-blue-600 bg-blue-50'
@@ -178,6 +193,7 @@ export default function Header() {
                   <svg
                     className={`w-3.5 h-3.5 transition-transform duration-200 ${openMenu === key ? 'rotate-180' : ''}`}
                     fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                    aria-hidden="true"
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
@@ -206,22 +222,29 @@ export default function Header() {
           <div className="flex items-center gap-2 shrink-0">
             {/* Search */}
             {searching ? (
-              <form onSubmit={submitSearch} className="flex items-center gap-2">
+              <form onSubmit={submitSearch} className="flex items-center gap-2" role="search">
+                <label htmlFor="header-search" className="sr-only">Search tools</label>
                 <input
-                  autoFocus type="text" value={q}
+                  id="header-search"
+                  autoFocus type="search" value={q}
                   onChange={e => setQ(e.target.value)}
                   placeholder="Search tools..."
                   className="w-44 sm:w-56 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <button type="button" onClick={() => setSearching(false)} className="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+                <button
+                  type="button"
+                  onClick={() => setSearching(false)}
+                  aria-label="Close search"
+                  className="text-gray-400 hover:text-gray-600 text-lg w-8 h-8 flex items-center justify-center"
+                >✕</button>
               </form>
             ) : (
               <button
                 onClick={() => setSearching(true)}
                 className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                aria-label="Search"
+                aria-label="Search tools"
               >
-                🔍
+                <span aria-hidden="true">🔍</span>
               </button>
             )}
 
@@ -257,14 +280,16 @@ export default function Header() {
             <button
               className="lg:hidden p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
               onClick={() => setMobileOpen(o => !o)}
-              aria-label="Menu"
+              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-nav"
             >
               {mobileOpen ? (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               ) : (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               )}
@@ -275,18 +300,25 @@ export default function Header() {
 
       {/* ── Mobile full-screen overlay ───────────────────────────── */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-[70] bg-white overflow-y-auto lg:hidden">
+        <div
+          id="mobile-nav"
+          className="fixed inset-0 z-[70] bg-white overflow-y-auto lg:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation menu"
+        >
           {/* Mobile header */}
           <div className="sticky top-0 bg-white border-b border-gray-100 flex items-center justify-between h-16 px-4">
             <Link to="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-2">
-              <span className="text-2xl">🤖</span>
+              <span className="text-2xl" aria-hidden="true">🤖</span>
               <span className="text-gray-900 font-bold text-xl">AWE-OS</span>
             </Link>
             <button
               onClick={() => setMobileOpen(false)}
+              aria-label="Close menu"
               className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>

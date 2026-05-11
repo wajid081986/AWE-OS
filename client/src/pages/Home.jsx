@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async'
 import SearchBar    from '../components/SearchBar'
 import ToolCard     from '../components/ToolCard'
 import CategoryCard from '../components/CategoryCard'
-import AdBanner     from '../components/AdBanner'
+import AdContainer  from '../components/tool-engine/AdContainer'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import { MOCK_TOOLS } from './mockTools'
 import api from '../services/api.service'
@@ -30,9 +30,9 @@ const CATEGORIES = [
 ]
 
 const STATS = [
-  { value: '100+', label: 'Free Tools'    },
-  { value: '50K+', label: 'Users'         },
-  { value: '1M+',  label: 'Tasks Done'   },
+  { value: '100+', label: 'Free Tools'  },
+  { value: '50K+', label: 'Users'       },
+  { value: '1M+',  label: 'Tasks Done' },
 ]
 
 export default function Home() {
@@ -68,12 +68,12 @@ export default function Home() {
       </Helmet>
 
       {/* ── Hero ─────────────────────────────────────────────────── */}
-      <section className="bg-gradient-to-b from-blue-50 to-white pt-16 pb-12 px-4">
+      <section className="bg-gradient-to-b from-blue-50 to-white pt-14 pb-12 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight mb-4">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-4">
             Free AI-Powered Tools<br className="hidden sm:block" /> for Everyone
           </h1>
-          <p className="text-gray-500 text-lg mb-8">
+          <p className="text-gray-500 text-base sm:text-lg mb-8">
             Discover 100+ smart tools — free, fast, and easy to use.
           </p>
 
@@ -95,32 +95,32 @@ export default function Home() {
       </section>
 
       {/* ── Categories ───────────────────────────────────────────── */}
-      <section className="py-14 px-4 bg-gray-50">
+      <section className="py-12 px-4 sm:px-6 bg-gray-50" aria-labelledby="categories-heading">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Browse by Category</h2>
+            <h2 id="categories-heading" className="text-2xl sm:text-3xl font-bold text-gray-900">Browse by Category</h2>
             <p className="text-gray-500 mt-2">Find the right tool for your task</p>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {CATEGORIES.map(cat => <CategoryCard key={cat.title} {...cat} />)}
           </div>
         </div>
       </section>
 
-      {/* ── Ad banner (leaderboard) ───────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4">
-        <AdBanner size="leaderboard" />
+      {/* ── Ad banner (top-banner = eager, above fold) ───────────── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <AdContainer slot="top-banner" />
       </div>
 
       {/* ── Featured Tools ───────────────────────────────────────── */}
-      <section className="py-14 px-4">
+      <section className="py-12 px-4 sm:px-6" aria-labelledby="popular-heading">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Most Popular Tools</h2>
-              <p className="text-gray-500 mt-1">Used by thousands every day</p>
+              <h2 id="popular-heading" className="text-2xl sm:text-3xl font-bold text-gray-900">Most Popular Tools</h2>
+              <p className="text-gray-500 mt-1 text-sm">Used by thousands every day</p>
             </div>
-            <Link to="/tools" className="text-blue-600 hover:text-blue-700 text-sm font-medium whitespace-nowrap">
+            <Link to="/tools" className="text-blue-600 hover:text-blue-700 text-sm font-medium whitespace-nowrap shrink-0 ml-4">
               View all →
             </Link>
           </div>
@@ -135,28 +135,28 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Rectangle ad ─────────────────────────────────────────── */}
-      <div className="flex justify-center px-4 pb-4">
-        <AdBanner size="rectangle" />
+      {/* ── Inline ad (lazy — below fold) ────────────────────────── */}
+      <div className="flex justify-center px-4 sm:px-6 pb-4">
+        <AdContainer slot="inline" />
       </div>
 
       {/* ── Recently Added ───────────────────────────────────────── */}
-      <section className="py-14 px-4 bg-gray-50">
+      <section className="py-12 px-4 sm:px-6 bg-gray-50" aria-labelledby="recent-heading">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Recently Added</h2>
-              <p className="text-gray-500 mt-1">Fresh tools added to the platform</p>
+              <h2 id="recent-heading" className="text-2xl sm:text-3xl font-bold text-gray-900">Recently Added</h2>
+              <p className="text-gray-500 mt-1 text-sm">Fresh tools added to the platform</p>
             </div>
-            <Link to="/tools" className="text-blue-600 hover:text-blue-700 text-sm font-medium whitespace-nowrap">
+            <Link to="/tools" className="text-blue-600 hover:text-blue-700 text-sm font-medium whitespace-nowrap shrink-0 ml-4">
               See all →
             </Link>
           </div>
 
-          {/* Horizontal scroll on mobile, 4-col on desktop */}
-          <div className="flex gap-4 overflow-x-auto pb-2 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:overflow-visible">
+          {/* Horizontal scroll on mobile, grid on sm+ */}
+          <div className="flex gap-4 overflow-x-auto pb-3 -mx-1 px-1 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:overflow-visible sm:pb-0">
             {recent.map(tool => (
-              <div key={tool.id || tool.slug} className="min-w-[260px] sm:min-w-0">
+              <div key={tool.id || tool.slug} className="min-w-[260px] sm:min-w-0 shrink-0 sm:shrink">
                 <ToolCard tool={tool} />
               </div>
             ))}
@@ -165,13 +165,13 @@ export default function Home() {
       </section>
 
       {/* ── Stats ────────────────────────────────────────────────── */}
-      <section className="py-14 px-4 border-t border-gray-100">
+      <section className="py-12 px-4 sm:px-6 border-t border-gray-100" aria-label="Platform statistics">
         <div className="max-w-3xl mx-auto">
-          <div className="grid grid-cols-3 gap-8 text-center">
+          <div className="grid grid-cols-3 gap-4 sm:gap-8 text-center">
             {STATS.map(({ value, label }) => (
               <div key={label}>
-                <p className="text-3xl sm:text-4xl font-bold text-blue-600">{value}</p>
-                <p className="text-gray-500 text-sm mt-1">{label}</p>
+                <p className="text-2xl sm:text-4xl font-bold text-blue-600">{value}</p>
+                <p className="text-gray-500 text-xs sm:text-sm mt-1">{label}</p>
               </div>
             ))}
           </div>
@@ -179,22 +179,22 @@ export default function Home() {
       </section>
 
       {/* ── CTA strip ────────────────────────────────────────────── */}
-      <section className="bg-blue-600 py-12 px-4">
+      <section className="bg-blue-600 py-12 px-4 sm:px-6" aria-label="Call to action">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">
             Start Using Free Tools Today
           </h2>
-          <p className="text-blue-100 mb-7">No sign-up required for most tools. Just open and use.</p>
-          <div className="flex flex-wrap justify-center gap-3">
+          <p className="text-blue-100 mb-7 text-sm sm:text-base">No sign-up required for most tools. Just open and use.</p>
+          <div className="flex flex-col sm:flex-row justify-center gap-3">
             <Link
               to="/tools"
-              className="px-6 py-3 bg-white text-blue-600 rounded-xl font-semibold text-sm hover:bg-blue-50 transition-colors shadow-sm"
+              className="px-6 py-3.5 bg-white text-blue-600 rounded-xl font-semibold text-sm hover:bg-blue-50 transition-colors shadow-sm text-center"
             >
               Browse All Tools →
             </Link>
             <Link
               to="/login"
-              className="px-6 py-3 bg-blue-700 text-white rounded-xl font-semibold text-sm hover:bg-blue-800 transition-colors border border-blue-500"
+              className="px-6 py-3.5 bg-blue-700 text-white rounded-xl font-semibold text-sm hover:bg-blue-800 transition-colors border border-blue-500 text-center"
             >
               Create Free Account
             </Link>

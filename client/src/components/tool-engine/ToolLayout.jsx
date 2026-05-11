@@ -91,7 +91,7 @@ export default function ToolLayout({
         {/* Breadcrumb — Home / Tools / [Category] / Tool */}
         <ToolHero tool={toolMeta} catMeta={catMeta} />
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
 
           {/* ── Main content column ─────────────────────────── */}
           <ToolContent>

@@ -19,10 +19,10 @@ export default function AdPlaceholder({ size = 'leaderboard', className = '' }) 
       <p className="text-xs text-gray-400 uppercase tracking-widest mb-1 select-none">
         Advertisement
       </p>
-      {/* Desktop placeholder */}
+      {/* Desktop placeholder — maxWidth+w-full prevents horizontal overflow on narrow viewports */}
       <div
-        className="hidden sm:block bg-gray-100 rounded"
-        style={{ width: `${cfg.desktop.w}px`, height: `${cfg.desktop.h}px`, maxWidth: '100%' }}
+        className="hidden sm:block bg-gray-100 rounded w-full"
+        style={{ maxWidth: `${cfg.desktop.w}px`, height: `${cfg.desktop.h}px` }}
       />
       {/* Mobile placeholder */}
       <div

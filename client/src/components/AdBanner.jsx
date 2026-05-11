@@ -14,15 +14,16 @@ export default function AdBanner({ size = 'leaderboard', className = '' }) {
   return (
     <div className={`flex flex-col items-center my-6 w-full ${className}`}>
       {/* "Advertisement" label — required by AdSense policy */}
-      <p className="text-xs text-gray-400 uppercase tracking-widest mb-1 select-none">
+      <p className="text-xs text-gray-400 uppercase tracking-widest mb-1 select-none" aria-hidden="true">
         Advertisement
       </p>
 
-      {/* Desktop ad slot — fixed height prevents layout shift */}
+      {/* Desktop ad slot — maxWidth prevents CLS-causing overflow on narrow viewports */}
       <div
-        className="hidden sm:flex items-center justify-center bg-gray-100 border border-dashed border-gray-200 rounded text-gray-400 text-xs select-none overflow-hidden"
-        style={{ width: `${cfg.w}px`, minHeight: `${cfg.h}px`, maxWidth: '100%' }}
+        className="hidden sm:flex items-center justify-center bg-gray-100 border border-dashed border-gray-200 rounded text-gray-400 text-xs select-none overflow-hidden w-full"
+        style={{ maxWidth: `${cfg.w}px`, minHeight: `${cfg.h}px` }}
         aria-label="Advertisement"
+        aria-hidden="true"
       >
         {/*
           REPLACE WITH ADSENSE CODE:
@@ -43,6 +44,7 @@ export default function AdBanner({ size = 'leaderboard', className = '' }) {
         className="flex sm:hidden items-center justify-center bg-gray-100 border border-dashed border-gray-200 rounded text-gray-400 text-xs select-none overflow-hidden w-full"
         style={{ minHeight: '50px', maxWidth: '320px' }}
         aria-label="Advertisement"
+        aria-hidden="true"
       >
         {/*
           REPLACE WITH ADSENSE MOBILE CODE:

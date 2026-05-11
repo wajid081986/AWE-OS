@@ -55,7 +55,7 @@ export default function PricingPage() {
         <link rel="canonical" href="https://awe-os.com/pricing" />
       </Helmet>
 
-      <div className="max-w-5xl mx-auto px-4 py-16">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
@@ -65,14 +65,20 @@ export default function PricingPage() {
 
           {/* Billing toggle */}
           <div className="flex items-center justify-center gap-3 mt-8">
-            <span className={`text-sm font-medium ${billing === 'monthly' ? 'text-gray-900' : 'text-gray-400'}`}>Monthly</span>
+            <span id="billing-monthly-label" className={`text-sm font-medium ${billing === 'monthly' ? 'text-gray-900' : 'text-gray-400'}`}>Monthly</span>
             <button
+              role="switch"
+              aria-checked={billing === 'yearly'}
+              aria-labelledby="billing-monthly-label billing-yearly-label"
               onClick={() => setBilling(b => b === 'monthly' ? 'yearly' : 'monthly')}
-              className={`relative w-12 h-6 rounded-full transition-colors ${billing === 'yearly' ? 'bg-blue-600' : 'bg-gray-300'}`}
+              className={`relative w-12 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${billing === 'yearly' ? 'bg-blue-600' : 'bg-gray-300'}`}
             >
-              <span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${billing === 'yearly' ? 'translate-x-6' : ''}`} />
+              <span
+                className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${billing === 'yearly' ? 'translate-x-6' : ''}`}
+                aria-hidden="true"
+              />
             </button>
-            <span className={`text-sm font-medium ${billing === 'yearly' ? 'text-gray-900' : 'text-gray-400'}`}>
+            <span id="billing-yearly-label" className={`text-sm font-medium ${billing === 'yearly' ? 'text-gray-900' : 'text-gray-400'}`}>
               Yearly
               <span className="ml-1.5 bg-green-100 text-green-700 text-xs font-bold px-1.5 py-0.5 rounded-full">Save 33%</span>
             </span>
