@@ -2,31 +2,42 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import ToolCard     from '../components/ToolCard'
-import AdBanner     from '../components/AdBanner'
+import AdContainer  from '../components/tool-engine/AdContainer'
 import { MOCK_TOOLS } from './mockTools'
 import api from '../services/api.service'
 import { SITE_URL, getToolCanonical } from '../utils/canonicalUrl'
 import { generateToolSchema, generateBreadcrumbSchema } from '../utils/schema'
 
 function ShareButtons({ url, title }) {
+  const [copied, setCopied] = useState(false)
   const enc  = encodeURIComponent
   const tweet = `https://twitter.com/intent/tweet?text=${enc(title)}&url=${enc(url)}`
   const wa    = `https://wa.me/?text=${enc(title + ' ' + url)}`
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   return (
     <div className="flex gap-2 flex-wrap">
       <p className="text-sm font-medium text-gray-700 w-full">Share this tool</p>
       <a href={tweet} target="_blank" rel="noopener noreferrer"
+        aria-label="Share on Twitter"
         className="flex-1 text-center text-xs bg-sky-500 hover:bg-sky-600 text-white py-2 rounded-lg font-medium transition-colors">
         Twitter
       </a>
       <a href={wa} target="_blank" rel="noopener noreferrer"
+        aria-label="Share on WhatsApp"
         className="flex-1 text-center text-xs bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-medium transition-colors">
         WhatsApp
       </a>
       <button
-        onClick={() => { navigator.clipboard.writeText(url); }}
+        onClick={copyLink}
+        aria-label={copied ? 'Link copied!' : 'Copy link to clipboard'}
         className="flex-1 text-center text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg font-medium transition-colors">
-        Copy Link
+        {copied ? 'Copied!' : 'Copy Link'}
       </button>
     </div>
   )
@@ -122,8 +133,8 @@ export default function ToolDetailPage() {
   if (loading) {
     return (
       <>
-        <div className="flex items-center justify-center min-h-[40vh]">
-          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        <div className="flex items-center justify-center min-h-[40vh]" role="status" aria-label="Loading tool">
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" aria-hidden="true" />
         </div>
       </>
     )
@@ -186,12 +197,12 @@ export default function ToolDetailPage() {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-gray-400 mb-6">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-gray-400 mb-6">
           <Link to="/" className="hover:text-gray-600">Home</Link>
-          <span>/</span>
+          <span aria-hidden="true">/</span>
           <Link to="/tools" className="hover:text-gray-600">Tools</Link>
-          <span>/</span>
-          <span className="text-gray-700 font-medium">{tool.name}</span>
+          <span aria-hidden="true">/</span>
+          <span className="text-gray-700 font-medium" aria-current="page">{tool.name}</span>
         </nav>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -212,7 +223,7 @@ export default function ToolDetailPage() {
             </div>
 
             {/* Ad above tool */}
-            <AdBanner size="leaderboard" />
+            <AdContainer slot="top-banner" eager />
 
             {/* Tool interface */}
             <div className="mb-8">
@@ -279,7 +290,7 @@ export default function ToolDetailPage() {
           <aside className="lg:w-72 shrink-0 space-y-6">
             {/* Ad unit */}
             <div className="sticky top-20">
-              <AdBanner size="rectangle" />
+              <AdContainer slot="sidebar-rectangle" />
 
               {/* Share */}
               <div className="bg-white border border-gray-200 rounded-xl p-4 mt-4">

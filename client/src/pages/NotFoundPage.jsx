@@ -6,7 +6,7 @@ import PublicLayout from '../components/PublicLayout'
 const POPULAR = [
   { name: 'Resume Builder',   slug: 'resume-builder',   icon: '📄' },
   { name: 'BMI Calculator',   slug: 'bmi-calculator',   icon: '⚖️' },
-  { name: 'PDF Merger',       slug: 'pdf-merger',       icon: '📎' },
+  { name: 'PDF Merger',       slug: 'merge-pdf',        icon: '📎' },
   { name: 'Word Counter',     slug: 'word-counter',     icon: '📝' },
   { name: 'QR Code Generator',slug: 'qr-code-generator',icon: '📱' },
   { name: 'Age Calculator',   slug: 'age-calculator',   icon: '🎂' },

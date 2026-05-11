@@ -14,6 +14,7 @@ export default function PaymentSuccess() {
     <>
       <Helmet>
         <title>Payment Successful — AWE-OS</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <div className="min-h-[80vh] flex items-center justify-center px-4 py-16">
