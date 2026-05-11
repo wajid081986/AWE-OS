@@ -7,7 +7,33 @@ const { requireAuth, requireAdmin } = require('../middleware/admin.middleware')
 const { uploadFile, generatePresignedUrl, deleteFile } = require('../services/s3.service')
 
 const router  = express.Router()
-const upload  = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } })
+
+// Allowed MIME types for digital product uploads
+const ALLOWED_PRODUCT_MIMES = new Set([
+  'application/pdf',
+  'application/zip',
+  'application/x-zip-compressed',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'text/plain',
+  'text/csv',
+])
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (ALLOWED_PRODUCT_MIMES.has(file.mimetype)) {
+      cb(null, true)
+    } else {
+      cb(new Error(`File type "${file.mimetype}" is not allowed`), false)
+    }
+  },
+})
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
 
 const razorpay = new Razorpay({

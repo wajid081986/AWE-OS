@@ -5,6 +5,8 @@ import ToolCard     from '../components/ToolCard'
 import AdBanner     from '../components/AdBanner'
 import { MOCK_TOOLS } from './mockTools'
 import api from '../services/api.service'
+import { SITE_URL, getToolCanonical } from '../utils/canonicalUrl'
+import { generateToolSchema, generateBreadcrumbSchema } from '../utils/schema'
 
 function ShareButtons({ url, title }) {
   const enc  = encodeURIComponent
@@ -143,7 +145,21 @@ export default function ToolDetailPage() {
     )
   }
 
-  const pageUrl  = `https://awe-os.com/tools/${tool.slug}`
+  const pageUrl  = getToolCanonical(tool.slug)
+  const seoTitle = `${tool.name} — Free Online Tool | AWE-OS`
+  const seoDesc  = `${tool.description} Free, fast and easy to use. No sign-up required.`
+
+  const toolSchema = generateToolSchema({
+    name:        tool.name,
+    description: tool.description,
+    url:         pageUrl,
+  })
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Home',      url: SITE_URL },
+    { name: 'Tools',     url: `${SITE_URL}/tools` },
+    { name: tool.name,   url: pageUrl },
+  ])
+
   const steps    = [
     'Enter your content or upload your file in the input area below.',
     `Click the "${tool.name}" button to process your request.`,
@@ -154,9 +170,18 @@ export default function ToolDetailPage() {
   return (
     <>
       <Helmet>
-        <title>{tool.name} — Free Online Tool | AWE-OS</title>
-        <meta name="description" content={`${tool.description} Free, fast and easy to use. No sign-up required.`} />
-        <link rel="canonical" href={pageUrl} />
+        <title>{seoTitle}</title>
+        <meta name="description"        content={seoDesc} />
+        <link rel="canonical"           href={pageUrl} />
+        <meta property="og:title"       content={seoTitle} />
+        <meta property="og:description" content={seoDesc} />
+        <meta property="og:url"         content={pageUrl} />
+        <meta property="og:type"        content="website" />
+        <meta name="twitter:card"        content="summary" />
+        <meta name="twitter:title"       content={seoTitle} />
+        <meta name="twitter:description" content={seoDesc} />
+        <script type="application/ld+json">{JSON.stringify(toolSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       </Helmet>
 
       <div className="max-w-7xl mx-auto px-4 py-8">

@@ -52,6 +52,7 @@ export default function PricingPage() {
       <Helmet>
         <title>Pricing — AWE-OS Pro</title>
         <meta name="description" content="Simple, transparent pricing. Start free, upgrade to Pro for AI tools. Resume Builder, AI Content Writer and more." />
+        <link rel="canonical" href="https://awe-os.com/pricing" />
       </Helmet>
 
       <div className="max-w-5xl mx-auto px-4 py-16">

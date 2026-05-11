@@ -8,6 +8,10 @@ import AdBanner     from '../components/AdBanner'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import { MOCK_TOOLS } from './mockTools'
 import api from '../services/api.service'
+import { generateWebsiteSchema, generateOrganizationSchema } from '../utils/schema'
+
+const WEBSITE_SCHEMA = generateWebsiteSchema()
+const ORG_SCHEMA     = generateOrganizationSchema()
 
 const POPULAR_TAGS = [
   { label: 'Merge PDF',          to: '/tools/merge-pdf'          },
@@ -50,8 +54,17 @@ export default function Home() {
     <>
       <Helmet>
         <title>AWE-OS — Free AI-Powered Tools for Everyone</title>
-        <meta name="description" content="Discover 100+ free AI-powered tools — Resume Builder, PDF Tools, Calculators, Converters and more. Fast, free, and easy to use." />
-        <link rel="canonical" href="https://awe-os.com/" />
+        <meta name="description"        content="Discover 100+ free AI-powered tools — Resume Builder, PDF Tools, Calculators, Converters and more. Fast, free, and easy to use." />
+        <link rel="canonical"           href="https://awe-os.com/" />
+        <meta property="og:title"       content="AWE-OS — Free AI-Powered Tools for Everyone" />
+        <meta property="og:description" content="Discover 100+ free AI-powered tools — Resume Builder, PDF Tools, Calculators, Converters and more. Fast, free, and easy to use." />
+        <meta property="og:url"         content="https://awe-os.com/" />
+        <meta property="og:type"        content="website" />
+        <meta name="twitter:card"        content="summary" />
+        <meta name="twitter:title"       content="AWE-OS — Free AI-Powered Tools for Everyone" />
+        <meta name="twitter:description" content="Discover 100+ free AI-powered tools — Resume Builder, PDF Tools, Calculators, Converters and more. Fast, free, and easy to use." />
+        <script type="application/ld+json">{JSON.stringify(WEBSITE_SCHEMA)}</script>
+        <script type="application/ld+json">{JSON.stringify(ORG_SCHEMA)}</script>
       </Helmet>
 
       {/* ── Hero ─────────────────────────────────────────────────── */}

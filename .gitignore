@@ -38,3 +38,11 @@ uploads/
 # TEMP
 *.tmp
 *.temp
+
+# SECRETS — never commit plaintext credentials
+Key.txt
+key.txt
+secrets.txt
+credentials.txt
+*.pem
+*.p12

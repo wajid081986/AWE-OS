@@ -71,6 +71,7 @@ app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false 
 app.use(compression());
 app.use(cors({ origin: allowedOrigins, methods: ['GET','POST','PATCH','PUT','DELETE'], credentials: true }));
 app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
 // ── Request logger ───────────────────────────────────────────
 app.use((req, res, next) => {
@@ -92,34 +93,94 @@ const adminLimiter   = rateLimit({ windowMs: 15*60*1000, max: 60,  standardHeade
 app.use(globalLimiter);
 
 // ── Sitemap ──────────────────────────────────────────────────
-app.get('/sitemap.xml', async (req, res) => {
-  try {
-    const { data: calculators } = await supabase
-      .from('calculators')
-      .select('slug, updated_at')
-      .eq('is_published', true);
+// Static tool slugs — mirrors the registry in client/src/data/toolRegistry.js.
+// Update this list whenever a new tool is added.
+const STATIC_TOOL_SLUGS = [
+  // PDF
+  'merge-pdf','split-pdf','compress-pdf','rotate-pdf','remove-pages-pdf',
+  'extract-pages-pdf','organize-pdf','jpg-to-pdf','word-to-pdf','excel-to-pdf',
+  'powerpoint-to-pdf','pdf-to-jpg','pdf-to-word','pdf-to-excel',
+  'watermark-pdf','page-numbers-pdf','protect-pdf','unlock-pdf',
+  // Calculators
+  'bmi-calculator','age-calculator','loan-calculator','percentage-calculator','gpa-calculator',
+  // Converters
+  'unit-converter','word-counter','password-generator','color-picker',
+  'qr-code-generator','image-compressor','csv-to-json',
+  // AI Tools
+  'resume-builder','ai-content-writer',
+];
 
-    const calcUrls = (calculators || []).map(c => `
-  <url>
-    <loc>${process.env.FRONTEND_URL || 'https://www.awe-os.com'}/calculators/${c.slug}</loc>
-    <lastmod>${c.updated_at?.split('T')[0] || new Date().toISOString().split('T')[0]}</lastmod>
-    <priority>0.8</priority>
-  </url>`).join('');
+const CATEGORY_SLUGS = ['pdf', 'calculators', 'converters', 'ai'];
+
+const STATIC_PAGES = [
+  { path: '/',               priority: '1.0', changefreq: 'weekly'  },
+  { path: '/tools',          priority: '0.9', changefreq: 'daily'   },
+  { path: '/pricing',        priority: '0.8', changefreq: 'monthly' },
+  { path: '/about',          priority: '0.5', changefreq: 'monthly' },
+  { path: '/contact',        priority: '0.5', changefreq: 'monthly' },
+  { path: '/privacy-policy', priority: '0.3', changefreq: 'yearly'  },
+  { path: '/terms',          priority: '0.3', changefreq: 'yearly'  },
+];
+
+app.get('/sitemap.xml', async (req, res) => {
+  const base    = process.env.FRONTEND_URL || 'https://www.awe-os.com';
+  const today   = new Date().toISOString().split('T')[0];
+
+  const url = (path, priority = '0.7', changefreq = 'monthly', lastmod = today) =>
+    `\n  <url>\n    <loc>${base}${path}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
+
+  try {
+    // Static pages
+    const staticUrls = STATIC_PAGES.map(p => url(p.path, p.priority, p.changefreq)).join('');
+
+    // Category pages
+    const categoryUrls = CATEGORY_SLUGS.map(slug => url(`/tools/${slug}`, '0.85', 'weekly')).join('');
+
+    // Static tool pages
+    const toolUrls = STATIC_TOOL_SLUGS.map(slug => url(`/tools/${slug}`, '0.75', 'monthly')).join('');
+
+    // Dynamic: live tools from DB (saas_tools table)
+    let dynamicToolUrls = '';
+    try {
+      const { data: liveTools } = await supabase
+        .from('saas_tools')
+        .select('slug, updated_at')
+        .eq('status', 'live')
+        .not('slug', 'in', `(${STATIC_TOOL_SLUGS.map(s => `"${s}"`).join(',')})`);
+
+      dynamicToolUrls = (liveTools || [])
+        .filter(t => t.slug)
+        .map(t => url(`/tools/${t.slug}`, '0.7', 'weekly', t.updated_at?.split('T')[0] || today))
+        .join('');
+    } catch {
+      // saas_tools may not exist yet — skip silently
+    }
+
+    // Dynamic: published calculators from DB
+    let calcUrls = '';
+    try {
+      const { data: calculators } = await supabase
+        .from('calculators')
+        .select('slug, updated_at')
+        .eq('is_published', true);
+
+      calcUrls = (calculators || [])
+        .filter(c => c.slug)
+        .map(c => url(`/calculators/${c.slug}`, '0.8', 'monthly', c.updated_at?.split('T')[0] || today))
+        .join('');
+    } catch {
+      // calculators table may not exist yet — skip silently
+    }
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${process.env.FRONTEND_URL || 'https://www.awe-os.com'}/</loc>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>${process.env.FRONTEND_URL || 'https://www.awe-os.com'}/calculators</loc>
-    <priority>0.9</priority>
-  </url>${calcUrls}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+          http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">${staticUrls}${categoryUrls}${toolUrls}${dynamicToolUrls}${calcUrls}
 </urlset>`;
 
-    res.header('Content-Type', 'application/xml');
-    res.header('Cache-Control', 'public, max-age=86400');
+    res.header('Content-Type', 'application/xml; charset=utf-8');
+    res.header('Cache-Control', 'public, max-age=3600');
     res.send(xml);
   } catch (err) {
     console.error('[sitemap]', err.message);
@@ -169,6 +230,14 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, next) => {
+  // Multer file filter rejection
+  if (err.message?.includes('File type') || err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({ success: false, error: err.message || 'File too large' });
+  }
+  // Express body-parser payload too large
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({ success: false, error: 'Request body too large' });
+  }
   console.error('Unhandled Error:', err.message);
   res.status(500).json({
     success: false,
