@@ -1,6 +1,8 @@
 const express  = require('express');
 const supabase = require('../db/supabase');
 const { requireAuth, requireAdmin } = require('../middleware/admin.middleware');
+const { store: executionStore, EXECUTION_STATUS } = require('../runtime/ExecutionStore');
+const { listPipelines } = require('../runtime/PipelineDefinitions');
 
 const router = express.Router();
 
@@ -274,6 +276,55 @@ router.post('/agents/trigger/:agentName', requireAuth, requireAdmin, async (req,
   }).catch(() => {});
 
   res.json({ success: true, message: `Trigger signal sent to "${agentName}"` });
+});
+
+// ── Pipeline runtime endpoints ──────────────────────────────────────────────
+
+// GET /api/admin/runtime/status — current runtime health snapshot
+router.get('/runtime/status', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const [activeExecutions, pipelineMetrics] = await Promise.allSettled([
+      executionStore.getActiveExecutions(),
+      executionStore.getPipelineMetrics(24),
+    ]);
+
+    const active  = activeExecutions.status  === 'fulfilled' ? activeExecutions.value  : [];
+    const metrics = pipelineMetrics.status   === 'fulfilled' ? pipelineMetrics.value   : null;
+
+    res.json({
+      success: true,
+      data: {
+        pipelines:          listPipelines().map(p => ({ id: p.id, name: p.name, stepCount: p.stepCount, hasApproval: p.hasApproval })),
+        activeExecutions:   active.length,
+        activeDetails:      active,
+        metrics24h:         metrics,
+        timestamp:          new Date().toISOString(),
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/admin/runtime/executions/pending-approval — executions waiting for human approval
+router.get('/runtime/executions/pending-approval', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const executions = await executionStore.getActiveExecutions();
+    const pending    = executions.filter(e => e.status === EXECUTION_STATUS.PAUSED);
+    res.json({ success: true, data: pending, count: pending.length });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/admin/runtime/stalled-steps — steps with missed heartbeats (potential hangs)
+router.get('/runtime/stalled-steps', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const stalled = await executionStore.getStalledSteps(5 * 60_000); // 5min threshold
+    res.json({ success: true, data: stalled, count: stalled.length });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 module.exports = router;

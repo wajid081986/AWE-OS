@@ -33,6 +33,8 @@ const calculatorsRoutes              = require('./routes/calculators.routes');
 const factoryRoutes                  = require('./routes/factory.routes');
 const analyticsRoutes                = require('./routes/analytics.routes');
 const toolsGenerateRoutes            = require('./routes/tools.generate.route');
+const pipelineRoutes                 = require('./routes/pipeline.routes');
+const { initializeRuntime }          = require('./runtime');
 const { startAnalyticsCron }  = require('./jobs/analytics.cron');
 const { startAutonomousCron } = require('./jobs/autonomous.cron');
 const { startIdeaCron }       = require('./jobs/idea.cron');
@@ -218,6 +220,7 @@ app.use('/api/products',       productsRoutes);
 app.use('/api/calculators',    calculatorsRoutes);
 app.use('/api/factory',        factoryRoutes);
 app.use('/api/analytics',      analyticsRoutes);
+app.use('/api/pipelines',      adminLimiter, pipelineRoutes);
 app.use('/api/resume-versions', resumeVersionsRoutes);
 app.use('/api',                resumeRoutes);
 
@@ -253,6 +256,8 @@ const server = app.listen(PORT, () => {
   startIdeaCron();
   startMarketingCrons();
   startTestingCron();
+  // Phase 4A/4B: Initialize runtime infrastructure + recover interrupted executions
+  initializeRuntime().catch(err => console.error('[SERVER] Runtime init error:', err?.message));
   console.info('[SERVER] All systems GO');
 });
 
