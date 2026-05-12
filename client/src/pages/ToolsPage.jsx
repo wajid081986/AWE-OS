@@ -1,20 +1,19 @@
-import { Fragment, useState, useEffect, useMemo, useCallback, useRef, memo } from 'react'
+import { Fragment, useState, useEffect, useCallback, useRef, memo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import ToolCard        from '../components/ToolCard'
-import AdContainer     from '../components/tool-engine/AdContainer'
-import Pagination      from '../components/Pagination'
-import LoadingSkeleton from '../components/LoadingSkeleton'
-import { TOOL_CATALOGUE } from '../data/toolCatalogue'
-import { usePublicTools } from '../hooks/usePublicTools'
-import { useDebounce }    from '../hooks/useDebounce'
+import ToolCard               from '../components/ToolCard'
+import AdContainer            from '../components/tool-engine/AdContainer'
+import LoadingSkeleton        from '../components/LoadingSkeleton'
+import InfiniteScrollSentinel from '../components/InfiniteScrollSentinel'
+import { TOOL_CATALOGUE }     from '../data/toolCatalogue'
+import { useInfiniteTools }   from '../hooks/useInfiniteTools'
+import { useDebounce }        from '../hooks/useDebounce'
 
 const SORT_OPTIONS = [
   { id: 'popular', label: 'Popular' },
   { id: 'new',     label: 'Newest'  },
   { id: 'az',      label: 'A–Z'     },
 ]
-const PER_PAGE = 12
 
 // ── Static tool card — memoized so category tabs never re-render needlessly ──
 const StaticToolCard = memo(function StaticToolCard({ icon, label, to, comingSoon }) {
@@ -72,10 +71,11 @@ const TAB_META = {
   ai:          { label: 'AI Tools',    icon: '🤖', catKey: 'ai'          },
 }
 
+// Maps frontend sort values to backend sort param values
+const SORT_MAP = { popular: 'popular', new: 'created_at', az: 'az' }
+
 export default function ToolsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const { tools, loading } = usePublicTools()
-  const [page, setPage] = useState(1)
 
   const cat  = searchParams.get('cat')  || 'all'
   const q    = searchParams.get('q')    || ''
@@ -83,7 +83,7 @@ export default function ToolsPage() {
 
   // Local controlled input — updates instantly for responsive feel
   const [searchInput, setSearchInput] = useState(q)
-  // Debounced value — URL and filter only update after 300ms of idle typing
+  // Debounced value — API call only fires after 300ms of idle typing
   const debouncedSearch = useDebounce(searchInput, 300)
   // Skip the first-mount effect to avoid stomping URL state on load
   const didMount = useRef(false)
@@ -96,10 +96,9 @@ export default function ToolsPage() {
       else p.set('q', debouncedSearch)
       return p
     }, { replace: true })
-    setPage(1)
   }, [debouncedSearch, setSearchParams])
 
-  // Normalize old category keys to new tab keys
+  // Normalize old category keys to tab keys
   const activeTab = (() => {
     if (cat === 'pdf')         return 'pdf'
     if (cat === 'calculators') return 'calculators'
@@ -108,7 +107,6 @@ export default function ToolsPage() {
     return 'all'
   })()
 
-  // Stable setFilter — uses functional setSearchParams to avoid stale closure
   const setFilter = useCallback((key, val) => {
     setSearchParams(prev => {
       const p = new URLSearchParams(prev)
@@ -116,45 +114,27 @@ export default function ToolsPage() {
       else p.set(key, val)
       return p
     })
-    setPage(1)
   }, [setSearchParams])
 
   const switchTab = useCallback((tab) => {
     const p = new URLSearchParams()
     if (tab !== 'all') {
-      const catVal = tab === 'ai' ? 'ai_tools' : tab
-      p.set('cat', catVal)
+      p.set('cat', tab === 'ai' ? 'ai_tools' : tab)
     }
     setSearchParams(p)
     setSearchInput('')
-    setPage(1)
   }, [setSearchParams])
 
-  // Filtering + sorting — only recalculates when tools, q, or sort changes
-  const filtered = useMemo(() => {
-    let list = tools
-    if (q) {
-      const lower = q.toLowerCase()
-      list = list.filter(t =>
-        t.name.toLowerCase().includes(lower) ||
-        (t.description || '').toLowerCase().includes(lower),
-      )
-    }
-    if (sort === 'new')     return [...list].sort((a, b) => b.id - a.id)
-    if (sort === 'az')      return [...list].sort((a, b) => a.name.localeCompare(b.name))
-    return [...list].sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0))
-  }, [tools, q, sort])
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE))
-  const pageTools  = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
+  // Infinite-scroll hook — only active on the "all" tab
+  const serverSort = SORT_MAP[sort] || 'created_at'
+  const { tools, loading, loadMore, loadingMore, hasMore, total } = useInfiniteTools({
+    search:  debouncedSearch,
+    sort:    serverSort,
+    enabled: activeTab === 'all',
+  })
 
   const tabCatData = activeTab !== 'all' ? TOOL_CATALOGUE[TAB_META[activeTab]?.catKey] : null
   const pageTitle  = TAB_META[activeTab]?.label || 'All Tools'
-
-  const handlePage = useCallback((p) => {
-    setPage(p)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [])
 
   return (
     <>
@@ -171,7 +151,9 @@ export default function ToolsPage() {
           <p className="text-gray-500 text-sm">
             {tabCatData
               ? tabCatData.description
-              : loading ? 'Loading…' : `${filtered.length} tool${filtered.length !== 1 ? 's' : ''} available`}
+              : loading
+                ? 'Loading…'
+                : `${total} tool${total !== 1 ? 's' : ''} available`}
           </p>
         </div>
       </div>
@@ -237,34 +219,35 @@ export default function ToolsPage() {
 
           {tabCatData ? (
             <CatalogueView catData={tabCatData} />
+          ) : loading ? (
+            <LoadingSkeleton count={6} type="tool" />
+          ) : tools.length === 0 ? (
+            <div className="text-center py-24">
+              <p className="text-5xl mb-4" aria-hidden="true">🔍</p>
+              <h3 className="text-gray-700 font-semibold text-lg mb-2">No tools found</h3>
+              <p className="text-gray-400 text-sm">Try a different keyword.</p>
+            </div>
           ) : (
-            loading ? (
-              // Show 6 skeletons (above-fold) rather than full 12 for faster perceived load
-              <LoadingSkeleton count={6} type="tool" />
-            ) : pageTools.length === 0 ? (
-              <div className="text-center py-24">
-                <p className="text-5xl mb-4" aria-hidden="true">🔍</p>
-                <h3 className="text-gray-700 font-semibold text-lg mb-2">No tools found</h3>
-                <p className="text-gray-400 text-sm">Try a different keyword.</p>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {tools.map((tool, idx) => (
+                  <Fragment key={tool.id || tool.slug}>
+                    <ToolCard tool={tool} />
+                    {(idx + 1) % 8 === 0 && idx < tools.length - 1 && (
+                      <div className="col-span-full flex justify-center">
+                        <AdContainer slot="inline" />
+                      </div>
+                    )}
+                  </Fragment>
+                ))}
               </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {pageTools.map((tool, idx) => (
-                    <Fragment key={tool.id || tool.slug}>
-                      <ToolCard tool={tool} />
-                      {(idx + 1) % 8 === 0 && idx < pageTools.length - 1 && (
-                        <div className="col-span-full flex justify-center">
-                          <AdContainer slot="inline" />
-                        </div>
-                      )}
-                    </Fragment>
-                  ))}
-                </div>
-                <Pagination page={page} totalPages={totalPages} onPage={handlePage} />
-              </>
-            )
+
+              {hasMore && (
+                <InfiniteScrollSentinel onIntersect={loadMore} loading={loadingMore} />
+              )}
+            </>
           )}
+
         </div>
       </div>
     </>

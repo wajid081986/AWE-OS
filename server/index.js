@@ -46,6 +46,7 @@ const { initializeLearning, shutdownLearning } = require('./learning');
 const { initializeMultiAgent, shutdownMultiAgent } = require('./agents/multi-agent');
 const { initializeSelfOptimization, shutdownSelfOptimization } = require('./optimization');
 const requestId                      = require('./middleware/request-id');
+const { apiPerformance }             = require('./middleware/apiPerformance');
 const { startAnalyticsCron }  = require('./jobs/analytics.cron');
 const { startAutonomousCron } = require('./jobs/autonomous.cron');
 const { startIdeaCron }       = require('./jobs/idea.cron');
@@ -99,6 +100,9 @@ app.use((req, res, next) => {
   });
   next();
 });
+
+// ── API performance timing ───────────────────────────────────
+app.use(apiPerformance);
 
 // ── Rate limiters ────────────────────────────────────────────
 const globalLimiter  = rateLimit({ windowMs: 15*60*1000, max: 100, standardHeaders: true, legacyHeaders: false, message: { success: false, error: 'Too many requests, slow down.' } });
