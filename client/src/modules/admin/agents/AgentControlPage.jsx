@@ -3,15 +3,16 @@ import api from '../../../services/api.service'
 
 // ── Tab definitions ────────────────────────────────────────────
 const TABS = [
-  { id: 'overview',     label: '🔍 Overview'    },
-  { id: 'ideas',        label: '💡 Ideas'        },
-  { id: 'revenue',      label: '📊 Revenue'      },
-  { id: 'health',       label: '🏥 Health'       },
-  { id: 'content',      label: '📝 Content'      },
-  { id: 'support',      label: '🎫 Support'      },
-  { id: 'optimization', label: '🔧 Optimization' },
-  { id: 'decisions',    label: '📋 Decisions'    },
-  { id: 'pipeline',     label: '📡 Pipeline'     },
+  { id: 'overview',      label: '🔍 Overview'      },
+  { id: 'ideas',         label: '💡 Ideas'          },
+  { id: 'revenue',       label: '📊 Revenue'        },
+  { id: 'health',        label: '🏥 Health'         },
+  { id: 'content',       label: '📝 Content'        },
+  { id: 'support',       label: '🎫 Support'        },
+  { id: 'optimization',  label: '🔧 Optimization'   },
+  { id: 'decisions',     label: '📋 Decisions'      },
+  { id: 'pipeline',      label: '📡 Pipeline'       },
+  { id: 'intelligence',  label: '🧠 Intelligence'   },
 ]
 
 // ── Agent metadata for Overview cards ─────────────────────────
@@ -1786,6 +1787,441 @@ function PipelineHealthTab() {
   )
 }
 
+// ── Tab 10: Intelligence (Phase 5A + 5B) ──────────────────────
+function IntelligenceTab() {
+  const [memStats,      setMemStats]      = useState(null)
+  const [learnStats,    setLearnStats]    = useState(null)
+  const [events,        setEvents]        = useState([])
+  const [velocity,      setVelocity]      = useState([])
+  const [topPrompts,    setTopPrompts]    = useState([])
+  const [bottomPrompts, setBottomPrompts] = useState([])
+  const [patterns,      setPatterns]      = useState([])
+  const [optimizations, setOptimizations] = useState([])
+  const [repairRows,    setRepairRows]    = useState([])
+  const [acting,        setActing]        = useState(null)
+  const [toast,         setToast]         = useState(null)
+  const [loading,       setLoading]       = useState(true)
+
+  const load = useCallback(async () => {
+    const safe = (p) => p.catch(() => null)
+    const [mem, learn, evts, vel, top, bot, pats, opts, repairs] = await Promise.all([
+      safe(api.get('/api/memory/stats')),
+      safe(api.get('/api/learning/stats')),
+      safe(api.get('/api/learning/events?limit=20&hours=24')),
+      safe(api.get('/api/learning/velocity?days=7')),
+      safe(api.get('/api/learning/prompts/top?limit=8')),
+      safe(api.get('/api/learning/prompts/bottom?limit=5')),
+      safe(api.get('/api/memory/patterns/list?limit=10')),
+      safe(api.get('/api/learning/optimizations?limit=10')),
+      safe(api.get('/api/learning/repair?limit=10&hours=48')),
+    ])
+    setMemStats(mem?.data?.data ?? null)
+    setLearnStats(learn?.data?.data ?? null)
+    setEvents(evts?.data?.data ?? [])
+    setVelocity(vel?.data?.data ?? [])
+    setTopPrompts(top?.data?.data ?? [])
+    setBottomPrompts(bot?.data?.data ?? [])
+    setPatterns(pats?.data?.data ?? [])
+    setOptimizations(opts?.data?.data ?? [])
+    setRepairRows(repairs?.data?.data ?? [])
+    setLoading(false)
+  }, [])
+
+  useEffect(() => {
+    load()
+    const id = setInterval(load, POLL_INTERVAL_MS)
+    return () => clearInterval(id)
+  }, [load])
+
+  const applyOpt = async (id) => {
+    setActing(id + '_apply')
+    try {
+      await api.post(`/api/learning/optimizations/${id}/apply`)
+      setToast({ msg: 'Optimization marked applied', type: 'success' })
+      load()
+    } catch (err) {
+      setToast({ msg: err.response?.data?.error || 'Failed', type: 'error' })
+    } finally { setActing(null) }
+  }
+
+  const rejectOpt = async (id) => {
+    setActing(id + '_reject')
+    try {
+      await api.post(`/api/learning/optimizations/${id}/reject`)
+      setToast({ msg: 'Optimization rejected', type: 'success' })
+      load()
+    } catch (err) {
+      setToast({ msg: err.response?.data?.error || 'Failed', type: 'error' })
+    } finally { setActing(null) }
+  }
+
+  const runPipeline = async (name) => {
+    setActing('pipeline_' + name)
+    try {
+      await api.post(`/api/learning/pipelines/run/${name}`)
+      setToast({ msg: `Pipeline ${name.toUpperCase()} triggered`, type: 'success' })
+    } catch (err) {
+      setToast({ msg: err.response?.data?.error || 'Failed', type: 'error' })
+    } finally { setActing(null) }
+  }
+
+  const outcomeColor = (o) => {
+    if (o === 'success')  return 'text-green-400'
+    if (o === 'partial')  return 'text-yellow-400'
+    if (o === 'failure')  return 'text-red-400'
+    return 'text-gray-400'
+  }
+
+  const scoreBar = (score) => {
+    const pct  = Math.min(100, score ?? 0)
+    const col  = pct >= 70 ? 'bg-green-500' : pct >= 40 ? 'bg-yellow-500' : 'bg-red-500'
+    return (
+      <div className="flex items-center gap-2">
+        <div className="h-1.5 w-20 bg-gray-700 rounded-full overflow-hidden">
+          <div className={`h-full rounded-full ${col}`} style={{ width: `${pct}%` }} />
+        </div>
+        <span className="text-xs text-gray-400">{pct}</span>
+      </div>
+    )
+  }
+
+  if (loading) return <Spinner />
+
+  // ── Derived stats ──────────────────────────────────────────────
+  const stm   = memStats?.shortTerm  ?? {}
+  const ltm   = memStats?.longTerm   ?? {}
+  const sem   = memStats?.semantic   ?? {}
+  const lCap  = learnStats?.capture  ?? {}
+  const e24h  = learnStats?.events24h ?? {}
+  const totalE24 = Object.values(e24h).reduce((s, v) => s + v, 0)
+  const successE  = e24h.success  ?? 0
+  const failureE  = e24h.failure  ?? 0
+  const successPct = totalE24 > 0 ? Math.round((successE / totalE24) * 100) : 0
+
+  return (
+    <div className="space-y-6">
+      {toast && <Toast msg={toast.msg} type={toast.type} onDone={() => setToast(null)} />}
+
+      {/* ── Section: Memory Stats ── */}
+      <div>
+        <h2 className="text-white text-sm font-semibold mb-3">AI Memory Layer</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <MetricCard
+            title="Short-Term Entries"
+            value={stm.count ?? 0}
+            sub={`Cap ${stm.capacity ?? 500}`}
+            accent="text-indigo-400"
+          />
+          <MetricCard
+            title="Long-Term Memories"
+            value={ltm.total ?? 0}
+            sub={`Active: ${ltm.active ?? 0}`}
+            accent="text-purple-400"
+          />
+          <MetricCard
+            title="Semantic Tags"
+            value={sem.totalTags ?? 0}
+            sub={`Index: ${sem.indexedMemories ?? 0} memories`}
+            accent="text-cyan-400"
+          />
+          <MetricCard
+            title="Retired Memories"
+            value={ltm.retired ?? 0}
+            sub="Below confidence floor"
+            accent="text-gray-400"
+          />
+        </div>
+      </div>
+
+      {/* ── Section: Learning 24h Stats ── */}
+      <div>
+        <h2 className="text-white text-sm font-semibold mb-3">Learning Activity (24h)</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+          <MetricCard
+            title="Total Events"
+            value={totalE24}
+            sub="Captured last 24h"
+            accent="text-white"
+          />
+          <MetricCard
+            title="Success Events"
+            value={successE}
+            sub={`${successPct}% success rate`}
+            accent="text-green-400"
+          />
+          <MetricCard
+            title="Failure Events"
+            value={failureE}
+            sub="Learning from failures"
+            accent="text-red-400"
+          />
+          <MetricCard
+            title="Total Captured"
+            value={lCap.totalCaptured ?? 0}
+            sub="All time"
+            accent="text-indigo-400"
+          />
+        </div>
+
+        {/* Learning velocity */}
+        {velocity.length > 0 && (
+          <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
+            <p className="text-gray-400 text-xs mb-3">Events / Day (7 days)</p>
+            <div className="flex items-end gap-1.5 h-16">
+              {velocity.map((row, i) => {
+                const maxVal = Math.max(...velocity.map(r => r.event_count || 0), 1)
+                const h = Math.round(((row.event_count || 0) / maxVal) * 100)
+                return (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                    <div
+                      className="w-full bg-indigo-600 rounded-t-sm transition-all duration-300"
+                      style={{ height: `${h}%`, minHeight: row.event_count ? '4px' : 0 }}
+                      title={`${row.day}: ${row.event_count}`}
+                    />
+                    <span className="text-gray-600 text-xs truncate w-full text-center">
+                      {row.day ? new Date(row.day).toLocaleDateString('en-IN', { weekday: 'short' }) : ''}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Section: Prompt Evolution ── */}
+      {(topPrompts.length > 0 || bottomPrompts.length > 0) && (
+        <div>
+          <h2 className="text-white text-sm font-semibold mb-3">Prompt Evolution</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {topPrompts.length > 0 && (
+              <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-700 bg-green-900/10">
+                  <p className="text-green-300 text-xs font-semibold">Top Performing Prompts</p>
+                </div>
+                <div className="divide-y divide-gray-700/50">
+                  {topPrompts.map(p => (
+                    <div key={p.id} className="px-4 py-2.5 flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-gray-300 text-xs font-mono truncate">{p.prompt_name}</p>
+                        <p className="text-gray-500 text-xs">v{p.version_number} · {p.total_usages ?? 0} uses</p>
+                      </div>
+                      {scoreBar(p.score)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {bottomPrompts.length > 0 && (
+              <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-700 bg-red-900/10">
+                  <p className="text-red-300 text-xs font-semibold">Underperforming Prompts</p>
+                </div>
+                <div className="divide-y divide-gray-700/50">
+                  {bottomPrompts.map(p => (
+                    <div key={p.id} className="px-4 py-2.5 flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-gray-300 text-xs font-mono truncate">{p.prompt_name}</p>
+                        <p className="text-gray-500 text-xs">
+                          v{p.version_number} · {p.status === 'retired' ? '⚠ Retired' : `${p.total_usages ?? 0} uses`}
+                        </p>
+                      </div>
+                      {scoreBar(p.score)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Section: Failure Patterns ── */}
+      {patterns.length > 0 && (
+        <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-700">
+            <h2 className="text-white text-sm font-semibold">Runtime Failure Patterns</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="border-b border-gray-700">
+                <tr>
+                  {['Pattern', 'Type', 'Occurrences', 'Last Seen', 'Resolution'].map(h => (
+                    <th key={h} className="text-left text-gray-400 px-4 py-2 font-medium">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {patterns.map(p => (
+                  <tr key={p.id} className="border-b border-gray-700/50 last:border-0">
+                    <td className="px-4 py-2 text-gray-300 font-mono max-w-[180px] truncate">{p.pattern_key || p.id}</td>
+                    <td className="px-4 py-2">
+                      <span className="bg-purple-900/60 text-purple-300 px-1.5 py-0.5 rounded text-xs">{p.pattern_type || '—'}</span>
+                    </td>
+                    <td className="px-4 py-2 text-orange-300 font-bold">{p.occurrences ?? 0}</td>
+                    <td className="px-4 py-2 text-gray-500">{fmtTime(p.last_seen_at || p.updated_at)}</td>
+                    <td className="px-4 py-2 text-gray-400 max-w-[160px] truncate">
+                      {p.resolution_strategy || (p.is_resolved ? '✓ Resolved' : '—')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── Section: Recent Learning Events ── */}
+      {events.length > 0 && (
+        <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-700 flex items-center justify-between">
+            <h2 className="text-white text-sm font-semibold">Recent Learning Events (24h)</h2>
+            <span className="text-gray-500 text-xs">{events.length} shown</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="border-b border-gray-700">
+                <tr>
+                  {['Type', 'Source', 'Outcome', 'Score', 'Duration', 'When'].map(h => (
+                    <th key={h} className="text-left text-gray-400 px-4 py-2 font-medium">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {events.map(e => (
+                  <tr key={e.id} className="border-b border-gray-700/50 last:border-0">
+                    <td className="px-4 py-2 text-gray-300 font-mono">{e.event_type}</td>
+                    <td className="px-4 py-2 text-gray-400 max-w-[140px] truncate">{e.agent_name || e.pipeline_id || '—'}</td>
+                    <td className={`px-4 py-2 font-medium ${outcomeColor(e.outcome)}`}>{e.outcome}</td>
+                    <td className="px-4 py-2 text-gray-400">{e.score ?? '—'}</td>
+                    <td className="px-4 py-2 text-gray-500">{fmtDuration(e.duration_ms)}</td>
+                    <td className="px-4 py-2 text-gray-600">{fmtTime(e.learned_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── Section: Optimization Recommendations ── */}
+      <div>
+        <h2 className="text-white text-sm font-semibold mb-3">Optimization Recommendations</h2>
+        {optimizations.length === 0 ? (
+          <p className="text-gray-500 text-sm text-center py-6 bg-gray-800 border border-gray-700 rounded-xl">
+            No pending recommendations
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {optimizations.map(opt => (
+              <div key={opt.id} className="bg-gray-800 border border-gray-700 rounded-xl p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-xs px-2 py-0.5 rounded font-medium ${
+                        opt.priority === 'critical' ? 'bg-red-900/60 text-red-300' :
+                        opt.priority === 'high'     ? 'bg-orange-900/60 text-orange-300' :
+                        opt.priority === 'medium'   ? 'bg-yellow-900/60 text-yellow-300' :
+                                                      'bg-gray-700 text-gray-400'
+                      }`}>{opt.priority || 'low'}</span>
+                      <span className="text-gray-500 text-xs">{opt.category}</span>
+                    </div>
+                    <p className="text-gray-300 text-sm font-medium">{opt.title}</p>
+                    <p className="text-gray-500 text-xs mt-1 line-clamp-2">{opt.description}</p>
+                    {opt.affected_component && (
+                      <p className="text-gray-600 text-xs mt-1 font-mono">{opt.affected_component}</p>
+                    )}
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      disabled={acting === opt.id + '_apply'}
+                      onClick={() => applyOpt(opt.id)}
+                      className="text-xs bg-green-800 hover:bg-green-700 disabled:opacity-40 text-green-200 px-3 py-1.5 rounded-lg font-medium transition-colors"
+                    >
+                      {acting === opt.id + '_apply' ? '…' : 'Apply'}
+                    </button>
+                    <button
+                      disabled={acting === opt.id + '_reject'}
+                      onClick={() => rejectOpt(opt.id)}
+                      className="text-xs bg-gray-700 hover:bg-gray-600 disabled:opacity-40 text-gray-300 px-3 py-1.5 rounded-lg font-medium transition-colors"
+                    >
+                      {acting === opt.id + '_reject' ? '…' : 'Reject'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Section: Repair History ── */}
+      {repairRows.length > 0 && (
+        <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-700">
+            <h2 className="text-white text-sm font-semibold">Repair History (48h)</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="border-b border-gray-700">
+                <tr>
+                  {['Tool', 'Fix Type', 'Category', 'Success', 'Confidence Δ', 'When'].map(h => (
+                    <th key={h} className="text-left text-gray-400 px-4 py-2 font-medium">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {repairRows.map(r => {
+                  const delta = ((r.confidence_after ?? 0) - (r.confidence_before ?? 0)).toFixed(2)
+                  return (
+                    <tr key={r.id} className="border-b border-gray-700/50 last:border-0">
+                      <td className="px-4 py-2 text-gray-300 font-mono max-w-[120px] truncate">{r.tool_id}</td>
+                      <td className="px-4 py-2 text-gray-400">{r.fix_type || '—'}</td>
+                      <td className="px-4 py-2 text-gray-400">{r.error_category || '—'}</td>
+                      <td className="px-4 py-2">
+                        <span className={r.success ? 'text-green-400' : 'text-red-400'}>
+                          {r.success ? '✓' : '✗'}
+                        </span>
+                      </td>
+                      <td className={`px-4 py-2 font-mono ${Number(delta) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {Number(delta) >= 0 ? '+' : ''}{delta}
+                      </td>
+                      <td className="px-4 py-2 text-gray-600">{fmtTime(r.created_at)}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── Actions: Manual Pipeline Triggers ── */}
+      <div className="flex flex-wrap gap-3">
+        {['a', 'b', 'c'].map(name => {
+          const labels = { a: 'Pipeline A — Distill Success', b: 'Pipeline B — Pattern Analysis', c: 'Pipeline C — Optimization Scan' }
+          return (
+            <button
+              key={name}
+              disabled={!!acting?.startsWith('pipeline_')}
+              onClick={() => runPipeline(name)}
+              className="text-sm bg-indigo-800 hover:bg-indigo-700 disabled:opacity-40 text-indigo-200 px-4 py-2 rounded-lg font-medium transition-colors"
+            >
+              {acting === 'pipeline_' + name ? 'Running…' : labels[name]}
+            </button>
+          )
+        })}
+        <button
+          onClick={load}
+          className="text-sm bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded-lg font-medium transition-colors"
+        >
+          Refresh
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ── Main page ──────────────────────────────────────────────────
 export default function AgentControlPage() {
   const [tab, setTab] = useState('overview')
@@ -1800,6 +2236,7 @@ export default function AgentControlPage() {
     optimization: <OptimizationTab />,
     decisions:    <DecisionsTab />,
     pipeline:     <PipelineHealthTab />,
+    intelligence: <IntelligenceTab />,
   }
 
   return (

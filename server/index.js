@@ -36,7 +36,11 @@ const toolsGenerateRoutes            = require('./routes/tools.generate.route');
 const pipelineRoutes                 = require('./routes/pipeline.routes');
 const runtimeRoutes                  = require('./routes/runtime.routes');
 const workerRoutes                   = require('./routes/worker.routes');
+const memoryRoutes                   = require('./routes/memory.routes');
+const learningRoutes                 = require('./routes/learning.routes');
 const { initializeRuntime, shutdownRuntime } = require('./runtime');
+const { initializeMemory, shutdownMemory }   = require('./memory');
+const { initializeLearning, shutdownLearning } = require('./learning');
 const requestId                      = require('./middleware/request-id');
 const { startAnalyticsCron }  = require('./jobs/analytics.cron');
 const { startAutonomousCron } = require('./jobs/autonomous.cron');
@@ -229,6 +233,8 @@ app.use('/api/analytics',      analyticsRoutes);
 app.use('/api/pipelines',      adminLimiter, pipelineRoutes);
 app.use('/api/runtime',        adminLimiter, runtimeRoutes);
 app.use('/api/workers',        adminLimiter, workerRoutes);
+app.use('/api/memory',         adminLimiter, memoryRoutes);
+app.use('/api/learning',       adminLimiter, learningRoutes);
 app.use('/api/resume-versions', resumeVersionsRoutes);
 app.use('/api',                resumeRoutes);
 
@@ -264,8 +270,19 @@ const server = app.listen(PORT, () => {
   startIdeaCron();
   startMarketingCrons();
   startTestingCron();
-  // Phase 4A/4B: Initialize runtime infrastructure + recover interrupted executions
+  // Phase 4: Initialize runtime infrastructure
   initializeRuntime().catch(err => console.error('[SERVER] Runtime init error:', err?.message));
+
+  // Phase 5A: Initialize AI Memory Layer
+  initializeMemory().catch(err => console.error('[SERVER] Memory init error:', err?.message));
+
+  // Phase 5B: Initialize Autonomous Learning Engine (requires runtime bus)
+  // Deferred 2s to ensure runtime EventBus is fully wired first
+  setTimeout(() => {
+    const { bus } = require('./runtime');
+    initializeLearning(bus).catch(err => console.error('[SERVER] Learning init error:', err?.message));
+  }, 2_000);
+
   console.info('[SERVER] All systems GO');
 });
 
@@ -278,7 +295,9 @@ process.on('SIGTERM', () => {
 
   server.close(() => {
     clearTimeout(forceExit);
-    try { shutdownRuntime(); } catch (_) {}
+    try { shutdownRuntime();  } catch (_) {}
+    try { shutdownMemory();   } catch (_) {}
+    try { shutdownLearning(); } catch (_) {}
     console.info('[SERVER] Closed gracefully.');
     process.exit(0);
   });
