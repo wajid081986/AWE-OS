@@ -116,24 +116,26 @@ function PasswordGeneratorTool() {
 }
 
 const STEPS = [
-  'Set the desired password length using the slider (8 to 64 characters).',
-  'Toggle character types: uppercase, lowercase, numbers, and symbols.',
-  'Click "Generate Password" to create a cryptographically random password.',
-  'Click "Copy" to copy the password to your clipboard instantly.',
+  'Set your desired password length using the slider. The range is 8 to 64 characters. Most security guidelines recommend a minimum of 16 characters for regular accounts and 20+ for banking and email.',
+  'Toggle the character types you want included: Uppercase letters (A–Z), Lowercase letters (a–z), Numbers (0–9), and Symbols (!@#$%^&* and others). At least two types must be active to generate a password.',
+  'Click "Generate Password". A cryptographically random password is created instantly using your browser\'s Web Crypto API and displayed in the dark panel.',
+  'Click "Copy" to copy the password to your clipboard in one click, then paste it directly into your password manager or account registration form. The strength meter shows the security rating instantly.',
 ]
 
 const FAQS = [
-  { q: 'Is this password generator truly random?', a: 'Yes! We use the browser\'s built-in crypto.getRandomValues() API, which provides cryptographically secure random numbers — the same standard used by security professionals.' },
-  { q: 'Are my generated passwords stored anywhere?', a: 'No. All password generation happens entirely in your browser. No passwords are transmitted to our servers or stored anywhere.' },
-  { q: 'What length should I use for a strong password?', a: 'We recommend at least 16 characters with a mix of uppercase, lowercase, numbers, and symbols. For critical accounts like banking, use 20+ characters.' },
-  { q: 'Why should I use symbols in passwords?', a: 'Adding symbols dramatically increases the number of possible password combinations, making brute-force attacks exponentially harder.' },
-  { q: 'How strong is a generated password?', a: 'A 16-character password with all character types has over 7 quadrillion possible combinations, which would take thousands of years to crack with modern hardware.' },
+  { q: 'Is this password generator truly random?', a: 'Yes. The tool uses window.crypto.getRandomValues() — the browser\'s built-in cryptographically secure random number generator. This is the same API used by security libraries, password managers, and encryption tools. It produces true randomness seeded by hardware entropy, unlike Math.random() which is pseudo-random and predictable.' },
+  { q: 'Are my generated passwords stored anywhere?', a: 'No. Password generation runs entirely in your browser with no network requests. The password is generated in memory, displayed locally, and cleared when you close or refresh the page. Nothing is transmitted to any server, logged, or stored in any way — not even in the browser\'s local storage.' },
+  { q: 'What length should I use for a strong password?', a: 'We recommend at least 16 characters with all four character types enabled. For high-value accounts — email, banking, cloud storage, password manager master password — use 20 or more characters. Length is the single biggest factor in resistance to brute-force attacks: each additional character multiplies the number of possible combinations by the size of the character pool.' },
+  { q: 'Why should I use symbols in passwords?', a: 'Symbols increase the character pool from 62 (uppercase + lowercase + numbers) to roughly 90 characters, which multiplies the total number of possible combinations by a factor of 90 for each character position. A 16-character password with symbols has approximately 1,000 times more possible combinations than the same length without symbols — a meaningful barrier against automated cracking tools.' },
+  { q: 'How strong is a 16-character password with all character types?', a: 'A 16-character password drawn from a pool of ~90 characters (uppercase, lowercase, digits, symbols) has approximately 1.9 × 10³⁰ possible combinations. At a rate of one trillion guesses per second — far beyond the capability of any existing hardware — it would take over 60 trillion years to exhaustively test all possibilities. In practice it is computationally unbreakable.' },
+  { q: 'Should I use a different password for every account?', a: 'Yes, always. Password reuse is the primary reason that a data breach at one site leads to account takeovers at others — attackers automatically try leaked credentials across thousands of services. The only practical way to use unique passwords for every account is to use a password manager such as Bitwarden, 1Password, or KeePass. Generate a new password here, copy it, and save it directly into your manager.' },
 ]
 
 const ABOUT = [
-  'The Password Generator creates cryptographically secure random passwords using the Web Crypto API built into your browser. You control the length (8–64 characters) and which character types to include.',
-  'Unlike many online password generators, no data is sent to any server. Everything runs in your browser, so your passwords are completely private and never logged, stored, or transmitted.',
-  'The built-in strength meter analyses your generated password across seven criteria including length, character variety, and complexity to give you instant feedback on how secure your password is.',
+  'Weak and reused passwords are involved in the majority of data breaches. The AWE-OS Password Generator creates cryptographically secure, fully random passwords up to 64 characters long with your choice of character types — uppercase, lowercase, numbers, and symbols. Each password is generated entirely in your browser with no server communication and no logging of any kind.',
+  'The randomness source matters. Most basic password generators use JavaScript\'s Math.random() function, which is a pseudo-random algorithm seeded from a predictable state. This tool uses window.crypto.getRandomValues() — the Web Cryptography API built into every modern browser. This function draws entropy from hardware sources (mouse movement, CPU timing jitter, system interrupts) and produces randomness that is unpredictable even to the browser itself. It is the same source used by professional cryptographic libraries.',
+  'Password length is the single most important factor in resistance to brute-force attacks. A 16-character password with all four character types drawn from a pool of roughly 90 characters produces approximately 1.9 × 10³⁰ possible combinations — a number so large that it would take millions of times longer than the age of the universe to exhaust with any conceivable hardware. The built-in strength meter analyses seven criteria including length thresholds and character diversity, giving you instant visual feedback on the quality of each generated password.',
+  'The most effective security practice is to combine a strong password generator with a dedicated password manager. Generate a unique password for every account, save it in your manager, and never memorise or reuse credentials across services. If any one service suffers a breach, attackers who find your password cannot use it anywhere else. Bitwarden (free, open-source), 1Password, and KeePass are widely trusted options. Generate a password here, copy it in one click, and paste it directly into your manager\'s entry form.',
 ]
 
 export default function PasswordGenerator() {

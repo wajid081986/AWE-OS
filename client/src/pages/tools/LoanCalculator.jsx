@@ -132,24 +132,26 @@ function LoanTool() {
 }
 
 const STEPS = [
-  'Enter the total loan amount you wish to borrow.',
-  'Input the annual interest rate offered by your bank or lender.',
-  'Enter the loan tenure in years or months using the toggle.',
-  'Click "Calculate EMI" to see your monthly payment, total interest, and amortisation schedule.',
+  'Enter the total loan amount you wish to borrow — this is the principal, the figure your bank will disburse to you before any interest is applied.',
+  'Enter the annual interest rate quoted by your lender. Use the exact figure from your loan offer letter or bank website for an accurate result.',
+  'Enter your loan tenure and select whether you have entered years or months using the toggle. Home loans are typically 10–30 years; personal loans 1–5 years.',
+  'Click "Calculate EMI" to see your monthly instalment, total repayment amount, total interest paid, a principal-vs-interest breakdown bar, and a month-by-month amortisation table for the first year.',
 ]
 
 const FAQS = [
-  { q: 'What is EMI?', a: 'EMI (Equated Monthly Instalment) is the fixed monthly payment you make to repay a loan. It includes both the principal amount and the interest charged.' },
-  { q: 'How is EMI calculated?', a: 'EMI = P × r × (1+r)^n / ((1+r)^n - 1), where P is the principal, r is the monthly interest rate, and n is the number of months.' },
-  { q: 'Does paying extra EMI reduce the loan faster?', a: 'Yes! Making prepayments or paying extra EMIs reduces your outstanding principal, which lowers the total interest you pay over the loan tenure.' },
-  { q: 'What is an amortisation schedule?', a: 'It is a table showing the breakdown of each EMI payment into principal and interest components month by month throughout the loan tenure.' },
-  { q: 'Can I use this for home, car, or personal loans?', a: 'Yes, this calculator works for any type of fixed-rate loan including home loans, car loans, personal loans, and education loans.' },
+  { q: 'What is EMI?', a: 'EMI stands for Equated Monthly Instalment — the fixed amount you pay to your lender every month for the full duration of the loan. Each payment covers a portion of the outstanding principal plus the interest accrued on that balance. Early instalments are interest-heavy; later instalments shift toward principal repayment as the balance reduces.' },
+  { q: 'How is EMI calculated?', a: 'The standard EMI formula is: EMI = P × r × (1 + r)ⁿ ÷ ((1 + r)ⁿ − 1), where P is the principal loan amount, r is the monthly interest rate (annual rate ÷ 12 ÷ 100), and n is the total number of monthly instalments. This is the same formula used by all banks and financial institutions.' },
+  { q: 'Does making extra payments reduce the loan faster?', a: 'Yes, significantly. Prepayments directly reduce the outstanding principal, which in turn reduces the interest calculated on the remaining balance. Even one extra EMI per year can shorten the loan tenure by several months and save a meaningful amount in total interest — especially effective in the early years of a long-tenure home loan.' },
+  { q: 'What is an amortisation schedule?', a: 'An amortisation schedule is a month-by-month table showing how each EMI payment is split between principal and interest, and how the outstanding balance decreases over time. The schedule shown here covers the first 12 months. It illustrates why early payments contain more interest than principal — a pattern that reverses progressively as the balance falls.' },
+  { q: 'Can I use this for home, car, education, or personal loans?', a: 'Yes. The EMI formula applies to any fixed-rate reducing-balance loan regardless of its purpose. Enter the exact principal, annual interest rate, and tenure for any loan type and the calculation will be accurate. For floating-rate loans, use the current rate as an approximation and recalculate whenever the rate changes.' },
+  { q: 'Why does total interest sometimes exceed the principal?', a: 'On long-tenure loans at moderate interest rates, the total interest paid over the full repayment period can easily match or exceed the original borrowed amount. A ₹50 lakh home loan at 8.5% over 20 years results in roughly ₹57 lakh in total interest — meaning the total repayment is more than twice the amount borrowed. This is why tenure reduction strategies have such a large impact on total cost.' },
 ]
 
 const ABOUT = [
-  'The Loan EMI Calculator helps you plan your finances by showing exactly how much you will pay each month. Simply enter your loan amount, interest rate, and tenure to get instant results.',
-  'The calculator uses the standard compound interest EMI formula used by all major banks. You can see the full breakdown: principal vs interest, total cost of the loan, and a month-by-month amortisation schedule for the first year.',
-  'Whether you are planning a home loan, car loan, or personal loan, this tool gives you the clarity you need to make informed financial decisions. All calculations happen instantly in your browser with no data stored.',
+  'Understanding what a loan will truly cost you before you sign is one of the most important financial decisions you will make. The AWE-OS Loan EMI Calculator gives you the complete picture instantly — monthly instalment, total repayment, total interest, a principal-versus-interest breakdown, and a month-by-month amortisation schedule for the first year of the loan.',
+  'The tool uses the standard compound-interest EMI formula used by every bank and financial institution globally. It applies equally to home loans, car loans, personal loans, education loans, and any other fixed-rate reducing-balance credit product. Enter your loan amount, the annual interest rate from your lender, and your chosen tenure in years or months — results appear the moment you click Calculate.',
+  'The amortisation schedule deserves careful attention. It reveals a pattern that surprises many first-time borrowers: in the early months of a loan, the vast majority of each EMI payment goes to interest rather than reducing the principal. This is because interest is calculated on the full outstanding balance. As the balance falls month by month, the interest component shrinks and the principal component grows. Visualising this helps explain why prepayments made in the first few years of a loan have a disproportionately large impact on total interest paid.',
+  'The payment breakdown chart shows the ratio of principal to total interest at a glance. For long-tenure home loans at typical rates, the interest paid over the life of the loan can exceed the original borrowed amount — making this comparison one of the most sobering and useful outputs the calculator provides. All calculations run entirely in your browser with no data transmitted or stored, so you can model different scenarios privately before approaching any lender.',
 ]
 
 export default function LoanCalculator() {

@@ -118,21 +118,24 @@ function PDFtoJPGTool() {
 }
 
 const STEPS = [
-  'Upload your PDF file by dragging or clicking.',
-  'Choose output quality: Low (small files), Medium (balanced), or High (best quality).',
-  'Click "Convert to JPG" — each page is rendered to a JPEG image.',
-  'All images are bundled in a ZIP file and downloaded automatically.',
+  'Upload your PDF by dragging it into the drop zone or clicking to browse. The tool reads the file locally and detects the total page count automatically — no upload to any server.',
+  'Select an output quality level: Low (72 DPI, smallest file size) for quick sharing, Medium (108 DPI, balanced) for screen use, or High (144 DPI, sharpest) for print, presentations, or zoom-heavy viewing.',
+  'Click "Convert to JPG". A real-time progress bar tracks rendering page by page using PDF.js directly in your browser.',
+  'When complete, a ZIP file containing all JPEG images named sequentially (page_001.jpg, page_002.jpg, etc.) downloads automatically. Unzip to access individual pages.',
 ]
 const FAQS = [
-  { q: 'Will every page become a separate image?', a: 'Yes. Each page in the PDF is rendered as its own JPEG file, numbered in sequence (page_001.jpg, page_002.jpg, etc.).' },
-  { q: 'Why is the output a ZIP file?', a: 'When converting multiple pages, we bundle all the images into a ZIP for a single download.' },
-  { q: 'What affects the image quality?', a: 'The quality setting controls both the render scale (DPI) and JPEG compression. High quality produces larger, sharper images. Low quality is faster and produces smaller files.' },
-  { q: 'Can I convert a password-protected PDF?', a: 'Password-protected PDFs will fail. Remove the password first using the Unlock PDF tool.' },
-  { q: 'Is there a page limit?', a: 'No limit, but large PDFs with many pages take longer to render. The progress bar shows conversion status.' },
+  { q: 'Will every page become a separate image?', a: 'Yes. Every page in the PDF is rendered as its own numbered JPEG file (page_001.jpg, page_002.jpg, and so on). This ensures you can work with individual pages in any image editor, presentation tool, or content management system.' },
+  { q: 'Why is the output a ZIP file?', a: 'Browsers support only a single automatic download at a time. Packaging all images into a ZIP file allows you to download an entire multi-page PDF as one click. Most operating systems — Windows, macOS, iOS, and Android — open ZIP files natively.' },
+  { q: 'What is the difference between Low, Medium, and High quality?', a: 'Each setting controls two things: the render scale (how many pixels per page) and the JPEG compression rate. Low renders at roughly 72 DPI with higher compression — ideal for thumbnails and quick previews. Medium produces balanced 108 DPI images suitable for screen reading. High renders at 144 DPI with minimal compression for sharp print or detailed review.' },
+  { q: 'Can I convert a password-protected PDF?', a: 'Password-protected PDFs will fail to load during conversion. Use the Unlock PDF tool on AWE-OS to remove the password first, then return here to convert the unlocked file to JPG.' },
+  { q: 'Is there a page limit?', a: 'There is no enforced page limit. PDFs with many pages take longer to process because each page is individually rendered in the browser. The progress bar shows exactly where conversion stands. A 100-page PDF at Medium quality typically takes 30–60 seconds.' },
+  { q: 'Are my PDF files sent to a server during conversion?', a: 'No. All rendering runs entirely in your browser using PDF.js — the same open-source library used by Firefox\'s built-in PDF viewer. Your file never leaves your device and is not stored anywhere.' },
 ]
 const ABOUT = [
-  'PDF to JPG converts every page of your PDF into a high-quality JPEG image. The tool uses PDF.js for browser-side rendering, producing sharp, accurate images from your PDF content.',
-  'Choose from three quality levels to balance file size and image clarity. All images are downloaded as a ZIP file. No server upload required — everything runs in your browser.',
+  'Converting a PDF to JPG images unlocks a document for uses that PDFs cannot serve: embedding pages into presentations, uploading to image-based platforms, editing in photo tools, sharing individual pages on social media, or generating thumbnails for document management systems. The AWE-OS PDF to JPG converter handles all of this without requiring any account, installation, or server upload.',
+  'The tool uses PDF.js — Mozilla\'s battle-tested, open-source PDF rendering engine — to draw each page onto an HTML canvas and export it as a JPEG. This approach gives you pixel-accurate rendering of text, vector graphics, images, and embedded fonts at whatever resolution you choose. Three quality presets let you balance between fast, compact files and sharp, high-resolution output for different audiences.',
+  'Quality matters differently depending on your goal. Low quality (72 DPI) is ideal for thumbnails, web previews, and situations where bandwidth or storage is a concern. Medium (108 DPI) suits email attachments and screen presentations. High quality (144 DPI) is appropriate when the image needs to be printed, projected, or examined closely — it captures fine text and detail that lower settings may blur.',
+  'All images are packaged into a ZIP archive because browsers allow only one automatic download at a time; a ZIP solves this cleanly. Files are named page_001.jpg, page_002.jpg, and so on in document order, so every image is instantly identifiable. Common use cases include converting scanned PDF forms to editable images, extracting slides from PDF presentations, pulling product specification pages from technical manuals, and archiving signed documents as accessible images.',
 ]
 
 export default function PDFtoJPG() {

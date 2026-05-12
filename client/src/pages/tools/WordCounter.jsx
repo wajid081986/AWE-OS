@@ -61,24 +61,26 @@ function WordCounterTool() {
 }
 
 const STEPS = [
-  'Paste or type your text into the large text area above.',
-  'Statistics update live as you type — no button needed.',
-  'View words, characters, characters without spaces, sentences, paragraphs, and estimated reading time.',
-  'Click "Clear text" to start fresh with new content.',
+  'Paste or type your text directly into the large text area. You can paste from any source — a Word document, Google Doc, email draft, web page, or any other application.',
+  'All six statistics update live as you type or paste. No button press is required — the counts recalculate automatically with every keystroke.',
+  'Review the stat cards: Words, Characters (total), Characters without spaces, Sentences, Paragraphs, and estimated Reading Time at 200 words per minute.',
+  'Click "Clear text" to reset the text area and all counters when you are ready to analyse a different piece of writing.',
 ]
 
 const FAQS = [
-  { q: 'Does word count update in real time?', a: 'Yes! All six statistics — words, characters, characters without spaces, sentences, paragraphs, and reading time — update instantly as you type or paste text.' },
-  { q: 'How is reading time calculated?', a: 'Reading time is calculated based on an average adult reading speed of 200 words per minute. It is rounded up to the nearest minute.' },
-  { q: 'How are sentences counted?', a: 'Sentences are counted by the number of sentence-ending punctuation marks (., !, ?) in your text. This is a close approximation for most texts.' },
-  { q: 'Can I use this for academic writing?', a: 'Yes, this tool is perfect for academic papers, essays, and assignments with word count limits. Paste your text to instantly verify you are within the required word count.' },
-  { q: 'Is there a character or word limit?', a: 'There is no enforced limit. The tool will handle large documents but performance may vary for extremely long texts (100,000+ words) depending on your device.' },
+  { q: 'Does word count update in real time?', a: 'Yes. All six statistics — words, characters, characters without spaces, sentences, paragraphs, and estimated reading time — recalculate instantly as you type or paste text. There is no submit button because no button is needed.' },
+  { q: 'How is reading time calculated?', a: 'Reading time is estimated by dividing the word count by 200 — the widely accepted average adult reading speed in words per minute. The result is rounded up to the nearest whole minute. Skimming speed is faster (around 600 wpm) and technical reading is slower (100–150 wpm), but 200 wpm is the standard baseline used by publishers, educators, and reading-time tools across the industry.' },
+  { q: 'How are sentences counted?', a: 'Sentences are counted by detecting sentence-ending punctuation marks: full stops, exclamation marks, and question marks. This method is accurate for most standard prose. Abbreviations (e.g. "Dr."), decimal numbers, and ellipses may cause slight overcounting in edge cases, but the result is a reliable approximation for the vast majority of writing.' },
+  { q: 'Can I use this for academic writing with word limits?', a: 'Absolutely. Paste your essay, dissertation section, assignment, or research abstract and the word count updates instantly. The tool shows both the raw word count and characters without spaces — useful for platforms that enforce character limits rather than word limits, such as many journal abstract submission systems.' },
+  { q: 'Is this useful for SEO and content writing?', a: 'Yes. SEO best practices suggest blog posts of 1,200–2,500 words for competitive topics. Meta descriptions should be under 160 characters. Email subject lines perform best under 60 characters. The tool lets you check all of these constraints instantly by pasting your draft content.' },
+  { q: 'Is there a character or word limit?', a: 'There is no enforced limit. The tool handles large documents efficiently — a 10,000-word article or a full book chapter pastes and counts without issue. Performance may vary for very long texts over 100,000 words on older devices, but for typical writing tasks the tool runs without any noticeable delay.' },
 ]
 
 const ABOUT = [
-  'The Word Counter provides instant, real-time statistics about any text you enter. It counts words, characters, characters without spaces, sentences, paragraphs, and estimated reading time — all updating as you type.',
-  'This tool is indispensable for writers, students, bloggers, and content creators who need to meet specific word count targets or understand the length and complexity of their writing.',
-  'The reading time estimate uses the standard 200 words-per-minute average adult reading speed. All processing happens locally in your browser, so your text never leaves your device.',
+  'Word count is one of the most fundamental requirements in writing — essays have minimum lengths, articles have targets, meta descriptions have character caps, tweet character limits, and resumes have one-page constraints. The AWE-OS Word Counter tracks all of this in a single place, updating every statistic the instant you type or paste without requiring any button press.',
+  'Six metrics are tracked simultaneously: the total word count, total characters including spaces, characters excluding spaces (for platforms that measure "characters without spaces"), sentence count, paragraph count, and an estimated reading time. This combination covers the full range of writing contexts — academic word limits typically count words, social media platforms count characters, and content planning tools use reading time to gauge whether an article is scannable or dense.',
+  'Reading time is calculated at 200 words per minute, the standard adult reading speed used by publishers, Substack, Medium, and most content management platforms. It is deliberately conservative — most readers skim rather than read every word, but the 200 wpm baseline ensures you plan for thorough reading rather than speed-reading. A 1,500-word article calculates to approximately 8 minutes, which aligns with what platform analytics typically report for that length of content.',
+  'The tool is built for privacy as much as convenience. All counting is performed by JavaScript running directly in your browser — no text is ever transmitted to any server, logged, stored, or analysed. You can safely paste confidential documents, client communications, legal drafts, and personal writing without any concern about data exposure. The text area accepts content from any source and resets instantly with the Clear button when you are done.',
 ]
 
 export default function WordCounter() {

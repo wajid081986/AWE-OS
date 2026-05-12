@@ -170,21 +170,24 @@ function JPGtoPDFTool() {
 }
 
 const STEPS = [
-  'Upload your JPG, PNG, or WEBP images by dragging or clicking to browse.',
-  'Reorder images using the ↑ ↓ arrows — the order determines page order in the PDF.',
-  'Choose your page size (A4 or Letter) and image fit option.',
-  'Click "Convert to PDF" — a single PDF with one image per page downloads instantly.',
+  'Upload your images by dragging them into the drop zone or clicking to browse. JPG, PNG, WEBP, and GIF files are all accepted. You can select multiple images at once from a folder.',
+  'Review the image list and use the ↑ and ↓ arrow buttons to arrange files into the exact page order you want in the final PDF. Click × to remove any image you do not need.',
+  'Choose your page size (A4 for international standard, Letter for US format) and how images should fit the page: "Fit to page" centres the image while preserving its aspect ratio; "Stretch" fills the page completely; "Actual size" places the image at its physical pixel dimensions.',
+  'Click "Convert to PDF". A single PDF file with one image per page downloads automatically — no server, no account, no waiting.',
 ]
 const FAQS = [
-  { q: 'What image formats are supported?', a: 'JPG, PNG, WEBP, and GIF images are all supported. Each image becomes one page in the PDF.' },
-  { q: 'Does image quality change during conversion?', a: 'The images are embedded at their original quality. The "Fit to page" option scales the image to fill the page without distortion.' },
-  { q: 'Can I mix portrait and landscape images?', a: 'Yes. All images are placed on the same page size (A4 or Letter). The fit option controls how each image fills its page.' },
-  { q: 'Is there a limit on number of images?', a: 'No hard limit, but very many large images may take longer to process. For best performance, use under 50 images per conversion.' },
-  { q: 'Are my images uploaded to a server?', a: 'No. All conversion happens in your browser using jsPDF. Your images never leave your device.' },
+  { q: 'What image formats are supported?', a: 'JPG (JPEG), PNG, WEBP, and GIF images are all supported. Each image is embedded as its own page in the output PDF. Transparent PNG images are supported — transparency renders against the white page background.' },
+  { q: 'Does image quality change during conversion?', a: 'Images are embedded at their original resolution. No re-compression or quality reduction occurs during the conversion process. The "Fit to page" option scales the image\'s display size on the page but does not alter the image data itself.' },
+  { q: 'What is the difference between Fit, Stretch, and Actual size?', a: '"Fit to page" scales the image proportionally to fill the page without cropping, centering it with white margins if needed. "Stretch" scales to fill the full page, which may distort non-standard aspect ratios. "Actual size" places the image at its exact pixel dimensions, capping it at the page boundary if it is larger.' },
+  { q: 'Can I mix portrait and landscape images?', a: 'Yes. Every image is placed on a page of the chosen size (A4 or Letter). The fit mode controls how each individual image fills its page. If you have a mix of orientations, "Fit to page" produces the most consistent results across all images.' },
+  { q: 'Is there a limit on the number of images?', a: 'There is no hard limit. In practice, very large batches of high-resolution images can be memory-intensive in the browser. For best performance, use batches under 50 images. If you need to combine hundreds of images, splitting them into groups and then merging the resulting PDFs using the Merge PDF tool works well.' },
+  { q: 'Are my images uploaded to a server?', a: 'No. All conversion runs entirely in your browser using the jsPDF library. Your images are read locally, assembled into a PDF in memory, and saved directly to your device. Nothing is transmitted to any server and nothing is stored anywhere.' },
 ]
 const ABOUT = [
-  'JPG to PDF converts any number of images into a single PDF document. Upload multiple images, arrange them in your desired order, and choose a page size to create a professional-looking PDF in seconds.',
-  'The tool uses jsPDF for browser-side PDF generation — fast, private, and free. Each image gets its own page with your chosen fit setting.',
+  'Turning a collection of images into a PDF is one of the most common document tasks across professional, academic, and personal life. Scanned receipts, photos of handwritten notes, product images for a catalogue, pages photographed from a book, ID documents — all of these become shareable, printable, and archivable the moment they are combined into a PDF. The AWE-OS JPG to PDF converter does this entirely in your browser, with no upload required.',
+  'The image ordering system is central to the tool. Upload files in any order, then drag-rearrange them using the ↑ and ↓ controls until the sequence is exactly right. This is particularly valuable when scanning multi-page documents with a phone camera — pages rarely come out in perfect order, and reordering before combining saves significant editing time later.',
+  'Three image fit modes give you control over how each image fills its page. "Fit to page" is the safest choice for most use cases — it centres the image with proportional scaling so nothing is cropped and no distortion occurs. "Stretch" is useful when you specifically want full-bleed pages without margins. "Actual size" places the image at its true physical dimensions, which is helpful when pixel density matters, such as when converting high-resolution diagrams or maps that need to remain measurable when printed.',
+  'The tool uses jsPDF, a well-established JavaScript PDF generation library, running entirely inside your browser. This means your images never leave your device, no account is needed, and there is no file size restriction imposed by server quotas. Supported formats include JPG, PNG, WEBP, and GIF. Each image receives its own page in the output PDF, and the entire batch downloads as a single file the moment conversion is complete.',
 ]
 
 export default function JPGtoPDF() {
