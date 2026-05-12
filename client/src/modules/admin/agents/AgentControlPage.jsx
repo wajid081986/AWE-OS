@@ -1086,33 +1086,84 @@ function MetricCard({ title, value, sub, accent = 'text-white' }) {
   )
 }
 
+// ── Execution status badge ─────────────────────────────────────
+function ExecStatusBadge({ status }) {
+  const map = {
+    queued:    'bg-blue-900 text-blue-300',
+    running:   'bg-yellow-800 text-yellow-300',
+    paused:    'bg-purple-900 text-purple-300',
+    completed: 'bg-green-800 text-green-300',
+    failed:    'bg-red-800 text-red-300',
+    cancelled: 'bg-gray-700 text-gray-400',
+    stalled:   'bg-orange-900 text-orange-300',
+    timed_out: 'bg-red-900 text-red-400',
+  }
+  return (
+    <span className={`text-xs px-2 py-0.5 rounded font-medium ${map[status] || 'bg-gray-700 text-gray-300'}`}>
+      {status || '—'}
+    </span>
+  )
+}
+
+function fmtDuration(ms) {
+  if (!ms) return '—'
+  if (ms < 1000) return `${ms}ms`
+  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`
+  return `${(ms / 60000).toFixed(1)}m`
+}
+
+function fmtTime(iso) {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' })
+}
+
 function PipelineHealthTab() {
-  const [metrics, setMetrics]   = useState(null)
-  const [queues, setQueues]     = useState(null)
-  const [loading, setLoading]   = useState(true)
-  const [connStatus, setConn]   = useState('polling')
-  const [toast, setToast]       = useState(null)
-  const [cbTripped, setCbTripped] = useState(false)
+  const [cronMetrics, setCronMetrics] = useState(null)
+  const [queues, setQueues]           = useState(null)
+  const [rtMetrics, setRtMetrics]     = useState(null)
+  const [activeExecs, setActiveExecs] = useState([])
+  const [stalledExecs, setStalledExecs] = useState([])
+  const [failures, setFailures]       = useState([])
+  const [loading, setLoading]         = useState(true)
+  const [connStatus, setConn]         = useState('polling')
+  const [toast, setToast]             = useState(null)
+  const [cbTripped, setCbTripped]     = useState(false)
 
   const ALERT_THRESHOLD = parseFloat(import.meta.env.VITE_ALERT_FAILURE_RATE_THRESHOLD || '0.20')
 
   const fetchData = useCallback(async () => {
     try {
-      const [mRes, qRes] = await Promise.allSettled([
+      const [mRes, qRes, rtRes, activeRes, stalledRes, failRes] = await Promise.allSettled([
         api.get('/api/admin/pipeline-metrics'),
         api.get('/api/admin/queue-stats'),
+        api.get('/api/runtime/metrics'),
+        api.get('/api/runtime/active'),
+        api.get('/api/runtime/stalled'),
+        api.get('/api/runtime/failures?limit=10'),
       ])
 
+      let anyLive = false
+
       if (mRes.status === 'fulfilled') {
-        setMetrics(mRes.value.data?.data || null)
-        setConn('live')
+        setCronMetrics(mRes.value.data?.data || null); anyLive = true
       }
       if (qRes.status === 'fulfilled') {
         setQueues(qRes.value.data?.data || null)
       }
-      if (mRes.status === 'rejected' && qRes.status === 'rejected') {
-        setConn('disconnected')
+      if (rtRes.status === 'fulfilled') {
+        setRtMetrics(rtRes.value.data?.data || null); anyLive = true
       }
+      if (activeRes.status === 'fulfilled') {
+        setActiveExecs(activeRes.value.data?.data || [])
+      }
+      if (stalledRes.status === 'fulfilled') {
+        setStalledExecs(stalledRes.value.data?.data?.executions || [])
+      }
+      if (failRes.status === 'fulfilled') {
+        setFailures(failRes.value.data?.data || [])
+      }
+
+      setConn(anyLive ? 'live' : 'disconnected')
     } catch {
       setConn('polling')
     } finally {
@@ -1126,12 +1177,10 @@ function PipelineHealthTab() {
     return () => clearInterval(id)
   }, [fetchData])
 
-  // Detect circuit breaker state from metrics
   useEffect(() => {
-    if (!metrics) return
-    const failRate = metrics.failure_rate ?? 0
+    const failRate = cronMetrics?.failure_rate ?? 0
     setCbTripped(failRate > 0.50)
-  }, [metrics])
+  }, [cronMetrics])
 
   const triggerRetention = async () => {
     try {
@@ -1142,9 +1191,23 @@ function PipelineHealthTab() {
     }
   }
 
-  const failRate    = metrics?.failure_rate ?? 0
-  const successRate = metrics?.success_rate ?? 0
+  const cancelExec = async (executionId) => {
+    try {
+      await api.post(`/api/pipelines/executions/${executionId}/cancel`)
+      setToast({ msg: 'Cancellation requested', type: 'success' })
+      fetchData()
+    } catch (err) {
+      setToast({ msg: err.response?.data?.error || 'Cancel failed', type: 'error' })
+    }
+  }
+
+  const failRate    = cronMetrics?.failure_rate ?? 0
+  const successRate = cronMetrics?.success_rate ?? 0
   const showAlert   = failRate >= ALERT_THRESHOLD
+
+  // Runtime metrics from Phase 4 engine
+  const liveMetrics  = rtMetrics?.live
+  const queueMetrics = rtMetrics?.queue
 
   if (loading) return <Spinner />
 
@@ -1152,68 +1215,250 @@ function PipelineHealthTab() {
     <div className="space-y-6">
       {toast && <Toast msg={toast.msg} type={toast.type} onDone={() => setToast(null)} />}
 
-      {/* Connection status + circuit breaker banner */}
+      {/* Connection + refresh */}
       <div className="flex items-center justify-between">
         <ConnectionBadge status={connStatus} />
-        <button
-          onClick={fetchData}
-          className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
-        >
+        <button onClick={fetchData} className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
           Refresh
         </button>
       </div>
 
+      {/* Stalled execution warning banner */}
+      {stalledExecs.length > 0 && (
+        <div className="bg-orange-900/40 border border-orange-700 rounded-xl px-4 py-3 flex items-center gap-3">
+          <span className="text-orange-400 text-lg">⚠</span>
+          <div>
+            <p className="text-orange-300 font-medium text-sm">
+              {stalledExecs.length} Stalled Execution{stalledExecs.length > 1 ? 's' : ''} Detected
+            </p>
+            <p className="text-orange-400 text-xs mt-0.5">
+              These executions stopped responding. Review and re-trigger if needed.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* High failure rate alert */}
       {showAlert && (
         <div className="bg-red-900/40 border border-red-700 rounded-xl px-4 py-3 flex items-center gap-3">
           <span className="text-red-400 text-lg">⚠</span>
           <div>
             <p className="text-red-300 font-medium text-sm">High Failure Rate Detected</p>
             <p className="text-red-400 text-xs mt-0.5">
-              {(failRate * 100).toFixed(1)}% failure rate exceeds {(ALERT_THRESHOLD * 100).toFixed(0)}% threshold. Check error logs.
+              {(failRate * 100).toFixed(1)}% failure rate exceeds {(ALERT_THRESHOLD * 100).toFixed(0)}% threshold.
             </p>
           </div>
         </div>
       )}
 
+      {/* Circuit breaker banner */}
       {cbTripped && (
-        <div className="bg-orange-900/40 border border-orange-700 rounded-xl px-4 py-3 flex items-center gap-3">
-          <span className="text-orange-400 text-lg">🔴</span>
+        <div className="bg-red-900/40 border border-red-700 rounded-xl px-4 py-3 flex items-center gap-3">
+          <span className="text-red-400 text-lg">🔴</span>
           <div>
-            <p className="text-orange-300 font-medium text-sm">Circuit Breaker Tripped</p>
-            <p className="text-orange-400 text-xs mt-0.5">
-              Failure rate exceeded 50% — pipeline auto-paused. Resolve errors before re-triggering.
-            </p>
+            <p className="text-red-300 font-medium text-sm">Circuit Breaker Tripped</p>
+            <p className="text-red-400 text-xs mt-0.5">Failure rate exceeded 50% — resolve errors before re-triggering.</p>
           </div>
         </div>
       )}
 
-      {/* KPI cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <MetricCard
-          title="Success Rate (24h)"
-          value={`${(successRate * 100).toFixed(1)}%`}
-          sub={`${metrics?.total_runs ?? 0} total runs`}
-          accent={successRate >= 0.8 ? 'text-green-400' : successRate >= 0.6 ? 'text-yellow-400' : 'text-red-400'}
-        />
-        <MetricCard
-          title="Avg Build Time"
-          value={metrics?.avg_duration_ms != null ? `${(metrics.avg_duration_ms / 1000).toFixed(1)}s` : '—'}
-          sub="per pipeline run"
-        />
-        <MetricCard
-          title="Records Processed"
-          value={metrics?.total_records_processed?.toLocaleString() ?? '—'}
-          sub="last 24 hours"
-        />
-        <MetricCard
-          title="Failed Jobs (DB)"
-          value={metrics?.failed_jobs_count ?? '—'}
-          sub="unresolved"
-          accent={metrics?.failed_jobs_count > 0 ? 'text-red-400' : 'text-green-400'}
-        />
+      {/* ── Phase 4 Runtime KPI cards ── */}
+      {liveMetrics && (
+        <div>
+          <h3 className="text-white text-sm font-semibold mb-3">Live Runtime Metrics</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <MetricCard
+              title="Active Executions"
+              value={liveMetrics.gauges?.active_executions ?? 0}
+              sub="currently running"
+              accent={(liveMetrics.gauges?.active_executions ?? 0) > 0 ? 'text-yellow-400' : 'text-green-400'}
+            />
+            <MetricCard
+              title="Success Rate (5m)"
+              value={liveMetrics.rolling?.successRate != null
+                ? `${(liveMetrics.rolling.successRate * 100).toFixed(1)}%`
+                : '—'}
+              sub={`${liveMetrics.rolling?.total ?? 0} in window`}
+              accent={
+                liveMetrics.rolling?.successRate == null ? 'text-gray-400'
+                : liveMetrics.rolling.successRate >= 0.8 ? 'text-green-400'
+                : liveMetrics.rolling.successRate >= 0.6 ? 'text-yellow-400'
+                : 'text-red-400'
+              }
+            />
+            <MetricCard
+              title="Median Duration"
+              value={liveMetrics.durations?.p50 != null ? fmtDuration(liveMetrics.durations.p50) : '—'}
+              sub={`p95: ${liveMetrics.durations?.p95 != null ? fmtDuration(liveMetrics.durations.p95) : '—'}`}
+            />
+            <MetricCard
+              title="Total Retries"
+              value={liveMetrics.counters?.step_retries_total ?? 0}
+              sub={`${liveMetrics.counters?.agent_timeouts_total ?? 0} timeouts`}
+              accent={(liveMetrics.counters?.step_retries_total ?? 0) > 10 ? 'text-yellow-400' : 'text-white'}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ── Cron KPI cards ── */}
+      <div>
+        <h3 className="text-white text-sm font-semibold mb-3">Cron Health (24h)</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <MetricCard
+            title="Success Rate"
+            value={`${(successRate * 100).toFixed(1)}%`}
+            sub={`${cronMetrics?.total_runs ?? 0} total runs`}
+            accent={successRate >= 0.8 ? 'text-green-400' : successRate >= 0.6 ? 'text-yellow-400' : 'text-red-400'}
+          />
+          <MetricCard
+            title="Avg Build Time"
+            value={cronMetrics?.avg_duration_ms != null ? fmtDuration(cronMetrics.avg_duration_ms) : '—'}
+            sub="per cron run"
+          />
+          <MetricCard
+            title="Records Processed"
+            value={cronMetrics?.total_records_processed?.toLocaleString() ?? '—'}
+            sub="last 24 hours"
+          />
+          <MetricCard
+            title="Failed Jobs"
+            value={cronMetrics?.failed_jobs_count ?? '—'}
+            sub="unresolved"
+            accent={(cronMetrics?.failed_jobs_count ?? 0) > 0 ? 'text-red-400' : 'text-green-400'}
+          />
+        </div>
       </div>
 
-      {/* Success / failure gauge */}
+      {/* ── Queue concurrency panel ── */}
+      {queueMetrics && (
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-5">
+          <h3 className="text-white text-sm font-semibold mb-4">Execution Queue</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+            <div className="bg-gray-700/50 rounded-lg p-3">
+              <p className="text-gray-400 text-xs mb-1">Active</p>
+              <p className="text-white font-bold text-xl">{queueMetrics.activeCount}</p>
+              <p className="text-gray-500 text-xs">of {queueMetrics.maxConcurrent} max</p>
+            </div>
+            <div className="bg-gray-700/50 rounded-lg p-3">
+              <p className="text-gray-400 text-xs mb-1">Queued</p>
+              <p className={`font-bold text-xl ${queueMetrics.queueDepth > 0 ? 'text-yellow-400' : 'text-white'}`}>
+                {queueMetrics.queueDepth}
+              </p>
+              <p className="text-gray-500 text-xs">waiting for slot</p>
+            </div>
+            <div className="bg-gray-700/50 rounded-lg p-3">
+              <p className="text-gray-400 text-xs mb-1">Utilization</p>
+              <p className={`font-bold text-xl ${queueMetrics.utilizationPct >= 80 ? 'text-orange-400' : 'text-green-400'}`}>
+                {queueMetrics.utilizationPct}%
+              </p>
+            </div>
+            <div className="bg-gray-700/50 rounded-lg p-3">
+              <p className="text-gray-400 text-xs mb-1">Total Dispatched</p>
+              <p className="text-white font-bold text-xl">{queueMetrics.counters?.dequeued ?? 0}</p>
+            </div>
+          </div>
+          <GaugeBar
+            value={queueMetrics.activeCount}
+            max={queueMetrics.maxConcurrent}
+            label="Slot utilization"
+            colorClass={queueMetrics.utilizationPct >= 80 ? 'bg-orange-500' : 'bg-indigo-500'}
+          />
+        </div>
+      )}
+
+      {/* ── Active executions table ── */}
+      <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+        <div className="px-5 py-3 border-b border-gray-700 flex items-center justify-between">
+          <h3 className="text-white text-sm font-semibold">Active Executions</h3>
+          <span className="text-gray-400 text-xs">{activeExecs.length} running</span>
+        </div>
+        {activeExecs.length === 0 ? (
+          <p className="text-gray-500 text-center py-6 text-sm">No active executions</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="border-b border-gray-700">
+                <tr>
+                  {['Pipeline', 'Status', 'Current Step', 'Started', 'Actions'].map(h => (
+                    <th key={h} className="text-left text-gray-400 px-4 py-2 font-medium">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {activeExecs.map(exec => (
+                  <tr key={exec.id} className="border-b border-gray-700/50 last:border-0">
+                    <td className="px-4 py-2 text-gray-300 font-mono">{exec.pipeline_id}</td>
+                    <td className="px-4 py-2"><ExecStatusBadge status={exec.status} /></td>
+                    <td className="px-4 py-2 text-gray-400">{exec.current_step || exec.paused_step || '—'}</td>
+                    <td className="px-4 py-2 text-gray-500">{fmtTime(exec.started_at)}</td>
+                    <td className="px-4 py-2">
+                      <button
+                        onClick={() => cancelExec(exec.id)}
+                        className="text-red-400 hover:text-red-300 hover:underline"
+                      >
+                        Cancel
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* ── Stalled executions ── */}
+      {stalledExecs.length > 0 && (
+        <div className="bg-gray-800 border border-orange-800/50 rounded-xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-700 bg-orange-900/20">
+            <h3 className="text-orange-300 text-sm font-semibold">Stalled Executions ({stalledExecs.length})</h3>
+          </div>
+          <div className="divide-y divide-gray-700">
+            {stalledExecs.map(exec => (
+              <div key={exec.id} className="px-5 py-3 flex items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-gray-300 text-xs font-mono truncate">{exec.pipeline_id}</p>
+                  <p className="text-gray-500 text-xs mt-0.5">{exec.error_message || 'No error message'}</p>
+                </div>
+                <p className="text-gray-500 text-xs shrink-0">{fmtTime(exec.started_at)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Recent failures ── */}
+      {failures.length > 0 && (
+        <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-700">
+            <h3 className="text-white text-sm font-semibold">Recent Failures (24h)</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="border-b border-gray-700">
+                <tr>
+                  {['Pipeline', 'Status', 'Error', 'Completed'].map(h => (
+                    <th key={h} className="text-left text-gray-400 px-4 py-2 font-medium">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {failures.map(exec => (
+                  <tr key={exec.id} className="border-b border-gray-700/50 last:border-0">
+                    <td className="px-4 py-2 text-gray-300 font-mono">{exec.pipeline_id}</td>
+                    <td className="px-4 py-2"><ExecStatusBadge status={exec.status} /></td>
+                    <td className="px-4 py-2 text-gray-400 max-w-[200px] truncate">{exec.error_message || '—'}</td>
+                    <td className="px-4 py-2 text-gray-500">{fmtTime(exec.completed_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── Cron success / failure gauges ── */}
       <div className="bg-gray-800 border border-gray-700 rounded-xl p-5 space-y-3">
         <h3 className="text-white text-sm font-semibold mb-4">Cron Success Rate</h3>
         <GaugeBar
@@ -1230,14 +1475,14 @@ function PipelineHealthTab() {
         />
       </div>
 
-      {/* Per-cron breakdown */}
-      {metrics?.by_cron && metrics.by_cron.length > 0 && (
+      {/* ── Per-cron breakdown ── */}
+      {cronMetrics?.by_cron?.length > 0 && (
         <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
           <div className="px-5 py-3 border-b border-gray-700">
             <h3 className="text-white text-sm font-semibold">Failure Rate by Cron (24h)</h3>
           </div>
           <div className="divide-y divide-gray-700">
-            {metrics.by_cron.map(row => {
+            {cronMetrics.by_cron.map(row => {
               const rate = row.total > 0 ? row.errors / row.total : 0
               return (
                 <div key={row.cron_name} className="px-5 py-3 flex items-center gap-4">
@@ -1250,9 +1495,7 @@ function PipelineHealthTab() {
                       colorClass={rate > 0.3 ? 'bg-red-500' : rate > 0.1 ? 'bg-yellow-500' : 'bg-green-500'}
                     />
                   </div>
-                  <p className="text-xs text-gray-400 w-16 text-right">
-                    {row.errors}/{row.total}
-                  </p>
+                  <p className="text-xs text-gray-400 w-16 text-right">{row.errors}/{row.total}</p>
                 </div>
               )
             })}
@@ -1260,7 +1503,7 @@ function PipelineHealthTab() {
         </div>
       )}
 
-      {/* Queue stats */}
+      {/* ── BullMQ queue stats ── */}
       {queues && (
         <div className="bg-gray-800 border border-gray-700 rounded-xl p-5">
           <h3 className="text-white text-sm font-semibold mb-4">BullMQ Queue Status</h3>
@@ -1280,7 +1523,7 @@ function PipelineHealthTab() {
         </div>
       )}
 
-      {/* Actions */}
+      {/* ── Actions ── */}
       <div className="flex flex-wrap gap-3">
         <button
           onClick={triggerRetention}

@@ -34,7 +34,9 @@ const factoryRoutes                  = require('./routes/factory.routes');
 const analyticsRoutes                = require('./routes/analytics.routes');
 const toolsGenerateRoutes            = require('./routes/tools.generate.route');
 const pipelineRoutes                 = require('./routes/pipeline.routes');
-const { initializeRuntime }          = require('./runtime');
+const runtimeRoutes                  = require('./routes/runtime.routes');
+const { initializeRuntime, shutdownRuntime } = require('./runtime');
+const requestId                      = require('./middleware/request-id');
 const { startAnalyticsCron }  = require('./jobs/analytics.cron');
 const { startAutonomousCron } = require('./jobs/autonomous.cron');
 const { startIdeaCron }       = require('./jobs/idea.cron');
@@ -67,6 +69,9 @@ if (missingOptional.length > 0) {
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
   : ['https://awe-os.vercel.app', 'http://localhost:5173'];
+
+// ── Request ID — attach before any other middleware ──────────
+app.use(requestId);
 
 // ── Security & performance middleware ────────────────────────
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
@@ -221,6 +226,7 @@ app.use('/api/calculators',    calculatorsRoutes);
 app.use('/api/factory',        factoryRoutes);
 app.use('/api/analytics',      analyticsRoutes);
 app.use('/api/pipelines',      adminLimiter, pipelineRoutes);
+app.use('/api/runtime',        adminLimiter, runtimeRoutes);
 app.use('/api/resume-versions', resumeVersionsRoutes);
 app.use('/api',                resumeRoutes);
 
@@ -270,6 +276,7 @@ process.on('SIGTERM', () => {
 
   server.close(() => {
     clearTimeout(forceExit);
+    try { shutdownRuntime(); } catch (_) {}
     console.info('[SERVER] Closed gracefully.');
     process.exit(0);
   });
