@@ -42,6 +42,8 @@ const multiAgentRoutes               = require('./routes/multi-agent.routes');
 const selfOptimizationRoutes         = require('./routes/self-optimization.routes');
 const marketplaceRoutes              = require('./routes/marketplace.routes');
 const revenueIntelRoutes             = require('./routes/revenue.intelligence.routes');
+const agentEconomyRoutes             = require('./routes/agent.economy.routes');
+const selfHealingRoutes              = require('./routes/selfHealing.routes');
 const { initializeRuntime, shutdownRuntime } = require('./runtime');
 const { initializeMemory, shutdownMemory }   = require('./memory');
 const { initializeLearning, shutdownLearning } = require('./learning');
@@ -248,7 +250,9 @@ app.use('/api/learning',       adminLimiter, learningRoutes);
 app.use('/api/multi-agent',    adminLimiter, multiAgentRoutes);
 app.use('/api/self-optimize',  adminLimiter, selfOptimizationRoutes);
 app.use('/api/marketplace',   adminLimiter, marketplaceRoutes);
-app.use('/api/revenue-intel', adminLimiter, revenueIntelRoutes);
+app.use('/api/revenue-intel',  adminLimiter, revenueIntelRoutes);
+app.use('/api/agent-economy',  adminLimiter, agentEconomyRoutes);
+app.use('/api/self-healing',   adminLimiter, selfHealingRoutes);
 app.use('/api/resume-versions', resumeVersionsRoutes);
 app.use('/api',                resumeRoutes);
 
@@ -310,6 +314,16 @@ const server = app.listen(PORT, () => {
     const { bus } = require('./runtime');
     initializeSelfOptimization(bus).catch(err => console.error('[SERVER] SelfOptimization init error:', err?.message));
   }, 4_000);
+
+  // Phase 6E: Start Self-Healing Engine
+  // Deferred 5s to ensure all runtime systems are up
+  setTimeout(() => {
+    try {
+      require('./selfHealing').start();
+    } catch (err) {
+      console.error('[SERVER] SelfHealing start error:', err?.message);
+    }
+  }, 5_000);
 
   console.info('[SERVER] All systems GO');
 });

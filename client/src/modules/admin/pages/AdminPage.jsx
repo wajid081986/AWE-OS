@@ -18,6 +18,11 @@ const QUICK_ITEMS = [
   { icon: '🚀', label: 'Expansion',       to: '/admin/expansion'             },
   { icon: '📊', label: 'Rev. Intel',      to: '/admin/revenue-intelligence'  },
   { icon: '⚙️', label: 'Rev. Optimize',   to: '/admin/revenue-optimization'  },
+  { icon: '🪙', label: 'Agent Economy',   to: '/admin/agent-economy'         },
+  { icon: '🏬', label: 'Mkpl Analytics',  to: '/admin/agent-marketplace'     },
+  { icon: '🩺', label: 'Self-Healing',    to: '/admin/self-healing'          },
+  { icon: '⚠️', label: 'Fail Analysis',   to: '/admin/failure-analytics'     },
+  { icon: '🛡️', label: 'Resilience',      to: '/admin/runtime-resilience'    },
 ]
 
 function Spinner() {

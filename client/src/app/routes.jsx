@@ -80,6 +80,11 @@ const MarketplaceDashboard       = lazy(() => import('../modules/admin/marketpla
 const ExpansionCenter            = lazy(() => import('../modules/admin/marketplace/ExpansionCenter'))
 const RevenueDashboard           = lazy(() => import('../modules/admin/revenue/RevenueDashboard'))
 const RevenueOptimizationCenter  = lazy(() => import('../modules/admin/revenue/RevenueOptimizationCenter'))
+const AgentEconomyDashboard      = lazy(() => import('../modules/admin/agents/AgentEconomyDashboard'))
+const AgentMarketplaceDashboard  = lazy(() => import('../modules/admin/agents/AgentMarketplaceDashboard'))
+const SelfHealingDashboard       = lazy(() => import('../modules/admin/selfHealing/SelfHealingDashboard'))
+const FailureAnalyticsPanel      = lazy(() => import('../modules/admin/selfHealing/FailureAnalyticsPanel'))
+const RuntimeResilienceCenter    = lazy(() => import('../modules/admin/selfHealing/RuntimeResilienceCenter'))
 
 // ── Shared suspense wrapper ───────────────────────────────────────────────────
 function PageLoader() {
@@ -179,6 +184,11 @@ export default function AppRoutes() {
           <Route path="/admin/expansion"             element={lazy$(<ExpansionCenter />)} />
           <Route path="/admin/revenue-intelligence"  element={lazy$(<RevenueDashboard />)} />
           <Route path="/admin/revenue-optimization"  element={lazy$(<RevenueOptimizationCenter />)} />
+          <Route path="/admin/agent-economy"          element={lazy$(<AgentEconomyDashboard />)} />
+          <Route path="/admin/agent-marketplace"      element={lazy$(<AgentMarketplaceDashboard />)} />
+          <Route path="/admin/self-healing"           element={lazy$(<SelfHealingDashboard />)} />
+          <Route path="/admin/failure-analytics"      element={lazy$(<FailureAnalyticsPanel />)} />
+          <Route path="/admin/runtime-resilience"     element={lazy$(<RuntimeResilienceCenter />)} />
         </Route>
       </Route>
 
