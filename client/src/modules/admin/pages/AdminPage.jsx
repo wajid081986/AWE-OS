@@ -14,8 +14,10 @@ const QUICK_ITEMS = [
   { icon: '🤝', label: 'Multi-Agent',     to: '/admin/multi-agent'    },
   { icon: '⚡', label: 'Optimization',    to: '/admin/optimization'   },
   { icon: '🧠', label: 'Intelligence',    to: '/admin/intelligence'   },
-  { icon: '🏪', label: 'Marketplace',     to: '/admin/marketplace'    },
-  { icon: '🚀', label: 'Expansion',       to: '/admin/expansion'      },
+  { icon: '🏪', label: 'Marketplace',     to: '/admin/marketplace'           },
+  { icon: '🚀', label: 'Expansion',       to: '/admin/expansion'             },
+  { icon: '📊', label: 'Rev. Intel',      to: '/admin/revenue-intelligence'  },
+  { icon: '⚙️', label: 'Rev. Optimize',   to: '/admin/revenue-optimization'  },
 ]
 
 function Spinner() {
