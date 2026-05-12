@@ -21,6 +21,13 @@ const { metrics }        = require('../monitoring/runtimeMetrics');
 const { stallDetector }  = require('../runtime/StallDetector');
 const { executionQueue } = require('../runtime/ExecutionQueue');
 const { auditTrail }     = require('../monitoring/auditTrail');
+const { healthEngine }   = require('../runtime/reliability/HealthEngine');
+const { getAllStats: getAllCircuitStats } = require('../runtime/reliability/CircuitBreaker');
+const { backpressureManager } = require('../runtime/reliability/BackpressureManager');
+const dlq                = require('../runtime/reliability/DeadLetterQueue');
+const { collectWarnings } = require('../monitoring/diagnostics');
+const { memoryProfiler }  = require('../monitoring/memoryProfiler');
+const { executionProfiler } = require('../monitoring/executionProfiler');
 const supabase           = require('../db/supabase');
 
 const router = express.Router();
@@ -136,6 +143,87 @@ router.get('/audit/:executionId', requireAuth, requireAdmin, async (req, res) =>
   try {
     const entries = await auditTrail.getAuditLog(executionId, limit);
     res.json({ success: true, data: entries, count: entries.length, executionId });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── GET /api/runtime/health ───────────────────────────────────────────────────
+router.get('/health', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const [health, warnings] = await Promise.all([
+      healthEngine.assess(),
+      collectWarnings(),
+    ]);
+    res.json({ success: true, data: { ...health, warnings } });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── GET /api/runtime/diagnostics ─────────────────────────────────────────────
+router.get('/diagnostics', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const [warnings, memStats, execStats, cbStats, bpStats] = await Promise.allSettled([
+      collectWarnings(),
+      Promise.resolve(memoryProfiler.getStats()),
+      Promise.resolve(executionProfiler.getStats()),
+      Promise.resolve(getAllCircuitStats()),
+      Promise.resolve(backpressureManager.getStats()),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        warnings:       warnings.status === 'fulfilled' ? warnings.value : [],
+        memory:         memStats.status  === 'fulfilled' ? memStats.value : null,
+        executions:     execStats.status === 'fulfilled' ? execStats.value : null,
+        circuitBreakers: cbStats.status  === 'fulfilled' ? cbStats.value  : [],
+        backpressure:   bpStats.status   === 'fulfilled' ? bpStats.value  : null,
+        generatedAt:    new Date().toISOString(),
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── GET /api/runtime/dlq ──────────────────────────────────────────────────────
+router.get('/dlq', requireAuth, requireAdmin, async (req, res) => {
+  const limit     = Math.min(Number(req.query.limit) || 50, 200);
+  const status    = req.query.status || 'dead';
+  const pipelineId = req.query.pipelineId || null;
+
+  try {
+    const [entries, summary] = await Promise.all([
+      dlq.list({ limit, status, pipelineId }),
+      dlq.getSummary(),
+    ]);
+    res.json({ success: true, data: entries, summary, count: entries.length });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── POST /api/runtime/dlq/:id/replay ─────────────────────────────────────────
+router.post('/dlq/:id/replay', requireAuth, requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  const actorId = req.user?.id || 'admin';
+
+  try {
+    const result = await dlq.replay(id, actorId);
+    const status = result.success ? 200 : 400;
+    res.status(status).json({ success: result.success, ...result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── DELETE /api/runtime/dlq/:id ───────────────────────────────────────────────
+router.delete('/dlq/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    await dlq.remove(req.params.id);
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

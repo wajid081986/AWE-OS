@@ -1124,6 +1124,14 @@ function PipelineHealthTab() {
   const [activeExecs, setActiveExecs] = useState([])
   const [stalledExecs, setStalledExecs] = useState([])
   const [failures, setFailures]       = useState([])
+  // Phase 4E/4F
+  const [clusterData, setClusterData] = useState(null)
+  const [healthData, setHealthData]   = useState(null)
+  const [diagnostics, setDiagnostics] = useState([])
+  const [dlqSummary, setDlqSummary]   = useState(null)
+  const [dlqEntries, setDlqEntries]   = useState([])
+  const [replayingId, setReplayingId] = useState(null)
+
   const [loading, setLoading]         = useState(true)
   const [connStatus, setConn]         = useState('polling')
   const [toast, setToast]             = useState(null)
@@ -1133,13 +1141,18 @@ function PipelineHealthTab() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [mRes, qRes, rtRes, activeRes, stalledRes, failRes] = await Promise.allSettled([
+      const [mRes, qRes, rtRes, activeRes, stalledRes, failRes,
+             clusterRes, healthRes, diagRes, dlqRes] = await Promise.allSettled([
         api.get('/api/admin/pipeline-metrics'),
         api.get('/api/admin/queue-stats'),
         api.get('/api/runtime/metrics'),
         api.get('/api/runtime/active'),
         api.get('/api/runtime/stalled'),
         api.get('/api/runtime/failures?limit=10'),
+        api.get('/api/workers/cluster'),
+        api.get('/api/runtime/health'),
+        api.get('/api/runtime/diagnostics'),
+        api.get('/api/runtime/dlq?limit=10'),
       ])
 
       let anyLive = false
@@ -1161,6 +1174,19 @@ function PipelineHealthTab() {
       }
       if (failRes.status === 'fulfilled') {
         setFailures(failRes.value.data?.data || [])
+      }
+      if (clusterRes.status === 'fulfilled') {
+        setClusterData(clusterRes.value.data?.data || null)
+      }
+      if (healthRes.status === 'fulfilled') {
+        setHealthData(healthRes.value.data?.data || null)
+      }
+      if (diagRes.status === 'fulfilled') {
+        setDiagnostics(diagRes.value.data?.data?.warnings || [])
+      }
+      if (dlqRes.status === 'fulfilled') {
+        setDlqSummary(dlqRes.value.data?.summary || null)
+        setDlqEntries(dlqRes.value.data?.data || [])
       }
 
       setConn(anyLive ? 'live' : 'disconnected')
@@ -1198,6 +1224,29 @@ function PipelineHealthTab() {
       fetchData()
     } catch (err) {
       setToast({ msg: err.response?.data?.error || 'Cancel failed', type: 'error' })
+    }
+  }
+
+  const replayDlq = async (dlqId) => {
+    setReplayingId(dlqId)
+    try {
+      const res = await api.post(`/api/runtime/dlq/${dlqId}/replay`)
+      setToast({ msg: res.data?.executionId ? `Replay started: ${res.data.executionId.slice(0,8)}...` : 'Replay triggered', type: 'success' })
+      fetchData()
+    } catch (err) {
+      setToast({ msg: err.response?.data?.error || 'Replay failed', type: 'error' })
+    } finally {
+      setReplayingId(null)
+    }
+  }
+
+  const forceRebalance = async () => {
+    try {
+      await api.post('/api/workers/rebalance')
+      setToast({ msg: 'Rebalance cycle triggered', type: 'success' })
+      fetchData()
+    } catch (err) {
+      setToast({ msg: err.response?.data?.error || 'Rebalance failed', type: 'error' })
     }
   }
 
@@ -1523,6 +1572,195 @@ function PipelineHealthTab() {
         </div>
       )}
 
+      {/* ── Phase 4E: Cluster Health + Worker Status ── */}
+      {(clusterData || healthData) && (
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-white text-sm font-semibold">Cluster Health</h3>
+            {healthData && (
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                healthData.status === 'healthy'  ? 'bg-green-900/60 text-green-300' :
+                healthData.status === 'degraded' ? 'bg-yellow-900/60 text-yellow-300' :
+                                                   'bg-red-900/60 text-red-300'
+              }`}>
+                {healthData.status?.toUpperCase()}
+              </span>
+            )}
+          </div>
+
+          {/* Health check breakdown */}
+          {healthData?.checks && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {Object.entries(healthData.checks).map(([name, check]) => (
+                <div key={name} className="bg-gray-700/50 rounded-lg px-3 py-2 flex items-center gap-2">
+                  <span className={`text-xs font-bold ${
+                    check.status === 'healthy'  ? 'text-green-400' :
+                    check.status === 'degraded' ? 'text-yellow-400' : 'text-red-400'
+                  }`}>
+                    {check.status === 'healthy' ? '✓' : check.status === 'degraded' ? '!' : '✗'}
+                  </span>
+                  <div>
+                    <p className="text-gray-300 text-xs font-medium capitalize">{name.replace(/([A-Z])/g, ' $1')}</p>
+                    <p className="text-gray-500 text-xs truncate max-w-[140px]">{check.detail}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Worker list */}
+          {clusterData?.workers && (
+            <div>
+              <p className="text-gray-400 text-xs mb-2">
+                Workers — {clusterData.workers.live?.length ?? 0} live,{' '}
+                {clusterData.workers.dead?.length ?? 0} dead
+              </p>
+              {clusterData.workers.live?.length > 0 && (
+                <div className="space-y-1">
+                  {clusterData.workers.live.map(w => (
+                    <div key={w.id} className="bg-gray-700/40 rounded px-3 py-1.5 flex items-center gap-3 text-xs">
+                      <span className="text-green-400 font-bold">●</span>
+                      <span className="text-gray-300 font-mono">{w.hostname}</span>
+                      <span className="text-gray-500">pid {w.pid}</span>
+                      <span className="text-gray-400 ml-auto">{w.active_jobs ?? 0} jobs · {w.memory_mb ?? '?'}MB</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {clusterData.workers.dead?.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  {clusterData.workers.dead.map(w => (
+                    <div key={w.id} className="bg-gray-700/40 rounded px-3 py-1.5 flex items-center gap-3 text-xs">
+                      <span className="text-red-400 font-bold">●</span>
+                      <span className="text-gray-500 font-mono">{w.hostname}</span>
+                      <span className="text-red-400 ml-auto">DEAD</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Circuit Breakers */}
+          {clusterData?.circuitBreakers?.length > 0 && (
+            <div>
+              <p className="text-gray-400 text-xs mb-2">Circuit Breakers</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {clusterData.circuitBreakers.map(b => (
+                  <div key={b.name} className={`rounded-lg px-3 py-2 border ${
+                    b.state === 'OPEN'      ? 'bg-red-900/30 border-red-800/50' :
+                    b.state === 'HALF_OPEN' ? 'bg-yellow-900/30 border-yellow-800/50' :
+                                             'bg-gray-700/40 border-gray-600/30'
+                  }`}>
+                    <p className="text-gray-300 text-xs font-mono truncate">{b.name}</p>
+                    <p className={`text-xs font-bold mt-0.5 ${
+                      b.state === 'OPEN'      ? 'text-red-400' :
+                      b.state === 'HALF_OPEN' ? 'text-yellow-400' : 'text-green-400'
+                    }`}>{b.state}</p>
+                    {b.state !== 'CLOSED' && b.reopensAt && (
+                      <p className="text-gray-500 text-xs">Opens: {fmtTime(b.reopensAt)}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Backpressure */}
+          {clusterData?.backpressure && clusterData.backpressure.level > 0 && (
+            <div className={`rounded-lg px-3 py-2 border ${
+              clusterData.backpressure.level >= 3 ? 'bg-red-900/30 border-red-800/50' :
+              clusterData.backpressure.level >= 2 ? 'bg-orange-900/30 border-orange-800/50' :
+                                                    'bg-yellow-900/30 border-yellow-800/50'
+            }`}>
+              <p className="text-xs text-gray-300">
+                Backpressure: <span className="font-bold">{clusterData.backpressure.levelName}</span>
+                {' '} · Heap {clusterData.backpressure.heapMb}MB
+                {clusterData.backpressure.totalRejections > 0 &&
+                  ` · ${clusterData.backpressure.totalRejections} rejected`}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Phase 4F: Diagnostics Warnings ── */}
+      {diagnostics.length > 0 && (
+        <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-700">
+            <h3 className="text-white text-sm font-semibold">Runtime Diagnostics ({diagnostics.length})</h3>
+          </div>
+          <div className="divide-y divide-gray-700/50">
+            {diagnostics.map((w, i) => (
+              <div key={i} className="px-5 py-3 flex items-start gap-3">
+                <span className={`text-sm mt-0.5 ${
+                  w.severity === 'error' ? 'text-red-400' :
+                  w.severity === 'warn'  ? 'text-yellow-400' : 'text-blue-400'
+                }`}>
+                  {w.severity === 'error' ? '✗' : w.severity === 'warn' ? '⚠' : 'ℹ'}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-gray-300 text-xs">{w.message}</p>
+                  <p className="text-gray-500 text-xs mt-0.5">{w.source}</p>
+                </div>
+                <p className="text-gray-600 text-xs shrink-0">{fmtTime(w.ts)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Phase 4F: Dead-Letter Queue ── */}
+      {(dlqSummary?.dead > 0 || dlqEntries.length > 0) && (
+        <div className="bg-gray-800 border border-red-900/40 rounded-xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-700 bg-red-900/10 flex items-center justify-between">
+            <h3 className="text-red-300 text-sm font-semibold">
+              Dead-Letter Queue{dlqSummary ? ` — ${dlqSummary.dead} dead, ${dlqSummary.replayed} replayed` : ''}
+            </h3>
+          </div>
+          {dlqEntries.length === 0 ? (
+            <p className="text-gray-500 text-center py-4 text-sm">No entries</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead className="border-b border-gray-700">
+                  <tr>
+                    {['Pipeline', 'Reason', 'Attempts', 'Failed At', 'Actions'].map(h => (
+                      <th key={h} className="text-left text-gray-400 px-4 py-2 font-medium">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {dlqEntries.map(entry => (
+                    <tr key={entry.id} className="border-b border-gray-700/50 last:border-0">
+                      <td className="px-4 py-2 text-gray-300 font-mono">{entry.pipeline_id}</td>
+                      <td className="px-4 py-2 text-gray-400 max-w-[160px] truncate">{entry.failure_reason}</td>
+                      <td className="px-4 py-2 text-gray-400">{entry.attempts}</td>
+                      <td className="px-4 py-2 text-gray-500">{fmtTime(entry.failed_at)}</td>
+                      <td className="px-4 py-2">
+                        <button
+                          disabled={replayingId === entry.id || entry.status === 'replayed'}
+                          onClick={() => replayDlq(entry.id)}
+                          className={`font-medium transition-colors ${
+                            entry.status === 'replayed'
+                              ? 'text-gray-600 cursor-default'
+                              : replayingId === entry.id
+                                ? 'text-gray-500'
+                                : 'text-indigo-400 hover:text-indigo-300 hover:underline'
+                          }`}
+                        >
+                          {entry.status === 'replayed' ? 'Replayed' : replayingId === entry.id ? '…' : 'Replay'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── Actions ── */}
       <div className="flex flex-wrap gap-3">
         <button
@@ -1530,6 +1768,12 @@ function PipelineHealthTab() {
           className="text-sm bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors"
         >
           Run Data Retention Now
+        </button>
+        <button
+          onClick={forceRebalance}
+          className="text-sm bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors"
+        >
+          Force Rebalance
         </button>
         <a
           href="/api/admin/pipeline-metrics?format=csv"

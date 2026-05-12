@@ -36,6 +36,24 @@ const { createLogger }   = require('../monitoring/logger');
 const { metrics }        = require('../monitoring/runtimeMetrics');
 const { auditTrail }     = require('../monitoring/auditTrail');
 
+// Phase 4E
+const { workerRegistry }  = require('./distributed/WorkerRegistry');
+const distributedLock     = require('./distributed/DistributedLock');
+const { claim: claimExecution, unclaim: unclaimExecution, reclaimFromDeadWorker } = require('./distributed/ExecutionClaimer');
+const { heartbeatManager } = require('./distributed/HeartbeatManager');
+const { rebalancer }       = require('./distributed/Rebalancer');
+
+// Phase 4F
+const { getBreaker, getAllStats: getAllCircuitStats } = require('./reliability/CircuitBreaker');
+const { backpressureManager } = require('./reliability/BackpressureManager');
+const { healthEngine }       = require('./reliability/HealthEngine');
+const dlq                    = require('./reliability/DeadLetterQueue');
+const { memoryProfiler }     = require('../monitoring/memoryProfiler');
+const { executionProfiler }  = require('../monitoring/executionProfiler');
+const { collectWarnings }    = require('../monitoring/diagnostics');
+// ChaosEngine is gated at its own module level (CHAOS_ENABLED env var)
+const chaos                  = require('./reliability/ChaosEngine');
+
 const log = createLogger('runtime');
 
 // ── System-wide event listeners ─────────────────────────────────────────────────
@@ -84,9 +102,18 @@ async function initializeRuntime() {
     // 5. Phase 4C — start stall detector watchdog
     stallDetector.start();
 
+    // 6. Phase 4E — register this worker, start rebalancer
+    await workerRegistry.register();
+    rebalancer.start();
+
+    // 7. Phase 4F — start memory profiler, wire execution profiler
+    memoryProfiler.start();
+    executionProfiler.init(bus);
+
     log.info('Runtime initialized', {
       pipelines: listPipelines().map(p => p.id),
       recovery:  recoveryResult,
+      workerId:  workerRegistry.workerId,
     });
 
   } catch (err) {
@@ -100,7 +127,12 @@ async function initializeRuntime() {
 
 function shutdownRuntime() {
   stallDetector.stop();
+  rebalancer.stop();
+  heartbeatManager.destroy();
+  memoryProfiler.stop();
   lockManager.destroy();
+  // Best-effort worker deregister (don't await — in shutdown path)
+  workerRegistry.deregister().catch(() => {});
   log.info('Runtime shutdown complete');
 }
 
@@ -148,4 +180,24 @@ module.exports = {
   metrics,
   auditTrail,
   createLogger,
+
+  // Phase 4E
+  workerRegistry,
+  distributedLock,
+  claimExecution,
+  unclaimExecution,
+  reclaimFromDeadWorker,
+  heartbeatManager,
+  rebalancer,
+
+  // Phase 4F
+  getBreaker,
+  getAllCircuitStats,
+  backpressureManager,
+  healthEngine,
+  dlq,
+  memoryProfiler,
+  executionProfiler,
+  collectWarnings,
+  chaos,
 };

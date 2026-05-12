@@ -35,6 +35,7 @@ const analyticsRoutes                = require('./routes/analytics.routes');
 const toolsGenerateRoutes            = require('./routes/tools.generate.route');
 const pipelineRoutes                 = require('./routes/pipeline.routes');
 const runtimeRoutes                  = require('./routes/runtime.routes');
+const workerRoutes                   = require('./routes/worker.routes');
 const { initializeRuntime, shutdownRuntime } = require('./runtime');
 const requestId                      = require('./middleware/request-id');
 const { startAnalyticsCron }  = require('./jobs/analytics.cron');
@@ -227,6 +228,7 @@ app.use('/api/factory',        factoryRoutes);
 app.use('/api/analytics',      analyticsRoutes);
 app.use('/api/pipelines',      adminLimiter, pipelineRoutes);
 app.use('/api/runtime',        adminLimiter, runtimeRoutes);
+app.use('/api/workers',        adminLimiter, workerRoutes);
 app.use('/api/resume-versions', resumeVersionsRoutes);
 app.use('/api',                resumeRoutes);
 
