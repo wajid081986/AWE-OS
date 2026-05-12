@@ -38,9 +38,13 @@ const runtimeRoutes                  = require('./routes/runtime.routes');
 const workerRoutes                   = require('./routes/worker.routes');
 const memoryRoutes                   = require('./routes/memory.routes');
 const learningRoutes                 = require('./routes/learning.routes');
+const multiAgentRoutes               = require('./routes/multi-agent.routes');
+const selfOptimizationRoutes         = require('./routes/self-optimization.routes');
 const { initializeRuntime, shutdownRuntime } = require('./runtime');
 const { initializeMemory, shutdownMemory }   = require('./memory');
 const { initializeLearning, shutdownLearning } = require('./learning');
+const { initializeMultiAgent, shutdownMultiAgent } = require('./agents/multi-agent');
+const { initializeSelfOptimization, shutdownSelfOptimization } = require('./optimization');
 const requestId                      = require('./middleware/request-id');
 const { startAnalyticsCron }  = require('./jobs/analytics.cron');
 const { startAutonomousCron } = require('./jobs/autonomous.cron');
@@ -235,6 +239,8 @@ app.use('/api/runtime',        adminLimiter, runtimeRoutes);
 app.use('/api/workers',        adminLimiter, workerRoutes);
 app.use('/api/memory',         adminLimiter, memoryRoutes);
 app.use('/api/learning',       adminLimiter, learningRoutes);
+app.use('/api/multi-agent',    adminLimiter, multiAgentRoutes);
+app.use('/api/self-optimize',  adminLimiter, selfOptimizationRoutes);
 app.use('/api/resume-versions', resumeVersionsRoutes);
 app.use('/api',                resumeRoutes);
 
@@ -283,6 +289,20 @@ const server = app.listen(PORT, () => {
     initializeLearning(bus).catch(err => console.error('[SERVER] Learning init error:', err?.message));
   }, 2_000);
 
+  // Phase 5C: Initialize Multi-Agent Intelligence Engine
+  // Deferred 3s to ensure learning engine + memory are fully up
+  setTimeout(() => {
+    const { bus } = require('./runtime');
+    initializeMultiAgent(bus).catch(err => console.error('[SERVER] MultiAgent init error:', err?.message));
+  }, 3_000);
+
+  // Phase 5D: Initialize Self-Optimization Engine
+  // Deferred 4s to ensure multi-agent layer is initialized first
+  setTimeout(() => {
+    const { bus } = require('./runtime');
+    initializeSelfOptimization(bus).catch(err => console.error('[SERVER] SelfOptimization init error:', err?.message));
+  }, 4_000);
+
   console.info('[SERVER] All systems GO');
 });
 
@@ -295,9 +315,11 @@ process.on('SIGTERM', () => {
 
   server.close(() => {
     clearTimeout(forceExit);
-    try { shutdownRuntime();  } catch (_) {}
-    try { shutdownMemory();   } catch (_) {}
-    try { shutdownLearning(); } catch (_) {}
+    try { shutdownRuntime();           } catch (_) {}
+    try { shutdownMemory();            } catch (_) {}
+    try { shutdownLearning();          } catch (_) {}
+    try { shutdownMultiAgent();        } catch (_) {}
+    try { shutdownSelfOptimization();  } catch (_) {}
     console.info('[SERVER] Closed gracefully.');
     process.exit(0);
   });

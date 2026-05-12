@@ -72,8 +72,10 @@ const UserManager       = lazy(() => import('../modules/admin/users/UserManager'
 const RevenuePage       = lazy(() => import('../modules/admin/revenue/RevenuePage'))
 const AIFactoryPage     = lazy(() => import('../modules/admin/factory/AIFactoryPage'))
 const AgentControlPage  = lazy(() => import('../modules/admin/agents/AgentControlPage'))
-const AgentsMonitor     = lazy(() => import('../modules/admin/agents/AgentsMonitor'))
-
+const AgentsMonitor          = lazy(() => import('../modules/admin/agents/AgentsMonitor'))
+const MultiAgentDashboard    = lazy(() => import('../modules/admin/multi-agent/MultiAgentDashboard'))
+const OptimizationDashboard  = lazy(() => import('../modules/admin/optimization/OptimizationDashboard'))
+const IntelligenceDashboard  = lazy(() => import('../modules/admin/intelligence/IntelligenceDashboard'))
 
 // ── Shared suspense wrapper ───────────────────────────────────────────────────
 function PageLoader() {
@@ -166,6 +168,9 @@ export default function AppRoutes() {
           <Route path="/admin/factory"       element={lazy$(<AIFactoryPage />)} />
           <Route path="/admin/agents"        element={lazy$(<AgentsMonitor />)} />
           <Route path="/admin/pipeline"      element={lazy$(<AgentControlPage />)} />
+          <Route path="/admin/multi-agent"   element={lazy$(<MultiAgentDashboard />)} />
+          <Route path="/admin/optimization"  element={lazy$(<OptimizationDashboard />)} />
+          <Route path="/admin/intelligence"  element={lazy$(<IntelligenceDashboard />)} />
         </Route>
       </Route>
 

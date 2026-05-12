@@ -11,6 +11,9 @@ const QUICK_ITEMS = [
   { icon: '🧮', label: 'Calculators',      to: '/admin/calculators'    },
   { icon: '👥', label: 'Users',            to: '/admin/users'          },
   { icon: '💰', label: 'Revenue',          to: '/admin/revenue'        },
+  { icon: '🤝', label: 'Multi-Agent',     to: '/admin/multi-agent'    },
+  { icon: '⚡', label: 'Optimization',    to: '/admin/optimization'   },
+  { icon: '🧠', label: 'Intelligence',    to: '/admin/intelligence'   },
 ]
 
 function Spinner() {
