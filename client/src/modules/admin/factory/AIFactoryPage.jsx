@@ -1,17 +1,21 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../../services/api.service'
+import { useToolIntelligence } from '../../../hooks/useToolIntelligence'
+import IntelligencePanel from './IntelligencePanel'
+import BlueprintViewer  from './BlueprintViewer'
 
 const CATEGORIES = [
   'productivity', 'marketing', 'finance', 'writing',
-  'education', 'health', 'legal', 'ecommerce', 'other',
+  'education', 'health', 'legal', 'ecommerce',
+  'pdf', 'calculators', 'converters', 'other',
 ]
 
 const STATUS_CONFIG = {
-  pending:   { label: 'Pending',   dot: 'bg-yellow-400', text: 'text-yellow-400', pulse: false },
-  running:   { label: 'Running',   dot: 'bg-blue-400 animate-pulse', text: 'text-blue-400', pulse: true },
-  completed: { label: 'Completed', dot: 'bg-green-400', text: 'text-green-400', pulse: false },
-  failed:    { label: 'Failed',    dot: 'bg-red-400',   text: 'text-red-400',   pulse: false },
+  pending:   { label: 'Pending',   dot: 'bg-yellow-400',            text: 'text-yellow-400' },
+  running:   { label: 'Running',   dot: 'bg-blue-400 animate-pulse', text: 'text-blue-400'  },
+  completed: { label: 'Completed', dot: 'bg-green-400',             text: 'text-green-400'  },
+  failed:    { label: 'Failed',    dot: 'bg-red-400',               text: 'text-red-400'    },
 }
 
 function StatusBadge({ status }) {
@@ -26,9 +30,9 @@ function StatusBadge({ status }) {
 
 function GeneratingSteps({ step }) {
   const steps = [
-    'Analyzing category...',
-    'Generating tool config...',
-    'Saving to database...',
+    'Analyzing category & idea…',
+    'Generating tool configuration…',
+    'Saving to database…',
   ]
   return (
     <div className="space-y-3 py-2">
@@ -102,7 +106,7 @@ function ToolPreviewCard({ tool, onPublish, onEdit, onReset, publishing }) {
           disabled={publishing || tool.is_published}
           className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm"
         >
-          {publishing ? 'Publishing...' : tool.is_published ? 'Already Published' : 'Publish Tool →'}
+          {publishing ? 'Publishing…' : tool.is_published ? 'Already Published' : 'Publish Tool →'}
         </button>
         <button
           onClick={onEdit}
@@ -125,29 +129,33 @@ export default function AIFactoryPage() {
   const navigate = useNavigate()
 
   // Generate form
-  const [category, setCategory]       = useState('marketing')
-  const [idea, setIdea]               = useState('')
-  const [mode, setMode]               = useState('tool') // 'tool' | 'ideas'
+  const [category, setCategory] = useState('marketing')
+  const [idea, setIdea]         = useState('')
+  const [mode, setMode]         = useState('tool') // 'tool' | 'ideas'
 
   // Generation state
-  const [isGenerating, setIsGenerating]   = useState(false)
+  const [isGenerating, setIsGenerating]     = useState(false)
   const [generatingStep, setGeneratingStep] = useState(0)
   const [generatedTool, setGeneratedTool]   = useState(null)
   const [currentJobId, setCurrentJobId]     = useState(null)
   const [genError, setGenError]             = useState(null)
-
-  // Publish
-  const [publishing, setPublishing]   = useState(false)
+  const [publishing, setPublishing]         = useState(false)
 
   // Ideas mode
-  const [ideas, setIdeas]             = useState([])
-  const [ideaLoading, setIdeaLoading] = useState(false)
+  const [ideas, setIdeas]                 = useState([])
+  const [ideaLoading, setIdeaLoading]     = useState(false)
   const [buildingIdeaId, setBuildingIdeaId] = useState(null)
 
   // Jobs history
-  const [jobs, setJobs]               = useState([])
+  const [jobs, setJobs]           = useState([])
   const [jobsLoading, setJobsLoading] = useState(true)
   const [errorDetail, setErrorDetail] = useState(null)
+
+  // Intelligence (Phase 6A)
+  const {
+    intelligence, blueprint, loading: intelLoading, blueprintLoading, error: intelError,
+    analyze: runAnalysis, fetchBlueprint, reset: resetIntelligence,
+  } = useToolIntelligence()
 
   const pollRef = useRef(null)
 
@@ -158,11 +166,8 @@ export default function AIFactoryPage() {
       .finally(() => setJobsLoading(false))
   }
 
-  useEffect(() => {
-    loadJobs()
-  }, [])
+  useEffect(() => { loadJobs() }, [])
 
-  // Auto-refresh jobs every 5s if any job is running
   useEffect(() => {
     const hasRunning = jobs.some(j => j.status === 'pending' || j.status === 'running')
     if (!hasRunning) return
@@ -180,8 +185,6 @@ export default function AIFactoryPage() {
       try {
         const res = await api.get(`/api/factory/jobs/${jobId}`)
         const job = res.data
-
-        // Advance step animation
         if (job.status === 'running' && step < 2) step++
         setGeneratingStep(step)
 
@@ -199,7 +202,6 @@ export default function AIFactoryPage() {
           loadJobs()
           return
         }
-        // Still running
         pollRef.current = setTimeout(poll, 2000)
       } catch {
         setGenError('Failed to poll job status')
@@ -216,7 +218,6 @@ export default function AIFactoryPage() {
     setGeneratedTool(null)
     setGenError(null)
     stopPoll()
-
     try {
       const res = await api.post('/api/factory/generate', { category, idea })
       setCurrentJobId(res.data.jobId)
@@ -225,6 +226,14 @@ export default function AIFactoryPage() {
       setGenError(err.response?.data?.error || 'Failed to start generation')
       setIsGenerating(false)
     }
+  }
+
+  const handleAnalyze = async () => {
+    await runAnalysis(idea, category)
+  }
+
+  const handleGenerateBlueprint = async () => {
+    await fetchBlueprint(idea, category, intelligence?.analysis || null, null)
   }
 
   const handleGenerateIdeas = async () => {
@@ -286,6 +295,7 @@ export default function AIFactoryPage() {
     setIsGenerating(false)
     setIdeas([])
     stopPoll()
+    resetIntelligence()
   }
 
   return (
@@ -297,28 +307,27 @@ export default function AIFactoryPage() {
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
             🤖 AI Factory
             <span className="text-xs bg-indigo-600 text-white px-2 py-1 rounded-full font-medium">⚡ LIVE</span>
+            <span className="text-xs bg-purple-700 text-purple-200 px-2 py-1 rounded-full font-medium">🧠 Intelligence</span>
           </h1>
-          <p className="text-gray-400 mt-1">Generate complete AI tools automatically — one click to marketplace</p>
+          <p className="text-gray-400 mt-1">Generate complete AI tools automatically — with intelligence scoring, SEO analysis, and blueprints</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
-          {/* ── LEFT: Generate Panel (3/5) ── */}
+          {/* ── LEFT: Generate + Intelligence Panel (3/5) ── */}
           <div className="lg:col-span-3 space-y-4">
 
             {/* Mode Toggle */}
             <div className="flex gap-1 bg-gray-800 p-1 rounded-xl border border-gray-700 w-fit">
               {[
-                { id: 'tool',  label: '⚡ Generate Tool' },
-                { id: 'ideas', label: '💡 Generate Ideas' },
+                { id: 'tool',  label: '⚡ Generate Tool'  },
+                { id: 'ideas', label: '💡 Generate Ideas'  },
               ].map(({ id, label }) => (
                 <button
                   key={id}
                   onClick={() => { setMode(id); handleReset() }}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    mode === id
-                      ? 'bg-indigo-600 text-white'
-                      : 'text-gray-400 hover:text-white'
+                    mode === id ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'
                   }`}
                 >
                   {label}
@@ -335,7 +344,7 @@ export default function AIFactoryPage() {
                   <label className="block text-sm text-gray-300 mb-2 font-medium">Category</label>
                   <select
                     value={category}
-                    onChange={e => setCategory(e.target.value)}
+                    onChange={e => { setCategory(e.target.value); resetIntelligence() }}
                     disabled={isGenerating}
                     className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 capitalize disabled:opacity-50"
                   >
@@ -348,35 +357,54 @@ export default function AIFactoryPage() {
                 {/* Custom Idea */}
                 <div>
                   <label className="block text-sm text-gray-300 mb-2 font-medium">
-                    Custom Idea
+                    Tool Idea
                     <span className="text-gray-500 font-normal ml-2">optional</span>
                   </label>
                   <textarea
                     value={idea}
-                    onChange={e => setIdea(e.target.value)}
+                    onChange={e => { setIdea(e.target.value); if (intelligence) resetIntelligence() }}
                     disabled={isGenerating}
                     rows={3}
-                    placeholder={"Describe the tool you want to build...\ne.g. A tool that writes LinkedIn posts from bullet points"}
+                    placeholder={"Describe the tool you want to build…\ne.g. A tool that writes LinkedIn posts from bullet points"}
                     className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500 resize-none disabled:opacity-50"
                   />
                 </div>
 
-                {/* Action Button */}
+                {/* Action Buttons */}
                 {mode === 'tool' ? (
-                  <button
-                    onClick={handleGenerate}
-                    disabled={isGenerating}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 disabled:opacity-60 text-white font-semibold py-3.5 rounded-xl transition-all text-base"
-                  >
-                    {isGenerating ? '🤖 AI is building your tool...' : '⚡ Generate Tool'}
-                  </button>
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Analyze button */}
+                    <button
+                      onClick={handleAnalyze}
+                      disabled={isGenerating || intelLoading}
+                      className="py-3 bg-purple-600/20 hover:bg-purple-600/30 disabled:opacity-50 border border-purple-500/40 text-purple-300 font-semibold rounded-xl transition-all text-sm flex items-center justify-center gap-2"
+                    >
+                      {intelLoading ? (
+                        <>
+                          <span className="w-4 h-4 border border-purple-400 border-t-transparent rounded-full animate-spin" />
+                          Analyzing…
+                        </>
+                      ) : (
+                        <>🧠 Analyze Idea</>
+                      )}
+                    </button>
+
+                    {/* Generate button */}
+                    <button
+                      onClick={handleGenerate}
+                      disabled={isGenerating || intelLoading}
+                      className="py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 disabled:opacity-60 text-white font-semibold rounded-xl transition-all text-sm"
+                    >
+                      {isGenerating ? '🤖 Building…' : '⚡ Generate Tool'}
+                    </button>
+                  </div>
                 ) : (
                   <button
                     onClick={handleGenerateIdeas}
                     disabled={ideaLoading}
                     className="w-full border border-indigo-500 hover:bg-indigo-600/10 disabled:opacity-60 text-indigo-400 font-semibold py-3.5 rounded-xl transition-all text-base"
                   >
-                    {ideaLoading ? 'Generating ideas...' : '💡 Generate 5 Ideas'}
+                    {ideaLoading ? 'Generating ideas…' : '💡 Generate 5 Ideas'}
                   </button>
                 )}
               </div>
@@ -389,18 +417,18 @@ export default function AIFactoryPage() {
                 </div>
               )}
 
-              {/* Error */}
-              {genError && !isGenerating && (
+              {/* Intelligence / generation error */}
+              {(genError || intelError) && !isGenerating && (
                 <div className="mt-4 p-4 bg-red-950/40 border border-red-500/40 rounded-lg">
-                  <p className="text-red-400 text-sm font-medium">Generation failed</p>
-                  <p className="text-red-300 text-xs mt-1">{genError}</p>
+                  <p className="text-red-400 text-sm font-medium">Error</p>
+                  <p className="text-red-300 text-xs mt-1">{genError || intelError}</p>
                   <button onClick={handleReset} className="mt-2 text-xs text-red-400 hover:text-red-300 underline">
-                    Try again
+                    Reset
                   </button>
                 </div>
               )}
 
-              {/* Success: Tool Preview */}
+              {/* Tool Preview */}
               {generatedTool && !isGenerating && (
                 <ToolPreviewCard
                   tool={generatedTool}
@@ -411,6 +439,23 @@ export default function AIFactoryPage() {
                 />
               )}
             </div>
+
+            {/* ── Intelligence Panel ── */}
+            {intelligence && !isGenerating && (
+              <IntelligencePanel
+                data={intelligence}
+                onGenerateBlueprint={handleGenerateBlueprint}
+                blueprintLoading={blueprintLoading}
+              />
+            )}
+
+            {/* ── Blueprint Viewer ── */}
+            {blueprint && (
+              <BlueprintViewer
+                blueprint={blueprint}
+                onClose={() => fetchBlueprint.__reset?.() || (() => {})()} // reset via hook re-trigger
+              />
+            )}
 
             {/* Ideas Panel */}
             {mode === 'ideas' && ideas.length > 0 && (
@@ -426,9 +471,7 @@ export default function AIFactoryPage() {
                         <p className="text-gray-400 text-sm mt-0.5">{idea.description}</p>
                       </div>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${
-                        !idea.estimated_price
-                          ? 'bg-green-900 text-green-300'
-                          : 'bg-yellow-900 text-yellow-300'
+                        !idea.estimated_price ? 'bg-green-900 text-green-300' : 'bg-yellow-900 text-yellow-300'
                       }`}>
                         {idea.estimated_price ? `₹${idea.estimated_price}` : 'Free'}
                       </span>
@@ -443,13 +486,21 @@ export default function AIFactoryPage() {
                         <span className="text-gray-400">Solves:</span> {idea.problem_solved}
                       </p>
                     )}
-                    <button
-                      onClick={() => idea.id && handleBuildIdea(idea.id)}
-                      disabled={!idea.id || buildingIdeaId === idea.id}
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-medium py-2 rounded-lg transition-colors"
-                    >
-                      {buildingIdeaId === idea.id ? 'Building...' : 'Build This Tool →'}
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => { setIdea(`${idea.name}: ${idea.description}`); setMode('tool'); runAnalysis(`${idea.name}: ${idea.description}`, category) }}
+                        className="flex-1 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-sm font-medium py-2 rounded-lg transition-colors"
+                      >
+                        🧠 Analyze
+                      </button>
+                      <button
+                        onClick={() => idea.id && handleBuildIdea(idea.id)}
+                        disabled={!idea.id || buildingIdeaId === idea.id}
+                        className="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-medium py-2 rounded-lg transition-colors"
+                      >
+                        {buildingIdeaId === idea.id ? 'Building…' : 'Build This Tool →'}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -461,10 +512,7 @@ export default function AIFactoryPage() {
             <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
                 <h2 className="text-sm font-semibold text-white">Factory Jobs</h2>
-                <button
-                  onClick={loadJobs}
-                  className="text-xs text-gray-400 hover:text-white transition-colors"
-                >
+                <button onClick={loadJobs} className="text-xs text-gray-400 hover:text-white transition-colors">
                   Refresh
                 </button>
               </div>
@@ -498,7 +546,6 @@ export default function AIFactoryPage() {
                         {new Date(job.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
                       </p>
 
-                      {/* Actions */}
                       <div className="flex gap-3">
                         {job.status === 'completed' && job.saas_tools && (
                           <>

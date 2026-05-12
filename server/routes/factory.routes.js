@@ -1,9 +1,10 @@
-const express    = require('express');
-const rateLimit  = require('express-rate-limit');
+const express      = require('express');
+const rateLimit    = require('express-rate-limit');
 const { requireAuth, requireAdmin } = require('../middleware/admin.middleware');
 const { generateToolIdeas, runFactory } = require('../services/ai-factory.service');
-const supabase   = require('../db/supabase');
-const router     = express.Router();
+const intelligence = require('../intelligence');
+const supabase     = require('../db/supabase');
+const router       = express.Router();
 
 const factoryLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
@@ -135,6 +136,89 @@ router.post('/ideas/:id/build', requireAuth, requireAdmin, factoryLimiter, async
     .eq('id', idea.id);
 
   res.json({ jobId: job.id, status: 'building' });
+});
+
+// ════════════════════════════════════════════════════════════════
+// PHASE 6A — Intelligence Endpoints
+// ════════════════════════════════════════════════════════════════
+
+// POST /api/factory/intelligence/analyze
+// Run the fast intelligence pipeline (~2-4s).
+// Returns: analysis, monetization, seo, score, duplicateCheck, historical
+router.post('/intelligence/analyze', requireAuth, requireAdmin, async (req, res) => {
+  const { prompt, category } = req.body;
+  if (!category) return res.status(400).json({ success: false, error: 'category is required' });
+
+  try {
+    const result = await intelligence.runIntelligencePipeline(
+      prompt   || '',
+      category,
+      req.user.userId,
+    );
+    res.json({ success: true, ...result });
+  } catch (err) {
+    console.error('[factory/intelligence/analyze]', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/factory/intelligence/blueprint
+// Generate a full implementation blueprint (heavier Claude Sonnet call, ~5-10s).
+router.post('/intelligence/blueprint', requireAuth, requireAdmin, async (req, res) => {
+  const { prompt, category, analysis, ideaId } = req.body;
+  if (!category) return res.status(400).json({ success: false, error: 'category is required' });
+
+  try {
+    const blueprint = await intelligence.generateBlueprint(
+      prompt   || '',
+      category,
+      analysis || null,
+      ideaId   || null,
+    );
+    res.json({ success: true, blueprint });
+  } catch (err) {
+    console.error('[factory/intelligence/blueprint]', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/factory/intelligence/history
+// List generated idea history (newest first, last 50).
+router.get('/intelligence/history', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('generated_tool_ideas')
+      .select('id, title, category, seo_score, monetization_score, complexity_score, overall_score, launch_recommendation, approved, created_at')
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (error) throw new Error(error.message);
+    res.json({ success: true, data: data || [] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/factory/intelligence/categories
+// Historical category performance stats.
+router.get('/intelligence/categories', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const patterns = await intelligence.getHistoricalPatterns('all');
+    res.json({ success: true, data: patterns });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/factory/intelligence/feedback/:ideaId
+// Record admin feedback on a generated idea.
+router.post('/intelligence/feedback/:ideaId', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    await intelligence.recordFeedback(req.params.ideaId, req.body);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 module.exports = router;
