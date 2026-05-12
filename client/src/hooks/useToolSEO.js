@@ -4,6 +4,8 @@ import {
   getApplicationCategory,
 } from '../data/toolRegistry'
 import { SITE_URL, getToolCanonical } from '../utils/canonicalUrl'
+
+const OG_IMAGE = 'https://awe-os.com/og-image.svg'
 import {
   generateToolSchema,
   generateHowToSchema,
@@ -50,13 +52,18 @@ export function useToolSEO(toolOrSlug, { steps, faqs } = {}) {
     description:        desc,
     canonical:          pageUrl,
     robots:             'index, follow',
+    ogSiteName:         'AWE-OS',
+    ogLocale:           'en_US',
     ogTitle:            title,
     ogDescription:      desc,
     ogUrl:              pageUrl,
     ogType:             'website',
-    twitterCard:        'summary',
+    ogImage:            OG_IMAGE,
+    twitterCard:        'summary_large_image',
+    twitterSite:        '@awe_os',
     twitterTitle:       title,
     twitterDescription: desc,
+    twitterImage:       OG_IMAGE,
     schemas,
     toolMeta,
     catMeta,

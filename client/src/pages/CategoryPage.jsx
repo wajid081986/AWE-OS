@@ -98,15 +98,24 @@ export default function CategoryPage({ category }) {
     <>
       <Helmet>
         <title>{meta.title}</title>
-        <meta name="description"        content={meta.description} />
-        <link rel="canonical"           href={canonical} />
-        <meta property="og:title"       content={meta.title} />
-        <meta property="og:description" content={meta.description} />
-        <meta property="og:url"         content={canonical} />
-        <meta property="og:type"        content="website" />
-        <meta name="twitter:card"        content="summary" />
+        <meta name="description"         content={meta.description} />
+        <link rel="canonical"            href={canonical} />
+        <meta property="og:site_name"    content="AWE-OS" />
+        <meta property="og:locale"       content="en_US" />
+        <meta property="og:title"        content={meta.title} />
+        <meta property="og:description"  content={meta.description} />
+        <meta property="og:url"          content={canonical} />
+        <meta property="og:type"         content="website" />
+        <meta property="og:image"        content="https://awe-os.com/og-image.svg" />
+        <meta property="og:image:width"  content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt"    content={`${meta.name} — AWE-OS`} />
+        <meta name="twitter:card"        content="summary_large_image" />
+        <meta name="twitter:site"        content="@awe_os" />
         <meta name="twitter:title"       content={meta.title} />
         <meta name="twitter:description" content={meta.description} />
+        <meta name="twitter:image"       content="https://awe-os.com/og-image.svg" />
+        <meta name="twitter:image:alt"   content={`${meta.name} — AWE-OS`} />
         <script type="application/ld+json">{JSON.stringify(itemListSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       </Helmet>

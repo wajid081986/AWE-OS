@@ -2,12 +2,12 @@ User-agent: *
 Allow: /
 Allow: /tools/
 Allow: /tools/*
-Allow: /calculators/
-Allow: /calculators/*
 Allow: /about
-Allow: /privacy
-Allow: /terms
 Allow: /contact
+Allow: /pricing
+Allow: /privacy-policy
+Allow: /terms
+Allow: /disclaimer
 
 # Private — do not index
 Disallow: /dashboard/

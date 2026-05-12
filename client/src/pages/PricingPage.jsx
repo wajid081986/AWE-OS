@@ -51,8 +51,24 @@ export default function PricingPage() {
     <>
       <Helmet>
         <title>Pricing — AWE-OS Pro</title>
-        <meta name="description" content="Simple, transparent pricing. Start free, upgrade to Pro for AI tools. Resume Builder, AI Content Writer and more." />
-        <link rel="canonical" href="https://awe-os.com/pricing" />
+        <meta name="description"         content="Simple, transparent pricing. Start free, upgrade to Pro for AI tools. Resume Builder, AI Content Writer and more." />
+        <link rel="canonical"            href="https://awe-os.com/pricing" />
+        <meta property="og:site_name"    content="AWE-OS" />
+        <meta property="og:locale"       content="en_US" />
+        <meta property="og:title"        content="Pricing — AWE-OS Pro" />
+        <meta property="og:description"  content="Simple, transparent pricing. Start free, upgrade to Pro for AI tools. Resume Builder, AI Content Writer and more." />
+        <meta property="og:url"          content="https://awe-os.com/pricing" />
+        <meta property="og:type"         content="website" />
+        <meta property="og:image"        content="https://awe-os.com/og-image.svg" />
+        <meta property="og:image:width"  content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt"    content="AWE-OS Pro Pricing" />
+        <meta name="twitter:card"        content="summary_large_image" />
+        <meta name="twitter:site"        content="@awe_os" />
+        <meta name="twitter:title"       content="Pricing — AWE-OS Pro" />
+        <meta name="twitter:description" content="Simple, transparent pricing. Start free, upgrade to Pro for AI tools. Resume Builder, AI Content Writer and more." />
+        <meta name="twitter:image"       content="https://awe-os.com/og-image.svg" />
+        <meta name="twitter:image:alt"   content="AWE-OS Pro Pricing" />
       </Helmet>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">

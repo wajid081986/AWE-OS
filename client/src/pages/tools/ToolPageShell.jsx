@@ -29,7 +29,8 @@ import {
   getApplicationCategory,
 } from '../../data/toolRegistry'
 
-const SITE_URL = 'https://awe-os.com'
+const SITE_URL  = 'https://awe-os.com'
+const OG_IMAGE  = 'https://awe-os.com/og-image.svg'
 
 // ── Share buttons ─────────────────────────────────────────────────────────────
 function ShareButtons({ url, title }) {
@@ -149,14 +150,23 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
         <meta name="description" content={seoDesc} />
         <link rel="canonical" href={pageUrl} />
         {/* OpenGraph */}
-        <meta property="og:title"       content={seoTitle} />
-        <meta property="og:description" content={seoDesc} />
-        <meta property="og:url"         content={pageUrl} />
-        <meta property="og:type"        content="website" />
+        <meta property="og:site_name"    content="AWE-OS" />
+        <meta property="og:locale"       content="en_US" />
+        <meta property="og:title"        content={seoTitle} />
+        <meta property="og:description"  content={seoDesc} />
+        <meta property="og:url"          content={pageUrl} />
+        <meta property="og:type"         content="website" />
+        <meta property="og:image"        content={OG_IMAGE} />
+        <meta property="og:image:width"  content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt"    content={`${name} — AWE-OS`} />
         {/* Twitter Card */}
-        <meta name="twitter:card"        content="summary" />
+        <meta name="twitter:card"        content="summary_large_image" />
+        <meta name="twitter:site"        content="@awe_os" />
         <meta name="twitter:title"       content={seoTitle} />
         <meta name="twitter:description" content={seoDesc} />
+        <meta name="twitter:image"       content={OG_IMAGE} />
+        <meta name="twitter:image:alt"   content={`${name} — AWE-OS`} />
         {/* Schema.org */}
         <script type="application/ld+json">{JSON.stringify(softwareSchema)}</script>
         {howToSchema    && <script type="application/ld+json">{JSON.stringify(howToSchema)}</script>}

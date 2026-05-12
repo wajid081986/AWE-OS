@@ -51,6 +51,7 @@ const { initializeMultiAgent, shutdownMultiAgent } = require('./agents/multi-age
 const { initializeSelfOptimization, shutdownSelfOptimization } = require('./optimization');
 const requestId                      = require('./middleware/request-id');
 const { apiPerformance }             = require('./middleware/apiPerformance');
+const ogMiddleware                   = require('./middleware/ogMiddleware');
 const { startAnalyticsCron }  = require('./jobs/analytics.cron');
 const { startAutonomousCron } = require('./jobs/autonomous.cron');
 const { startIdeaCron }       = require('./jobs/idea.cron');
@@ -83,6 +84,9 @@ if (missingOptional.length > 0) {
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
   : ['https://awe-os.vercel.app', 'http://localhost:5173'];
+
+// ── OG bot meta — before request-id so bots exit early ──────
+app.use(ogMiddleware);
 
 // ── Request ID — attach before any other middleware ──────────
 app.use(requestId);

@@ -14,8 +14,24 @@ export default function PrivacyPolicy() {
     <>
       <Helmet>
         <title>Privacy Policy — AWE-OS</title>
-        <meta name="description" content="AWE-OS Privacy Policy — how we collect, use and protect your data. GDPR compliant." />
-        <link rel="canonical" href="https://awe-os.com/privacy" />
+        <meta name="description"         content="AWE-OS Privacy Policy — how we collect, use and protect your data. GDPR compliant." />
+        <link rel="canonical"            href="https://awe-os.com/privacy-policy" />
+        <meta property="og:site_name"    content="AWE-OS" />
+        <meta property="og:locale"       content="en_US" />
+        <meta property="og:title"        content="Privacy Policy — AWE-OS" />
+        <meta property="og:description"  content="AWE-OS Privacy Policy — how we collect, use and protect your data. GDPR compliant." />
+        <meta property="og:url"          content="https://awe-os.com/privacy-policy" />
+        <meta property="og:type"         content="website" />
+        <meta property="og:image"        content="https://awe-os.com/og-image.svg" />
+        <meta property="og:image:width"  content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt"    content="AWE-OS Privacy Policy" />
+        <meta name="twitter:card"        content="summary_large_image" />
+        <meta name="twitter:site"        content="@awe_os" />
+        <meta name="twitter:title"       content="Privacy Policy — AWE-OS" />
+        <meta name="twitter:description" content="AWE-OS Privacy Policy — how we collect, use and protect your data. GDPR compliant." />
+        <meta name="twitter:image"       content="https://awe-os.com/og-image.svg" />
+        <meta name="twitter:image:alt"   content="AWE-OS Privacy Policy" />
       </Helmet>
 
       <div className="max-w-3xl mx-auto px-4 py-14">

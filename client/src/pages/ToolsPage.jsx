@@ -140,8 +140,22 @@ export default function ToolsPage() {
     <>
       <Helmet>
         <title>{pageTitle} — AWE-OS Free Online Tools</title>
-        <meta name="description" content={`Browse ${pageTitle} on AWE-OS. Free, fast and easy-to-use online tools for everyone.`} />
-        <link rel="canonical" href="https://awe-os.com/tools" />
+        <meta name="description"         content={`Browse ${pageTitle} on AWE-OS. Free, fast and easy-to-use online tools for everyone.`} />
+        <link rel="canonical"            href="https://awe-os.com/tools" />
+        <meta property="og:site_name"    content="AWE-OS" />
+        <meta property="og:locale"       content="en_US" />
+        <meta property="og:title"        content={`${pageTitle} — AWE-OS Free Online Tools`} />
+        <meta property="og:description"  content={`Browse ${pageTitle} on AWE-OS. Free, fast and easy-to-use online tools for everyone.`} />
+        <meta property="og:url"          content="https://awe-os.com/tools" />
+        <meta property="og:type"         content="website" />
+        <meta property="og:image"        content="https://awe-os.com/og-image.svg" />
+        <meta property="og:image:width"  content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:card"        content="summary_large_image" />
+        <meta name="twitter:site"        content="@awe_os" />
+        <meta name="twitter:title"       content={`${pageTitle} — AWE-OS Free Online Tools`} />
+        <meta name="twitter:description" content={`Browse ${pageTitle} on AWE-OS. Free, fast and easy-to-use online tools for everyone.`} />
+        <meta name="twitter:image"       content="https://awe-os.com/og-image.svg" />
       </Helmet>
 
       {/* Page hero */}

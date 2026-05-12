@@ -28,8 +28,24 @@ export default function ContactPage() {
     <>
       <Helmet>
         <title>Contact Us — AWE-OS</title>
-        <meta name="description" content="Get in touch with the AWE-OS team. We respond within 24 hours." />
-        <link rel="canonical" href="https://awe-os.com/contact" />
+        <meta name="description"         content="Get in touch with the AWE-OS team. We respond within 24 hours on weekdays." />
+        <link rel="canonical"            href="https://awe-os.com/contact" />
+        <meta property="og:site_name"    content="AWE-OS" />
+        <meta property="og:locale"       content="en_US" />
+        <meta property="og:title"        content="Contact Us — AWE-OS" />
+        <meta property="og:description"  content="Get in touch with the AWE-OS team. We respond within 24 hours on weekdays." />
+        <meta property="og:url"          content="https://awe-os.com/contact" />
+        <meta property="og:type"         content="website" />
+        <meta property="og:image"        content="https://awe-os.com/og-image.svg" />
+        <meta property="og:image:width"  content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt"    content="Contact AWE-OS" />
+        <meta name="twitter:card"        content="summary_large_image" />
+        <meta name="twitter:site"        content="@awe_os" />
+        <meta name="twitter:title"       content="Contact Us — AWE-OS" />
+        <meta name="twitter:description" content="Get in touch with the AWE-OS team. We respond within 24 hours on weekdays." />
+        <meta name="twitter:image"       content="https://awe-os.com/og-image.svg" />
+        <meta name="twitter:image:alt"   content="Contact AWE-OS" />
       </Helmet>
 
       <section className="bg-gradient-to-b from-blue-50 to-white py-16 px-4">
