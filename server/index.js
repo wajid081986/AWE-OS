@@ -40,6 +40,7 @@ const memoryRoutes                   = require('./routes/memory.routes');
 const learningRoutes                 = require('./routes/learning.routes');
 const multiAgentRoutes               = require('./routes/multi-agent.routes');
 const selfOptimizationRoutes         = require('./routes/self-optimization.routes');
+const marketplaceRoutes              = require('./routes/marketplace.routes');
 const { initializeRuntime, shutdownRuntime } = require('./runtime');
 const { initializeMemory, shutdownMemory }   = require('./memory');
 const { initializeLearning, shutdownLearning } = require('./learning');
@@ -245,6 +246,7 @@ app.use('/api/memory',         adminLimiter, memoryRoutes);
 app.use('/api/learning',       adminLimiter, learningRoutes);
 app.use('/api/multi-agent',    adminLimiter, multiAgentRoutes);
 app.use('/api/self-optimize',  adminLimiter, selfOptimizationRoutes);
+app.use('/api/marketplace',   adminLimiter, marketplaceRoutes);
 app.use('/api/resume-versions', resumeVersionsRoutes);
 app.use('/api',                resumeRoutes);
 
