@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, memo } from 'react'
 import api from '../../../services/api.service'
 
 const AGENTS = [
@@ -18,7 +18,7 @@ function fmtTime(iso) {
   return new Date(iso).toLocaleString()
 }
 
-function StatusBadge({ status }) {
+const StatusBadge = memo(function StatusBadge({ status }) {
   const styles = {
     running: 'bg-green-900/60 text-green-400 border border-green-700/50',
     error:   'bg-red-900/60   text-red-400   border border-red-700/50',
@@ -29,9 +29,9 @@ function StatusBadge({ status }) {
       {status || 'idle'}
     </span>
   )
-}
+})
 
-function MetricCard({ label, value, icon, accent = false }) {
+const MetricCard = memo(function MetricCard({ label, value, icon, accent = false }) {
   return (
     <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
       <div className="flex items-center justify-between mb-2">
@@ -41,9 +41,9 @@ function MetricCard({ label, value, icon, accent = false }) {
       <p className={`text-2xl font-bold ${accent ? 'text-red-400' : 'text-white'}`}>{value ?? '—'}</p>
     </div>
   )
-}
+})
 
-function AgentCard({ agent, status = {}, triggering, onTrigger, onViewLogs, isSelected }) {
+const AgentCard = memo(function AgentCard({ agent, status = {}, triggering, onTrigger, onViewLogs, isSelected }) {
   const rate = Math.round((status.successRate ?? 0) * 100)
   return (
     <div className={`bg-gray-900 rounded-xl border p-4 flex flex-col gap-3 transition-colors ${
@@ -102,9 +102,9 @@ function AgentCard({ agent, status = {}, triggering, onTrigger, onViewLogs, isSe
       </div>
     </div>
   )
-}
+})
 
-function LogEntry({ log }) {
+const LogEntry = memo(function LogEntry({ log }) {
   const color = log.level === 'error' ? 'text-red-400' : log.level === 'warn' ? 'text-yellow-400' : 'text-green-400'
   return (
     <div className="flex gap-3 text-xs font-mono bg-gray-950 rounded p-2 items-start">
@@ -113,7 +113,7 @@ function LogEntry({ log }) {
       <span className="text-gray-300 break-all">{log.message}</span>
     </div>
   )
-}
+})
 
 export default function AgentsMonitor() {
   const [metrics, setMetrics]           = useState(null)

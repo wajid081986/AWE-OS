@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Link } from 'react-router-dom'
 
 const CATEGORY_COLORS = {
@@ -22,7 +23,7 @@ function fmtCount(n) {
   return String(n)
 }
 
-export default function ToolCard({ tool }) {
+function ToolCard({ tool }) {
   const { name, slug, description, icon, category, usageCount, isNew, isFeatured } = tool
   const colorClass = CATEGORY_COLORS[category] || CATEGORY_COLORS.default
   const label      = CATEGORY_LABELS[category]  || category
@@ -62,3 +63,5 @@ export default function ToolCard({ tool }) {
     </Link>
   )
 }
+
+export default memo(ToolCard)

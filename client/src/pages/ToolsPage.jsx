@@ -1,13 +1,13 @@
-import { Fragment, useState, useEffect, useMemo } from 'react'
+import { Fragment, useState, useEffect, useMemo, useCallback, useRef, memo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import ToolCard        from '../components/ToolCard'
 import AdContainer     from '../components/tool-engine/AdContainer'
 import Pagination      from '../components/Pagination'
 import LoadingSkeleton from '../components/LoadingSkeleton'
-import { MOCK_TOOLS }  from './mockTools'
 import { TOOL_CATALOGUE } from '../data/toolCatalogue'
-import api from '../services/api.service'
+import { usePublicTools } from '../hooks/usePublicTools'
+import { useDebounce }    from '../hooks/useDebounce'
 
 const SORT_OPTIONS = [
   { id: 'popular', label: 'Popular' },
@@ -16,8 +16,8 @@ const SORT_OPTIONS = [
 ]
 const PER_PAGE = 12
 
-// ── Static tool card for catalogue sections ─────────────────────────────────
-function StaticToolCard({ icon, label, to, comingSoon }) {
+// ── Static tool card — memoized so category tabs never re-render needlessly ──
+const StaticToolCard = memo(function StaticToolCard({ icon, label, to, comingSoon }) {
   if (comingSoon) {
     return (
       <div className="flex items-center gap-3 p-4 bg-gray-50 border border-gray-200 rounded-xl cursor-not-allowed select-none">
@@ -38,10 +38,10 @@ function StaticToolCard({ icon, label, to, comingSoon }) {
       <p className="text-sm font-medium text-gray-800 group-hover:text-blue-700 transition-colors truncate">{label}</p>
     </Link>
   )
-}
+})
 
-// ── Catalogue view for a single category ────────────────────────────────────
-function CatalogueView({ catData }) {
+// ── Catalogue section — memoized; rerenders only when catData identity changes ─
+const CatalogueView = memo(function CatalogueView({ catData }) {
   return (
     <div className="space-y-10">
       {catData.sections.map(section => (
@@ -59,7 +59,7 @@ function CatalogueView({ catData }) {
       ))}
     </div>
   )
-}
+})
 
 // ── Main page ────────────────────────────────────────────────────────────────
 const TAB_KEYS = ['all', 'pdf', 'calculators', 'converters', 'ai']
@@ -74,13 +74,30 @@ const TAB_META = {
 
 export default function ToolsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const [tools, setTools]     = useState([])
-  const [loading, setLoading] = useState(true)
-  const [page, setPage]       = useState(1)
+  const { tools, loading } = usePublicTools()
+  const [page, setPage] = useState(1)
 
   const cat  = searchParams.get('cat')  || 'all'
   const q    = searchParams.get('q')    || ''
   const sort = searchParams.get('sort') || 'popular'
+
+  // Local controlled input — updates instantly for responsive feel
+  const [searchInput, setSearchInput] = useState(q)
+  // Debounced value — URL and filter only update after 300ms of idle typing
+  const debouncedSearch = useDebounce(searchInput, 300)
+  // Skip the first-mount effect to avoid stomping URL state on load
+  const didMount = useRef(false)
+
+  useEffect(() => {
+    if (!didMount.current) { didMount.current = true; return }
+    setSearchParams(prev => {
+      const p = new URLSearchParams(prev)
+      if (!debouncedSearch) p.delete('q')
+      else p.set('q', debouncedSearch)
+      return p
+    }, { replace: true })
+    setPage(1)
+  }, [debouncedSearch, setSearchParams])
 
   // Normalize old category keys to new tab keys
   const activeTab = (() => {
@@ -91,48 +108,53 @@ export default function ToolsPage() {
     return 'all'
   })()
 
-  useEffect(() => {
-    api.get('/api/tools/public')
-      .then(r => setTools(r.data?.data || r.data?.tools || []))
-      .catch(() => setTools(MOCK_TOOLS))
-      .finally(() => setLoading(false))
-  }, [])
-
-  const filtered = useMemo(() => {
-    let list = tools.length ? tools : MOCK_TOOLS
-    if (q) list = list.filter(t =>
-      t.name.toLowerCase().includes(q.toLowerCase()) ||
-      (t.description || '').toLowerCase().includes(q.toLowerCase()),
-    )
-    if (sort === 'new')     list = [...list].sort((a, b) => b.id - a.id)
-    else if (sort === 'az') list = [...list].sort((a, b) => a.name.localeCompare(b.name))
-    else                    list = [...list].sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0))
-    return list
-  }, [tools, q, sort])
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE))
-  const pageTools  = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
-
-  const setFilter = (key, val) => {
-    const p = new URLSearchParams(searchParams)
-    if (!val || val === 'all') p.delete(key)
-    else p.set(key, val)
-    setSearchParams(p)
+  // Stable setFilter — uses functional setSearchParams to avoid stale closure
+  const setFilter = useCallback((key, val) => {
+    setSearchParams(prev => {
+      const p = new URLSearchParams(prev)
+      if (!val || val === 'all') p.delete(key)
+      else p.set(key, val)
+      return p
+    })
     setPage(1)
-  }
+  }, [setSearchParams])
 
-  const switchTab = (tab) => {
+  const switchTab = useCallback((tab) => {
     const p = new URLSearchParams()
     if (tab !== 'all') {
       const catVal = tab === 'ai' ? 'ai_tools' : tab
       p.set('cat', catVal)
     }
     setSearchParams(p)
+    setSearchInput('')
     setPage(1)
-  }
+  }, [setSearchParams])
+
+  // Filtering + sorting — only recalculates when tools, q, or sort changes
+  const filtered = useMemo(() => {
+    let list = tools
+    if (q) {
+      const lower = q.toLowerCase()
+      list = list.filter(t =>
+        t.name.toLowerCase().includes(lower) ||
+        (t.description || '').toLowerCase().includes(lower),
+      )
+    }
+    if (sort === 'new')     return [...list].sort((a, b) => b.id - a.id)
+    if (sort === 'az')      return [...list].sort((a, b) => a.name.localeCompare(b.name))
+    return [...list].sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0))
+  }, [tools, q, sort])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE))
+  const pageTools  = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
 
   const tabCatData = activeTab !== 'all' ? TOOL_CATALOGUE[TAB_META[activeTab]?.catKey] : null
   const pageTitle  = TAB_META[activeTab]?.label || 'All Tools'
+
+  const handlePage = useCallback((p) => {
+    setPage(p)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
 
   return (
     <>
@@ -158,7 +180,6 @@ export default function ToolsPage() {
 
         {/* ── Category tabs + search/sort row ──────────────── */}
         <div className="mb-8 pb-4 border-b border-gray-100 space-y-3">
-          {/* Tab buttons */}
           <div className="flex gap-1.5 flex-wrap" role="tablist" aria-label="Tool categories">
             {TAB_KEYS.map(tab => {
               const meta = TAB_META[tab]
@@ -189,8 +210,9 @@ export default function ToolsPage() {
                 <label htmlFor="tools-search" className="sr-only">Search tools</label>
                 <input
                   id="tools-search"
-                  type="search" value={q}
-                  onChange={e => setFilter('q', e.target.value)}
+                  type="search"
+                  value={searchInput}
+                  onChange={e => setSearchInput(e.target.value)}
                   placeholder="Search tools..."
                   className="w-full px-3 py-2 border border-gray-200 rounded-full text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -213,13 +235,12 @@ export default function ToolsPage() {
         {/* ── Tab panel ─────────────────────────────────────── */}
         <div id="tools-panel" role="tabpanel">
 
-          {/* ── Catalogue view (category tabs) ──────────────── */}
           {tabCatData ? (
             <CatalogueView catData={tabCatData} />
           ) : (
-            /* ── All tools API grid ──────────────────────────── */
             loading ? (
-              <LoadingSkeleton count={PER_PAGE} type="tool" />
+              // Show 6 skeletons (above-fold) rather than full 12 for faster perceived load
+              <LoadingSkeleton count={6} type="tool" />
             ) : pageTools.length === 0 ? (
               <div className="text-center py-24">
                 <p className="text-5xl mb-4" aria-hidden="true">🔍</p>
@@ -240,7 +261,7 @@ export default function ToolsPage() {
                     </Fragment>
                   ))}
                 </div>
-                <Pagination page={page} totalPages={totalPages} onPage={p => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }) }} />
+                <Pagination page={page} totalPages={totalPages} onPage={handlePage} />
               </>
             )
           )}

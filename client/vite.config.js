@@ -12,7 +12,6 @@ export default defineConfig({
 
   build: {
     // Target modern browsers — enables smaller output + better tree-shaking.
-    // All supported browsers (Chromium 88+, Safari 14+, Firefox 78+) handle ES2020.
     target: 'es2020',
 
     // Raise limit to suppress warnings for intentionally large vendor chunks
@@ -26,25 +25,40 @@ export default defineConfig({
           if (id.includes('react-dom') || id.includes('react-router')) return 'vendor-react'
 
           // ── Charting ───────────────────────────────────────────────────
-          if (id.includes('recharts')) return 'vendor-charts'
+          if (id.includes('recharts') || id.includes('d3-') || id.includes('/d3/'))
+            return 'vendor-charts'
+
+          // ── canvg — SVG→Canvas renderer used by jspdf (150kB) ─────────────
+          if (id.includes('canvg') || id.includes('rgbcolor') || id.includes('stackblur'))
+            return 'vendor-canvg'
 
           // ── PDF libraries — each is large enough to warrant isolation ──
-          if (id.includes('pdfjs-dist')) return 'vendor-pdfjs'
-          if (id.includes('pdf-lib'))    return 'vendor-pdf-lib'
-          if (id.includes('jspdf'))      return 'vendor-jspdf'
+          if (id.includes('pdfjs-dist'))  return 'vendor-pdfjs'
+          if (id.includes('pdf-lib'))     return 'vendor-pdf-lib'
+          if (id.includes('jspdf'))       return 'vendor-jspdf'
 
           // ── Document processing ────────────────────────────────────────
           // mammoth (~370kB) is only used by WordToPDF — keep it isolated
-          if (id.includes('mammoth'))    return 'vendor-mammoth'
+          if (id.includes('mammoth'))     return 'vendor-mammoth'
 
           // html2canvas (~200kB) used by PDF tools and invoice
           if (id.includes('html2canvas')) return 'vendor-html2canvas'
 
           // ── Spreadsheets ───────────────────────────────────────────────
-          if (id.includes('xlsx'))       return 'vendor-xlsx'
+          if (id.includes('xlsx'))        return 'vendor-xlsx'
 
           // ── Archive ────────────────────────────────────────────────────
-          if (id.includes('jszip'))      return 'vendor-jszip'
+          if (id.includes('jszip'))       return 'vendor-jszip'
+
+          // ── Image compression — ~150kB, only used by ImageCompressor ──
+          // Isolated so the vendor hash doesn't change when the tool component changes
+          if (id.includes('browser-image-compression')) return 'vendor-imgcompress'
+
+          // ── QR code generation — only used by QRCodeGenerator ─────────
+          if (id.includes('/node_modules/qrcode/')) return 'vendor-qrcode'
+
+          // ── Icon library — tree-shaken but isolated for caching ────────
+          if (id.includes('lucide-react')) return 'vendor-icons'
         },
       },
     },

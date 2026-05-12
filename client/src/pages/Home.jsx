@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import SearchBar    from '../components/SearchBar'
@@ -6,10 +6,10 @@ import ToolCard     from '../components/ToolCard'
 import CategoryCard from '../components/CategoryCard'
 import AdContainer  from '../components/tool-engine/AdContainer'
 import LoadingSkeleton from '../components/LoadingSkeleton'
-import { MOCK_TOOLS } from './mockTools'
-import api from '../services/api.service'
+import { usePublicTools } from '../hooks/usePublicTools'
 import { generateWebsiteSchema, generateOrganizationSchema } from '../utils/schema'
 
+// Static JSON-LD schemas — computed once at module load (pure, never change)
 const WEBSITE_SCHEMA = generateWebsiteSchema()
 const ORG_SCHEMA     = generateOrganizationSchema()
 
@@ -36,19 +36,11 @@ const STATS = [
 ]
 
 export default function Home() {
-  const [tools, setTools]     = useState([])
-  const [loading, setLoading] = useState(true)
+  // Shared cached hook — if ToolsPage was visited first, this returns instantly
+  const { tools, loading } = usePublicTools()
 
-  useEffect(() => {
-    api.get('/api/tools/public')
-      .then(r => setTools(r.data?.data || r.data?.tools || []))
-      .catch(() => setTools(MOCK_TOOLS))
-      .finally(() => setLoading(false))
-  }, [])
-
-  const allTools    = tools.length ? tools : MOCK_TOOLS
-  const featured    = allTools.filter(t => t.isFeatured).slice(0, 6)
-  const recent      = [...allTools].sort((a, b) => (b.id - a.id)).slice(0, 4)
+  const featured = useMemo(() => tools.filter(t => t.isFeatured).slice(0, 6), [tools])
+  const recent   = useMemo(() => [...tools].sort((a, b) => (b.id - a.id)).slice(0, 4), [tools])
 
   return (
     <>
@@ -77,7 +69,7 @@ export default function Home() {
             Discover 100+ smart tools — free, fast, and easy to use.
           </p>
 
-          <SearchBar tools={allTools} className="max-w-xl mx-auto" placeholder="Search 100+ tools..." />
+          <SearchBar tools={tools} className="max-w-xl mx-auto" placeholder="Search 100+ tools..." />
 
           {/* Popular tags */}
           <div className="flex flex-wrap justify-center gap-2 mt-5">
