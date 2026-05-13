@@ -34,6 +34,8 @@ const PrivacyPolicy  = lazy(() => import('../pages/PrivacyPolicy'))
 const Terms          = lazy(() => import('../pages/Terms'))
 const Disclaimer     = lazy(() => import('../pages/Disclaimer'))
 const ContactPage    = lazy(() => import('../pages/ContactPage'))
+const BlogPage       = lazy(() => import('../pages/BlogPage'))
+const BlogPostPage   = lazy(() => import('../pages/BlogPostPage'))
 const NotFoundPage   = lazy(() => import('../pages/NotFoundPage'))
 
 // ── Payment pages ─────────────────────────────────────────────────────────────
@@ -129,6 +131,10 @@ export default function AppRoutes() {
             Dedicated components are resolved first; unknown slugs fall back
             to the API-driven ToolDetailPage (for autonomous-pipeline tools). */}
         <Route path="/tools/:slug" element={lazy$(<DynamicToolPage />)} />
+
+        {/* Blog */}
+        <Route path="/blog"           element={lazy$(<BlogPage />)} />
+        <Route path="/blog/:slug"     element={lazy$(<BlogPostPage />)} />
 
         {/* Static pages */}
         <Route path="/about"          element={lazy$(<AboutPage />)} />

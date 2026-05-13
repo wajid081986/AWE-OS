@@ -211,6 +211,12 @@ export default function Header() {
               All Tools
             </Link>
             <Link
+              to="/blog"
+              className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors whitespace-nowrap"
+            >
+              Blog
+            </Link>
+            <Link
               to="/pricing"
               className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors whitespace-nowrap"
             >
@@ -336,6 +342,15 @@ export default function Header() {
             >
               <span>🔧 All Tools</span>
               <span className="text-gray-400 text-xs">Browse all →</span>
+            </Link>
+
+            <Link
+              to="/blog"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center justify-between py-4 text-sm font-semibold text-gray-900 border-b border-gray-100"
+            >
+              <span>📝 Blog</span>
+              <span className="text-gray-400 text-xs">Articles →</span>
             </Link>
 
             {/* Auth */}

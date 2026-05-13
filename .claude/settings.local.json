@@ -37,7 +37,8 @@
       "Bash(Get-ChildItem \"D:\\\\MyProjects\\\\AWE-OS\\\\server\\\\routes\")",
       "Bash(Select-Object Name)",
       "Bash([ -f \"D:/MyProjects/AWE-OS/$f\" ])",
-      "Skill(update-config)"
+      "Skill(update-config)",
+      "Bash(Get-ChildItem *)"
     ]
   }
 }
