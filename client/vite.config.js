@@ -24,6 +24,27 @@ export default defineConfig({
           // ── Core framework ─────────────────────────────────────────────
           if (id.includes('react-dom') || id.includes('react-router')) return 'vendor-react'
 
+          // ── SEO / head management ──────────────────────────────────────
+          // react-helmet-async is eagerly loaded (providers.jsx root).
+          // Isolating it lets the browser cache it independently of app code.
+          if (id.includes('react-helmet-async') || id.includes('react-side-effect'))
+            return 'vendor-helmet'
+
+          // ── HTTP client ────────────────────────────────────────────────
+          // axios is pulled into the main bundle via AdminShell → api.service.
+          // Moving it here removes ~17 kB (gzip) from the critical-path index chunk.
+          if (id.includes('/node_modules/axios/')) return 'vendor-axios'
+
+          // ── Form handling & validation ─────────────────────────────────
+          // react-hook-form + zod are used by ResumeBuilder and ContentWriter
+          // (both lazy). Isolating them avoids duplicating this code in each
+          // tool chunk and lets the browser cache it after the first form tool.
+          if (
+            id.includes('react-hook-form') ||
+            id.includes('@hookform/resolvers') ||
+            id.includes('/node_modules/zod/')
+          ) return 'vendor-forms'
+
           // ── Charting ───────────────────────────────────────────────────
           if (id.includes('recharts') || id.includes('d3-') || id.includes('/d3/'))
             return 'vendor-charts'
