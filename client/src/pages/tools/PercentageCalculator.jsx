@@ -102,12 +102,14 @@ const FAQS = [
   { q: 'How do I calculate percentage increase or decrease?', a: 'Use Tab 3 "% Change". Enter the original value as X and the new value as Y. A positive result means increase; negative means decrease.' },
   { q: 'Can I use decimals in calculations?', a: 'Yes, all three calculators support decimal numbers. You can enter values like 12.5% or 1500.75 without any issues.' },
   { q: 'What is the formula for percentage change?', a: '% Change = ((New Value - Old Value) / |Old Value|) × 100. A positive result indicates an increase, while negative indicates a decrease.' },
+  { q: 'How do I calculate a discounted price?', a: 'Use Tab 1: enter the discount percentage as X and the original price as Y to get the discount amount. Subtract that from the original price to get the final sale price. For example, 20% of £150 = £30 discount, so the sale price is £120.' },
 ]
 
 const ABOUT = [
-  'The Percentage Calculator provides three essential calculation modes in one tool: finding X% of a number, determining what percentage one number is of another, and calculating percentage change between two values.',
-  'Whether you are calculating discounts, tax amounts, grade percentages, profit margins, or price changes, this tool handles it all instantly with no sign-up required.',
-  'The tab-based interface makes it easy to switch between different percentage problems. All calculations happen in real-time in your browser.',
+  'The Percentage Calculator handles the three most common percentage problems in a single, tabbed interface. Tab 1 finds X% of a number — useful for calculating tips, taxes, and discounts. Tab 2 determines what percentage one number is of another — useful for grades, ratios, and proportions. Tab 3 computes the percentage change between two values — essential for tracking price movements, growth rates, and statistical differences.',
+  'Percentages appear constantly in everyday life: sale discounts, VAT and sales tax, interest rates, investment returns, exam scores, nutritional information, and statistical comparisons all rely on percentage arithmetic. Having a dedicated calculator for each type of calculation means you always get the right formula applied without having to remember it yourself.',
+  'All three calculators support decimal inputs and return results to up to four decimal places, with trailing zeros removed for a clean display. The tab-based layout keeps each calculation mode uncluttered so you can focus on the numbers without visual noise from other modes you are not currently using.',
+  'Every calculation runs instantly in your browser without sending data to any server. The tool works on all devices — desktop, tablet, and mobile — with no sign-up required and no usage limits. Switching between modes is instant, so you can run multiple types of percentage calculation in one session without any friction.',
 ]
 
 export default function PercentageCalculator() {

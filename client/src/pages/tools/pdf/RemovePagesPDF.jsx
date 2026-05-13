@@ -112,8 +112,10 @@ const FAQS = [
   { q: 'Is my PDF safe?', a: 'Yes. All processing is local — your files never leave your device.' },
 ]
 const ABOUT = [
-  'Remove Pages PDF lets you delete unwanted pages from any PDF document instantly. Select individual pages with checkboxes, preview which pages will be removed, and download the cleaned result.',
-  'The tool removes pages from a copy of your PDF — your original file is never modified. All processing is done client-side using pdf-lib.',
+  'PDFs often contain pages that should not be shared: template cover pages, blank separators, internal approval stamps, redundant appendices, or sections not relevant to the intended recipient. Removing those pages before sharing used to require a full desktop PDF editor. The AWE-OS Remove PDF Pages tool lets you delete any combination of pages from a PDF instantly, entirely in your browser, with no upload required.',
+  'The interface shows each page as a numbered entry with a checkbox. Select any pages you want to remove — individual pages, ranges, or random selections scattered throughout the document — then click "Remove Selected Pages". The tool creates a new PDF from the remaining pages and downloads it immediately. Your original file on disk is never modified.',
+  'The checkbox system makes bulk operations efficient. "Select all" checks every page, which you can then deselect the pages you want to keep — an effective approach when only a few pages from a long document are needed. An error prevents removing all pages, ensuring the output always contains at least one page.',
+  'All processing is done client-side using pdf-lib — no upload, no server, no account required. The tool creates a copy of your document with the unwanted pages excluded; the original PDF remains exactly as it was. This non-destructive approach means you can always return to the original if you remove the wrong pages accidentally.',
 ]
 
 export default function RemovePagesPDF() {

@@ -112,8 +112,10 @@ const FAQS = [
   { q: 'Can I then re-protect the unlocked PDF?', a: 'Yes — use the Protect PDF tool after unlocking to add a new password.' },
 ]
 const ABOUT = [
-  'Unlock PDF removes password protection from PDF files you own. Enter the current password and the tool decrypts the document, producing a new PDF that can be opened without any password.',
-  'This tool supports RC4-encrypted PDFs (40/128-bit), commonly created by older PDF software. All processing is browser-side — your password and file never leave your device.',
+  'Password-protected PDFs are common in professional and legal contexts — banks send encrypted statements, lawyers distribute password-locked contracts, and HR departments share protected offer letters. When you legitimately own such a document and need to work with it freely, the AWE-OS Unlock PDF tool removes the password restriction and produces an openly accessible PDF — no password required to open it anywhere.',
+  'The tool uses pdf-lib\'s decryption capabilities with the password you provide. The resulting file opens without requiring any password in Adobe Acrobat, Preview, browser PDF viewers, or any other standard application. Your original encrypted file is not modified; the unlocked version is a separate download. Once unlocked, you can edit, merge, split, or annotate the document using any PDF tool.',
+  'Supported encryption includes RC4 (40-bit and 128-bit), which is common in PDFs from older software and many banking and government systems. AES-256 encryption — used by newer versions of Adobe Acrobat and modern PDF generators — is not supported by browser-based pdf-lib and requires a native application to unlock. If the tool returns an error on your PDF, AES-256 encryption is the most likely cause.',
+  'Your password is used only in your browser\'s memory — it is never transmitted to any server, stored in any database, or logged anywhere. The entire unlock operation happens locally on your device. This privacy matters because passwords to financial documents and legal contracts are sensitive information that should never leave your device. After unlocking, consider using the Protect PDF tool to re-secure the document with a new password if needed.',
 ]
 
 export default function UnlockPDF() {

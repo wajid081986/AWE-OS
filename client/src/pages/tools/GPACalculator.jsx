@@ -117,12 +117,14 @@ const FAQS = [
   { q: 'How is GPA calculated?', a: 'GPA = (Sum of Grade Points × Credits) / Total Credits. Each grade is converted to points, multiplied by the course credits, summed up, and divided by total credits.' },
   { q: 'Can I calculate cumulative GPA?', a: 'For cumulative GPA across multiple semesters, treat each semester\'s courses as rows in this calculator. The weighted average will give you your cumulative GPA.' },
   { q: 'What GPA is required for honours?', a: 'Requirements vary by institution. Most universities require a 3.5 GPA or higher for Dean\'s List or honours recognition. Check your school\'s academic handbook for specifics.' },
+  { q: 'What does the colour-coded GPA bar mean?', a: 'The bar uses four colours to indicate academic standing: green (3.5+) for Distinction, blue (3.0–3.49) for Good Standing, yellow (2.0–2.99) for Satisfactory, and red (below 2.0) for Needs Improvement.' },
 ]
 
 const ABOUT = [
-  'The GPA Calculator helps students quickly compute their semester Grade Point Average using the standard 4.0 scale. Add any number of subjects with their respective grades and credit hours for an instant, weighted GPA calculation.',
-  'The calculator supports all standard letter grades from A+ through F and properly weights each course by its credit hours. This ensures that heavier courses have a proportionally larger impact on your overall GPA — just like real academic calculations.',
-  'A built-in grade reference table shows the point value for every letter grade so you always know exactly how your marks translate into GPA points.',
+  'The GPA Calculator computes your semester Grade Point Average on the standard 4.0 scale used by most universities and colleges. Enter any number of subjects with their letter grade and credit hours — the calculator instantly produces the weighted GPA that reflects the correct relative importance of each course in your schedule.',
+  'The calculator supports every standard letter grade from A+ through F, mapping each to its corresponding grade point value: A and A+ to 4.0, A- to 3.7, B+ to 3.3, B to 3.0, and continuing down to F at 0.0. Because courses carry different credit weights, a heavier course like a 4-credit lecture naturally has more influence on your GPA than a 1-credit lab — just as it does in your institution\'s official calculation. A reference table below your result shows the full grade-to-point mapping.',
+  'Results are displayed with a colour-coded progress bar and a standing label that gives immediate context: Distinction (3.5 and above), Good Standing (3.0–3.49), Satisfactory (2.0–2.99), or Needs Improvement (below 2.0). This makes it easy to understand at a glance where you stand relative to common academic thresholds like Dean\'s List eligibility, scholarship requirements, and graduate school minimum GPAs.',
+  'The tool is designed for straightforward semester GPA calculations, and it works equally well as a planning tool. Enter projected grades alongside real ones to model how a stronger or weaker result in an upcoming exam would affect your final GPA. All calculations happen locally in your browser with no data sent to a server, no sign-up required, and no limit on the number of subjects you can add.',
 ]
 
 export default function GPACalculator() {

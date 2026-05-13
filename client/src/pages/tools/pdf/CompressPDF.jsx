@@ -97,21 +97,24 @@ function CompressTool() {
 }
 
 const STEPS = [
-  'Upload your PDF file by dragging and dropping or clicking to browse.',
-  'Choose a compression level: Low (fast), Medium (balanced), or High (maximum reduction).',
-  'Click "Compress PDF" to process your file.',
-  'View the before/after size comparison and download your compressed PDF.',
+  'Upload your PDF by dragging and dropping it into the drop zone, or click to browse your files.',
+  'Select a compression level — Low for a quick resave, Medium for a balanced reduction of metadata and streams, or High for maximum size reduction.',
+  'Click "Compress PDF" and wait a moment while the tool processes your file in the browser.',
+  'The before/after size panel shows exactly how many bytes were saved. Your compressed PDF downloads automatically.',
 ]
 const FAQS = [
-  { q: 'How much will compression reduce my PDF?', a: 'Results vary by file. PDFs with lots of metadata, redundant streams, or unoptimised structure can see 10–40% reduction. Image-heavy PDFs may see minimal reduction since images cannot be re-encoded in the browser.' },
-  { q: 'Will compressing affect quality?', a: 'No visual quality is lost. The tool removes metadata and optimises PDF streams without touching image data or text.' },
-  { q: 'Why is my compressed file larger?', a: 'Some PDFs are already well-optimised. Re-saving with pdf-lib may not reduce such files. For heavy image compression, a server-side tool would be needed.' },
-  { q: 'Is this tool free?', a: 'Yes, completely free. No sign-up required and no files are uploaded to any server.' },
-  { q: 'What is the difference between compression levels?', a: 'Low: basic resave. Medium: metadata removal + object streams. High: all metadata stripped + maximum object stream compression.' },
+  { q: 'How much will the file size actually decrease?', a: 'Results vary significantly by file type. PDFs with heavy metadata, unoptimised cross-reference tables, or redundant object streams can shrink by 10–40%. PDFs that are already well-optimised or consist mainly of scanned images will see minimal reduction, because browser-side tools cannot re-encode embedded image data.' },
+  { q: 'Will compression affect my PDF quality?', a: 'No visual quality is lost. The tool operates exclusively on the PDF\'s structural data — removing metadata fields, stripping creator information, and compressing object streams. Text, images, fonts, hyperlinks, and every other piece of visual content remain completely unchanged.' },
+  { q: 'Why did my compressed file end up larger?', a: 'Some PDFs are already internally optimised by the software that created them (e.g. Adobe Acrobat). Re-saving through pdf-lib may slightly increase the size in those cases. For PDFs dominated by embedded images that need re-encoding, a server-side compressor with image processing would achieve greater savings.' },
+  { q: 'What is the difference between Low, Medium, and High compression?', a: 'Low performs a basic re-save of the PDF structure. Medium also strips all metadata fields (title, author, producer) and enables object stream compression. High applies all Medium optimisations plus maximum stream compression, giving the smallest possible output the browser-side approach allows.' },
+  { q: 'Are my files uploaded anywhere during compression?', a: 'No. All compression runs entirely in your browser using pdf-lib. Your PDF is never transmitted to any server, and is discarded when you close the page.' },
+  { q: 'Can I compress a password-protected PDF?', a: 'Password-protected PDFs can often still be processed — the tool uses pdf-lib with the ignoreEncryption flag, which allows structure optimisation on many protected files. However, heavily encrypted PDFs may fail. Use the Unlock PDF tool first if you encounter errors.' },
 ]
 const ABOUT = [
-  'Compress PDF optimises your PDF file size by removing redundant data, stripping metadata, and using efficient PDF object stream compression — all within your browser.',
-  'Unlike server-based tools, your file never leaves your device. The compression uses pdf-lib\'s built-in optimisation to reduce file size while preserving all content quality.',
+  'PDF file sizes can quickly become a problem — Gmail caps attachments at 25 MB, many CMS platforms limit uploads to 10 MB, and cloud storage quotas fill up fast. The AWE-OS PDF Compressor reduces your PDF\'s size by stripping unnecessary data and optimising the document\'s internal structure, all without uploading your file anywhere.',
+  'The tool works by removing redundant metadata (author, creator, producer fields), eliminating unused cross-reference entries, and applying object stream compression — a technique that packs multiple PDF objects into efficient compressed streams. These structural improvements can reduce file size by 10–40% depending on how the original document was created.',
+  'It is important to understand the difference between structural compression and image compression. Browser-based tools can optimise the PDF structure but cannot re-encode embedded images — that requires server-side processing. If your PDF is large primarily because of high-resolution scanned images or photos, the size reduction may be modest. For text-heavy documents, reports, and office files, the results are typically more significant.',
+  'After compressing, the before-and-after panel shows your exact savings in bytes and percentage. If the result is not sufficient, consider splitting the PDF into smaller sections using the Split PDF tool, or asking whether every image in the document truly needs its current resolution.',
 ]
 
 export default function CompressPDF() {

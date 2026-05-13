@@ -129,12 +129,14 @@ const FAQS = [
   { q: 'Can I type a HEX code directly?', a: 'Currently the tool uses a native color picker. To input a specific HEX code, use your operating system\'s color picker which accepts hex input in most browsers.' },
   { q: 'What is the difference between HEX, RGB and HSL?', a: 'HEX is a 6-digit hexadecimal code used in web design. RGB specifies red, green, blue components (0-255). HSL specifies hue (0-360°), saturation and lightness as percentages.' },
   { q: 'Is this tool useful for web developers?', a: 'Yes! Web developers frequently need color values in specific formats for CSS. This tool lets you instantly get the right format for your stylesheet with a single click.' },
+  { q: 'Why does the preview text change between black and white?', a: 'The preview text colour automatically switches between dark and light based on the luminance of the selected colour, ensuring the hex code label always remains readable regardless of background brightness.' },
 ]
 
 const ABOUT = [
-  'The Color Picker provides instant conversion between the three most common web color formats: HEX, RGB, and HSL. Pick any color visually and get all three representations at once.',
-  'The interactive RGB breakdown bar shows exactly how much red, green, and blue make up your chosen color. The recent colors history lets you quickly revisit colors you have explored during your session.',
-  'Whether you are a designer picking brand colours, a developer working with CSS, or just curious about colour codes, this tool makes it fast and effortless to work with any colour.',
+  'The Color Picker lets you visually select any colour and instantly see its equivalent values in three formats: HEX, RGB, and HSL. All three update simultaneously as you move through the colour picker, and each format has a dedicated Copy button that places the value directly on your clipboard — ready to paste into a stylesheet, design file, or code editor.',
+  'The RGB breakdown panel below the colour values shows a proportional bar for each channel — red, green, and blue — making it easy to understand the composition of a colour at a glance. The preview area at the top renders the selected colour at full size and automatically adjusts the overlaid hex label between dark and light text so it remains readable across the entire colour spectrum.',
+  'The Recent Colors section keeps a rolling history of the last 10 colours you have selected during your session. Clicking any swatch instantly loads that colour back, making it effortless to compare options or return to a colour you explored earlier. This is particularly useful when working through a palette — picking several candidate colours, comparing their codes, and narrowing down to a final choice.',
+  'Colour values in the correct format are a constant requirement in web development and UI design. CSS accepts hex and rgb() natively; HSL is preferred by many designers for its intuitive hue-saturation-lightness model. Having all three ready with one click eliminates the manual conversion step that slows down design-to-code workflows. The tool runs entirely in your browser with no uploads, no account, and no internet connection required beyond initial page load.',
 ]
 
 export default function ColorPicker() {

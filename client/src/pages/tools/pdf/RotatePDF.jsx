@@ -142,8 +142,10 @@ const FAQS = [
   { q: 'Is my PDF uploaded to any server?', a: 'No. All processing happens locally in your browser using pdf-lib.' },
 ]
 const ABOUT = [
-  'Rotate PDF lets you correct the orientation of individual pages or an entire document. Whether a scanned document has a sideways page or you need to flip pages for a specific layout, this tool handles it instantly.',
-  'Rotation changes are stored as metadata in the PDF — the actual content is never re-rendered, so there is zero quality loss. All processing is browser-side.',
+  'Scanned documents and camera-photographed pages often end up rotated incorrectly — a page captured in landscape ends up sideways, or a double-sided scan has every other page upside-down. Fixing orientation one page at a time in a full PDF editor is tedious. The AWE-OS Rotate PDF tool lets you correct individual pages or an entire document in seconds, with precise control over which pages rotate and by how much.',
+  'The tool uses pdf-lib to apply rotation settings to selected pages. Three rotation angles are available per page: 90° clockwise, 180° (upside-down flip), and 270° clockwise. A "Rotate All Pages" button applies a single angle to every page at once — ideal for correcting a document that was entirely scanned in the wrong orientation. Individual page controls let you mix angles across a document.',
+  'An important technical detail: rotation is stored as metadata in the PDF rather than re-rendering the page content. The actual text, images, and vector graphics are never touched — there is zero quality loss regardless of how many times you rotate. The PDF simply records a rotation instruction that viewers apply when displaying each page.',
+  'All processing runs locally in your browser using pdf-lib. Your document is never uploaded to any server, and the rotated PDF downloads directly to your device. No account is required and there are no file size limits — rotate PDFs of any length instantly and privately, whether fixing a single sideways scan or correcting an entire batch of misorientated pages.',
 ]
 
 export default function RotatePDF() {

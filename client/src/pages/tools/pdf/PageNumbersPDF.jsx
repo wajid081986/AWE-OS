@@ -162,8 +162,10 @@ const FAQS = [
   { q: 'Is my file uploaded anywhere?', a: 'No. All processing is local in your browser using pdf-lib.' },
 ]
 const ABOUT = [
-  'Add Page Numbers inserts numbered labels on every page of your PDF at your chosen position. Three number formats and six position options give you full control over the result.',
-  'The preview shows exactly what the first and last page labels will look like before you commit. All processing runs locally in your browser — no server upload, no sign-up required.',
+  'Page numbers are one of the most basic requirements for professional documents, yet PDFs created from multiple sources, merged from separate files, or exported from design tools often arrive without them. Adding page numbers by hand is impractical for anything longer than a few pages. The AWE-OS Add Page Numbers tool stamps every page of your PDF with sequential numbers automatically, positioned and formatted exactly how you need.',
+  'Three number formats give you control over style: plain Arabic numerals (1, 2, 3) for standard documents; labelled format (Page 1, Page 2) for documents where context is helpful; and relative format (1 of 10, 2 of 10) for multi-part documents. Six position options cover all standard placements — top or bottom, and left, centre, or right alignment. A preview shows the first and last page labels before you commit.',
+  'Page numbers are rendered as real PDF text elements — not image overlays — which means they are selectable, searchable, and sharp at all zoom levels and print resolutions. Font size and colour are applied consistently across every page for a uniform, professional appearance throughout the document.',
+  'All processing runs locally in your browser. Your PDF is never uploaded to any server and the numbered result downloads directly to your device. The tool handles documents of any length — numbering a 500-page report takes the same process as a 10-page handout. No account, no subscription, and no watermarks on the output.',
 ]
 
 export default function PageNumbersPDF() {

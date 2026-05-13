@@ -34,20 +34,35 @@ const HOW_TO_STEPS = [
 const FAQS = [
   {
     q: 'How does the AI write my resume?',
-    a: 'The AI uses the information you provide to generate a professionally formatted resume with action verbs, quantified achievements, and relevant language for your field.',
+    a: 'The AI uses the information you provide to generate a professionally formatted resume with action verbs, quantified achievements, and relevant language for your field. The more detail you add in each section, the stronger the output.',
   },
   {
     q: 'Can I edit the generated resume?',
-    a: 'Yes — the result is displayed in a text area you can edit directly before downloading.',
+    a: 'Yes — the result is displayed in a text area you can edit directly before downloading. Make any adjustments to wording, formatting, or content before saving the PDF.',
   },
   {
     q: 'What format is the PDF download?',
-    a: 'A standard A4 PDF with clean typography, suitable for most job application portals.',
+    a: 'A standard A4 PDF with clean typography, suitable for most job application portals, email attachments, and Applicant Tracking Systems (ATS).',
   },
   {
     q: 'Is my data stored anywhere?',
-    a: 'No data is stored server-side. Your resume information is only used during the current session to generate the document.',
+    a: 'No data is stored server-side beyond the duration of the generation request. Your resume information is only used during the current session and is not retained after you leave the page.',
   },
+  {
+    q: 'What should I include in the Experience description field?',
+    a: 'List your key responsibilities and achievements for each role. Include specific metrics where possible (e.g., "increased revenue by 20%", "managed a team of 8") — the AI will use these to write strong, impact-focused bullet points.',
+  },
+  {
+    q: 'Can I generate multiple versions?',
+    a: 'Yes. After reviewing the generated resume, click "Regenerate" to produce a new version with slightly different phrasing. You can also edit your input fields and regenerate to tailor the resume for a specific job.',
+  },
+]
+
+const ABOUT = [
+  'The AI Resume Builder guides you through a structured five-step process to collect your personal information, work experience, education, and skills, then uses AI to produce a professionally written resume that is ready to download as a PDF. Rather than staring at a blank document, you fill in structured fields and the AI handles the language — converting your raw inputs into action-verb-led bullet points, cohesive summaries, and appropriate professional tone.',
+  'Strong resumes are hard to write for most people, not because they lack experience, but because writing about yourself in a concise, impactful way is a different skill than doing the job. The AI applies established resume-writing conventions automatically: it leads achievements with strong verbs, quantifies results where data is provided, keeps descriptions concise, and tailors the language to a professional register appropriate for most industries.',
+  'The multi-step interface breaks the process into manageable sections. Personal information and contact details come first. Work experience captures each role, employer, date range, and description separately so nothing is missed. Education and skills follow. At the final step, the AI combines everything into a cohesive document. The result appears in an editable text area — you can review it, adjust any wording, and regenerate if you want a different version before downloading.',
+  'The generated PDF is formatted for standard job application use: clean typography, logical section ordering, and compatible output that renders correctly in PDF viewers and common ATS (Applicant Tracking System) platforms. Your data is not stored beyond the current session — the server uses it only to generate the document and does not retain it after delivery. No account is required for pay-per-use access.',
 ]
 
 // Thin wrapper that uses ui/Input and ui/Textarea internally
@@ -283,7 +298,7 @@ export default function ResumeBuilder() {
   const toolMeta = getToolBySlug('resume-builder')
 
   return (
-    <ToolLayout tool={toolMeta} steps={HOW_TO_STEPS} faqs={FAQS}>
+    <ToolLayout tool={toolMeta} steps={HOW_TO_STEPS} faqs={FAQS} about={ABOUT}>
       <ProGate
         toolName="AI Resume Builder"
         toolSlug="resume-builder"

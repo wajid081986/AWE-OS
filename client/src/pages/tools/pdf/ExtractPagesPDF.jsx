@@ -131,8 +131,10 @@ const FAQS = [
   { q: 'Is there a page limit?', a: 'No limit. Works on any size PDF entirely in your browser.' },
 ]
 const ABOUT = [
-  'Extract Pages PDF lets you pull specific pages out of a PDF and save them as a new document. Choose pages visually with checkboxes or type page ranges — perfect for isolating chapters, invoices, or specific content.',
-  'All extraction happens locally in your browser using pdf-lib. No server upload, no sign-up required.',
+  'A large PDF often contains just a few pages that are actually needed — the signature page from a 40-page contract, the financial summary from a 100-page annual report, the relevant diagram from a technical manual. Extracting those specific pages into a separate, shareable PDF without touching the rest of the document is exactly what the AWE-OS Extract Pages tool does. Select the pages you need, extract them, and download the result in seconds.',
+  'Two selection methods give you flexibility. The visual checkbox list lets you check individual pages by number — useful for scattered pages throughout a long document. The page range input accepts standard notation (1-5, 8, 12-15) for quickly selecting contiguous blocks. Use either method or combine both depending on what your task requires.',
+  'The extracted pages are saved as a new PDF containing only the pages you selected, in the same order they appeared in the original. The original PDF on your device is never modified — extraction creates a separate copy. Page content, formatting, fonts, images, annotations, and form fields are all preserved exactly as they were in the source.',
+  'All processing runs in your browser using pdf-lib. No pages are uploaded to any server, no account is required, and there is no size limit on PDFs you can extract from. Common uses: sending only the relevant exhibit from a legal filing, distributing a specific chapter from a technical guide, sharing an individual invoice from a batch-generated PDF, and archiving a particular page set from a larger document.',
 ]
 
 export default function ExtractPagesPDF() {

@@ -2,14 +2,24 @@ import { useState, useRef, useMemo } from 'react'
 import ToolPageShell from './ToolPageShell'
 
 const STEPS = [
-  { title: 'Upload or paste CSV', description: 'Upload a .csv file or paste CSV text directly.' },
-  { title: 'Preview JSON', description: 'See the converted JSON output instantly.' },
-  { title: 'Download or copy', description: 'Copy to clipboard or download as a .json file.' },
+  'Upload a .csv file by dropping it onto the upload area or clicking to browse, or paste CSV text directly into the input field.',
+  'The JSON output appears instantly in the right panel as you type or after the file loads.',
+  'Toggle "Pretty print" to format the JSON with indentation, or disable it for compact output.',
+  'Click "Copy JSON" to copy to clipboard, or "Download JSON" to save the file to your device.',
 ]
 const FAQS = [
-  { q: 'What delimiters are supported?', a: 'Comma (,), semicolon (;), and tab are detected automatically.' },
-  { q: 'Are headers required?', a: 'Yes. The first row is treated as the JSON object keys.' },
-  { q: 'Is there a file size limit?', a: 'Files up to 10 MB are supported for browser-side conversion.' },
+  { q: 'What delimiters are supported?', a: 'Comma (,), semicolon (;), and tab are detected automatically from the first row of your CSV. You do not need to specify the delimiter manually.' },
+  { q: 'Are headers required?', a: 'Yes. The first row is treated as field names and becomes the property keys in each JSON object. Without a header row the output will be technically valid but the keys will be the first-row values.' },
+  { q: 'Is there a file size limit?', a: 'Files up to 10 MB are supported for browser-side conversion. For larger files, consider splitting the CSV first or running the conversion server-side.' },
+  { q: 'What happens to empty cells?', a: 'Empty cells are preserved in the output as empty strings (""). No data is dropped or skipped, ensuring the JSON array length matches the CSV row count exactly.' },
+  { q: 'Can I convert CSV with quoted fields?', a: 'Yes. The parser handles RFC 4180-compliant quoting: fields wrapped in double quotes are parsed correctly, including fields that contain commas or line breaks inside quotes.' },
+  { q: 'Is my CSV data sent to a server?', a: 'No. All parsing happens locally in your browser using JavaScript. Your CSV content never leaves your device, making the tool safe for sensitive or confidential data.' },
+]
+const ABOUT = [
+  'CSV to JSON is a data format conversion tool for developers, analysts, and anyone who regularly moves data between spreadsheet tools and web applications. CSV is the universal interchange format for tabular data, but modern APIs, front-end applications, and data pipelines almost universally consume JSON. Converting between the two by hand or with a script adds friction to every workflow — this tool eliminates that step entirely.',
+  'The converter reads CSV input either from a file upload or from text pasted directly into the input area. The first row is treated as column headers and becomes the property names in each JSON object. Subsequent rows map to individual objects in a JSON array, with each value placed under the corresponding header key. The entire conversion runs live as you type or immediately after a file loads — there is no button to press.',
+  'The parser handles all standard CSV formatting: comma, semicolon, and tab delimiters are detected automatically from the first row; quoted fields containing commas or embedded line breaks are parsed correctly; escaped double quotes within quoted strings are resolved. Empty cells are preserved as empty strings rather than dropped, ensuring the output structure is consistent and predictable regardless of sparse data.',
+  'Results can be copied to clipboard in a single click or downloaded as a .json file named data.json. A "Pretty print" toggle switches between indented, human-readable JSON and compact single-line output. The record count and field count display at the bottom of the output panel let you confirm the conversion covered all your data. No server receives your file — all processing is local in your browser.',
 ]
 
 function parseCSV(text) {
@@ -93,7 +103,7 @@ export default function CSVtoJSON() {
       icon="📊"
       steps={STEPS}
       faqs={FAQS}
-      about="CSV to JSON converts comma-separated, semicolon-separated, and tab-separated data to structured JSON objects in real time. The first row becomes the object keys. All processing is browser-side."
+      about={ABOUT}
     >
       <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
         {/* Upload area */}

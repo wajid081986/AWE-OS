@@ -144,12 +144,14 @@ const FAQS = [
   { q: 'Can I use decimal values?', a: 'Yes, you can enter any decimal number. The result is displayed with up to 8 decimal places, switching to scientific notation for very small values.' },
   { q: 'What does the swap button do?', a: 'The ⇅ button swaps the FROM and TO units instantly, reversing the direction of your conversion without having to reselect from the dropdowns.' },
   { q: 'How accurate are the conversions?', a: 'All conversion factors are based on internationally recognised standards. Temperature uses exact formulas; other units use precise conversion ratios accurate to at least 6 significant figures.' },
+  { q: 'Does the converter work offline?', a: 'Yes. All conversions are calculated entirely in your browser using built-in formulas. No internet connection is needed once the page has loaded.' },
 ]
 
 const ABOUT = [
-  'The Unit Converter is a fast, browser-based conversion tool supporting five major measurement categories: Length, Weight, Temperature, Speed, and Area. All conversions happen instantly as you type — no button needed.',
-  'Each category includes all commonly used units from both metric and imperial systems. The temperature converter uses exact mathematical formulas for Celsius, Fahrenheit, and Kelvin conversions.',
-  'The swap button makes bidirectional conversions effortless. Whether you are converting miles to kilometres for a road trip, pounds to kilograms for a recipe, or Fahrenheit to Celsius for weather, this tool covers it all.',
+  'The Unit Converter covers five major measurement categories — Length, Weight, Temperature, Speed, and Area — each with a full set of metric and imperial units. Conversions happen live as you type: enter a value in the FROM field and the result appears in the TO field instantly, with no need to click a button. Switching categories resets the unit selectors automatically so you always start with a sensible default pair.',
+  'Length conversions span meters, kilometers, centimeters, millimeters, miles, yards, feet, and inches. Weight covers kilograms, grams, milligrams, pounds, ounces, metric tons, and stone. Temperature handles Celsius, Fahrenheit, and Kelvin using exact mathematical formulas — not lookup tables. Speed supports metres per second, kilometres per hour, miles per hour, knots, and feet per second. Area covers square metres, square kilometres, square feet, square inches, acres, and hectares.',
+  'The swap button reverses the FROM and TO units in one click — ideal when you need to confirm a conversion in both directions. Results display up to 8 decimal places for precision, automatically switching to scientific notation when values fall below 0.0001 to keep the output readable at any scale. The converter is equally useful for everyday tasks like unit conversions for cooking, travel distances, and weather, as it is for technical tasks like engineering calculations and data analysis.',
+  'All processing runs entirely in your browser. No data is sent to any server and no sign-up is required. The tool loads and runs instantly on any modern device — desktop, tablet, or mobile — and continues to work without an internet connection once the page has been loaded. There are no usage limits, no ads obscuring the controls, and no secondary tools competing for your attention.',
 ]
 
 export default function UnitConverter() {

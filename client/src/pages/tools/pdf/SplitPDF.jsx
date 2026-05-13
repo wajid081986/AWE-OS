@@ -130,21 +130,24 @@ function SplitTool() {
 }
 
 const STEPS = [
-  'Upload your PDF by dragging it into the upload area or clicking to browse.',
-  'Choose your split mode: all pages, custom ranges, or specific pages.',
-  'For range/page mode, enter your page selections in the input field.',
-  'Click "Split PDF" — results are downloaded as a ZIP file.',
+  'Upload your PDF by dragging it into the drop zone or clicking to browse. The tool detects the total page count automatically.',
+  'Select a split mode: "All pages" creates one PDF per page; "Page ranges" lets you define groups (e.g. 1-3; 4-6); "Specific pages" extracts individual pages you name.',
+  'For range or page mode, type your selections into the input field — ranges use a hyphen, multiple selections use semicolons or commas.',
+  'Click "Split PDF". The tool processes each section and packages all output files into a single ZIP download.',
 ]
 const FAQS = [
-  { q: 'What does "split by range" mean?', a: 'You define groups of pages separated by semicolons. Each group becomes a separate PDF. For example, "1-3; 4-6" creates two PDFs — one with pages 1–3, another with pages 4–6.' },
-  { q: 'Why is the output a ZIP file?', a: 'When splitting into multiple PDFs, we bundle them in a ZIP for easy downloading. Your browser handles the ZIP extraction natively.' },
-  { q: 'Can I split a 100-page PDF into 100 individual files?', a: 'Yes. The "split into individual pages" mode creates one PDF per page. Large PDFs may take a moment to process.' },
-  { q: 'Are my files uploaded to any server?', a: 'No — all processing is done locally in your browser. Your PDF never leaves your device.' },
-  { q: 'Can I merge the split files back?', a: 'Yes — use the Merge PDF tool to combine any split files back together in any order.' },
+  { q: 'What does "split by custom ranges" mean exactly?', a: 'You define page groups separated by semicolons — each group becomes its own PDF. For example, "1-5; 6-10; 11-20" creates three PDFs: pages 1 to 5, pages 6 to 10, and pages 11 to 20. Pages do not have to be sequential and can overlap.' },
+  { q: 'Can I extract just a few specific pages?', a: 'Yes — use the "Specific pages" mode and list the page numbers you want, separated by commas. For example "1, 3, 7-9" extracts pages 1, 3, 7, 8, and 9 into a single output PDF.' },
+  { q: 'Why is the output packaged as a ZIP file?', a: 'When splitting produces multiple PDFs, bundling them in a ZIP makes downloading practical — one click delivers all files. Most operating systems (Windows, macOS, iOS, Android) open ZIP files natively without additional software.' },
+  { q: 'Can I split a 200-page PDF into 200 individual files?', a: 'Yes. The "All pages" mode creates one PDF per page regardless of document length. Processing time scales with page count — a 200-page PDF may take 20–30 seconds in the browser.' },
+  { q: 'Are my PDF files sent to a server during splitting?', a: 'No. All processing runs locally in your browser using pdf-lib and JSZip. Your file never leaves your device and is not stored anywhere.' },
+  { q: 'Can I merge the resulting split files back together?', a: 'Yes — use the Merge PDF tool to recombine split sections in any order you choose. This workflow is useful for reordering major document sections or assembling a new document from parts of several PDFs.' },
 ]
 const ABOUT = [
-  'Split PDF lets you break a single PDF into multiple smaller files using three flexible modes: split every page into its own file, split by custom page ranges, or extract specific pages.',
-  'All split PDFs are bundled into a ZIP download for convenience. Processing is 100% browser-side using pdf-lib and JSZip — no files are uploaded to any server.',
+  'Splitting a PDF is often the first step in sharing, editing, or reorganising a large document. The AWE-OS PDF Splitter gives you three precise modes of control: extract every page as its own file, define custom page ranges, or pick individual pages — all processed instantly in your browser.',
+  'The custom range mode is especially powerful. A "1-10; 11-20; 21-50" instruction splits a 50-page report into three sections in one click. Legal professionals use this to separate contract clauses. Publishers use it to distribute individual chapters. Teachers use it to share specific lesson pages without the full course PDF.',
+  'The specific pages mode lets you cherry-pick non-sequential pages — useful for extracting signature pages from a contract, pulling key data tables from a financial report, or isolating pages that need revision before reassembly.',
+  'All split results are packaged in a ZIP file because most browsers only support a single automatic download at a time. Once downloaded, unzip to access each individual PDF. The files are named sequentially with their page numbers so you always know exactly which section each file contains. No server, no upload, no account required — just upload, split, and download.',
 ]
 
 export default function SplitPDF() {

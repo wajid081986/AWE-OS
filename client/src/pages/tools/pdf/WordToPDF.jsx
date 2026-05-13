@@ -4,14 +4,24 @@ import mammoth from 'mammoth'
 import ToolPageShell from '../ToolPageShell'
 
 const STEPS = [
-  { title: 'Upload Word file', description: 'Select a .docx file from your device.' },
-  { title: 'Preview content', description: 'Your document text is extracted and shown.' },
-  { title: 'Download PDF', description: 'Click Convert & Download to get your PDF.' },
+  'Click the upload area or drag your .docx file into the drop zone. Only Word 2007+ files (.docx) are supported — the older binary .doc format is not compatible with browser-based conversion.',
+  'The tool uses mammoth.js to extract text and structure from your document. A live preview of the extracted content appears in the panel so you can verify the document was read correctly before converting.',
+  'Click "Convert & Download PDF". The document content is rendered into a clean, readable PDF using jsPDF with headings, paragraphs, and basic text formatting preserved.',
+  'Your PDF downloads automatically. For complex documents with tables, images, or advanced layouts, consider Word\'s own "Export to PDF" function for pixel-perfect fidelity.',
 ]
 const FAQS = [
-  { q: 'What file types are supported?', a: '.docx (Word 2007+) files are supported. Older .doc format is not supported.' },
-  { q: 'Is formatting preserved?', a: 'Basic text, headings and paragraphs are preserved. Complex layouts like tables and images may be simplified.' },
-  { q: 'Is my document sent to a server?', a: 'No. Everything runs in your browser. Your file never leaves your device.' },
+  { q: 'What file types are supported?', a: 'Only .docx files (Word 2007 and later) are supported. The older binary .doc format used by Word 2003 and earlier is not compatible with the mammoth.js library used for parsing. If you have a .doc file, open it in Word or LibreOffice and save it as .docx first.' },
+  { q: 'Is formatting preserved in the PDF?', a: 'Basic text formatting is preserved — headings, bold, italic, paragraph breaks, and list items. Complex layouts including multi-column text, text boxes, embedded images, and advanced table formatting are simplified or omitted. For complex documents, Word\'s own "Export to PDF" feature produces the closest result to the original.' },
+  { q: 'Is my Word document sent to a server?', a: 'No. All processing runs entirely in your browser using the mammoth.js and jsPDF JavaScript libraries. Your .docx file is read locally, converted in memory, and the resulting PDF is saved directly to your device. Nothing is transmitted to any server.' },
+  { q: 'Why does my PDF look different from the Word document?', a: 'Browser-based conversion extracts text content using mammoth.js, which interprets Word\'s XML format and applies basic HTML rendering. Advanced formatting — custom fonts, embedded objects, charts, headers/footers with page numbers — is not fully reconstructable in the browser. Word\'s built-in "Export to PDF" is the most accurate option for layout-sensitive documents.' },
+  { q: 'Can I convert multiple Word files at once?', a: 'The current version converts one file per session. To convert multiple documents, repeat the process for each file — upload, preview, convert, download. The tool resets automatically when you click "Convert another file."' },
+  { q: 'Is there a maximum file size?', a: 'There is no enforced size limit. Very large .docx files with extensive embedded content may take longer to process. For typical documents up to 50 MB, conversion is fast. Extremely large files with many embedded images may encounter browser memory limits on older devices.' },
+]
+const ABOUT = [
+  'Word documents are the default format for business communications, academic papers, legal contracts, and countless other text-based documents. Being able to convert a .docx to PDF instantly — without installing software, creating an account, or waiting for a server — solves one of the most common file format problems people encounter daily. The AWE-OS Word to PDF converter handles this entirely in your browser using two open-source JavaScript libraries.',
+  'The conversion process uses mammoth.js to parse the .docx file format — which is a ZIP archive containing XML files — and extract the document\'s text content and basic structure. The extracted content is previewed in the browser before conversion, so you can verify the tool successfully read your document. jsPDF then renders this content into a structured PDF with appropriate heading sizes, paragraph spacing, and text formatting.',
+  'It is important to understand what browser-based conversion means for formatting fidelity. A .docx file can contain hundreds of formatting properties — custom fonts, text boxes, embedded images, charts, complex tables, headers and footers, and watermarks. A browser-based tool extracts and renders the text content faithfully but cannot reconstruct advanced layout elements without server-side processing. For straightforward text documents, the output is clean and professional.',
+  'All conversion happens locally — your document never leaves your device. This is especially important for confidential documents: contracts, financial statements, personal correspondence, HR documents, and any other sensitive content. There is no file size restriction imposed by server upload limits, no registration required, and no watermark added to the output. Upload your .docx, preview the content, and download your PDF in seconds.',
 ]
 
 export default function WordToPDF() {
@@ -82,7 +92,7 @@ export default function WordToPDF() {
       icon="📝"
       steps={STEPS}
       faqs={FAQS}
-      about="Our Word to PDF converter uses mammoth.js to extract text and formatting from .docx files, then generates a clean PDF using jsPDF. Everything runs in your browser — your document never touches a server."
+      about={ABOUT}
     >
       <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
         {status === 'idle' || status === 'loading' ? (

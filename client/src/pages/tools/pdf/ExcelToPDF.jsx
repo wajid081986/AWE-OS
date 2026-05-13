@@ -4,14 +4,24 @@ import { jsPDF } from 'jspdf'
 import ToolPageShell from '../ToolPageShell'
 
 const STEPS = [
-  { title: 'Upload Excel file', description: 'Select a .xlsx, .xls or .csv file.' },
-  { title: 'Preview the table', description: 'See your spreadsheet data in the browser.' },
-  { title: 'Download PDF', description: 'Click Convert to get a formatted PDF table.' },
+  'Upload your spreadsheet by clicking the drop zone or dragging a file in. The tool accepts .xlsx (Excel 2007+), .xls (Excel 97-2003), and .csv files.',
+  'Your spreadsheet data is parsed and displayed as a table preview in the browser. You can verify that rows, columns, and headers were read correctly before converting.',
+  'Click "Convert & Download PDF" to render the table data into a clean, formatted PDF with a bold header row and alternating row shading.',
+  'The PDF downloads automatically — a readable table document suitable for printing, sharing, or archiving without requiring Excel on the recipient\'s device.',
 ]
 const FAQS = [
-  { q: 'Which formats are supported?', a: '.xlsx, .xls and .csv files are supported.' },
-  { q: 'Can it handle multiple sheets?', a: 'The first sheet is converted. Multi-sheet support coming soon.' },
-  { q: 'Is my file private?', a: 'Yes. Conversion happens entirely in your browser. Nothing is uploaded.' },
+  { q: 'Which spreadsheet formats are supported?', a: '.xlsx (Excel 2007 and later), .xls (Excel 97-2003), and .csv files are all accepted. The tool uses SheetJS for parsing, which handles the full range of Excel format versions. Password-protected workbooks cannot be opened — remove the password in Excel first.' },
+  { q: 'Can it handle multiple worksheets?', a: 'Currently only the first worksheet is converted. If your workbook has multiple tabs, move the sheet you want to the first position before uploading. For multi-sheet workbooks, convert each sheet separately and use the Merge PDF tool to combine the outputs.' },
+  { q: 'Is my file uploaded to a server?', a: 'No. All parsing and PDF generation runs entirely in your browser using SheetJS and jsPDF. Your spreadsheet data is never transmitted to any server and is discarded when you close the tab — safe for financial data, client records, and other sensitive content.' },
+  { q: 'How many rows and columns can it handle?', a: 'The preview shows up to 50 rows for performance, but the PDF output includes all rows in the file. Very wide spreadsheets may have columns scale down to fit the page width. For best results, aim for spreadsheets with up to 15–20 columns; wider data may require landscape formatting.' },
+  { q: 'Will formulas be preserved?', a: 'No. The tool reads the calculated values in each cell, not the underlying formulas. This is standard behaviour for spreadsheet export — recipients see the final numbers without the calculation logic, which is usually the desired outcome for sharing and reporting.' },
+  { q: 'What does the output PDF look like?', a: 'The PDF uses A4 portrait format with a blue bold header row for column names and alternating grey/white data rows. Text is rendered in a clean sans-serif font sized to fit the column count. The layout is clean and professional — suitable for printing or attaching to emails as a formal report.' },
+]
+const ABOUT = [
+  'Spreadsheets hold some of the most important operational data in any business — budgets, sales figures, inventory counts, project timelines, and financial reports. Sharing this data as a PDF is often necessary: PDFs open on any device without Excel installed, cannot be accidentally edited, render consistently across all viewers, and are the standard format for formal reporting and document submission. The AWE-OS Excel to PDF converter handles this instantly, in your browser, with no upload required.',
+  'The tool uses SheetJS — the most widely deployed open-source spreadsheet parsing library — to read .xlsx, .xls, and .csv files and extract their row and column data. A table preview appears in the browser before conversion so you can confirm the data was parsed correctly. jsPDF then renders the data as a clean, formatted PDF table with a blue header row and alternating row shading, producing a document suitable for printing or professional sharing.',
+  'Browser-based conversion works best for straightforward tabular data: rows and columns of numbers, text, and dates. Complex Excel features — charts, pivot tables, conditional formatting, multiple worksheets, cell colours, and embedded images — are not reproduced in the PDF output. The result is a clean tabular representation of the data. For presentations where the spreadsheet\'s visual layout must be replicated exactly, Excel\'s own "Save as PDF" function is the most accurate option.',
+  'A significant advantage of this approach is data privacy. Spreadsheets frequently contain sensitive business information — financial projections, employee records, pricing structures, and client data. With this tool, your data never leaves your device: no upload, no server processing, no data retention. Everything happens in your browser\'s memory and the PDF saves directly to your local storage. No account is required, there is no file size quota, and there is no watermark on the output.',
 ]
 
 export default function ExcelToPDF() {
@@ -112,7 +122,7 @@ export default function ExcelToPDF() {
       icon="📊"
       steps={STEPS}
       faqs={FAQS}
-      about="ExcelToPDF uses SheetJS (xlsx) to parse your spreadsheet data and jsPDF to render it as a formatted PDF table. No server needed — all processing is local."
+      about={ABOUT}
     >
       <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
         {status === 'idle' || status === 'loading' ? (

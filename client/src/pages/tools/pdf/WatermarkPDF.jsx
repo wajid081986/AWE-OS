@@ -168,8 +168,10 @@ const FAQS = [
   { q: 'Is my file uploaded to a server?', a: 'No. All processing is done locally in your browser.' },
 ]
 const ABOUT = [
-  'Add Watermark embeds a custom text watermark on every page of your PDF. Control the text content, colour, size, transparency, position, and rotation angle to create exactly the watermark you need.',
-  'Common uses include marking documents as CONFIDENTIAL, DRAFT, or COPY before sharing. The live preview shows how your watermark settings will look. Processing is entirely client-side.',
+  'Watermarks serve several practical purposes in document workflows: marking a document CONFIDENTIAL or DRAFT before internal review, stamping COPY on distributed versions to distinguish them from originals, branding shared documents with a company name, or deterring unauthorised redistribution. The AWE-OS Watermark PDF tool embeds a fully customisable text watermark on every page of your PDF in seconds, with no server upload required.',
+  'Six parameters give you precise control over appearance. Text sets the content — any word, phrase, or identifier. Colour and opacity control visibility, from a subtle 15% grey that sits behind content to a bold 80% overlay. Size adjusts font size relative to the page. Position controls placement (centre, corners, or edges). Rotation lets you tilt the text diagonally — the classic 45-degree stamp most associated with professional watermarks, or any custom angle.',
+  'A live preview updates in real time as you adjust settings, showing exactly how the watermark will appear on the first page before committing to the download. This lets you iterate on the visual result without repeatedly downloading test versions. The watermark is applied to every page of the PDF — not just the first — ensuring consistent marking throughout the entire document.',
+  'All watermarking runs entirely in your browser using pdf-lib. The watermark text is embedded as a PDF content element visible in every viewer, and your original document is never uploaded to any server. The watermarked PDF downloads directly to your device the moment processing completes. No account is required, there are no file size limits, and the tool adds no secondary watermarks or branding of its own to your output.',
 ]
 
 export default function WatermarkPDF() {

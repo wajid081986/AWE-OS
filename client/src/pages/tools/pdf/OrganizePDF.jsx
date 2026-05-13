@@ -133,8 +133,10 @@ const FAQS = [
   { q: 'Is there a page limit?', a: 'No limit. All processing is local in your browser.' },
 ]
 const ABOUT = [
-  'Organize PDF gives you full control over your document structure. Reorder pages into any sequence using the arrow controls and delete unwanted pages — all in one workflow before saving.',
-  'The numbered position indicators update in real time as you move pages, making it easy to track where each page will end up in the final document.',
+  'A PDF\'s page order is not always correct when it arrives. Scanned documents come out in the wrong sequence. Reports assembled from multiple sources have sections out of order. Merged PDFs need reshuffling before final delivery. The AWE-OS Organize PDF tool gives you complete control over page sequence — reorder any pages into exactly the arrangement you need, remove unwanted ones, and download the result as a clean, properly ordered PDF.',
+  'The interface lists every page of your PDF with arrow controls and a delete button. Move any page up or down one position at a time; position numbers update in real time so you always see the exact final sequence before downloading. Reordering and deletion can be combined in a single session — there is no need to make separate passes for each type of change.',
+  'This tool is especially useful when working with scanned documents. A multi-page contract scanned page by page often comes out with pages in the wrong order, particularly with double-sided scanning. Organize PDF lets you fix the sequence in one pass. Similarly, when assembling a document from separately-exported sections, merge them with the Merge PDF tool and then fine-tune the page order here.',
+  'All processing uses pdf-lib running entirely in your browser. Page content is never re-rendered or re-compressed — only the sequence changes. This means zero quality loss regardless of what the PDF contains. Your document never leaves your device, no server is involved, and there is no file size limit.',
 ]
 
 export default function OrganizePDF() {

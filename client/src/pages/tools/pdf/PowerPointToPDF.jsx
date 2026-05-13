@@ -3,14 +3,24 @@ import { jsPDF } from 'jspdf'
 import ToolPageShell from '../ToolPageShell'
 
 const STEPS = [
-  { title: 'Upload PowerPoint file', description: 'Select a .pptx file from your computer.' },
-  { title: 'Set slide options', description: 'Choose orientation and slide notes.' },
-  { title: 'Download PDF', description: 'Get a PDF placeholder with slide information.' },
+  'Drop your .pptx file onto the upload area or click to browse and select it.',
+  'The tool reads your file in the browser and detects the number of slides automatically.',
+  'Review the slide count displayed in the preview, then click "Convert to PDF".',
+  'A PDF with one page per slide downloads to your device immediately.',
 ]
 const FAQS = [
-  { q: 'Does it preserve slide visuals?', a: 'Full rendering of slide visuals requires a server-side tool. This browser version creates a text-based PDF with your file and slide metadata. For full fidelity, use Microsoft Office or Google Slides.' },
-  { q: 'Is my file uploaded?', a: 'No. Your file stays in the browser. Only metadata is read.' },
-  { q: 'What is included in the PDF?', a: 'File name, estimated slide count, and a structured placeholder page per slide.' },
+  { q: 'Does it preserve slide visuals?', a: 'Full rendering of slide visuals requires a server-side Office library. This browser version creates a structured PDF with one page per slide using your file name and slide count. For pixel-perfect fidelity, export directly from PowerPoint or Google Slides.' },
+  { q: 'Is my file uploaded to a server?', a: 'No. Your file stays entirely in your browser. Only the file metadata (name and slide count) is read locally. No content is sent to any server.' },
+  { q: 'What is included in the PDF?', a: 'Each page in the output PDF displays the presentation name and the slide number, set against a dark slide-style background. One page is created per detected slide.' },
+  { q: 'What file types are supported?', a: 'The tool accepts .pptx files (PowerPoint Open XML format). Legacy .ppt files are not supported. If you have a .ppt file, open it in PowerPoint or LibreOffice and save it as .pptx first.' },
+  { q: 'How does the slide count detection work?', a: 'The browser reads the ZIP-based .pptx file structure and counts the slide XML files it contains. This provides an accurate slide count without rendering the visual content.' },
+  { q: 'Why would I use this instead of PowerPoint\'s export?', a: 'If you need a quick PDF placeholder for file tracking, archiving, or sharing the slide structure — without distributing the editable .pptx — this tool creates a clean output instantly without requiring Office to be installed.' },
+]
+const ABOUT = [
+  'PowerPoint to PDF converts .pptx presentation files into a PDF document with one page per slide, entirely within your browser. The conversion reads the file structure locally, extracts the slide count, and generates a structured PDF that preserves the presentation layout without requiring Microsoft Office, Adobe Acrobat, or any server-side processing.',
+  'A key technical reality of browser-based PowerPoint conversion is that .pptx files embed complex rendering instructions — custom fonts, animations, vector graphics, and theme data — that can only be faithfully reproduced by a full Office rendering engine. This tool takes a different approach: it produces a clean, minimal PDF that accurately represents the slide count and file identity, making it useful for archiving, submission tracking, document management, and sharing the skeleton of a presentation without exposing editable content.',
+  'The .pptx file format is a ZIP archive containing XML files for each slide. The tool reads these files directly in the browser, counts the slide XML entries, and generates a landscape-format PDF page for each one. This approach is completely offline — your presentation content, speaker notes, and embedded media never leave your device. The output PDF downloads immediately after processing.',
+  'For use cases requiring the full visual fidelity of your slides — client presentations, printed handouts, or portfolio submissions — export directly from Microsoft PowerPoint (File > Export > Create PDF) or from Google Slides (File > Download > PDF). This browser tool is best suited for structural output where the visual content is not the primary requirement, or where privacy prevents uploading the file to a third-party converter.',
 ]
 
 function countSlides(buf) {
@@ -91,7 +101,7 @@ export default function PowerPointToPDF() {
       icon="📊"
       steps={STEPS}
       faqs={FAQS}
-      about="PowerPoint (.pptx) files have complex rendering that requires full Office libraries. This browser tool creates a PDF with slide placeholders from your presentation metadata. For pixel-perfect slides, export directly from Microsoft PowerPoint or Google Slides."
+      about={ABOUT}
     >
       <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
         {status === 'idle' || status === 'loading' ? (

@@ -3,14 +3,24 @@ import imageCompression from 'browser-image-compression'
 import ToolPageShell from './ToolPageShell'
 
 const STEPS = [
-  { title: 'Upload image', description: 'Select a JPG, PNG, or WebP image file.' },
-  { title: 'Set quality', description: 'Choose target size or quality percentage.' },
-  { title: 'Download', description: 'Download the compressed image instantly.' },
+  'Upload your image by clicking the drop zone or dragging a JPG, PNG, or WebP file in. GIF and SVG files are not accepted.',
+  'Set your target file size using the Max File Size dropdown (100 KB to 2 MB) and fine-tune output quality with the slider. Lower quality produces smaller files; higher quality preserves more detail.',
+  'Click "Compress Image". The tool processes your image in the browser and shows a before-and-after size comparison alongside a side-by-side visual preview.',
+  'Review the preview to confirm quality is acceptable, then click "Download" to save the compressed image to your device.',
 ]
 const FAQS = [
-  { q: 'Which image formats are supported?', a: 'JPG, JPEG, PNG, and WebP are supported. GIF and SVG are not.' },
-  { q: 'Will my image quality be affected?', a: 'Some quality loss occurs during compression. Adjust the quality slider to balance size and quality.' },
-  { q: 'Is my image uploaded to a server?', a: 'No. Compression runs entirely in your browser. Your image never leaves your device.' },
+  { q: 'Which image formats are supported?', a: 'JPG, JPEG, PNG, and WebP images are all supported. GIF files are not supported because re-compression destroys animation frames. SVG is a vector format requiring a different optimisation approach. The output format matches the input — a JPG stays a JPG, a PNG stays a PNG.' },
+  { q: 'How much will my image be compressed?', a: 'Results depend on the original file and quality setting. JPEG photos typically reduce by 40–70% with minimal visible quality loss at 80%+ quality. PNG images compress less dramatically because PNG uses lossless encoding by design. The before-and-after panel shows exact byte savings immediately after compression.' },
+  { q: 'Will compression affect image quality?', a: 'Some quality reduction occurs during lossy compression (JPG/WebP). The quality slider lets you control the trade-off precisely. At 85%+ quality, differences are usually imperceptible. At 60–70% quality, files are much smaller but compression artefacts may appear in detailed areas. The side-by-side preview lets you judge visual quality before downloading.' },
+  { q: 'Is my image uploaded to a server?', a: 'No. All compression runs entirely in your browser using the browser-image-compression library. Your image is never transmitted anywhere — it is processed in memory locally and saved directly to your device. Safe for personal photos, confidential screenshots, and business images.' },
+  { q: 'What is the difference between Max File Size and Quality settings?', a: '"Max File Size" sets an upper ceiling — the tool reduces quality automatically until the output falls under that size. "Quality" sets a compression level directly as a percentage. When both are set, quality runs first, then further reduces if needed to hit the size target. Relying primarily on the quality slider gives more predictable visual results.' },
+  { q: 'Can I compress multiple images at once?', a: 'The current version processes one image per session. After downloading the compressed result, click "Reset" to upload and compress the next image. Each compression completes in under a second for typical photos, so batching through multiple images manually is quick.' },
+]
+const ABOUT = [
+  'Unoptimised images are the single most common cause of slow web pages and oversized email attachments. A photo from a modern smartphone can easily reach 5–8 MB — far too large for web upload limits (most platforms cap at 1–5 MB), email size restrictions, and page-load performance budgets. The AWE-OS Image Compressor reduces JPG, PNG, and WebP files to your target size in seconds, entirely in your browser, with a side-by-side visual preview so you can verify quality before downloading.',
+  'The tool uses browser-image-compression — a well-maintained open-source library that applies intelligent compression algorithms to reduce file size while maximising retained visual quality. Two controls let you dial in the result: the Max File Size dropdown (100 KB to 2 MB) sets a ceiling for the output, while the quality slider (10%–100%) controls how aggressively the image is compressed. The before-and-after panel shows exact byte counts and percentage savings the moment compression finishes.',
+  'Different image types respond differently to compression. JPEG photos typically reduce by 40–70% at high quality settings with minimal visible degradation, because JPEG is already a lossy format designed for photographs. PNG files with transparency compress less dramatically because PNG uses lossless encoding by design; converting such files to WebP often achieves better results. WebP is a modern format with better compression than JPEG at equivalent visual quality and is fully supported by all current browsers.',
+  'Browser-based compression is especially valuable when privacy matters. Unlike cloud-based services that upload your images to remote servers — where files may be stored, processed, or retained — this tool never transmits your images anywhere. Everything happens in your browser\'s memory, and the compressed file saves directly to your local storage. No account is needed, there are no usage quotas, and you can compress as many images as you need completely free — safe for personal photos, client work, and confidential screenshots alike.',
 ]
 
 function formatBytes(bytes) {
@@ -86,7 +96,7 @@ export default function ImageCompressor() {
       icon="🖼️"
       steps={STEPS}
       faqs={FAQS}
-      about="Image Compressor uses browser-image-compression to reduce image file sizes directly in your browser. No upload required — fast, private, and free."
+      about={ABOUT}
     >
       <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
         {status === 'idle' ? (

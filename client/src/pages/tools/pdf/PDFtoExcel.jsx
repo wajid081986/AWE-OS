@@ -7,14 +7,24 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
 
 const STEPS = [
-  { title: 'Upload PDF', description: 'Select the PDF containing the data you want.' },
-  { title: 'Extract data', description: 'Text is extracted and structured into rows.' },
-  { title: 'Download CSV / Excel', description: 'Save the extracted data as a spreadsheet.' },
+  'Upload the PDF containing the data you want to extract by clicking the drop zone or dragging your file in. Text-based digital PDFs extract well; scanned PDFs (images) cannot be processed without OCR.',
+  'A progress bar tracks text extraction page by page. Extracted data appears in a table preview in the browser — review the row structure before downloading.',
+  'Click "Download CSV" for a universal format compatible with any spreadsheet software, or "Download Excel" to save directly as a .xlsx file for Microsoft Excel or Google Sheets.',
+  'Open the downloaded file in Excel or Google Sheets to clean up, format, and analyse the extracted data. For PDFs with clear table alignment, the data typically needs minimal adjustment.',
 ]
 const FAQS = [
-  { q: 'What data can be extracted?', a: 'Text-based tables and data from the PDF are extracted. Scanned PDFs (images) cannot be extracted without OCR.' },
-  { q: 'Does it detect table structure?', a: 'Lines of text are placed into rows. Complex multi-column table detection requires server-side AI processing.' },
-  { q: 'Is my PDF uploaded?', a: 'No. Everything runs in your browser using PDF.js and SheetJS.' },
+  { q: 'What type of PDF data can be extracted?', a: 'Text-based digital PDFs work best — bank statements, financial reports, price lists, and data exports typically extract well. Scanned PDFs are images of text rather than actual text, so PDF.js cannot extract content from them. OCR (optical character recognition) is required for scanned documents.' },
+  { q: 'Does it detect table structure automatically?', a: 'The tool reads lines of text from the PDF and organises them into rows. Simple tables with consistent column alignment extract cleanly. Complex multi-column layouts, merged cells, and rotated headers may not align correctly. For complex structures, some manual cleanup in Excel after downloading is usually needed.' },
+  { q: 'Is my PDF uploaded to a server?', a: 'No. All text extraction and spreadsheet generation runs in your browser using PDF.js and SheetJS. Your file is never transmitted to any server — especially important for financial statements, bank records, payroll data, and other sensitive documents you need to process.' },
+  { q: 'Can I get both CSV and Excel output?', a: 'Yes. Two buttons let you choose: CSV (.csv) for universal compatibility with any software, or Excel (.xlsx) for direct use in Microsoft Excel or Google Sheets. Both files contain the same extracted data — choose based on what you plan to do with it next.' },
+  { q: 'What if the extracted data looks garbled?', a: 'PDF text extraction reads characters by position on the page, not by semantic structure. Multi-column layouts and complex page designs can produce scrambled output. Try opening the raw .csv in a text editor to assess the raw extraction. For PDFs with clearly defined table structures, results are typically clean.' },
+  { q: 'Is there a page limit?', a: 'No enforced limit. Large PDFs with many pages take longer to process as each page is extracted sequentially. The progress bar shows status. A 50-page document typically extracts in 20–40 seconds on a modern device — longer documents may take a minute or more.' },
+]
+const ABOUT = [
+  'Data locked inside PDF reports, bank statements, invoices, and financial documents often needs to be analysed or incorporated into spreadsheets — tasks that PDFs were never designed for. Getting that data into Excel or Google Sheets previously required manual retyping or expensive server-side tools. The AWE-OS PDF to Excel converter extracts text data from any text-based PDF entirely in your browser and delivers it as CSV or XLSX, ready for immediate use.',
+  'The extraction engine uses PDF.js to read text content from every page of your document, organising each line of text into a spreadsheet row. A live progress bar tracks extraction, and a preview table shows the data before you download, so you can assess quality and choose between CSV for maximum compatibility or XLSX for native Excel use. Both are generated locally without any server involvement.',
+  'The key limitation to understand is that PDF text extraction reads what is visually present, not what is semantically structured. PDFs store text by x/y coordinates rather than in rows and columns. The tool organises these text fragments into rows, but column alignment depends on how consistently the original PDF was formatted. Clearly structured data from business reporting tools extracts cleanly; complex or hand-formatted PDFs may need cleanup after extraction.',
+  'Browser-based processing ensures your financial and business data stays private. No file is uploaded, no data is stored externally, and no processing happens outside your own browser. This zero-upload approach is particularly valuable for the sensitive financial and business data that commonly appears in PDF reports: bank statements, payroll records, client invoices, and quarterly financial summaries. Extract, download, and start analysing — no account or subscription required.',
 ]
 
 export default function PDFtoExcel() {
@@ -90,7 +100,7 @@ export default function PDFtoExcel() {
       icon="📈"
       steps={STEPS}
       faqs={FAQS}
-      about="PDF to Excel uses PDF.js to read text content from your PDF and SheetJS to package the extracted data into a spreadsheet. All processing is browser-side — your file is never uploaded."
+      about={ABOUT}
     >
       <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
         {status === 'idle' ? (

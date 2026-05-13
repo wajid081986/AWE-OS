@@ -125,8 +125,10 @@ const FAQS = [
   { q: 'Is my PDF sent to any server?', a: 'No. Encryption is done entirely in your browser using pdf-lib. Your file never leaves your device.' },
 ]
 const ABOUT = [
-  'Protect PDF adds password encryption to any PDF document. Once protected, the file requires your password to be opened in any PDF viewer including Adobe Acrobat, Preview, and browser PDF viewers.',
-  'The tool uses pdf-lib\'s built-in encryption capabilities, running entirely in your browser for complete privacy. No files are uploaded to any server.',
+  'Password-protecting a PDF before sharing is one of the simplest and most effective ways to control access to sensitive documents. Contracts that should only be read by named parties, financial reports for specific stakeholders, confidential proposals, medical records, and HR documents all benefit from password protection before being sent by email or file-sharing link. The AWE-OS Protect PDF tool adds encryption to any PDF instantly, in your browser, with no upload required.',
+  'The tool uses pdf-lib\'s built-in encryption to apply password protection to your PDF. Once protected, the file requires the password to be opened in any PDF viewer — Adobe Acrobat, Preview, browser-based PDF readers, and all standard document applications. By default, the protected PDF prevents modification and copying of content but allows printing and form filling — the standard permission profile for read-only distribution.',
+  'A key security note: remember the password you set. If you lose the password and have no unencrypted backup, the document cannot be recovered — the Unlock PDF tool also requires the password to decrypt. Always keep the original unprotected version until you have confirmed the password is saved securely in your password manager. For an existing protected PDF where you want to change the password, Unlock PDF first, then re-protect here with a new password.',
+  'All processing runs entirely in your browser; your document and your chosen password never leave your device. No server receives the file, no service stores the password, and no usage is logged. The encrypted PDF downloads directly to your device the moment processing completes. No account is required and there is no file size limit on documents you can protect.',
 ]
 
 export default function ProtectPDF() {

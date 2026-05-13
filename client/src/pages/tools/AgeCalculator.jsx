@@ -101,12 +101,14 @@ const FAQS = [
   { q: 'Why does the calculator show months and days separately?', a: 'This gives you the most precise representation of your age. For example, "32 years 4 months 12 days" is more accurate than just saying "32 years old."' },
   { q: 'Does this work for future dates?', a: 'No, the calculator only works for dates in the past. If you select a future date, the result will not be shown.' },
   { q: 'How is the next birthday calculated?', a: 'The calculator finds your next birthday by setting the birth month/day to the current year. If that date has already passed, it moves to next year.' },
+  { q: 'Can I use this for legal age verification?', a: 'Yes. The calculator gives a precise years-months-days breakdown that can help determine whether someone meets an age threshold — for example 18 or 21 years — with no ambiguity around partial years.' },
 ]
 
 const ABOUT = [
-  'The Age Calculator gives you an exact breakdown of your age in years, months, and days based on your date of birth. It correctly handles leap years, varying month lengths, and all edge cases.',
-  'Beyond just your age, you can see the total number of days you have lived, what day of the week you were born on, how many days remain until your next birthday, and the exact date of your next birthday.',
-  'This tool is completely free, works offline in your browser, and requires no sign-up. It is ideal for birthday planning, legal age verification checks, and satisfying your curiosity.',
+  'The Age Calculator gives you an exact breakdown of your age in years, months, and days based on your date of birth. It correctly handles leap years, varying month lengths, and all calendar edge cases to produce a result that is accurate to the exact day — not an estimate rounded to the nearest year.',
+  'Beyond your age in years, months, and days, the calculator shows four additional facts: the total number of days you have lived, the day of the week you were born, how many days remain until your next birthday, and the exact date of that upcoming birthday. These extra details make the tool useful for birthday planning, milestone celebrations, and anything that benefits from knowing your precise age in full.',
+  'Age calculations appear in more contexts than most people realise. Filling in forms that ask for your age as of a specific date, determining legal eligibility for age-restricted activities, insurance and medical intake forms, genealogical research, and calculating retirement timelines all require an accurate age — not just the year difference. The calculator handles any date of birth from the earliest valid calendar dates up to today.',
+  'Everything runs locally in your browser. No information leaves your device, and no account or sign-up is required. The tool is completely free and works in any modern browser, including on mobile devices. Simply pick a birth date, hit Calculate, and get your result in under a second.',
 ]
 
 export default function AgeCalculator() {
