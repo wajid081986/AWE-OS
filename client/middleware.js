@@ -255,8 +255,8 @@ ${headBlock({ title: t, description: d, url: u, canonical: u, extraMeta })}
 }
 
 // ── Blog listing page prerender ───────────────────────────────────────────────
-function blogListingHtml(posts) {
-  const url = `${SITE_URL}/blog`;
+function blogListingHtml(posts, pageUrl) {
+  const url = pageUrl || `${SITE_URL}/blog`;
 
   const webSiteSchema = {
     '@context': 'https://schema.org',
@@ -317,8 +317,8 @@ ${headBlock({
 }
 
 // ── Individual blog post prerender ────────────────────────────────────────────
-function blogPostHtml(post) {
-  const url = `${SITE_URL}/blog/${post.slug}`;
+function blogPostHtml(post, pageUrl) {
+  const url = pageUrl || `${SITE_URL}/blog/${post.slug}`;
 
   const articleSchema = {
     '@context': 'https://schema.org',
@@ -888,13 +888,13 @@ export default function middleware(req) {
   // Regular user — pass through to SPA
   if (!isSearchBot && !isSocialBot) return;
 
-  const { pathname } = new URL(req.url);
+  const pathname = (req.nextUrl ?? new URL(req.url)).pathname;
 
   // ── /blog — blog listing ───────────────────────────────────────────────────
   if (pathname === '/blog') {
-    const pageUrl = `${SITE_URL}/blog`;
+    const pageUrl = `${SITE_URL}${pathname}`;
     if (isSearchBot) {
-      return new Response(blogListingHtml(BLOG_POSTS), {
+      return new Response(blogListingHtml(BLOG_POSTS, pageUrl), {
         headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=3600', 'x-robots-tag': 'index, follow' },
       });
     }
@@ -913,7 +913,7 @@ export default function middleware(req) {
 
     if (isSearchBot) {
       if (post) {
-        return new Response(blogPostHtml(post), {
+        return new Response(blogPostHtml(post, pageUrl), {
           headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=3600', 'x-robots-tag': 'index, follow' },
         });
       }
