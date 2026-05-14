@@ -239,6 +239,38 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
               </section>
             )}
 
+            {/* Related tools grid */}
+            {relatedTools.length > 0 && (
+              <section className="mb-10">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">You Might Also Like</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {relatedTools.slice(0, 4).map(t => (
+                    <Link
+                      key={t.slug}
+                      to={`/tools/${t.slug}`}
+                      className="flex flex-col gap-2 p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all group"
+                    >
+                      <span className="text-3xl leading-none" aria-hidden>{t.icon || '🛠️'}</span>
+                      <p className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                        {t.name}
+                      </p>
+                      <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{t.description}</p>
+                    </Link>
+                  ))}
+                </div>
+                {catMeta && (
+                  <div className="mt-3 text-right">
+                    <Link
+                      to={`/tools/${catMeta.slug}`}
+                      className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      Browse all {catMeta.name} →
+                    </Link>
+                  </div>
+                )}
+              </section>
+            )}
+
             {/* About section */}
             {about?.length > 0 && (
               <section className="mb-10 p-5 bg-gray-50 rounded-xl border border-gray-200">
