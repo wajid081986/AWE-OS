@@ -539,6 +539,339 @@ export const BLOG_POSTS = [
       },
     ],
   },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 7. How to Build a Resume with No Experience in 2025
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    id: 7,
+    slug: 'how-to-build-resume-no-experience-2025',
+    title: 'How to Build a Resume with No Experience in 2025',
+    date: '2025-05-16',
+    category: 'Career',
+    author: 'AWE-OS Team',
+    readTime: '8 min read',
+    excerpt:
+      'No work history does not mean no resume. Learn how to structure a compelling resume from scratch using academic projects, volunteer work, and transferable skills — and how AI tools make the process faster.',
+    metaTitle: 'How to Build a Resume with No Experience in 2025 | AWE-OS',
+    metaDescription:
+      'Step-by-step guide to writing a resume with no work experience. Highlight academic projects, skills, and volunteer work to impress employers in 2025.',
+    relatedTools: [
+      { label: 'AI Resume Builder', slug: 'resume-builder',    icon: '📄' },
+      { label: 'AI Content Writer', slug: 'ai-content-writer', icon: '✍️' },
+      { label: 'Word to PDF',       slug: 'word-to-pdf',       icon: '📝' },
+    ],
+    faqs: [
+      { q: 'Can I get a job with no work experience?', a: 'Yes. Many entry-level roles are designed for candidates with no formal work history. Employers filling these positions look for transferable skills, academic achievements, and evidence of initiative — all of which can appear on a well-structured resume even without paid employment.' },
+      { q: 'What should I put on my resume if I have never worked?', a: 'Focus on education, academic projects, volunteer work, extracurricular activities, relevant coursework, personal projects, and technical or language skills. Each of these can demonstrate the same qualities employers want from work experience.' },
+      { q: 'How long should a first resume be?', a: 'One page is the standard for candidates with no work experience. Hiring managers spend an average of seven seconds on a first pass, so a clean single-page layout that communicates your most relevant qualifications is more effective than a two-page document padded with filler.' },
+      { q: 'Should I use an AI resume builder for my first resume?', a: 'AI resume builders are particularly useful for first-time resume writers because they structure the document, suggest action verbs, and format everything consistently. The AWE-OS AI Resume Builder walks you through each section step by step and exports a job-ready PDF without any design experience needed.' },
+      { q: 'What is the best resume format for no experience?', a: 'A functional or skills-based format works best when you have limited work history. It leads with a skills summary and relevant achievements rather than a chronological work history, letting you front-load your most relevant capabilities before the employer reaches an empty experience section.' },
+    ],
+    content: [
+      { type: 'p', text: 'Most first-time job seekers look at a blank resume template and feel stuck. The experience section is empty, the employment history is nonexistent, and every job description seems to require two years of experience for roles labelled "entry level." The reality is that building a competitive resume with no formal work history is entirely possible — and the strategies that work in 2025 are more accessible than ever, particularly with AI tools that turn raw achievements into polished, employer-ready language.' },
+      { type: 'h2', text: 'Redefine What "Experience" Means' },
+      { type: 'p', text: 'The word "experience" on a resume does not exclusively mean paid employment. Employers use the experience section to answer one question: can this person do the work? Academic projects demonstrate the same capabilities as professional projects. A dissertation on consumer behaviour demonstrates research, data analysis, and written communication skills. A university group project demonstrates collaboration, deadline management, and presentation skills. A coding project on GitHub demonstrates technical ability and initiative. The key is to describe these using the same language used for professional roles: action verbs, quantified outcomes, and concrete deliverables.' },
+      { type: 'h2', text: 'Lead with a Strong Summary Statement' },
+      { type: 'p', text: 'A professional summary at the top of your resume sets the frame before the employer reads anything else. For a candidate with no work history, this is even more critical because it tells the recruiter who you are before they notice the absence of employment. Keep it to two or three sentences: your field, your strongest skills, and what you are looking to bring to a role. Avoid generic phrases like "hardworking team player." Instead, be specific: "Recent Computer Science graduate with demonstrated experience in Python data pipelines and a published open-source library with over 200 GitHub stars."' },
+      { type: 'h2', text: 'Academic Projects Are Your Work History' },
+      { type: 'p', text: 'Every significant academic project is a resume entry waiting to be written. Structure each one exactly as you would a job role: project title, institution and dates, and three to five bullet points describing what you built, what technologies or methods you used, and what the outcome was. Quantify wherever possible — not "built a website" but "built a responsive e-commerce site handling 150+ daily product queries, reducing page load time by 40% through image optimisation." The number does not need to be impressive; it just needs to be real and specific.' },
+      { type: 'h2', text: 'Volunteer Work and Extracurricular Activities' },
+      { type: 'p', text: 'Volunteer work is formal, unpaid employment — it belongs in your experience section. A year of volunteering as a social media manager for a charity demonstrates content creation, audience engagement, scheduling, and digital marketing skills. Running a university society demonstrates leadership, event organisation, budgeting, and communication. These roles are often more responsibility-heavy than many entry-level jobs, and employers in competitive sectors actively value them. List the organisation, your role title, the dates, and specific achievements.' },
+      { type: 'h2', text: 'Build a Skills Section That Works Hard' },
+      { type: 'p', text: 'A skills section for a no-experience candidate must be strategic. List technical skills (software, programming languages, tools) separately from soft skills, because technical skills are verifiable and more valuable to scan quickly. Most Applicant Tracking Systems keyword-match your skills section against the job description, so mirror the language used in the role you are applying for. If the job description says "data visualisation" and your skills section says "charts," you may be filtered out before a human reads your resume.' },
+      { type: 'h2', text: 'Use AI to Upgrade Your Bullet Points' },
+      { type: 'p', text: 'The AWE-OS AI Resume Builder takes your raw inputs — education, projects, skills, and any experience you do have — and generates professionally written bullet points using action verbs and achievement-focused language. It structures your resume according to ATS best practices, formats everything consistently, and exports a clean PDF ready for submission. For candidates who know what they have done but struggle to describe it compellingly, AI resume tools transform a list of activities into a document that reads like a professional portfolio.' },
+      { type: 'h2', text: 'Final Checks Before You Submit' },
+      { type: 'ul', items: [
+        'Keep the resume to one page — cut anything that does not directly support the role you are applying for',
+        'Use an ATS-compatible font: Arial, Calibri, or Georgia at 10–12pt',
+        'Export as PDF to preserve formatting across all devices and email clients',
+        'Tailor the summary and skills section to each job description — generic resumes have lower interview conversion rates',
+        'Have one person read it for clarity before sending — a fresh pair of eyes catches errors you have become blind to',
+      ]},
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 8. Best Free PDF Tools for Students
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    id: 8,
+    slug: 'best-free-pdf-tools-for-students',
+    title: 'Best Free PDF Tools for Students in 2025',
+    date: '2025-05-17',
+    category: 'PDF Tools',
+    author: 'AWE-OS Team',
+    readTime: '6 min read',
+    excerpt:
+      'From compressing assignment uploads to converting lecture slides, these free browser-based PDF tools solve every document problem students face — no software installation or account required.',
+    metaTitle: 'Best Free PDF Tools for Students 2025 | AWE-OS',
+    metaDescription:
+      'Best free PDF tools for students — compress, merge, split, convert and protect PDFs online. No installation, no sign-up, works in any browser on any device.',
+    relatedTools: [
+      { label: 'Compress PDF', slug: 'compress-pdf', icon: '🗜️' },
+      { label: 'Merge PDF',    slug: 'merge-pdf',    icon: '📎' },
+      { label: 'JPG to PDF',  slug: 'jpg-to-pdf',   icon: '🖼️' },
+      { label: 'Word to PDF', slug: 'word-to-pdf',  icon: '📝' },
+    ],
+    faqs: [
+      { q: 'Are online PDF tools safe for student documents?', a: 'Browser-based PDF tools that process files locally — without uploading to a server — are the safest option. AWE-OS processes all PDF operations in your browser using JavaScript; your files never leave your device. This is especially important for coursework, dissertations, and documents containing personal information.' },
+      { q: 'Which PDF tool do students use most?', a: 'Compress PDF is the most-used PDF tool among students, primarily for reducing file sizes to meet upload limits on university portals and email clients. Merge PDF and JPG to PDF are also widely used for combining coursework documents and converting scanned notes.' },
+      { q: 'Can I merge PDFs on my phone?', a: 'Yes. All AWE-OS PDF tools are fully mobile-responsive and work in any modern mobile browser. You can upload files from your phone storage, process them, and download the result without installing any app.' },
+      { q: 'Is there a file size limit for free PDF tools?', a: 'AWE-OS imposes no file size limits. Since processing happens in your browser, the practical limit is your device memory — most modern phones and laptops handle PDF files up to 100 MB without any issues.' },
+      { q: 'How do I convert a JPG photo to PDF for submission?', a: 'Go to AWE-OS JPG to PDF, upload your JPG or PNG file, and click Convert. The tool creates a properly formatted PDF with your image on an A4 page, ready for submission to any portal that requires PDF format.' },
+    ],
+    content: [
+      { type: 'p', text: 'University life generates an extraordinary volume of PDF documents. Lecture slides, assignment submissions, research papers, lab reports, internship contracts, scholarship forms — all PDFs. And yet most students do not have access to Adobe Acrobat, which costs over £20 per month. The good news is that you do not need it. A suite of free, browser-based PDF tools can handle every document task a student encounters, running entirely in your browser with no software to install and no files uploaded to any server.' },
+      { type: 'h2', text: 'Compress PDF: The Most Important Tool for Submissions' },
+      { type: 'p', text: 'University submission portals routinely cap uploads at 10 MB or even 5 MB. A dissertation with embedded diagrams can easily reach 30–50 MB. AWE-OS Compress PDF strips metadata, removes redundant object streams, and applies maximum structural compression to bring file sizes down by 20–60% without affecting the visual appearance of text or diagrams. The process takes seconds and runs entirely in your browser — your document is never transmitted to a server. After compression, you see a before/after size comparison so you know exactly how much was saved before downloading.' },
+      { type: 'h2', text: 'Merge PDF: Combine Multiple Documents for Portfolio Submissions' },
+      { type: 'p', text: 'Many coursework submissions require compiling multiple documents — a main report, appendices, bibliography, and cover sheet — into a single PDF. Merge PDF lets you upload multiple PDFs, drag to reorder them, and combine them into one document with a single click. There is no page limit and no file count limit. This is equally useful for job applications where you need to combine a CV, cover letter, and portfolio samples into one attachment, and for research where you want to consolidate multiple papers into a single reading file.' },
+      { type: 'h2', text: 'JPG to PDF: Convert Photos of Notes and Handwritten Work' },
+      { type: 'p', text: 'When tutors ask for handwritten work or annotated diagrams, students photograph their notes and need to submit them as PDF. The JPG to PDF converter accepts JPG, PNG, and WEBP images and creates a properly formatted PDF with each image on its own page. You can upload multiple images and reorder them before converting, making it straightforward to submit a multi-page handwritten assignment as a single well-ordered PDF file compatible with all university submission portals.' },
+      { type: 'h2', text: 'Word to PDF: Preserve Your Formatting for Submissions' },
+      { type: 'p', text: 'Submitting a .docx file to a university portal is risky — different Word versions render the same document differently, and some portals cannot open .docx at all. Converting to PDF before submission guarantees the examiner sees exactly what you intended. The AWE-OS Word to PDF converter processes .docx files locally in your browser, preserving headings, paragraph text, bold and italic formatting, and list structures. The conversion takes seconds, requires no account, and leaves no watermark.' },
+      { type: 'h2', text: 'PDF to Word: Edit a PDF You Received as a Template' },
+      { type: 'p', text: 'Supervisors and administrators sometimes distribute PDF forms that students need to fill in, or PDF templates for assignments. PDF to Word converts the document into an editable .docx file you can modify in Word or Google Docs. The conversion preserves text content and basic structure, making it practical for text-heavy documents like application forms, letters of recommendation templates, and internship agreements where you need to add your own information.' },
+      { type: 'h2', text: 'Protect PDF: Add a Password Before Sharing Sensitive Documents' },
+      { type: 'p', text: 'Some documents should not be freely accessible to anyone who intercepts them — medical records, financial statements, scholarship applications with personal details. AWE-OS Protect PDF adds AES-128 password encryption to any PDF entirely in your browser. Set an open password to control who can read the document and an editing password to prevent modifications. This is particularly useful when emailing sensitive coursework, financial aid documents, or any PDF containing personal identification information.' },
+      { type: 'h2', text: 'All Tools Students Need — No Account Required' },
+      { type: 'ul', items: [
+        'Compress PDF — reduce file sizes by up to 60% for submission portals',
+        'Merge PDF — combine multiple documents into one submission file',
+        'Split PDF — extract specific pages from lecture slide packs',
+        'JPG to PDF — convert photos of handwritten work for digital submission',
+        'Word to PDF — preserve formatting when submitting assignments',
+        'PDF to Word — edit received PDF templates and forms',
+        'Protect PDF — encrypt sensitive documents before sharing',
+        'Rotate PDF — fix upside-down scanned pages in seconds',
+      ]},
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 9. AI Writing Tools Comparison 2025
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    id: 9,
+    slug: 'ai-writing-tools-comparison-2025',
+    title: 'AI Writing Tools Comparison 2025: What Actually Works',
+    date: '2025-05-18',
+    category: 'AI Tools',
+    author: 'AWE-OS Team',
+    readTime: '7 min read',
+    excerpt:
+      'The AI writing tool market is crowded and expensive. This comparison breaks down what each type of tool does best, where they fall short, and which free options deliver real value in 2025.',
+    metaTitle: 'AI Writing Tools Comparison 2025: What Actually Works | AWE-OS',
+    metaDescription:
+      'Compare AI writing tools in 2025 — features, accuracy, and best use cases. Includes free options that produce real results without a subscription.',
+    relatedTools: [
+      { label: 'AI Content Writer', slug: 'ai-content-writer', icon: '✍️' },
+      { label: 'AI Resume Builder', slug: 'resume-builder',    icon: '📄' },
+      { label: 'Word Counter',      slug: 'word-counter',      icon: '📝' },
+    ],
+    faqs: [
+      { q: 'Which AI writing tool is best for blog posts?', a: 'For blog content, tools that let you specify topic, tone, and length work best. AWE-OS AI Content Writer generates structured blog posts with a specified word count and writing style, making it practical for regular content production without a subscription.' },
+      { q: 'Are free AI writing tools as good as paid ones?', a: 'For most everyday writing tasks — drafting emails, generating outlines, writing short-form content, creating social media captions — free AI writing tools produce comparable results to paid subscriptions. Differences appear in very long-form content and highly specialised professional writing where paid tools offer more context and finer tone controls.' },
+      { q: 'Can AI writing tools replace human writers?', a: 'No. AI tools generate text based on patterns in training data, producing fluent prose — but they cannot replace human judgment, original research, personal experience, or accountability for factual accuracy. They are best used to accelerate the structural work of writing, leaving thinking, argument, and editing to the human author.' },
+      { q: 'Do AI writing tools work for non-English content?', a: 'Many AI writing tools support multiple languages, though quality varies significantly outside English. Tools built on large multilingual models perform better with Spanish, French, German, and Portuguese. For other languages, verify output quality carefully before publishing.' },
+      { q: "Is AI-generated content penalised by Google?", a: "Google does not penalise AI-generated content as such — it penalises low-quality, unhelpful content regardless of how it was produced. AI-generated content that is accurate, edited for quality, and genuinely useful to readers can rank well. Unedited AI output published at scale to manipulate rankings is what Google targets." },
+    ],
+    content: [
+      { type: 'p', text: 'In 2025 the AI writing tool market has become genuinely difficult to navigate. There are dozens of tools, most requiring monthly subscriptions between $15 and $99, many producing broadly similar outputs, and almost none clearly explaining what they are actually good at. This comparison cuts through the marketing to explain what different categories of AI writing tool do best, where each falls short, and how to choose the right tool for specific tasks without overspending.' },
+      { type: 'h2', text: 'Category 1: General-Purpose AI Writing Assistants' },
+      { type: 'p', text: 'General-purpose AI assistants like ChatGPT, Claude, and Gemini are the most flexible category. They can draft emails, write essays, generate code, summarise documents, and adapt to almost any writing task you describe. Their strength is versatility and natural conversation — you can refine output iteratively. Their weakness is that they require good prompts and careful fact-checking, because they produce plausible-sounding text that is not always accurate. For professionals who write across many contexts, a good general-purpose assistant is the highest-value AI writing investment. Free tiers offer meaningful daily usage.' },
+      { type: 'h2', text: 'Category 2: Specialised Content Generation Tools' },
+      { type: 'p', text: 'Specialised content tools like AWE-OS AI Content Writer are optimised for specific output formats — blog posts, product descriptions, social media captions, ad copy, and press releases. They typically offer a form-based interface: fill in the topic, desired length, and tone, then click generate. The output is structured and immediately usable for the intended format without significant prompt engineering. These tools excel for content teams producing a predictable range of content types at volume. They are less useful for unusual writing tasks where a general-purpose assistant gives better results.' },
+      { type: 'h2', text: 'Category 3: AI Resume and Career Writing Tools' },
+      { type: 'p', text: 'Resume-specific AI tools understand the conventions of professional career documents: action verbs, achievement-quantification, ATS keyword density, and section ordering. General-purpose AI can write resume bullet points, but it tends to produce generic language without the structural discipline ATS systems reward. AWE-OS AI Resume Builder takes your experience inputs and generates bullet points optimised for both human readers and automated screening, formatting the entire document as a clean, downloadable PDF. For job seekers, this is meaningfully better than asking a general-purpose assistant to simply "write my resume."' },
+      { type: 'h2', text: 'Category 4: AI Editing and Proofreading Tools' },
+      { type: 'p', text: 'Grammarly and similar AI editing tools sit at the other end of the writing pipeline: they improve text you have already written rather than generating new content. They check grammar, spelling, punctuation, sentence clarity, tone consistency, and passive voice usage. In 2025, the best editing tools also flag engagement issues — overlong sentences, repeated words, weak openers — and suggest rewrites. These tools are complementary to generation tools: use a generation tool to create a first draft, then an editing tool to polish it.' },
+      { type: 'h2', text: 'Where All AI Writing Tools Fall Short' },
+      { type: 'p', text: 'No AI writing tool is reliable for factual claims requiring up-to-date information, specific statistics, or verifiable citations. They all generate authoritative-sounding text that can be wrong. Statistics, quotes, research findings, and any claim you intend to publish professionally must be independently verified. Similarly, AI tools reflect biases in their training data and can produce tone-deaf content when writing about sensitive social or cultural topics. A human editor remains essential for any content intended for public audiences.' },
+      { type: 'h2', text: 'How to Get the Best Results from AI Writing Tools' },
+      { type: 'ul', items: [
+        'Be specific in your prompts — the more context you give, the better the output',
+        'Provide examples of the tone and style you want when the default is too generic',
+        'Use AI output as a first draft, not a final draft — always edit before publishing',
+        'Break complex tasks into smaller prompts rather than asking for everything at once',
+        'Fact-check any specific claims, statistics, or quotes before relying on them',
+        'Combine tools: use a generator for structure, then an editor (Grammarly, Hemingway) to polish',
+      ]},
+      { type: 'h2', text: 'The Free vs. Paid Decision' },
+      { type: 'p', text: 'For most individual users — students, freelancers, small business owners — free AI writing tools cover 80% of everyday writing needs. AWE-OS AI Content Writer and AI Resume Builder are both free with no subscription required and no output limits for standard content. Paid subscriptions become worthwhile when you produce high volumes of long-form content daily, need advanced brand voice controls, or require team collaboration features. Before committing to a monthly subscription, thoroughly test the free tier — most paid tools offer free plans that reveal whether premium features are actually necessary for your use case.' },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 10. Free Calculator Tools for Students
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    id: 10,
+    slug: 'free-calculator-tools-for-students',
+    title: 'Free Calculator Tools Every Student Needs in 2025',
+    date: '2025-05-19',
+    category: 'Calculators',
+    author: 'AWE-OS Team',
+    readTime: '6 min read',
+    excerpt:
+      'Beyond basic arithmetic, students need calculators for GPA planning, loan repayment, BMI tracking, and unit conversion. Here are the free tools that make academic and financial planning straightforward.',
+    metaTitle: 'Free Calculator Tools for Students 2025 | AWE-OS',
+    metaDescription:
+      'Best free online calculator tools for students — GPA, BMI, loan, percentage, age, and unit converter. All free, no sign-up, works on any device.',
+    relatedTools: [
+      { label: 'GPA Calculator',         slug: 'gpa-calculator',          icon: '🎓' },
+      { label: 'BMI Calculator',         slug: 'bmi-calculator',          icon: '⚖️' },
+      { label: 'Loan Calculator',        slug: 'loan-calculator',         icon: '💰' },
+      { label: 'Percentage Calculator',  slug: 'percentage-calculator',   icon: '📊' },
+    ],
+    faqs: [
+      { q: 'How is GPA calculated in the 4.0 system?', a: 'Each letter grade converts to a point value: A = 4.0, B = 3.0, C = 2.0, D = 1.0, F = 0. Your GPA is the weighted average of these values, where each grade is multiplied by the credit hours for that course. The AWE-OS GPA Calculator automates this and supports both weighted and unweighted GPA.' },
+      { q: 'What is a healthy BMI for a student?', a: 'The standard healthy BMI range is 18.5 to 24.9 for adults. Below 18.5 is underweight, 25–29.9 is overweight, and 30 or above is classified as obese. BMI is a screening tool, not a diagnostic measurement — factors like muscle mass, age, and ethnicity affect how BMI should be interpreted.' },
+      { q: 'How do I calculate my student loan monthly payment?', a: 'Your monthly payment depends on the principal (amount borrowed), the interest rate, and the repayment term. The AWE-OS Loan EMI Calculator calculates your monthly payment and generates a full amortisation schedule showing how much of each payment goes to interest versus principal over the life of the loan.' },
+      { q: 'Can I use these calculators on my phone?', a: 'Yes. All AWE-OS calculator tools are mobile-optimised and work in any modern smartphone browser. No app download is required — bookmark the tool and access it instantly from your phone.' },
+      { q: 'Is there a free compound interest calculator?', a: 'Yes. The AWE-OS Compound Interest Calculator lets you enter a principal amount, annual interest rate, compounding frequency, and investment period to see projected growth with a year-by-year breakdown — useful for understanding the impact of long-term investing even with small initial amounts.' },
+    ],
+    content: [
+      { type: 'p', text: 'The smartphone calculator handles basic arithmetic, but student life demands more specialised calculations. Planning your semester grades requires a weighted GPA calculator. Evaluating a student loan requires an EMI calculator with an amortisation schedule. Tracking fitness for a health science module requires a BMI calculator with metric and imperial support. Converting between measurement systems for chemistry labs requires a unit converter. Having these tools available instantly — without installing apps or signing up for services — makes a meaningful difference to how efficiently you can work.' },
+      { type: 'h2', text: 'GPA Calculator: Plan Your Semester Before Exams' },
+      { type: 'p', text: 'The AWE-OS GPA Calculator supports weighted GPA on the standard 4.0 scale. Add your courses, assign credit hours, and enter either letter grades or percentage scores — the calculator converts them automatically. More usefully, you can use it prospectively: enter your current grades and adjust projected scores for upcoming exams to see what final GPA different outcomes produce. This is particularly valuable for students deciding whether to retake an exam or how a low grade in one module affects overall standing. The calculator handles an unlimited number of courses and updates in real time.' },
+      { type: 'h2', text: 'Loan EMI Calculator: Understand What You Are Borrowing' },
+      { type: 'p', text: 'Student loans are the largest financial commitment most young people make before they start earning. Understanding exactly what you are committing to — monthly payments, total interest paid, and the impact of different repayment terms — should happen before you sign, not years later. The AWE-OS Loan Calculator accepts any loan amount, interest rate, and repayment period and instantly produces the monthly payment, total repayment amount, and full amortisation schedule. If you are comparing offers from different lenders or considering additional lump-sum repayments to reduce interest, the calculator makes the financial impact of each scenario immediately visible.' },
+      { type: 'h2', text: 'BMI Calculator: Health Science and Personal Fitness' },
+      { type: 'p', text: 'The Body Mass Index calculator is one of the most-used health tools for both personal fitness tracking and academic health science studies. The AWE-OS BMI Calculator accepts both metric (kg/cm) and imperial (lb/ft) inputs and returns the BMI value, weight classification, and healthy weight range for the entered height. For health science students using BMI calculations in coursework or clinical placements, the calculator also shows the BMI formula so you can verify the methodology. No account required.' },
+      { type: 'h2', text: 'Percentage Calculator: Three Modes for Three Use Cases' },
+      { type: 'p', text: 'Percentage calculations appear across almost every academic discipline: calculating exam scores, determining discount prices for a business case study, computing statistical increases for a research paper. The AWE-OS Percentage Calculator offers three calculation modes: percentage of a number ("what is 35% of 240?"), percentage change between two values ("what is the increase from 80 to 112?"), and number from percentage ("40 is what percent of 200?"). Having all three modes in one tool eliminates the need to re-derive the formula each time you need a different type of percentage calculation.' },
+      { type: 'h2', text: 'Unit Converter: Essential for Science and Engineering Students' },
+      { type: 'p', text: 'Unit conversion errors are surprisingly common in academic work — and in professional settings they have caused genuine disasters (the Mars Climate Orbiter was lost in 1999 due to a metric-imperial conversion error). The AWE-OS Unit Converter handles length, weight, temperature, speed, volume, area, and digital storage conversions across metric, imperial, and US customary units. For chemistry and physics students regularly converting between SI units and alternative measurement systems, a reliable bidirectional converter eliminates a common source of calculation errors.' },
+      { type: 'h2', text: 'Compound Interest Calculator: Start Understanding Investing Early' },
+      { type: 'p', text: 'Financial literacy is one of the least-taught subjects in formal education and one of the most consequential for long-term outcomes. The compound interest calculator demonstrates the most important concept in personal finance: time is the variable that matters most. Enter £500 invested at 7% annual return, compounding monthly, over 40 years — the calculator shows it grows to over £10,000, with the majority of gains in the final decade as compound growth accelerates. For students beginning to think about savings, pensions, or index fund investing, seeing this illustrated concretely is more persuasive than any abstract explanation.' },
+      { type: 'h2', text: 'All Calculators Available Free — No Sign-Up' },
+      { type: 'ul', items: [
+        'GPA Calculator — weighted and unweighted, unlimited courses, real-time updates',
+        'BMI Calculator — metric and imperial, with healthy weight range',
+        'Loan EMI Calculator — monthly payment, total interest, full amortisation schedule',
+        'Percentage Calculator — three calculation modes in one tool',
+        'Age Calculator — exact age in years, months, and days for research and planning',
+        'Unit Converter — length, weight, temperature, speed, volume, and more',
+        'Compound Interest Calculator — year-by-year growth projection',
+      ]},
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 11. Word to PDF Complete Guide 2025
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    id: 11,
+    slug: 'word-to-pdf-complete-guide-2025',
+    title: 'Word to PDF: Complete Conversion Guide 2025',
+    date: '2025-05-20',
+    category: 'PDF Tools',
+    author: 'AWE-OS Team',
+    readTime: '7 min read',
+    excerpt:
+      'Converting Word documents to PDF is simple — but choosing the right method, preserving your formatting, and ensuring ATS compatibility requires understanding what each approach does under the hood.',
+    metaTitle: 'Word to PDF Complete Guide 2025 — Best Methods Compared | AWE-OS',
+    metaDescription:
+      'Complete guide to converting Word to PDF in 2025. Compare browser, desktop, and online methods. Learn which preserves formatting best for resumes and professional documents.',
+    relatedTools: [
+      { label: 'Word to PDF',  slug: 'word-to-pdf',  icon: '📝' },
+      { label: 'PDF to Word',  slug: 'pdf-to-word',  icon: '📄' },
+      { label: 'Compress PDF', slug: 'compress-pdf', icon: '🗜️' },
+      { label: 'Protect PDF',  slug: 'protect-pdf',  icon: '🔐' },
+    ],
+    faqs: [
+      { q: 'Does converting Word to PDF lose formatting?', a: "It depends on the conversion method. Microsoft Word's built-in Export feature produces a pixel-faithful PDF that preserves all formatting including complex tables, custom fonts, and multi-column layouts. Browser-based converters preserve text structure — headings, paragraphs, lists, basic bold and italic — but may not reproduce complex layout elements. For documents with intricate formatting, Word's own export is the safest option." },
+      { q: 'Which Word to PDF method is best for resumes?', a: "Microsoft Word's built-in PDF export is the gold standard for resume conversion because it preserves precise spacing, custom fonts, and column layouts that many resume templates use. Browser-based conversion works well for simple single-column resumes. For ATS systems, a clean PDF from any method is preferable to .docx, which is parsed less reliably." },
+      { q: 'Is it free to convert Word to PDF?', a: "Yes. Multiple free methods are available: Microsoft Word's built-in Export (if you have Word installed), LibreOffice's PDF export (free and open source), Google Docs PDF download (free with a Google account), and browser-based tools like AWE-OS Word to PDF (no account required, no file upload to any server)." },
+      { q: 'Can I convert Word to PDF without Microsoft Word?', a: "Yes. AWE-OS Word to PDF converts .docx files in your browser using JavaScript without needing Word installed. Google Docs can open .docx files and export them as PDF for free. LibreOffice (a free open-source Office alternative) also converts .docx to PDF with high fidelity." },
+      { q: 'Why does my PDF look different from my Word document?', a: "The most common cause is font substitution: if your Word document uses a font that is not embedded in the PDF and not available on the rendering device, the PDF viewer substitutes a different font, changing spacing and line breaks. Using standard fonts (Arial, Calibri, Times New Roman) prevents this. Complex tables and text boxes with precise positioning may also shift slightly in browser-based conversions." },
+    ],
+    content: [
+      { type: 'p', text: "Converting a Word document to PDF sounds simple — and for most documents, it is. But the reason professionals specify PDF for important documents is that PDF preserves formatting precisely, and the conversion method you choose directly determines how faithfully that preservation happens. A resume converted with Microsoft Word's native export looks identical on every device. The same resume pushed through a low-quality online converter may have shifted columns, substituted fonts, and broken table borders. Understanding the differences between conversion methods takes ten minutes to learn and prevents document disasters at important moments." },
+      { type: 'h2', text: 'Why PDF Is the Professional Standard' },
+      { type: 'p', text: 'PDF (Portable Document Format) was designed to encode the final visual appearance of a document — exactly which elements go where on the page — rather than encoding instructions for a word processor to interpret. This makes it the universal standard for document exchange: the recipient sees what the sender intended regardless of operating system, screen resolution, or available fonts. For job applications, academic submissions, legal filings, and government forms, PDF is either required or strongly preferred. Some Applicant Tracking Systems also parse PDF resumes more reliably than .docx, which is rendered differently by different parser versions.' },
+      { type: 'h2', text: 'Method 1: Microsoft Word Built-In Export (Best Quality)' },
+      { type: 'p', text: "If you have Microsoft Word installed, use File → Export → Create PDF/XPS. This uses Word's full rendering engine to produce a PDF pixel-identical to the Word document. All custom fonts are embedded, complex table structures are preserved, and images are rendered at full resolution. This is the most reliable method for documents with intricate layouts: multi-column resumes, brochures with text boxes, academic papers with precise figure positioning. The only limitation is that you need a Microsoft 365 subscription or a one-time purchase of Office to access it." },
+      { type: 'h2', text: 'Method 2: Google Docs (Free, No Software Required)' },
+      { type: 'p', text: 'Upload your .docx file to Google Drive, open it in Google Docs, then go to File → Download → PDF Document (.pdf). Google Docs re-renders the document using its own engine, which handles most standard formatting well but can shift elements in complex layouts — particularly text boxes, shapes, and custom list styles. For straightforward text documents (essays, cover letters, reports without complex design elements), Google Docs PDF export is reliable and completely free. The main requirement is a Google account, which most users already have.' },
+      { type: 'h2', text: 'Method 3: LibreOffice (Free, Open Source, High Fidelity)' },
+      { type: 'p', text: 'LibreOffice is a free, open-source office suite that produces high-quality PDF exports from .docx files. Open your document in LibreOffice Writer, go to File → Export as PDF, and configure the settings. LibreOffice handles complex Word formatting better than Google Docs because it includes a full document layout engine. The PDF export dialog also offers advanced options including compression settings, watermark addition, and digital signature embedding — making it the best free desktop alternative for power users.' },
+      { type: 'h2', text: 'Method 4: AWE-OS Browser-Based Conversion (No Upload, Instant)' },
+      { type: 'p', text: "AWE-OS Word to PDF converts .docx files directly in your browser using the mammoth.js library, which parses the .docx XML format and generates a structured PDF. No file is uploaded to any server — the entire process runs in your browser's memory. This is the right choice when privacy matters (sensitive documents, CVs, legal paperwork), when you are on a shared computer without Microsoft Office, or when you need a quick conversion without opening another application. The output is clean and well-structured for resumes, cover letters, essays, and reports." },
+      { type: 'h2', text: 'Choosing the Right Method for Your Document Type' },
+      { type: 'ul', items: [
+        'Complex resume with multi-column layout → Microsoft Word export or LibreOffice',
+        'Simple text resume or cover letter → any method, including browser-based',
+        'Academic essay or report → Google Docs or LibreOffice for free desktop quality',
+        'Sensitive business or legal document → AWE-OS browser-based (no server upload)',
+        'Bulk conversion of many documents → LibreOffice command-line (advanced users)',
+        'Document with embedded images or charts → Microsoft Word or LibreOffice for best image handling',
+      ]},
+      { type: 'h2', text: 'What to Do After Converting' },
+      { type: 'p', text: 'Once you have your PDF, open it in a PDF viewer and scroll through every page before sending. Check that fonts render correctly, tables are intact, images appear at the right size, and page breaks fall in sensible places. If the file is large, run it through AWE-OS Compress PDF to reduce the size — this is a lossless process that strips metadata without affecting visual quality. If the document is sensitive, add password protection with AWE-OS Protect PDF before sharing externally.' },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 12. Image Compression Guide 2025
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    id: 12,
+    slug: 'image-compression-guide-2025',
+    title: 'Image Compression Guide 2025: Reduce File Size Without Losing Quality',
+    date: '2025-05-21',
+    category: 'Converters',
+    author: 'AWE-OS Team',
+    readTime: '6 min read',
+    excerpt:
+      'Large images slow websites, fail upload limits, and consume unnecessary storage. Learn how image compression works, which format to use, and how to compress images for free in seconds.',
+    metaTitle: 'Image Compression Guide 2025: Reduce File Size Free | AWE-OS',
+    metaDescription:
+      'Complete image compression guide 2025. Lossy vs lossless, JPEG vs PNG vs WebP, and how to compress images free online — no sign-up, no upload to server.',
+    relatedTools: [
+      { label: 'Image Compressor', slug: 'image-compressor', icon: '🖼️' },
+      { label: 'JPG to PDF',       slug: 'jpg-to-pdf',       icon: '📄' },
+      { label: 'Compress PDF',     slug: 'compress-pdf',     icon: '🗜️' },
+    ],
+    faqs: [
+      { q: 'What is the difference between lossy and lossless compression?', a: 'Lossy compression permanently removes some image data to achieve smaller file sizes — the information discarded is chosen to be minimally perceptible to human vision, but the process is irreversible. JPEG uses lossy compression. Lossless compression reorganises image data more efficiently without discarding anything, so the original can be perfectly restored. PNG uses lossless compression. WebP supports both modes.' },
+      { q: 'How much can I compress a JPEG without visible quality loss?', a: 'For most photographic images, JPEG quality settings between 70% and 85% produce files 50–70% smaller than the original with no visible quality difference to the naked eye. Below 60% quality, compression artefacts (blocky areas, colour banding, smearing around edges) become noticeable. The AWE-OS Image Compressor lets you set the quality level and preview the output before downloading.' },
+      { q: 'Should I use JPEG or PNG for web images?', a: 'Use JPEG for photographs and images with complex colour gradients — it achieves far smaller file sizes. Use PNG for images with sharp edges, text, logos, transparency, or flat colour areas where JPEG artefacts would be visible. WebP is the modern choice for both cases and produces significantly smaller files than either JPEG or PNG at equivalent quality.' },
+      { q: 'Does compressing an image reduce its dimensions?', a: 'Image compression and image resizing are different operations. Compression reduces file size by encoding existing pixel data more efficiently. Resizing changes the number of pixels. The AWE-OS Image Compressor performs compression only — the output image has the same dimensions as the input.' },
+      { q: 'Is it safe to compress images online?', a: 'Browser-based image compression tools that process files locally are completely safe — your images never leave your device. AWE-OS Image Compressor performs all compression in your browser using JavaScript. Cloud-based tools that upload your images to a server introduce privacy risk, particularly for personal photos or proprietary product images.' },
+    ],
+    content: [
+      { type: 'p', text: "A photograph taken on a modern smartphone can be 8–15 MB. A product image exported from Photoshop with the wrong settings can be 20 MB. When those images appear on a website, every additional megabyte adds roughly 250 milliseconds of load time on a typical mobile connection — and Google's Core Web Vitals penalise slow page loads in search rankings. When those images are attached to an email or uploaded to a portal, size limits frequently block them. Image compression is one of the highest-leverage technical tasks for anyone working with digital images: a properly compressed image looks identical to an uncompressed one but loads four times faster and takes a fraction of the storage space." },
+      { type: 'h2', text: 'How Image Compression Works' },
+      { type: 'p', text: 'Digital images are stored as grids of pixels, each with a colour value described by three numbers (red, green, blue). An uncompressed 2000×2000 pixel image contains four million colour values. Compression algorithms find patterns in this data and encode them more efficiently. Lossless compression (PNG) identifies repeated patterns and replaces them with shorter references without losing any data — the original can be perfectly reconstructed. Lossy compression (JPEG) goes further: it discards subtle colour variations that human vision barely detects, achieving much smaller files at the cost of a small, usually invisible reduction in image fidelity.' },
+      { type: 'h2', text: 'Choosing the Right Format: JPEG, PNG, or WebP' },
+      { type: 'p', text: 'JPEG is the best format for photographs and images with complex colour gradients — landscapes, portraits, product photography. Its lossy compression achieves file sizes 5–10× smaller than uncompressed equivalents with minimal visible quality loss at standard settings. PNG is better for graphics, logos, screenshots, and images with transparent backgrounds because its lossless compression preserves sharp edges and flat colour areas without artefacts. WebP, developed by Google, is the modern successor to both: it achieves better compression than JPEG for photos and better compression than PNG for graphics while supporting transparency. All major browsers now support WebP.' },
+      { type: 'h2', text: 'What JPEG Quality Settings Mean in Practice' },
+      { type: 'p', text: 'JPEG quality is typically expressed as a percentage from 1 to 100, where 100 is the highest quality and largest file size. Quality above 85% produces files almost indistinguishable from the original but significantly larger. Quality between 70% and 85% is the sweet spot for most uses: files are 50–70% smaller than the original and the quality difference is not visible on screen. Quality below 60% introduces visible artefacts — blocky areas, colour banding around high-contrast edges, and a "smeary" appearance in detailed areas. For web use, 75–80% is the widely used standard that balances quality and performance.' },
+      { type: 'h2', text: 'Step-by-Step: Compress Images with AWE-OS' },
+      { type: 'ul', items: [
+        'Go to awe-os.com/tools/image-compressor',
+        'Upload your JPG, PNG, or WEBP image by dropping it or clicking to browse',
+        'Adjust the quality slider — the default 80% works well for most images',
+        'The tool shows a real-time preview with before/after file size comparison',
+        'If the result looks good, click Download to save the compressed image',
+        'Process multiple images in sequence — there are no daily usage limits',
+      ]},
+      { type: 'h2', text: 'When Image Compression Matters Most' },
+      { type: 'p', text: "Website performance is the most common reason for image compression. Google's PageSpeed Insights and Core Web Vitals measurements penalise pages with unoptimised images, directly affecting search ranking. For e-commerce sites, product images account for 60–80% of total page weight — compressing them from 2 MB to 200 KB per image can reduce page load time by seconds. For email marketing, most clients cap image sizes and some display broken images above a certain threshold. For social media, platforms compress images on upload anyway — pre-compressing to the platform's recommended dimensions prevents the platform's algorithm from making quality decisions for you." },
+      { type: 'h2', text: 'Before You Compress: A Quick Checklist' },
+      { type: 'ul', items: [
+        'Keep the original uncompressed file — JPEG compression is irreversible',
+        'Check the intended use: web, print, or archival each have different quality requirements',
+        'Choose the right format before compressing: JPEG for photos, PNG for graphics, WebP for modern web',
+        'Set quality at 75–80% for web use unless the image contains very fine detail',
+        'Compare before and after at 100% zoom to check for visible artefacts before publishing',
+      ]},
+    ],
+  },
 ]
 
 export const BLOG_CATEGORIES = ['All', ...new Set(BLOG_POSTS.map(p => p.category))]

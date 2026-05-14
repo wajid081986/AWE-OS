@@ -115,6 +115,26 @@ export default function BlogPostPage() {
             ))}
           </article>
 
+          {/* FAQ section */}
+          {post.faqs && post.faqs.length > 0 && (
+            <div className="bg-white rounded-2xl border border-gray-200 p-8 mb-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+              <div className="space-y-3">
+                {post.faqs.map(({ q, a }, i) => (
+                  <details key={i} className="group border border-gray-200 rounded-xl overflow-hidden">
+                    <summary className="flex items-center justify-between px-5 py-4 cursor-pointer select-none bg-white hover:bg-gray-50 transition-colors">
+                      <span className="text-sm font-medium text-gray-900 pr-4">{q}</span>
+                      <span className="text-gray-400 text-xl shrink-0 group-open:rotate-45 transition-transform duration-200" aria-hidden>+</span>
+                    </summary>
+                    <div className="px-5 pb-4 pt-3 text-sm text-gray-600 leading-relaxed border-t border-gray-100 bg-gray-50">
+                      {a}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Related tools */}
           {post.relatedTools && post.relatedTools.length > 0 && (
             <div className="bg-white rounded-2xl border border-gray-200 p-8">
