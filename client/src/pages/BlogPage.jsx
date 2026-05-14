@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { BLOG_POSTS, BLOG_CATEGORIES } from '../data/blogPosts'
@@ -68,7 +68,7 @@ export default function BlogPage() {
       <Helmet>
         <title>Blog — Free Tools, Productivity Tips & AI Guides | AWE-OS</title>
         <meta name="description" content="Explore guides, tips, and tutorials on AI tools, PDF tools, productivity, career, and more. Free resources from the AWE-OS team." />
-        <link rel="canonical" href="https://awe-os.com/blog" />
+        <link rel="canonical" href="https://www.awe-os.com/blog" />
       </Helmet>
 
       <div className="min-h-screen bg-gray-50">

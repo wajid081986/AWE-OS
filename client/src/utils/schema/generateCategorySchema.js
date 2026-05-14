@@ -1,5 +1,5 @@
-export function generateCategorySchema({ name, description, tools, siteUrl }) {
-  const base = siteUrl || 'https://awe-os.com'
+﻿export function generateCategorySchema({ name, description, tools, siteUrl }) {
+  const base = siteUrl || 'https://www.awe-os.com'
   return {
     '@context':     'https://schema.org',
     '@type':        'ItemList',

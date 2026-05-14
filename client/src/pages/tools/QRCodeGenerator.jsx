@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+﻿import { useState, useRef, useEffect } from 'react'
 import QRCode from 'qrcode'
 import ToolPageShell from './ToolPageShell'
 
@@ -26,7 +26,7 @@ const ABOUT = [
 const EC_LEVELS = ['L', 'M', 'Q', 'H']
 
 export default function QRCodeGenerator() {
-  const [text, setText]           = useState('https://awe-os.com')
+  const [text, setText]           = useState('https://www.awe-os.com')
   const [size, setSize]           = useState(256)
   const [fg, setFg]               = useState('#000000')
   const [bg, setBg]               = useState('#ffffff')

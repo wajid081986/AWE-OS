@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+﻿import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import SearchBar    from '../components/SearchBar'
@@ -47,14 +47,14 @@ export default function Home() {
       <Helmet>
         <title>AWE-OS — Free AI-Powered Tools for Everyone</title>
         <meta name="description"        content="Discover 100+ free AI-powered tools — Resume Builder, PDF Tools, Calculators, Converters and more. Fast, free, and easy to use." />
-        <link rel="canonical"           href="https://awe-os.com/" />
+        <link rel="canonical"           href="https://www.awe-os.com/" />
         <meta property="og:site_name"    content="AWE-OS" />
         <meta property="og:locale"       content="en_US" />
         <meta property="og:title"        content="AWE-OS — Free AI-Powered Tools for Everyone" />
         <meta property="og:description"  content="Discover 100+ free AI-powered tools — Resume Builder, PDF Tools, Calculators, Converters and more. Fast, free, and easy to use." />
-        <meta property="og:url"          content="https://awe-os.com/" />
+        <meta property="og:url"          content="https://www.awe-os.com/" />
         <meta property="og:type"         content="website" />
-        <meta property="og:image"        content="https://awe-os.com/og-image.svg" />
+        <meta property="og:image"        content="https://www.awe-os.com/og-image.svg" />
         <meta property="og:image:width"  content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt"    content="AWE-OS — Free AI-Powered Tools for Everyone" />
@@ -62,7 +62,7 @@ export default function Home() {
         <meta name="twitter:site"        content="@awe_os" />
         <meta name="twitter:title"       content="AWE-OS — Free AI-Powered Tools for Everyone" />
         <meta name="twitter:description" content="Discover 100+ free AI-powered tools — Resume Builder, PDF Tools, Calculators, Converters and more. Fast, free, and easy to use." />
-        <meta name="twitter:image"       content="https://awe-os.com/og-image.svg" />
+        <meta name="twitter:image"       content="https://www.awe-os.com/og-image.svg" />
         <meta name="twitter:image:alt"   content="AWE-OS — Free AI-Powered Tools for Everyone" />
         <script type="application/ld+json">{JSON.stringify(WEBSITE_SCHEMA)}</script>
         <script type="application/ld+json">{JSON.stringify(ORG_SCHEMA)}</script>

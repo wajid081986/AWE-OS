@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Vercel Edge Middleware — Bot-aware prerendering.
  *
  * Three rendering modes:
@@ -28,8 +28,8 @@ const SOCIAL_BOT_UA = /Twitterbot|facebookexternalhit|Slackbot-LinkExpanding|Lin
 // Search engine crawlers: need full pre-rendered HTML with body content
 const SEARCH_BOT_UA = /Googlebot|bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|Sogou|Exabot|facebot|ia_archiver|AhrefsBot|SemrushBot|MJ12bot|DotBot/i;
 
-const SITE_URL = 'https://awe-os.com';
-const OG_IMAGE = 'https://awe-os.com/og-image.svg';
+const SITE_URL = 'https://www.awe-os.com';
+const OG_IMAGE = 'https://www.awe-os.com/og-image.svg';
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
 

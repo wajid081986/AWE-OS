@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ToolPageShell — universal layout wrapper for every dedicated tool page.
  *
  * Provides:
@@ -29,8 +29,8 @@ import {
   getApplicationCategory,
 } from '../../data/toolRegistry'
 
-const SITE_URL  = 'https://awe-os.com'
-const OG_IMAGE  = 'https://awe-os.com/og-image.svg'
+const SITE_URL  = 'https://www.awe-os.com'
+const OG_IMAGE  = 'https://www.awe-os.com/og-image.svg'
 
 // ── Share buttons ─────────────────────────────────────────────────────────────
 function ShareButtons({ url, title }) {

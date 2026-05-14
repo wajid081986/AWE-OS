@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet-async'
+﻿import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 
 function Section({ title, children }) {
@@ -16,14 +16,14 @@ export default function Disclaimer() {
       <Helmet>
         <title>Disclaimer — AWE-OS</title>
         <meta name="description"         content="AWE-OS Disclaimer — important information about tool accuracy, limitations, and the absence of professional financial, medical, or legal advice." />
-        <link rel="canonical"            href="https://awe-os.com/disclaimer" />
+        <link rel="canonical"            href="https://www.awe-os.com/disclaimer" />
         <meta property="og:site_name"    content="AWE-OS" />
         <meta property="og:locale"       content="en_US" />
         <meta property="og:title"        content="Disclaimer — AWE-OS" />
         <meta property="og:description"  content="AWE-OS Disclaimer — important information about tool accuracy, limitations, and the absence of professional financial, medical, or legal advice." />
-        <meta property="og:url"          content="https://awe-os.com/disclaimer" />
+        <meta property="og:url"          content="https://www.awe-os.com/disclaimer" />
         <meta property="og:type"         content="website" />
-        <meta property="og:image"        content="https://awe-os.com/og-image.svg" />
+        <meta property="og:image"        content="https://www.awe-os.com/og-image.svg" />
         <meta property="og:image:width"  content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt"    content="AWE-OS Disclaimer" />
@@ -31,7 +31,7 @@ export default function Disclaimer() {
         <meta name="twitter:site"        content="@awe_os" />
         <meta name="twitter:title"       content="Disclaimer — AWE-OS" />
         <meta name="twitter:description" content="AWE-OS Disclaimer — important information about tool accuracy, limitations, and the absence of professional financial, medical, or legal advice." />
-        <meta name="twitter:image"       content="https://awe-os.com/og-image.svg" />
+        <meta name="twitter:image"       content="https://www.awe-os.com/og-image.svg" />
         <meta name="twitter:image:alt"   content="AWE-OS Disclaimer" />
       </Helmet>
 

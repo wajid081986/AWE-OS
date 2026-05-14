@@ -1,4 +1,4 @@
-export const SITE_URL = 'https://awe-os.com'
+﻿export const SITE_URL = 'https://www.awe-os.com'
 
 export function getCanonicalUrl(path) {
   return SITE_URL + path

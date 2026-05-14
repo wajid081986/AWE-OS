@@ -1,5 +1,5 @@
-export function generateWebsiteSchema({ siteUrl, siteName, searchUrlTemplate } = {}) {
-  const url    = siteUrl || 'https://awe-os.com'
+﻿export function generateWebsiteSchema({ siteUrl, siteName, searchUrlTemplate } = {}) {
+  const url    = siteUrl || 'https://www.awe-os.com'
   const name   = siteName || 'AWE-OS'
   const search = searchUrlTemplate || `${url}/tools?q={search_term_string}`
   return {

@@ -1,11 +1,11 @@
-import {
+﻿import {
   getToolBySlug,
   getCategoryMeta,
   getApplicationCategory,
 } from '../data/toolRegistry'
 import { SITE_URL, getToolCanonical } from '../utils/canonicalUrl'
 
-const OG_IMAGE = 'https://awe-os.com/og-image.svg'
+const OG_IMAGE = 'https://www.awe-os.com/og-image.svg'
 import {
   generateToolSchema,
   generateHowToSchema,

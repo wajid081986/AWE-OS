@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom'
+﻿import { Link, useParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { getBlogPostBySlug } from '../data/blogPosts'
 
@@ -59,7 +59,7 @@ export default function BlogPostPage() {
       <Helmet>
         <title>{post.metaTitle}</title>
         <meta name="description" content={post.metaDescription} />
-        <link rel="canonical" href={`https://awe-os.com/blog/${post.slug}`} />
+        <link rel="canonical" href={`https://www.awe-os.com/blog/${post.slug}`} />
         <meta property="og:title" content={post.metaTitle} />
         <meta property="og:description" content={post.metaDescription} />
         <meta property="og:type" content="article" />

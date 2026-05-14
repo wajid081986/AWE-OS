@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+﻿import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 
 const VALUES = [
@@ -56,14 +56,14 @@ export default function AboutPage() {
       <Helmet>
         <title>About Us — AWE-OS | Free AI-Powered Tools for Everyone</title>
         <meta name="description"         content="Learn about AWE-OS — our mission to make AI-powered tools free and accessible to everyone. PDF tools, calculators, converters and AI writers, all at no cost." />
-        <link rel="canonical"            href="https://awe-os.com/about" />
+        <link rel="canonical"            href="https://www.awe-os.com/about" />
         <meta property="og:site_name"    content="AWE-OS" />
         <meta property="og:locale"       content="en_US" />
         <meta property="og:title"        content="About Us — AWE-OS | Free AI-Powered Tools for Everyone" />
         <meta property="og:description"  content="Learn about AWE-OS — our mission to make AI-powered tools free and accessible to everyone. PDF tools, calculators, converters and AI writers, all at no cost." />
-        <meta property="og:url"          content="https://awe-os.com/about" />
+        <meta property="og:url"          content="https://www.awe-os.com/about" />
         <meta property="og:type"         content="website" />
-        <meta property="og:image"        content="https://awe-os.com/og-image.svg" />
+        <meta property="og:image"        content="https://www.awe-os.com/og-image.svg" />
         <meta property="og:image:width"  content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt"    content="About AWE-OS — Free AI-Powered Tools for Everyone" />
@@ -71,7 +71,7 @@ export default function AboutPage() {
         <meta name="twitter:site"        content="@awe_os" />
         <meta name="twitter:title"       content="About Us — AWE-OS | Free AI-Powered Tools for Everyone" />
         <meta name="twitter:description" content="Learn about AWE-OS — our mission to make AI-powered tools free and accessible to everyone. PDF tools, calculators, converters and AI writers, all at no cost." />
-        <meta name="twitter:image"       content="https://awe-os.com/og-image.svg" />
+        <meta name="twitter:image"       content="https://www.awe-os.com/og-image.svg" />
         <meta name="twitter:image:alt"   content="About AWE-OS — Free AI-Powered Tools for Everyone" />
       </Helmet>
 

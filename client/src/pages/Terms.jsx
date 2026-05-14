@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet-async'
+﻿import { Helmet } from 'react-helmet-async'
 
 function Section({ title, children }) {
   return (
@@ -15,14 +15,14 @@ export default function Terms() {
       <Helmet>
         <title>Terms of Service — AWE-OS</title>
         <meta name="description"         content="AWE-OS Terms of Service — rules for using our platform, your rights, and our responsibilities." />
-        <link rel="canonical"            href="https://awe-os.com/terms" />
+        <link rel="canonical"            href="https://www.awe-os.com/terms" />
         <meta property="og:site_name"    content="AWE-OS" />
         <meta property="og:locale"       content="en_US" />
         <meta property="og:title"        content="Terms of Service — AWE-OS" />
         <meta property="og:description"  content="AWE-OS Terms of Service — rules for using our platform, your rights, and our responsibilities." />
-        <meta property="og:url"          content="https://awe-os.com/terms" />
+        <meta property="og:url"          content="https://www.awe-os.com/terms" />
         <meta property="og:type"         content="website" />
-        <meta property="og:image"        content="https://awe-os.com/og-image.svg" />
+        <meta property="og:image"        content="https://www.awe-os.com/og-image.svg" />
         <meta property="og:image:width"  content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt"    content="AWE-OS Terms of Service" />
@@ -30,7 +30,7 @@ export default function Terms() {
         <meta name="twitter:site"        content="@awe_os" />
         <meta name="twitter:title"       content="Terms of Service — AWE-OS" />
         <meta name="twitter:description" content="AWE-OS Terms of Service — rules for using our platform, your rights, and our responsibilities." />
-        <meta name="twitter:image"       content="https://awe-os.com/og-image.svg" />
+        <meta name="twitter:image"       content="https://www.awe-os.com/og-image.svg" />
         <meta name="twitter:image:alt"   content="AWE-OS Terms of Service" />
       </Helmet>
 
