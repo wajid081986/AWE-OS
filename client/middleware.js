@@ -903,5 +903,19 @@ export default function middleware(req) {
 }
 
 export const config = {
-  matcher: '/((?!_vercel|.*\\.(ico|png|jpg|jpeg|gif|svg|webp|js|css|woff2?|ttf|eot|map|json|xml|txt)).*)',
+  matcher: [
+    '/',
+    '/blog',
+    '/blog/:path*',
+    '/tools',
+    '/tools/:path*',
+    '/about',
+    '/contact',
+    '/privacy-policy',
+    '/privacy',
+    '/terms',
+    '/disclaimer',
+    '/pricing',
+    '/category/:path*',
+  ],
 };
