@@ -54,31 +54,49 @@ export default function BlogPostPage() {
     day: 'numeric', month: 'long', year: 'numeric',
   })
 
-  // Ensure full ISO 8601 with time component — required by Google Rich Results
   const toISO = (d) => (d && !d.includes('T') ? `${d}T00:00:00Z` : d)
 
+  // Extract plain text from content blocks for articleBody / wordCount
+  const plainText = (post.content || [])
+    .map(b => b.text || (b.items || []).join(' '))
+    .join(' ')
+    .trim()
+
+  const OG_IMAGE = {
+    '@type': 'ImageObject',
+    url:     'https://www.awe-os.com/og-image.svg',
+    width:   1200,
+    height:  630,
+  }
+  const postUrl = `https://www.awe-os.com/blog/${post.slug}`
+
   const articleSchema = {
-    '@context':     'https://schema.org',
-    '@type':        'Article',
-    headline:       post.title,
-    description:    post.metaDescription,
-    image:          'https://www.awe-os.com/og-image.svg',
-    datePublished:  toISO(post.date),
-    dateModified:   toISO(post.updatedDate || post.date),
+    '@context':  'https://schema.org',
+    '@type':     'Article',
+    headline:    post.title,
+    description: post.excerpt,
+    image:       OG_IMAGE,
+    datePublished:  new Date(post.date).toISOString(),
+    dateModified:   new Date(post.updatedDate || post.date).toISOString(),
     author: {
       '@type': 'Person',
       name:    post.author,
+      url:     'https://www.awe-os.com/about',
     },
     publisher: {
       '@type': 'Organization',
       name:    'AWE-OS',
       url:     'https://www.awe-os.com',
-      logo: {
-        '@type': 'ImageObject',
-        url:     'https://www.awe-os.com/og-image.svg',
-      },
+      logo:    OG_IMAGE,
     },
-    url: `https://www.awe-os.com/blog/${post.slug}`,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id':   postUrl,
+    },
+    url:         postUrl,
+    inLanguage:  'en-US',
+    articleBody: plainText.slice(0, 500),
+    wordCount:   plainText.split(/\s+/).filter(Boolean).length,
   }
 
   const faqSchema = post.faqs?.length ? {
