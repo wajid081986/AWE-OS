@@ -320,22 +320,38 @@ ${headBlock({
 function blogPostHtml(post, pageUrl) {
   const url = pageUrl || `${SITE_URL}/blog/${post.slug}`;
 
+  // Full ISO 8601 datetime required by Google Rich Results
+  const toISO = (d) => (d && !d.includes('T') ? `${d}T00:00:00Z` : d);
+
+  const ogImageObject = {
+    '@type': 'ImageObject',
+    url:     OG_IMAGE,
+    width:   1200,
+    height:  630,
+  };
+
   const articleSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: post.title,
-    description: post.metaDescription,
+    '@context':    'https://schema.org',
+    '@type':       'Article',
+    headline:      post.title,
+    description:   post.metaDescription,
+    image:         ogImageObject,
     url,
-    datePublished: post.date,
-    dateModified:  post.date,
-    author: { '@type': 'Organization', name: 'AWE-OS Team', url: SITE_URL },
+    datePublished: toISO(post.date),
+    dateModified:  toISO(post.date),
+    author: {
+      '@type': 'Person',
+      name:    post.author,
+      url:     `${SITE_URL}/about`,
+    },
     publisher: {
       '@type': 'Organization',
-      name: 'AWE-OS',
-      url:  SITE_URL,
-      logo: { '@type': 'ImageObject', url: OG_IMAGE },
+      name:    'AWE-OS',
+      url:     SITE_URL,
+      logo:    ogImageObject,
     },
     mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+    inLanguage:       'en-US',
   };
 
   const breadcrumbSchema = {
@@ -350,7 +366,7 @@ function blogPostHtml(post, pageUrl) {
 
   const extraMeta =
     `<meta property="og:type" content="article">\n  ` +
-    `<meta property="article:published_time" content="${esc(post.date)}">\n  ` +
+    `<meta property="article:published_time" content="${esc(toISO(post.date))}">\n  ` +
     `<script type="application/ld+json">${safeJson(articleSchema)}</script>\n  ` +
     `<script type="application/ld+json">${safeJson(breadcrumbSchema)}</script>`;
 
