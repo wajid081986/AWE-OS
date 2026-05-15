@@ -48,7 +48,7 @@ async function getPublicTools(req, res) {
     let query = supabase
       .from('tools')
       .select(PUBLIC_LIST_FIELDS, { count: 'exact' })
-      .eq('is_published', true);
+      .eq('approved', true);
 
     if (category && category !== 'all') {
       query = query.eq('category', category);
@@ -107,7 +107,7 @@ async function getPublicTool(req, res) {
       .from('tools')
       .select(PUBLIC_DETAIL_FIELDS)
       .eq('slug', slug)
-      .eq('is_published', true)
+      .eq('approved', true)
       .maybeSingle();
 
     if (error) throw error;

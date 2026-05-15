@@ -18,8 +18,8 @@ function toRow(body) {
   if (body.price       !== undefined) row.price        = Number(body.price) || 0;
   if (body.is_free     !== undefined) row.is_free      = Boolean(body.is_free);
   if (body.isFree      !== undefined) row.is_free      = Boolean(body.isFree);
-  if (body.is_published !== undefined) row.is_published = Boolean(body.is_published);
-  if (body.isPublished  !== undefined) row.is_published = Boolean(body.isPublished);
+  if (body.approved !== undefined) row.approved = Boolean(body.approved);
+  if (body.isPublished  !== undefined) row.approved = Boolean(body.isPublished);
   if (body.input_fields !== undefined) row.input_fields = body.input_fields;
   if (body.inputFields  !== undefined) row.input_fields = body.inputFields;
   if (body.ai_prompt    !== undefined) row.ai_prompt    = body.ai_prompt;
@@ -32,8 +32,8 @@ router.get('/', async (req, res) => {
   try {
     const { data: tools, error } = await supabase
       .from('tools')
-      .select('id, name, slug, description, input_fields, price, is_free, category, is_published, created_at')
-      .eq('is_published', true)
+      .select('id, name, slug, description, input_fields, price, is_free, category, approved, created_at')
+      .eq('approved', true)
       .order('created_at', { ascending: false });
 
     if (error) throw error;

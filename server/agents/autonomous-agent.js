@@ -427,8 +427,8 @@ async function runAutonomousLoop({ limit = MAX_TOOLS_PER_RUN, triggered_by = 'cr
     // ── Fetch: published (live) first, then unpublished (idea) ──
     const { data: rawTools, error: fetchErr } = await supabase
       .from('tools')
-      .select('id, name, slug, is_published, updated_at, ai_prompt, input_fields, category, description, is_free, price')
-      .order('is_published', { ascending: false })
+      .select('id, name, slug, approved, updated_at, ai_prompt, input_fields, category, description, is_free, price')
+      .order('approved', { ascending: false })
       .order('updated_at',   { ascending: true  })
       .limit(safeLimit);
 
@@ -438,7 +438,7 @@ async function runAutonomousLoop({ limit = MAX_TOOLS_PER_RUN, triggered_by = 'cr
 
     const tools = (rawTools || []).map(t => ({
       ...t,
-      status: t.is_published ? 'live' : 'idea',
+      status: t.approved ? 'live' : 'idea',
     }));
 
     if (tools.length === 0) {

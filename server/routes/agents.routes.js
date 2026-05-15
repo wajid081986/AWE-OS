@@ -21,7 +21,7 @@ router.post('/run', requireAuth, async (req, res) => {
       .from('tools')
       .select('*')
       .eq('slug', toolSlug)
-      .eq('is_published', true)
+      .eq('approved', true)
       .maybeSingle();
 
     if (toolErr) throw toolErr;

@@ -267,8 +267,8 @@ async function evaluateAllSaasTools({ dry_run = false } = {}) {
 
   const { data: tools, error: fetchErr } = await supabase
     .from('tools')
-    .select('id, name, slug, is_published')
-    .eq('is_published', true)
+    .select('id, name, slug, approved')
+    .eq('approved', true)
     .limit(BATCH_LIMIT_MAX);
 
   if (fetchErr) {

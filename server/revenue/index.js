@@ -95,7 +95,7 @@ async function getPredictions() {
     const { data: tools } = await db()
       .from('tools')
       .select('id, slug, name, category, quality_score, usage_count, seo_score, engagement_score, monetization_type, is_free, price')
-      .eq('is_published', true)
+      .eq('approved', true)
       .order('usage_count', { ascending: false })
       .limit(200);
 
@@ -123,7 +123,7 @@ async function getPricing() {
     const { data: tools } = await db()
       .from('tools')
       .select('id, slug, name, category, quality_score, usage_count, is_free, price')
-      .eq('is_published', true)
+      .eq('approved', true)
       .order('quality_score', { ascending: false })
       .limit(200);
 
@@ -158,7 +158,7 @@ async function getOptimization() {
     const { data: tools } = await db()
       .from('tools')
       .select('id, slug, name, category, quality_score, usage_count, is_free, price, monetization_type')
-      .eq('is_published', true)
+      .eq('approved', true)
       .order('usage_count', { ascending: false })
       .limit(200);
 
@@ -195,7 +195,7 @@ async function getForecast() {
     const { data: tools } = await db()
       .from('tools')
       .select('id, category, quality_score, usage_count')
-      .eq('is_published', true)
+      .eq('approved', true)
       .limit(500);
 
     const allTools = tools || [];

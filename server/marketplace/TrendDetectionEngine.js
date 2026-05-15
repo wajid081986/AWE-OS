@@ -86,8 +86,8 @@ async function _buildReport() {
   // ── 1. Published tool distribution ────────────────────────────────────────
   const { data: publishedTools } = await db()
     .from('tools')
-    .select('category, usage_count, quality_score, created_at, is_published')
-    .eq('is_published', true)
+    .select('category, usage_count, quality_score, created_at, approved')
+    .eq('approved', true)
     .order('created_at', { ascending: false })
     .limit(500);
 

@@ -55,12 +55,12 @@ async function detect(prompt, category) {
     const [catResult, globalResult] = await Promise.all([
       db().from('tools')
         .select('id, name, slug, description, category')
-        .eq('is_published', true)
+        .eq('approved', true)
         .eq('category', category)
         .limit(80),
       db().from('tools')
         .select('id, name, slug, description, category', { count: 'exact' })
-        .eq('is_published', true)
+        .eq('approved', true)
         .limit(1),
     ]);
 

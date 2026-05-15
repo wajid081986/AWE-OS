@@ -75,7 +75,7 @@ async function _refreshCache() {
   const { data: topTools } = await db()
     .from('tools')
     .select('id, name, category, quality_score, usage_count, is_free, price, created_at')
-    .eq('is_published', true)
+    .eq('approved', true)
     .order('usage_count', { ascending: false })
     .limit(200);
 

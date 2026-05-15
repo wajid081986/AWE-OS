@@ -70,12 +70,12 @@ async function _buildHealthReport() {
 
   const { data: rawTools } = await db()
     .from('tools')
-    .select('id, category, usage_count, quality_score, is_free, price, is_published, created_at')
+    .select('id, category, usage_count, quality_score, is_free, price, approved, created_at')
     .order('created_at', { ascending: false })
     .limit(500);
 
   const allTools       = rawTools      || [];
-  const publishedTools = allTools.filter(t => t.is_published);
+  const publishedTools = allTools.filter(t => t.approved);
   const totalTools     = publishedTools.length;
 
   if (totalTools === 0) return _emptyReport();

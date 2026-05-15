@@ -190,7 +190,7 @@ app.get('/sitemap.xml', async (req, res) => {
       const { data: calculators } = await supabase
         .from('calculators')
         .select('slug, updated_at')
-        .eq('is_published', true);
+        .eq('approved', true);
 
       calcUrls = (calculators || [])
         .filter(c => c.slug)

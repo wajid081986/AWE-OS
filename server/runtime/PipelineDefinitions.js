@@ -93,7 +93,7 @@ const TOOL_CREATION_PIPELINE = {
             is_free:      config.is_free ?? true,
             input_fields: config.input_fields,
             ai_prompt:    config.ai_prompt,
-            is_published: false,
+            approved: false,
           })
           .select('id, name, slug')
           .single();
@@ -167,7 +167,7 @@ const TOOL_CREATION_PIPELINE = {
     {
       name:         'publish_tool',
       agentName:    'publisher',
-      description:  'Publish the approved tool — set is_published=true and create audit log',
+      description:  'Publish the approved tool — set approved=true and create audit log',
       dependencies: ['human_approval'],
       timeoutMs:    20_000,
       maxRetries:   3,
@@ -179,7 +179,7 @@ const TOOL_CREATION_PIPELINE = {
 
         const { error } = await supabase
           .from('tools')
-          .update({ is_published: true })
+          .update({ approved: true })
           .eq('id', toolId);
 
         if (error) throw new Error(`publish_tool: DB update failed — ${error.message}`);
@@ -284,7 +284,7 @@ const TOOL_RECOVERY_PIPELINE = {
 
         const { error } = await supabase
           .from('tools')
-          .update({ is_published: true })
+          .update({ approved: true })
           .eq('id', toolId);
 
         if (error) throw new Error(`republish_tool: DB update failed — ${error.message}`);

@@ -146,7 +146,7 @@ const runFactory = async (jobId, category, idea, userId) => {
         is_free:      toolConfig.is_free ?? true,
         input_fields: toolConfig.input_fields,
         ai_prompt:    toolConfig.ai_prompt,
-        is_published: false,
+        approved: false,
       })
       .select()
       .single();

@@ -47,7 +47,7 @@ router.get('/', async (req, res) => {
     const { data, error } = await supabase
       .from('digital_products')
       .select('id, name, description, category, price, preview_url, thumbnail_url, created_at')
-      .eq('is_published', true)
+      .eq('approved', true)
       .order('created_at', { ascending: false })
     if (error) throw error
     res.json({ products: data })
@@ -93,7 +93,7 @@ router.post('/', requireAuth, requireAdmin, upload.single('file'), async (req, r
         file_key:    fileKey,
         preview_url:   preview_url   || null,
         thumbnail_url: thumbnail_url || null,
-        is_published: false,
+        approved: false,
       })
       .select()
       .single()
@@ -108,7 +108,7 @@ router.post('/', requireAuth, requireAdmin, upload.single('file'), async (req, r
 // ── Admin: update product ───────────────────────────────────────
 router.put('/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
-    const { name, description, category, price, preview_url, thumbnail_url, is_published } = req.body
+    const { name, description, category, price, preview_url, thumbnail_url, approved } = req.body
     const updates = {}
     if (name          !== undefined) updates.name          = name
     if (description   !== undefined) updates.description   = description
@@ -116,7 +116,7 @@ router.put('/:id', requireAuth, requireAdmin, async (req, res) => {
     if (price         !== undefined) updates.price         = parseFloat(price)
     if (preview_url   !== undefined) updates.preview_url   = preview_url
     if (thumbnail_url !== undefined) updates.thumbnail_url = thumbnail_url
-    if (is_published  !== undefined) updates.is_published  = is_published
+    if (approved  !== undefined) updates.approved  = approved
 
     const { data, error } = await supabase
       .from('digital_products')
@@ -211,11 +211,11 @@ router.post('/purchase', requireAuth, async (req, res) => {
 
     const { data: product, error } = await supabase
       .from('digital_products')
-      .select('id, name, price, is_published')
+      .select('id, name, price, approved')
       .eq('id', productId)
       .single()
     if (error || !product) return res.status(404).json({ error: 'Product not found' })
-    if (!product.is_published) return res.status(400).json({ error: 'Product not available' })
+    if (!product.approved) return res.status(400).json({ error: 'Product not available' })
 
     // Check not already purchased
     const { data: existing } = await supabase

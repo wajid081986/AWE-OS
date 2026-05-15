@@ -48,7 +48,7 @@ async function fetchSaasTool(saasToolId) {
 
   const { data, error } = await supabase
     .from('tools')
-    .select('id, name, slug, description, input_fields, ai_prompt, category, price, is_free, is_published')
+    .select('id, name, slug, description, input_fields, ai_prompt, category, price, is_free, approved')
     .eq('id', saasToolId)
     .maybeSingle();
 
@@ -86,13 +86,13 @@ async function createSaasToolForPipelineTool(tool) {
     is_free: generated.is_free ?? true,
     input_fields: Array.isArray(generated.input_fields) ? generated.input_fields : [],
     ai_prompt: generated.ai_prompt || '',
-    is_published: false,
+    approved: false,
   };
 
   const { data, error } = await supabase
     .from('tools')
     .insert(row)
-    .select('id, name, slug, description, input_fields, ai_prompt, category, price, is_free, is_published')
+    .select('id, name, slug, description, input_fields, ai_prompt, category, price, is_free, approved')
     .single();
 
   if (error) throw new Error(`failed to create tools row: ${error.message}`);
@@ -154,7 +154,7 @@ async function publishLinkedTool(pipelineTool, saasTool, qualityScore) {
     .update({
       quality_score: qualityScore,
       approval_status: 'auto_live',
-      is_published: true,
+      approved: true,
     })
     .eq('id', saasTool.id);
 
@@ -184,7 +184,7 @@ async function updateNonLiveDecision(pipelineTool, saasTool, decision, qualitySc
       .update({
         quality_score: qualityScore,
         approval_status: approvalStatus,
-        is_published: false,
+        approved: false,
       })
       .eq('id', saasTool.id);
 
