@@ -40,7 +40,7 @@ export default function ToolRenderer({ tool, onUnlock }) {
     setResult('')
 
     try {
-      const res = await api.post('/api/agents/run', { toolSlug: tool.slug, inputs })
+      const res = await api.post(`/api/tools/${tool.slug}/run`, inputs)
       setResult(res.data.result)
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to generate. Please try again.')

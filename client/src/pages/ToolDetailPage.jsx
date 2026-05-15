@@ -82,42 +82,86 @@ function EmbedCode({ url, name }) {
 }
 
 function ToolInterface({ tool }) {
-  const [input, setInput]   = useState('')
+  const inputFields = Array.isArray(tool.input_fields) ? tool.input_fields : []
+  const [inputs, setInputs] = useState({})
   const [output, setOutput] = useState('')
   const [busy, setBusy]     = useState(false)
+  const [error, setError]   = useState('')
+
+  const handleChange = (name, value) => setInputs(prev => ({ ...prev, [name]: value }))
 
   const run = async () => {
-    if (!input.trim()) return
+    setError('')
+    const missing = inputFields.filter(f => f.required && !String(inputs[f.name] ?? '').trim())
+    if (missing.length) {
+      setError(`Required: ${missing.map(f => f.label).join(', ')}`)
+      return
+    }
     setBusy(true)
+    setOutput('')
     try {
-      const res = await api.post(`/api/tools/${tool.slug}/run`, { input })
-      setOutput(res.data?.result || res.data?.output || 'Done!')
-    } catch {
-      setOutput('This tool requires an account. Please log in to continue.')
+      const res = await api.post(`/api/tools/${tool.slug}/run`, inputs)
+      setOutput(res.data?.result || 'Done!')
+    } catch (err) {
+      setError(err.response?.data?.error || 'Something went wrong. Please try again.')
     } finally {
       setBusy(false)
     }
   }
 
+  const fieldClass = "w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Input</label>
-        <textarea
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          placeholder={`Enter your input for ${tool.name}…`}
-          rows={5}
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
-        />
-      </div>
+      {inputFields.length === 0 ? (
+        <p className="text-sm text-gray-500">This tool has no configurable inputs.</p>
+      ) : inputFields.map(field => (
+        <div key={field.name}>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            {field.label}
+            {field.required && <span className="text-red-500 ml-1">*</span>}
+          </label>
+          {field.type === 'textarea' ? (
+            <textarea
+              value={inputs[field.name] ?? ''}
+              onChange={e => handleChange(field.name, e.target.value)}
+              placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}…`}
+              rows={4}
+              className={`${fieldClass} resize-y`}
+            />
+          ) : field.type === 'select' ? (
+            <select
+              value={inputs[field.name] ?? ''}
+              onChange={e => handleChange(field.name, e.target.value)}
+              className={fieldClass}
+            >
+              <option value="">Select {field.label}</option>
+              {(field.options ?? []).map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          ) : (
+            <input
+              type={field.type || 'text'}
+              value={inputs[field.name] ?? ''}
+              onChange={e => handleChange(field.name, e.target.value)}
+              placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}…`}
+              className={fieldClass}
+            />
+          )}
+        </div>
+      ))}
+
+      {error && <p className="text-sm text-red-600">{error}</p>}
+
       <button
         onClick={run}
-        disabled={busy || !input.trim()}
+        disabled={busy}
         className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors"
       >
         {busy ? 'Processing…' : `Run ${tool.name}`}
       </button>
+
       {output && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Result</label>
@@ -140,22 +184,26 @@ const FAQS = (toolName) => [
 
 export default function ToolDetailPage() {
   const { slug }            = useParams()
-  const [tool, setTool]     = useState(null)
+  const [tool, setTool]       = useState(null)
   const [related, setRelated] = useState([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(null)
 
   useEffect(() => {
     window.scrollTo(0, 0)
+    setFetchError(null)
 
     api.get(`/api/tools/public/${slug}`)
       .then(r => {
         const t = r.data?.data || r.data?.tool
         if (t) { setTool(t); return }
-        throw new Error('not found')
+        throw new Error('Tool not found')
       })
-      .catch(() => {
-        const t = MOCK_TOOLS.find(m => m.slug === slug) || null
-        setTool(t)
+      .catch(err => {
+        const message = err.response?.data?.error || err.message || 'Failed to load tool'
+        console.error('[ToolDetailPage] fetch failed:', message, err)
+        setFetchError(message)
+        setTool(null)
       })
       .finally(() => setLoading(false))
 
@@ -185,7 +233,9 @@ export default function ToolDetailPage() {
         <div className="max-w-xl mx-auto px-4 py-24 text-center">
           <p className="text-6xl mb-4">🔍</p>
           <h1 className="text-2xl font-bold text-gray-900 mb-3">Tool Not Found</h1>
-          <p className="text-gray-500 mb-6">This tool doesn&apos;t exist or may have moved.</p>
+          <p className="text-gray-500 mb-6">
+            {fetchError || "This tool doesn't exist or may have moved."}
+          </p>
           <Link to="/tools" className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">
             Browse All Tools →
           </Link>

@@ -4,7 +4,7 @@ const supabase = require('../db/supabase');
 
 // List endpoint: lean fields only — ai_prompt and input_fields are excluded
 // to reduce payload size for paginated browse (they're only needed on the detail page).
-const PUBLIC_LIST_FIELDS   = 'id, name, slug, category, description, is_free, price, quality_score, usage_count, icon, created_at';
+const PUBLIC_LIST_FIELDS   = 'id, name, slug, category, description, is_free, price, quality_score, usage_count, idea_metadata, created_at';
 const PUBLIC_DETAIL_FIELDS = PUBLIC_LIST_FIELDS + ', ai_prompt, input_fields';
 
 function normaliseLite(row) {
@@ -14,7 +14,7 @@ function normaliseLite(row) {
     slug:        row.slug,
     category:    row.category,
     description: row.description,
-    icon:        row.icon          || null,
+    icon:        row.idea_metadata?.icon || null,
     usageCount:  row.usage_count   || 0,
     isFeatured:  row.quality_score >= 80,
     isNew:       row.created_at

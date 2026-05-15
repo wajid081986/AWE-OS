@@ -103,10 +103,10 @@ function ToolPreviewCard({ tool, onPublish, onEdit, onReset, publishing }) {
       <div className="flex flex-col gap-2">
         <button
           onClick={onPublish}
-          disabled={publishing || tool.is_published}
+          disabled={publishing || tool.approved}
           className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm"
         >
-          {publishing ? 'Publishing…' : tool.is_published ? 'Already Published' : 'Publish Tool →'}
+          {publishing ? 'Publishing…' : tool.approved ? 'Already Published' : 'Publish Tool →'}
         </button>
         <button
           onClick={onEdit}
@@ -271,8 +271,8 @@ export default function AIFactoryPage() {
     if (!generatedTool) return
     setPublishing(true)
     try {
-      await api.put(`/api/tools/${generatedTool.id}`, { is_published: true })
-      setGeneratedTool(t => ({ ...t, is_published: true }))
+      await api.put(`/api/tools/${generatedTool.id}`, { approved: true })
+      setGeneratedTool(t => ({ ...t, approved: true }))
       loadJobs()
     } catch {
       setGenError('Publish failed')
@@ -283,7 +283,7 @@ export default function AIFactoryPage() {
 
   const handleJobPublish = async (toolId) => {
     try {
-      await api.put(`/api/tools/${toolId}`, { is_published: true })
+      await api.put(`/api/tools/${toolId}`, { approved: true })
       loadJobs()
     } catch {}
   }
@@ -555,7 +555,7 @@ export default function AIFactoryPage() {
                             >
                               View
                             </a>
-                            {!job.saas_tools.is_published && (
+                            {!job.saas_tools.approved && (
                               <button
                                 onClick={() => handleJobPublish(job.saas_tools.id)}
                                 className="text-xs text-green-400 hover:text-green-300 transition-colors"
@@ -563,7 +563,7 @@ export default function AIFactoryPage() {
                                 Publish
                               </button>
                             )}
-                            {job.saas_tools.is_published && (
+                            {job.saas_tools.approved && (
                               <span className="text-xs text-green-500">Live</span>
                             )}
                           </>

@@ -107,6 +107,58 @@ router.post('/', requireAuth, requireAdmin, async (req, res) => {
 router.get('/public',      getPublicTools);
 router.get('/public/:slug', getPublicTool);
 
+// ── POST /api/tools/:slug/run — execute a tool (public) ──────────────────
+// MUST be before /:slugOrId wildcard
+router.post('/:slug/run', async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const { data: tool, error: fetchError } = await supabase
+      .from('tools')
+      .select('id, name, slug, ai_prompt, input_fields, approved, usage_count')
+      .eq('slug', slug)
+      .eq('approved', true)
+      .maybeSingle();
+
+    if (fetchError) throw fetchError;
+    if (!tool) return res.status(404).json({ success: false, error: 'Tool not found' });
+
+    const fields = Array.isArray(tool.input_fields) ? tool.input_fields : [];
+    const missing = fields
+      .filter(f => f.required && !req.body[f.name]?.toString().trim())
+      .map(f => f.name);
+
+    if (missing.length) {
+      return res.status(400).json({ success: false, error: `Missing required fields: ${missing.join(', ')}` });
+    }
+
+    let prompt = tool.ai_prompt || '';
+    for (const field of fields) {
+      if (req.body[field.name] !== undefined) {
+        prompt = prompt.replaceAll(`{{${field.name}}}`, req.body[field.name]);
+      }
+    }
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const result = completion.choices[0]?.message?.content?.trim();
+    if (!result) throw new Error('Empty response from AI');
+
+    supabase
+      .from('tools')
+      .update({ usage_count: (tool.usage_count ?? 0) + 1, last_used_at: new Date().toISOString() })
+      .eq('id', tool.id)
+      .then(({ error }) => { if (error) console.error('usage update failed:', error.message); });
+
+    res.json({ success: true, result, tool: { id: tool.id, name: tool.name, slug: tool.slug } });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ── GET /api/tools/:slugOrId — single tool ────────────────────────────────
 router.get('/:slugOrId', async (req, res) => {
   try {
