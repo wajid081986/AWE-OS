@@ -10,9 +10,10 @@ import { generateToolSchema, generateBreadcrumbSchema } from '../utils/schema'
 
 function ShareButtons({ url, title }) {
   const [copied, setCopied] = useState(false)
-  const enc  = encodeURIComponent
+  const enc   = encodeURIComponent
   const tweet = `https://twitter.com/intent/tweet?text=${enc(title)}&url=${enc(url)}`
   const wa    = `https://wa.me/?text=${enc(title + ' ' + url)}`
+  const li    = `https://www.linkedin.com/sharing/share-offsite/?url=${enc(url)}`
 
   const copyLink = () => {
     navigator.clipboard.writeText(url)
@@ -21,23 +22,60 @@ function ShareButtons({ url, title }) {
   }
 
   return (
-    <div className="flex gap-2 flex-wrap">
-      <p className="text-sm font-medium text-gray-700 w-full">Share this tool</p>
-      <a href={tweet} target="_blank" rel="noopener noreferrer"
-        aria-label="Share on Twitter"
-        className="flex-1 text-center text-xs bg-sky-500 hover:bg-sky-600 text-white py-2 rounded-lg font-medium transition-colors">
-        Twitter
-      </a>
-      <a href={wa} target="_blank" rel="noopener noreferrer"
-        aria-label="Share on WhatsApp"
-        className="flex-1 text-center text-xs bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-medium transition-colors">
-        WhatsApp
-      </a>
+    <div className="space-y-2">
+      <p className="text-sm font-medium text-gray-700">Share this tool</p>
+      <div className="grid grid-cols-2 gap-2">
+        <a href={tweet} target="_blank" rel="noopener noreferrer"
+          aria-label="Share on Twitter"
+          className="text-center text-xs bg-sky-500 hover:bg-sky-600 text-white py-2 rounded-lg font-medium transition-colors">
+          Twitter / X
+        </a>
+        <a href={wa} target="_blank" rel="noopener noreferrer"
+          aria-label="Share on WhatsApp"
+          className="text-center text-xs bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-medium transition-colors">
+          WhatsApp
+        </a>
+        <a href={li} target="_blank" rel="noopener noreferrer"
+          aria-label="Share on LinkedIn"
+          className="text-center text-xs bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg font-medium transition-colors">
+          LinkedIn
+        </a>
+        <button
+          onClick={copyLink}
+          aria-label={copied ? 'Link copied!' : 'Copy link to clipboard'}
+          className="text-center text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg font-medium transition-colors">
+          {copied ? '✓ Copied!' : 'Copy Link'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function EmbedCode({ url, name }) {
+  const [copied, setCopied] = useState(false)
+  const code =
+    `<iframe src="${url}" width="100%" height="600" style="border:none;border-radius:8px;" loading="lazy" title="${name} — AWE-OS Free Tool"></iframe>\n` +
+    `<p style="text-align:center;margin-top:8px;font-size:13px;color:#6b7280;">` +
+    `Free tool by <a href="https://www.awe-os.com" target="_blank" rel="noopener">AWE-OS</a></p>`
+
+  const copy = () => {
+    try { navigator.clipboard.writeText(code) } catch {}
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-semibold text-gray-700">Embed This Tool</p>
+      <p className="text-xs text-gray-500">Add this free tool to your website.</p>
+      <pre className="text-[11px] bg-gray-50 border border-gray-200 rounded-lg p-2.5 overflow-x-auto whitespace-pre-wrap break-all text-gray-600 max-h-20 leading-relaxed">
+        {code}
+      </pre>
       <button
-        onClick={copyLink}
-        aria-label={copied ? 'Link copied!' : 'Copy link to clipboard'}
-        className="flex-1 text-center text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg font-medium transition-colors">
-        {copied ? 'Copied!' : 'Copy Link'}
+        onClick={copy}
+        className="w-full text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg font-medium transition-colors"
+      >
+        {copied ? '✓ Copied!' : 'Copy Embed Code'}
       </button>
     </div>
   )
@@ -305,6 +343,11 @@ export default function ToolDetailPage() {
               {/* Share */}
               <div className="bg-white border border-gray-200 rounded-xl p-4 mt-4">
                 <ShareButtons url={pageUrl} title={`Check out ${tool.name} — free online tool`} />
+              </div>
+
+              {/* Embed */}
+              <div className="bg-white border border-gray-200 rounded-xl p-4 mt-4">
+                <EmbedCode url={pageUrl} name={tool.name} />
               </div>
 
               {/* Related tools */}

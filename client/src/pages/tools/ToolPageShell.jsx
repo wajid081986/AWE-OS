@@ -18,7 +18,7 @@
  *   </ToolPageShell>
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link }                from 'react-router-dom'
 import { Helmet }              from 'react-helmet-async'
 import AdBanner                from '../../components/AdBanner'
@@ -34,33 +34,76 @@ const OG_IMAGE  = 'https://www.awe-os.com/og-image.svg'
 
 // ── Share buttons ─────────────────────────────────────────────────────────────
 function ShareButtons({ url, title }) {
-  const enc  = encodeURIComponent
-  const copy = () => { try { navigator.clipboard.writeText(url) } catch {} }
+  const [copied, setCopied] = useState(false)
+  const enc = encodeURIComponent
+  const copy = useCallback(() => {
+    try { navigator.clipboard.writeText(url) } catch {}
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }, [url])
   return (
     <div className="space-y-2">
       <p className="text-sm font-semibold text-gray-700">Share this tool</p>
-      <div className="flex gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <a
           href={`https://twitter.com/intent/tweet?text=${enc(title)}&url=${enc(url)}`}
           target="_blank" rel="noopener noreferrer"
-          className="flex-1 text-center text-xs bg-sky-500 hover:bg-sky-600 text-white py-2 rounded-lg font-medium transition-colors"
+          className="text-center text-xs bg-sky-500 hover:bg-sky-600 text-white py-2 rounded-lg font-medium transition-colors"
         >
-          Twitter
+          Twitter / X
         </a>
         <a
           href={`https://wa.me/?text=${enc(title + ' ' + url)}`}
           target="_blank" rel="noopener noreferrer"
-          className="flex-1 text-center text-xs bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-medium transition-colors"
+          className="text-center text-xs bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-medium transition-colors"
         >
           WhatsApp
         </a>
+        <a
+          href={`https://www.linkedin.com/sharing/share-offsite/?url=${enc(url)}`}
+          target="_blank" rel="noopener noreferrer"
+          className="text-center text-xs bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg font-medium transition-colors"
+        >
+          LinkedIn
+        </a>
         <button
           onClick={copy}
-          className="flex-1 text-center text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg font-medium transition-colors"
+          className="text-center text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg font-medium transition-colors"
         >
-          Copy Link
+          {copied ? '✓ Copied!' : 'Copy Link'}
         </button>
       </div>
+    </div>
+  )
+}
+
+// ── Embed code ────────────────────────────────────────────────────────────────
+function EmbedCode({ url, name }) {
+  const [copied, setCopied] = useState(false)
+  const code =
+    `<iframe src="${url}" width="100%" height="600" style="border:none;border-radius:8px;" loading="lazy" title="${name} — AWE-OS Free Tool"></iframe>\n` +
+    `<p style="text-align:center;margin-top:8px;font-size:13px;color:#6b7280;">` +
+    `Free tool by <a href="https://www.awe-os.com" target="_blank" rel="noopener">AWE-OS</a></p>`
+
+  const copy = useCallback(() => {
+    try { navigator.clipboard.writeText(code) } catch {}
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }, [code])
+
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-semibold text-gray-700">Embed This Tool</p>
+      <p className="text-xs text-gray-500">Add this free tool to your website.</p>
+      <pre className="text-[11px] bg-gray-50 border border-gray-200 rounded-lg p-2.5 overflow-x-auto whitespace-pre-wrap break-all text-gray-600 max-h-20 leading-relaxed">
+        {code}
+      </pre>
+      <button
+        onClick={copy}
+        className="w-full text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg font-medium transition-colors"
+      >
+        {copied ? '✓ Copied!' : 'Copy Embed Code'}
+      </button>
     </div>
   )
 }
@@ -318,6 +361,11 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
               {/* Share */}
               <div className="bg-white border border-gray-200 rounded-xl p-4">
                 <ShareButtons url={pageUrl} title={`Free ${name} — use it on AWE-OS`} />
+              </div>
+
+              {/* Embed */}
+              <div className="bg-white border border-gray-200 rounded-xl p-4">
+                <EmbedCode url={pageUrl} name={name} />
               </div>
 
               {/* Related tools */}

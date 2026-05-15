@@ -34,6 +34,7 @@ const PrivacyPolicy  = lazy(() => import('../pages/PrivacyPolicy'))
 const Terms          = lazy(() => import('../pages/Terms'))
 const Disclaimer     = lazy(() => import('../pages/Disclaimer'))
 const ContactPage    = lazy(() => import('../pages/ContactPage'))
+const FreeToolsPage  = lazy(() => import('../pages/FreeToolsPage'))
 const BlogPage       = lazy(() => import('../pages/BlogPage'))
 const BlogPostPage   = lazy(() => import('../pages/BlogPostPage'))
 const NotFoundPage   = lazy(() => import('../pages/NotFoundPage'))
@@ -120,6 +121,9 @@ export default function AppRoutes() {
 
         {/* Tools directory */}
         <Route path="/tools" element={lazy$(<ToolsPage />)} />
+
+        {/* Static tool sub-pages — must be before /tools/:slug */}
+        <Route path="/tools/free"        element={lazy$(<FreeToolsPage />)} />
 
         {/* Category landing pages — must be before /tools/:slug */}
         <Route path="/tools/pdf"         element={lazy$(<CategoryPage category="pdf" />)} />
