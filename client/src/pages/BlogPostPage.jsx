@@ -54,13 +54,17 @@ export default function BlogPostPage() {
     day: 'numeric', month: 'long', year: 'numeric',
   })
 
+  // Ensure full ISO 8601 with time component — required by Google Rich Results
+  const toISO = (d) => (d && !d.includes('T') ? `${d}T00:00:00Z` : d)
+
   const articleSchema = {
     '@context':     'https://schema.org',
     '@type':        'Article',
     headline:       post.title,
     description:    post.metaDescription,
-    datePublished:  post.date,
-    dateModified:   post.updatedDate || post.date,
+    image:          'https://www.awe-os.com/og-image.svg',
+    datePublished:  toISO(post.date),
+    dateModified:   toISO(post.updatedDate || post.date),
     author: {
       '@type': 'Person',
       name:    post.author,
@@ -69,6 +73,10 @@ export default function BlogPostPage() {
       '@type': 'Organization',
       name:    'AWE-OS',
       url:     'https://www.awe-os.com',
+      logo: {
+        '@type': 'ImageObject',
+        url:     'https://www.awe-os.com/og-image.svg',
+      },
     },
     url: `https://www.awe-os.com/blog/${post.slug}`,
   }
@@ -92,7 +100,7 @@ export default function BlogPostPage() {
         <meta property="og:title" content={post.metaTitle} />
         <meta property="og:description" content={post.metaDescription} />
         <meta property="og:type" content="article" />
-        <meta property="article:published_time" content={post.date} />
+        <meta property="article:published_time" content={toISO(post.date)} />
         <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
         {faqSchema && <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>}
       </Helmet>

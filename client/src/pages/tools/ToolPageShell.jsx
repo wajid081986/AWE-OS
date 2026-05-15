@@ -141,6 +141,7 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
     applicationCategory: appCategory,
     operatingSystem:     'Web Browser',
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    author: { '@type': 'Organization', name: 'AWE-OS', url: SITE_URL },
     ...(toolMeta?.tags?.length && { keywords: toolMeta.tags.join(', ') }),
   }
 
