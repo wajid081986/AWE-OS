@@ -2,6 +2,9 @@ User-agent: *
 Allow: /
 Allow: /tools/
 Allow: /tools/*
+Allow: /tools/free
+Allow: /blog
+Allow: /blog/*
 Allow: /about
 Allow: /contact
 Allow: /pricing
@@ -18,4 +21,4 @@ Disallow: /tools/test-ai-tool
 
 Crawl-delay: 1
 
-Sitemap: https://awe-os.com/sitemap.xml
+Sitemap: https://www.awe-os.com/sitemap.xml
