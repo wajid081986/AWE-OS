@@ -54,6 +54,35 @@ export default function BlogPostPage() {
     day: 'numeric', month: 'long', year: 'numeric',
   })
 
+  const articleSchema = {
+    '@context':     'https://schema.org',
+    '@type':        'Article',
+    headline:       post.title,
+    description:    post.metaDescription,
+    datePublished:  post.date,
+    dateModified:   post.updatedDate || post.date,
+    author: {
+      '@type': 'Person',
+      name:    post.author,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name:    'AWE-OS',
+      url:     'https://www.awe-os.com',
+    },
+    url: `https://www.awe-os.com/blog/${post.slug}`,
+  }
+
+  const faqSchema = post.faqs?.length ? {
+    '@context': 'https://schema.org',
+    '@type':    'FAQPage',
+    mainEntity: post.faqs.map(({ q, a }) => ({
+      '@type':        'Question',
+      name:           q,
+      acceptedAnswer: { '@type': 'Answer', text: a },
+    })),
+  } : null
+
   return (
     <>
       <Helmet>
@@ -64,6 +93,8 @@ export default function BlogPostPage() {
         <meta property="og:description" content={post.metaDescription} />
         <meta property="og:type" content="article" />
         <meta property="article:published_time" content={post.date} />
+        <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
+        {faqSchema && <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>}
       </Helmet>
 
       <div className="min-h-screen bg-gray-50">

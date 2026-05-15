@@ -4,7 +4,7 @@
     '@type':      'Organization',
     name:          name || 'AWE-OS',
     url:           siteUrl || 'https://www.awe-os.com',
-    description:   description || 'Free AI-powered online tools for everyone.',
+    description:   description || 'Free AI-powered tools for everyone',
     sameAs:        [],
   }
 }

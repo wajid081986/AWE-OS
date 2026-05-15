@@ -96,7 +96,7 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
     description,
     url:                 pageUrl,
     applicationCategory: appCategory,
-    operatingSystem:     'Web',
+    operatingSystem:     'Web Browser',
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
     ...(toolMeta?.tags?.length && { keywords: toolMeta.tags.join(', ') }),
   }
