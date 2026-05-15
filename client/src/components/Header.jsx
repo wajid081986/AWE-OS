@@ -211,6 +211,12 @@ export default function Header() {
               All Tools
             </Link>
             <Link
+              to="/tools/free"
+              className="px-3 py-2 rounded-lg text-sm font-medium text-green-700 hover:text-green-800 hover:bg-green-50 transition-colors whitespace-nowrap"
+            >
+              Free Tools
+            </Link>
+            <Link
               to="/blog"
               className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors whitespace-nowrap"
             >
@@ -342,6 +348,15 @@ export default function Header() {
             >
               <span>🔧 All Tools</span>
               <span className="text-gray-400 text-xs">Browse all →</span>
+            </Link>
+
+            <Link
+              to="/tools/free"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center justify-between py-4 text-sm font-semibold text-green-700 border-b border-gray-100"
+            >
+              <span>✅ Free Tools</span>
+              <span className="text-gray-400 text-xs">No sign up →</span>
             </Link>
 
             <Link
