@@ -254,7 +254,7 @@ async function evaluateAllTools({ dry_run = false, limit = BATCH_LIMIT_MAX } = {
 }
 
 /**
- * Batch-evaluate all published saas_tools using tool_usage_events + revenue_logs.
+ * Batch-evaluate all published tools using tool_usage_events + revenue_logs.
  * Called by decision.cron.js every 24 hours.
  * Does NOT use the 'tools' internal pipeline table.
  *
@@ -266,14 +266,14 @@ async function evaluateAllSaasTools({ dry_run = false } = {}) {
   const executed_at = new Date().toISOString();
 
   const { data: tools, error: fetchErr } = await supabase
-    .from('saas_tools')
+    .from('tools')
     .select('id, name, slug, is_published')
     .eq('is_published', true)
     .limit(BATCH_LIMIT_MAX);
 
   if (fetchErr) {
     console.error('[DECISION ENGINE] evaluateAllSaasTools fetch failed:', fetchErr.message);
-    const err = new Error('Failed to fetch saas_tools for evaluation');
+    const err = new Error('Failed to fetch tools for evaluation');
     err.status = 500; err.code = 'EVALUATION_FAILED'; throw err;
   }
 
@@ -327,7 +327,7 @@ async function evaluateAllSaasTools({ dry_run = false } = {}) {
   }
 
   console.log(
-    `[DECISION ENGINE] saas_tools batch complete | evaluated=${results.length} | ` +
+    `[DECISION ENGINE] tools batch complete | evaluated=${results.length} | ` +
     `scale=${summary.scale} kill=${summary.kill} improve=${summary.improve} observe=${summary.observe}` +
     (dry_run ? ' [DRY RUN]' : '')
   );

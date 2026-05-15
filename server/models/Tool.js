@@ -1,2 +1,2 @@
-// Removed in Phase 3 correction — tool data lives in Supabase table 'saas_tools'.
+// Removed in Phase 3 correction — tool data lives in Supabase table 'tools'.
 // Safe to delete this file.

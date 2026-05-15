@@ -16,9 +16,9 @@ router.post('/run', requireAuth, async (req, res) => {
   }
 
   try {
-    // Fetch tool from saas_tools
+    // Fetch tool from tools
     const { data: tool, error: toolErr } = await supabase
-      .from('saas_tools')
+      .from('tools')
       .select('*')
       .eq('slug', toolSlug)
       .eq('is_published', true)

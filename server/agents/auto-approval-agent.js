@@ -47,12 +47,12 @@ async function fetchSaasTool(saasToolId) {
   if (!saasToolId) return null;
 
   const { data, error } = await supabase
-    .from('saas_tools')
+    .from('tools')
     .select('id, name, slug, description, input_fields, ai_prompt, category, price, is_free, is_published')
     .eq('id', saasToolId)
     .maybeSingle();
 
-  if (error) throw new Error(`saas_tools lookup failed: ${error.message}`);
+  if (error) throw new Error(`tools lookup failed: ${error.message}`);
   return data || null;
 }
 
@@ -90,12 +90,12 @@ async function createSaasToolForPipelineTool(tool) {
   };
 
   const { data, error } = await supabase
-    .from('saas_tools')
+    .from('tools')
     .insert(row)
     .select('id, name, slug, description, input_fields, ai_prompt, category, price, is_free, is_published')
     .single();
 
-  if (error) throw new Error(`failed to create saas_tools row: ${error.message}`);
+  if (error) throw new Error(`failed to create tools row: ${error.message}`);
   return data;
 }
 
@@ -137,7 +137,7 @@ async function resolveToolRecords(toolId) {
 
   const saasTool = await fetchSaasTool(toolId);
   if (!saasTool) {
-    throw new Error(`Tool not found in tools or saas_tools: ${toolId}`);
+    throw new Error(`Tool not found in tools or tools: ${toolId}`);
   }
 
   const linkedPipelineTool = await fetchPipelineToolBySaasId(saasTool.id);
@@ -146,11 +146,11 @@ async function resolveToolRecords(toolId) {
 
 async function publishLinkedTool(pipelineTool, saasTool, qualityScore) {
   if (!pipelineTool) {
-    throw new Error('Cannot publish saas_tools without a linked tools row');
+    throw new Error('Cannot publish tools without a linked tools row');
   }
 
   const { error: saasErr } = await supabase
-    .from('saas_tools')
+    .from('tools')
     .update({
       quality_score: qualityScore,
       approval_status: 'auto_live',
@@ -158,7 +158,7 @@ async function publishLinkedTool(pipelineTool, saasTool, qualityScore) {
     })
     .eq('id', saasTool.id);
 
-  if (saasErr) throw new Error(`failed to publish saas_tools row: ${saasErr.message}`);
+  if (saasErr) throw new Error(`failed to publish tools row: ${saasErr.message}`);
 
   const { error: toolErr } = await supabase
     .from('tools')
@@ -180,7 +180,7 @@ async function updateNonLiveDecision(pipelineTool, saasTool, decision, qualitySc
 
   if (saasTool) {
     const { error } = await supabase
-      .from('saas_tools')
+      .from('tools')
       .update({
         quality_score: qualityScore,
         approval_status: approvalStatus,
@@ -189,7 +189,7 @@ async function updateNonLiveDecision(pipelineTool, saasTool, decision, qualitySc
       .eq('id', saasTool.id);
 
     if (error) {
-      console.error(`[AUTO APPROVAL] saas_tools update failed for ${saasTool.id}: ${error.message}`);
+      console.error(`[AUTO APPROVAL] tools update failed for ${saasTool.id}: ${error.message}`);
     }
   }
 
@@ -212,8 +212,8 @@ async function updateNonLiveDecision(pipelineTool, saasTool, decision, qualitySc
 /**
  * Evaluate a tool's quality and keep tools.saas_tool_id as the only bridge.
  *
- * The input ID may be either tools.id or an already-created saas_tools.id.
- * Publishing is only allowed after a concrete tools -> saas_tools ID link exists.
+ * The input ID may be either tools.id or an already-created tools.id.
+ * Publishing is only allowed after a concrete tools -> tools ID link exists.
  */
 async function evaluateTool(toolId, testScore) {
   try {

@@ -69,7 +69,7 @@ async function _buildHealthReport() {
   const startMs = Date.now();
 
   const { data: rawTools } = await db()
-    .from('saas_tools')
+    .from('tools')
     .select('id, category, usage_count, quality_score, is_free, price, is_published, created_at')
     .order('created_at', { ascending: false })
     .limit(500);

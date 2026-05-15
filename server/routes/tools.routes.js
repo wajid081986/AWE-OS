@@ -31,7 +31,7 @@ function toRow(body) {
 router.get('/', async (req, res) => {
   try {
     const { data: tools, error } = await supabase
-      .from('saas_tools')
+      .from('tools')
       .select('id, name, slug, description, input_fields, price, is_free, category, is_published, created_at')
       .eq('is_published', true)
       .order('created_at', { ascending: false });
@@ -85,7 +85,7 @@ router.post('/', requireAuth, requireAdmin, async (req, res) => {
     }
 
     const { data: tool, error } = await supabase
-      .from('saas_tools')
+      .from('tools')
       .insert(row)
       .select()
       .single();
@@ -115,7 +115,7 @@ router.get('/:slugOrId', async (req, res) => {
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId);
 
     const { data: tool, error } = await supabase
-      .from('saas_tools')
+      .from('tools')
       .select('*')
       .eq(isUUID ? 'id' : 'slug', slugOrId)
       .maybeSingle();
@@ -135,7 +135,7 @@ router.put('/:id', requireAuth, requireAdmin, async (req, res) => {
     row.updated_at = new Date().toISOString();
 
     const { data: tool, error } = await supabase
-      .from('saas_tools')
+      .from('tools')
       .update(row)
       .eq('id', req.params.id)
       .select()
@@ -153,7 +153,7 @@ router.put('/:id', requireAuth, requireAdmin, async (req, res) => {
 router.delete('/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { error } = await supabase
-      .from('saas_tools')
+      .from('tools')
       .delete()
       .eq('id', req.params.id);
 

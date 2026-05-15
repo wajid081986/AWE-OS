@@ -231,7 +231,7 @@ async function processOneTool(tool) {
 
       // Persist the generated config back into the saas_tool record
       const { error: updateErr } = await supabase
-        .from('saas_tools')
+        .from('tools')
         .update({
           ai_prompt:    config.ai_prompt,
           input_fields: config.input_fields,
@@ -260,7 +260,7 @@ async function processOneTool(tool) {
     // ────────────────────────────────────────────────────────────
     // BRANCH 2: live → evaluate performance metrics + decide
     // Metrics pulled from tool_usage_events + revenue_logs directly
-    // (decision-engine.evaluateTool reads from 'tools' table, not saas_tools)
+    // (decision-engine.evaluateTool reads from 'tools' table, not tools)
     // ────────────────────────────────────────────────────────────
     if (tool.status === 'live') {
       // Gather performance data in parallel
@@ -426,7 +426,7 @@ async function runAutonomousLoop({ limit = MAX_TOOLS_PER_RUN, triggered_by = 'cr
 
     // ── Fetch: published (live) first, then unpublished (idea) ──
     const { data: rawTools, error: fetchErr } = await supabase
-      .from('saas_tools')
+      .from('tools')
       .select('id, name, slug, is_published, updated_at, ai_prompt, input_fields, category, description, is_free, price')
       .order('is_published', { ascending: false })
       .order('updated_at',   { ascending: true  })
@@ -442,7 +442,7 @@ async function runAutonomousLoop({ limit = MAX_TOOLS_PER_RUN, triggered_by = 'cr
     }));
 
     if (tools.length === 0) {
-      console.log('[AUTONOMOUS AGENT] No tools found in saas_tools');
+      console.log('[AUTONOMOUS AGENT] No tools found in tools');
     }
 
     // ── Process each tool with a safety gap ─────────────────────

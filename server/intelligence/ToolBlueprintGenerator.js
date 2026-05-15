@@ -162,7 +162,7 @@ function _fallbackBlueprint(analysis, prompt, category) {
       newTablesNeeded: false,
       tables:          [],
       caching:         'In-memory queryCache (5-min TTL)',
-      indexes:         'usage_count index on saas_tools (existing)',
+      indexes:         'usage_count index on tools (existing)',
     },
     componentPlan: [
       'InputForm: handles user input, field validation, submit to API',

@@ -126,7 +126,7 @@ const runFactory = async (jobId, category, idea, userId) => {
 
     // Ensure unique slug
     const { data: existing } = await supabase
-      .from('saas_tools')
+      .from('tools')
       .select('id')
       .eq('slug', toolConfig.slug)
       .maybeSingle();
@@ -136,7 +136,7 @@ const runFactory = async (jobId, category, idea, userId) => {
     }
 
     const { data: newTool, error } = await supabase
-      .from('saas_tools')
+      .from('tools')
       .insert({
         name:         toolConfig.name,
         slug:         toolConfig.slug,

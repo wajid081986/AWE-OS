@@ -168,7 +168,7 @@ router.post('/tool/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { data: tool } = await require('../db/supabase')
-      .from('saas_tools')
+      .from('tools')
       .select('*')
       .eq('id', id)
       .single();

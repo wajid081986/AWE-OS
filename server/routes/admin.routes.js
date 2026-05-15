@@ -11,7 +11,7 @@ router.get('/stats', requireAuth, requireAdmin, async (req, res) => {
   try {
     const [usersResult, toolsResult, subsResult] = await Promise.all([
       supabase.from('users').select('*', { count: 'exact', head: true }),
-      supabase.from('saas_tools').select('*', { count: 'exact', head: true }),
+      supabase.from('tools').select('*', { count: 'exact', head: true }),
       supabase.from('users').select('*', { count: 'exact', head: true }).eq('subscription_status', 'active'),
     ]);
 

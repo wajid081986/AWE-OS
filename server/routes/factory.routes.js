@@ -53,7 +53,7 @@ router.get('/jobs', requireAuth, requireAdmin, async (req, res) => {
     .select(`
       id, status, category, input_prompt,
       created_at, completed_at,
-      saas_tools (id, name, slug, is_published)
+      tools (id, name, slug, approved)
     `)
     .order('created_at', { ascending: false })
     .limit(50);
@@ -68,7 +68,7 @@ router.get('/jobs/:jobId', requireAuth, requireAdmin, async (req, res) => {
     .from('factory_jobs')
     .select(`
       *,
-      saas_tools (id, name, slug, category, is_free, price, is_published)
+      tools (id, name, slug, category, is_free, price, approved)
     `)
     .eq('id', req.params.jobId)
     .single();

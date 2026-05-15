@@ -53,12 +53,12 @@ async function detect(prompt, category) {
   try {
     // Fetch existing tools in category (and globally for cross-category check)
     const [catResult, globalResult] = await Promise.all([
-      db().from('saas_tools')
+      db().from('tools')
         .select('id, name, slug, description, category')
         .eq('is_published', true)
         .eq('category', category)
         .limit(80),
-      db().from('saas_tools')
+      db().from('tools')
         .select('id, name, slug, description, category', { count: 'exact' })
         .eq('is_published', true)
         .limit(1),

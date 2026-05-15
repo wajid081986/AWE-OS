@@ -64,7 +64,7 @@ async function _buildReport() {
 
   // Fetch published tools with key signals
   const { data: tools } = await db()
-    .from('saas_tools')
+    .from('tools')
     .select('id, name, slug, category, quality_score, usage_count, is_free, price, is_published, created_at')
     .eq('is_published', true)
     .order('usage_count', { ascending: false })

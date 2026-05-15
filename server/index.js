@@ -167,11 +167,11 @@ app.get('/sitemap.xml', async (req, res) => {
     // Static tool pages
     const toolUrls = STATIC_TOOL_SLUGS.map(slug => url(`/tools/${slug}`, '0.75', 'monthly')).join('');
 
-    // Dynamic: live tools from DB (saas_tools table)
+    // Dynamic: live tools from DB (tools table)
     let dynamicToolUrls = '';
     try {
       const { data: liveTools } = await supabase
-        .from('saas_tools')
+        .from('tools')
         .select('slug, updated_at')
         .eq('status', 'live')
         .not('slug', 'in', `(${STATIC_TOOL_SLUGS.map(s => `"${s}"`).join(',')})`);
@@ -181,7 +181,7 @@ app.get('/sitemap.xml', async (req, res) => {
         .map(t => url(`/tools/${t.slug}`, '0.7', 'weekly', t.updated_at?.split('T')[0] || today))
         .join('');
     } catch {
-      // saas_tools may not exist yet — skip silently
+      // tools may not exist yet — skip silently
     }
 
     // Dynamic: published calculators from DB

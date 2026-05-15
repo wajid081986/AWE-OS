@@ -93,7 +93,7 @@ async function getAnalytics(forceRefresh = false) {
 async function getPredictions() {
   try {
     const { data: tools } = await db()
-      .from('saas_tools')
+      .from('tools')
       .select('id, slug, name, category, quality_score, usage_count, seo_score, engagement_score, monetization_type, is_free, price')
       .eq('is_published', true)
       .order('usage_count', { ascending: false })
@@ -121,7 +121,7 @@ async function getPredictions() {
 async function getPricing() {
   try {
     const { data: tools } = await db()
-      .from('saas_tools')
+      .from('tools')
       .select('id, slug, name, category, quality_score, usage_count, is_free, price')
       .eq('is_published', true)
       .order('quality_score', { ascending: false })
@@ -156,7 +156,7 @@ async function getPricing() {
 async function getOptimization() {
   try {
     const { data: tools } = await db()
-      .from('saas_tools')
+      .from('tools')
       .select('id, slug, name, category, quality_score, usage_count, is_free, price, monetization_type')
       .eq('is_published', true)
       .order('usage_count', { ascending: false })
@@ -193,7 +193,7 @@ async function getOptimization() {
 async function getForecast() {
   try {
     const { data: tools } = await db()
-      .from('saas_tools')
+      .from('tools')
       .select('id, category, quality_score, usage_count')
       .eq('is_published', true)
       .limit(500);

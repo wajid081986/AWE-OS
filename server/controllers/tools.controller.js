@@ -46,7 +46,7 @@ async function getPublicTools(req, res) {
     const sort     = req.query.sort || 'created_at';
 
     let query = supabase
-      .from('saas_tools')
+      .from('tools')
       .select(PUBLIC_LIST_FIELDS, { count: 'exact' })
       .eq('is_published', true);
 
@@ -104,7 +104,7 @@ async function getPublicTool(req, res) {
     if (!slug) return res.status(400).json({ success: false, error: 'slug is required' });
 
     const { data: tool, error } = await supabase
-      .from('saas_tools')
+      .from('tools')
       .select(PUBLIC_DETAIL_FIELDS)
       .eq('slug', slug)
       .eq('is_published', true)
@@ -115,7 +115,7 @@ async function getPublicTool(req, res) {
 
     // Fire-and-forget usage increment (non-blocking)
     supabase
-      .from('saas_tools')
+      .from('tools')
       .update({ usage_count: (tool.usage_count || 0) + 1 })
       .eq('id', tool.id)
       .then(() => {})

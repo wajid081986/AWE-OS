@@ -73,7 +73,7 @@ async function _refreshCache() {
 
   // Top tools by usage count
   const { data: topTools } = await db()
-    .from('saas_tools')
+    .from('tools')
     .select('id, name, category, quality_score, usage_count, is_free, price, created_at')
     .eq('is_published', true)
     .order('usage_count', { ascending: false })

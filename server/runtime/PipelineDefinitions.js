@@ -34,7 +34,7 @@ const getOptimizeAgent   = () => require('../agents/optimization-agent');
 
 async function ensureUniqueSlug(slug) {
   const { data } = await supabase
-    .from('saas_tools').select('id').eq('slug', slug).maybeSingle();
+    .from('tools').select('id').eq('slug', slug).maybeSingle();
   return data ? `${slug}-${Date.now()}` : slug;
 }
 
@@ -70,7 +70,7 @@ const TOOL_CREATION_PIPELINE = {
         // Update an existing tool record if toolId is supplied
         if (toolId) {
           const { error } = await supabase
-            .from('saas_tools')
+            .from('tools')
             .update({
               ai_prompt:    config.ai_prompt,
               input_fields: config.input_fields,
@@ -83,7 +83,7 @@ const TOOL_CREATION_PIPELINE = {
 
         // Insert a new tool record (not published yet)
         const { data: newTool, error } = await supabase
-          .from('saas_tools')
+          .from('tools')
           .insert({
             name:         config.name,
             slug:         config.slug,
@@ -178,7 +178,7 @@ const TOOL_CREATION_PIPELINE = {
         if (!toolId) throw new Error('publish_tool: toolId missing from pipeline context');
 
         const { error } = await supabase
-          .from('saas_tools')
+          .from('tools')
           .update({ is_published: true })
           .eq('id', toolId);
 
@@ -283,7 +283,7 @@ const TOOL_RECOVERY_PIPELINE = {
         if (!toolId) throw new Error('republish_tool: toolId missing from pipeline context');
 
         const { error } = await supabase
-          .from('saas_tools')
+          .from('tools')
           .update({ is_published: true })
           .eq('id', toolId);
 
