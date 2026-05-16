@@ -2,6 +2,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { toolIdea, category, analysis } = req.body;
+  if (!toolIdea) return res.status(400).json({ error: 'toolIdea is required' });
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -16,82 +17,72 @@ export default async function handler(req, res) {
         max_tokens: 1500,
         messages: [{
           role: 'user',
-          content: `Create a detailed implementation blueprint for building "${toolIdea}" (category: ${category}) as a React tool for AWE-OS free tools website.
+          content: `Create implementation blueprint for "${toolIdea}" (${category}) as a React tool for AWE-OS.
 
-Analysis context: ${JSON.stringify(analysis || {})}
-
-Return ONLY valid JSON with no markdown fences:
+Return ONLY valid JSON, no markdown:
 {
-  "componentName": "ToolNameHere",
+  "componentName": "ToolName",
   "filePath": "client/src/pages/tools/ToolName.jsx",
   "estimatedHours": 8,
   "complexity": "Medium",
+  "coreAlgorithm": "Brief description of main logic",
   "architecture": {
     "mainFile": "client/src/pages/tools/ToolName.jsx",
-    "components": ["ComponentA.jsx", "ComponentB.jsx"],
-    "utilities": ["toolNameEngine.js"],
-    "hooks": ["useToolName.js"]
+    "components": [],
+    "utilities": [],
+    "hooks": []
   },
-  "coreAlgorithm": "Step by step description of main calculation or logic",
+  "libraries": ["recharts"],
+  "buildSteps": [
+    {"step": 1, "task": "Setup component", "minutes": 30},
+    {"step": 2, "task": "Core logic", "minutes": 60},
+    {"step": 3, "task": "UI layout", "minutes": 45},
+    {"step": 4, "task": "Testing", "minutes": 30}
+  ],
   "inputFields": [
     {"name": "fieldName", "type": "number", "label": "Field Label", "required": true}
   ],
   "outputFields": [
-    {"name": "result", "label": "Result Label", "format": "currency"}
+    {"name": "result", "label": "Result", "format": "currency"}
   ],
-  "libraries": ["recharts", "lucide-react"],
-  "seoContent": {
-    "metaTitle": "Tool Name - Free Online | AWE-OS",
-    "metaDescription": "160 char description here",
-    "h1": "Tool Name",
-    "aboutParagraphs": ["paragraph 1 about this tool", "paragraph 2", "paragraph 3"],
-    "steps": [
-      {"title": "Step Title", "description": "Step description"}
-    ],
-    "faqs": [
-      {"q": "Frequently asked question?", "a": "Detailed answer"}
-    ]
-  },
+  "monetizationStrategy": "AdSense + affiliate links",
+  "affiliateOpportunities": ["opportunity1"],
   "toolRegistryEntry": {
-    "slug": "tool-slug",
+    "slug": "tool-name",
     "name": "Tool Name",
-    "description": "Short 1-sentence description",
-    "category": "calculators",
-    "icon": "🧮",
-    "tags": ["tag1", "tag2", "tag3"],
-    "isNew": true
-  },
-  "buildSteps": [
-    {"step": 1, "task": "Create utility/engine functions", "minutes": 30},
-    {"step": 2, "task": "Build input form component", "minutes": 45},
-    {"step": 3, "task": "Build results display", "minutes": 60},
-    {"step": 4, "task": "Add charts/visualizations", "minutes": 30},
-    {"step": 5, "task": "SEO content + integration", "minutes": 45}
-  ],
-  "monetizationStrategy": "Specific monetization strategy for this tool",
-  "affiliateOpportunities": ["specific product 1", "specific product 2"],
-  "relatedTools": ["existing-tool-slug-1", "existing-tool-slug-2"]
-}`,
+    "description": "Short description",
+    "category": "${category}",
+    "icon": "🔧",
+    "tags": ["tag1", "tag2"]
+  }
+}`
         }],
       }),
     });
 
     if (!response.ok) {
-      const errBody = await response.text();
-      console.error('Claude API error:', response.status, errBody);
-      return res.status(500).json({ error: `Claude API ${response.status}: ${errBody}` });
+      const errText = await response.text();
+      console.error('Claude API error:', response.status, errText);
+      return res.status(502).json({
+        error: `Claude API error: ${response.status}`,
+        detail: errText.slice(0, 200)
+      });
     }
+
     const data = await response.json();
     const text = data.content?.[0]?.text || '';
     const match = text.match(/\{[\s\S]*\}/);
+
     if (!match) {
-      console.error('No JSON in Claude response:', text);
-      return res.status(500).json({ error: 'No JSON in AI response' });
+      console.error('No JSON in response:', text.slice(0, 300));
+      return res.status(502).json({ error: 'No JSON in Claude response' });
     }
+
     const blueprint = JSON.parse(match[0]);
     return res.status(200).json(blueprint);
-  } catch (error) {
-    console.error('Blueprint generation error:', error);
-    return res.status(500).json({ error: 'Blueprint generation failed: ' + error.message });
+
+  } catch (err) {
+    console.error('Blueprint handler error:', err);
+    return res.status(500).json({ error: err.message || 'Blueprint generation failed' });
   }
 }
