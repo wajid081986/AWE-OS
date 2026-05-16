@@ -84,21 +84,16 @@ export function useToolIntelligence() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ toolIdea: prompt, category }),
       })
-      console.log('[useToolIntelligence] /api/analyze-tool status:', res.status, res.ok)
       if (!res.ok) throw new Error(`Analysis error ${res.status}`)
       const json = await res.json()
-      console.log('[useToolIntelligence] API Response:', JSON.stringify(json).slice(0, 500))
       const text = json.content?.[0]?.text || ''
-      console.log('[useToolIntelligence] Claude text:', text.slice(0, 300))
       const jsonMatch = text.match(/\{[\s\S]*\}/)
       if (!jsonMatch) throw new Error(`No JSON in response — got keys: ${Object.keys(json).join(', ')}`)
       const raw = JSON.parse(jsonMatch[0])
-      console.log('[useToolIntelligence] Parsed scores:', raw.overallScore, raw.seoScore, raw.monetizationScore, raw.uniquenessScore)
       const mapped = mapClaudeResponse(raw, category)
       setIntelligence(mapped)
       return mapped
     } catch (err) {
-      console.error('[useToolIntelligence] Error:', err.message)
       setError(err.message || 'Intelligence analysis failed')
       return null
     } finally {
