@@ -952,25 +952,6 @@ input[type="range"]:hover::-webkit-slider-thumb {
 </head>
 <body>
 
-<!-- API KEY MODAL -->
-<div class="modal-overlay" id="apiModal">
-  <div class="modal">
-    <div style="font-size:2rem;margin-bottom:12px;">🔑</div>
-    <div class="modal-title">Enter your Anthropic API Key</div>
-    <div class="modal-desc">Your key is stored only in your browser's localStorage and never sent anywhere except directly to Anthropic's API.</div>
-    <div class="form-group">
-      <label>API Key</label>
-      <div class="modal-input-row">
-        <input type="password" class="api-key-input" id="apiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off">
-        <button class="btn btn-primary" id="saveApiKey">Save</button>
-      </div>
-    </div>
-    <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:0.76rem;color:var(--text3)">Your key is never stored on a server</span>
-      <button class="btn btn-ghost btn-sm" id="skipApiKey">Skip for now</button>
-    </div>
-  </div>
-</div>
 
 <!-- CONTEXT MENU -->
 <div class="ctx-menu" id="ctxMenu">
@@ -1011,8 +992,7 @@ input[type="range"]:hover::-webkit-slider-thumb {
     </div>
     <div class="header-right">
       <span class="selection-hint" id="selectionHint" style="display:none">Right-click selected text to improve</span>
-      <button class="btn btn-ghost btn-sm" id="apiKeyBtn">🔑 API Key</button>
-      <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
+<button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
     </div>
   </header>
 
@@ -1254,37 +1234,14 @@ const focusMap  = { skills: 'skills and expertise', achievements: 'achievements 
    INIT
 ================================================================ */
 window.addEventListener('DOMContentLoaded', () => {
-  initApiKey();
   initTags();
   initSlider();
   initPills();
   initContextMenu();
   renderHistory();
   initTheme();
-
-  document.getElementById('saveApiKey').addEventListener('click', saveApiKey);
-  document.getElementById('skipApiKey').addEventListener('click', () => closeModal('apiModal'));
-  document.getElementById('apiKeyBtn').addEventListener('click', () => openModal('apiModal'));
-  document.getElementById('apiKeyInput').addEventListener('keydown', e => { if (e.key==='Enter') saveApiKey(); });
 });
 
-/* ================================================================
-   API KEY
-================================================================ */
-function initApiKey() {
-  const key = localStorage.getItem('anthropic_api_key');
-  if (!key) openModal('apiModal');
-  else window.ANTHROPIC_API_KEY = key;
-}
-
-function saveApiKey() {
-  const val = document.getElementById('apiKeyInput').value.trim();
-  if (!val) { toast('Please enter your API key', 'error'); return; }
-  localStorage.setItem('anthropic_api_key', val);
-  window.ANTHROPIC_API_KEY = val;
-  closeModal('apiModal');
-  toast('API key saved', 'success');
-}
 
 /* ================================================================
    THEME
@@ -1433,9 +1390,6 @@ async function generateLetter() {
 
   if (!validateStep(1) || !validateStep(2)) { goStep(1); return; }
 
-  const apiKey = localStorage.getItem('anthropic_api_key') || window.ANTHROPIC_API_KEY;
-  if (!apiKey) { openModal('apiModal'); return; }
-
   const data = collectFormData();
   const prompt = buildPrompt(data);
 
@@ -1447,56 +1401,22 @@ async function generateLetter() {
   generatedText = '';
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/cover-letter', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1200,
-        stream: true,
-        system: "You are an expert career coach and professional writer. Generate compelling, ATS-optimized cover letters that are personalized, specific, and avoid clichés. Output ONLY the cover letter text — no preamble, no meta-commentary, no explanation.",
-        messages: [{ role: 'user', content: prompt }]
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'generate', prompt })
     });
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.error?.message || `API error ${res.status}`);
+      throw new Error(err.error || `API error ${res.status}`);
     }
 
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop();
-
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const raw = line.slice(6).trim();
-        if (raw === '[DONE]') continue;
-        try {
-          const ev = JSON.parse(raw);
-          if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta') {
-            generatedText += ev.delta.text;
-            outEl.textContent = generatedText;
-            outEl.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            updateCounts(generatedText);
-          }
-        } catch {}
-      }
-    }
-
+    const json = await res.json();
+    generatedText = json.text || '';
     outEl.classList.remove('cursor-blink');
+    outEl.textContent = generatedText;
+    updateCounts(generatedText);
     computeATS(data.jobDesc, generatedText);
     saveToHistory(data, generatedText);
     setGenerating(false);
@@ -1506,9 +1426,6 @@ async function generateLetter() {
     outEl.classList.remove('cursor-blink');
     setGenerating(false);
     toast(err.message || 'Generation failed', 'error');
-    if (err.message && err.message.includes('401')) {
-      openModal('apiModal');
-    }
   }
 }
 
@@ -1613,9 +1530,6 @@ function initContextMenu() {
 async function improveSection(selectedText, action) {
   if (!selectedText || isGenerating) return;
 
-  const apiKey = localStorage.getItem('anthropic_api_key') || window.ANTHROPIC_API_KEY;
-  if (!apiKey) { openModal('apiModal'); return; }
-
   const actionMap = {
     formal: 'Rewrite this text to be more formal and professional',
     details: 'Expand this text with more specific and compelling details',
@@ -1629,29 +1543,16 @@ async function improveSection(selectedText, action) {
   setGenerating(true);
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/cover-letter', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 400,
-        system: "You are an expert professional writer. When asked to improve a section of text, output ONLY the improved replacement text — no preamble, no quotes, no explanation.",
-        messages: [{
-          role: 'user',
-          content: `${instruction}. Output ONLY the improved text:\n\n${selectedText}`
-        }]
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'improve', selectedText, instruction })
     });
 
     if (!res.ok) throw new Error(`API error ${res.status}`);
 
     const json = await res.json();
-    const improved = json.content?.[0]?.text || '';
+    const improved = json.text || '';
 
     if (improved) {
       generatedText = generatedText.replace(selectedText, improved);

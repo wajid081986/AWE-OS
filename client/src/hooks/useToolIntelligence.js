@@ -1,8 +1,6 @@
 import { useState, useCallback } from 'react'
 import api from '../services/api.service'
 
-const ANTHROPIC_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY
-
 function gradeFromScore(score) {
   if (score >= 85) return { grade: 'A+', gradeLabel: 'Exceptional Opportunity' }
   if (score >= 75) return { grade: 'A',  gradeLabel: 'Strong Opportunity' }
@@ -19,10 +17,10 @@ function parseRevenueRange(revenueStr) {
 }
 
 function mapClaudeResponse(raw, category) {
-  const overall  = Math.min(100, Math.max(0, raw.overallScore      || 0))
-  const seoScore = Math.min(100, Math.max(0, raw.seoScore          || 0))
-  const monetScore = Math.min(100, Math.max(0, raw.monetizationScore || 0))
-  const uniqScore  = Math.min(100, Math.max(0, raw.uniquenessScore  || 0))
+  const overall    = Math.min(100, Math.max(0, raw.overallScore       || 0))
+  const seoScore   = Math.min(100, Math.max(0, raw.seoScore           || 0))
+  const monetScore = Math.min(100, Math.max(0, raw.monetizationScore  || 0))
+  const uniqScore  = Math.min(100, Math.max(0, raw.uniquenessScore    || 0))
   const { grade, gradeLabel } = gradeFromScore(overall)
   const revenue = parseRevenueRange(raw.estimatedRevenue)
   return {
@@ -65,7 +63,7 @@ function mapClaudeResponse(raw, category) {
 
 /**
  * Hook for the Phase 6A intelligence pipeline.
- * analyze() calls Anthropic directly from the browser.
+ * analyze() routes through /api/analyze-tool serverless function.
  * fetchBlueprint() still uses the backend.
  */
 export function useToolIntelligence() {
@@ -81,29 +79,16 @@ export function useToolIntelligence() {
     setError(null)
     setBlueprint(null)
     try {
-      if (!ANTHROPIC_KEY) throw new Error('VITE_ANTHROPIC_API_KEY is not set')
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/analyze-tool', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': ANTHROPIC_KEY,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 1000,
-          messages: [{
-            role: 'user',
-            content: `Analyze this tool idea: "${prompt}" in category: "${category}". Return ONLY valid JSON (no markdown, no explanation): { "overallScore": number 0-100, "seoScore": number 0-100, "monetizationScore": number 0-100, "uniquenessScore": number 0-100, "verdict": string, "verdictReason": string, "topKeywords": string[], "estimatedRevenue": string like "$500-$2000/mo", "competition": string, "priorityRating": string }`,
-          }],
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ toolIdea: prompt, category }),
       })
-      if (!res.ok) throw new Error(`Anthropic API error ${res.status}`)
+      if (!res.ok) throw new Error(`Analysis error ${res.status}`)
       const json = await res.json()
       const text = json.content?.[0]?.text || ''
       const jsonMatch = text.match(/\{[\s\S]*\}/)
-      if (!jsonMatch) throw new Error('No JSON in Claude response')
+      if (!jsonMatch) throw new Error('No JSON in response')
       const raw = JSON.parse(jsonMatch[0])
       const mapped = mapClaudeResponse(raw, category)
       setIntelligence(mapped)
