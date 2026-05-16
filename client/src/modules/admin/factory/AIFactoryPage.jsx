@@ -1,9 +1,14 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../../services/api.service'
 import { useToolIntelligence } from '../../../hooks/useToolIntelligence'
+import { useIdeaTracker }      from '../../../hooks/useIdeaTracker'
 import IntelligencePanel from './IntelligencePanel'
-import BlueprintViewer  from './BlueprintViewer'
+import BlueprintViewer   from './BlueprintViewer'
+import IdeaTracker       from './IdeaTracker'
+import CompareMode       from './CompareMode'
+
+// ── Constants ────────────────────────────────────────────────────────────────
 
 const CATEGORIES = [
   'productivity', 'marketing', 'finance', 'writing',
@@ -11,15 +16,24 @@ const CATEGORIES = [
   'pdf', 'calculators', 'converters', 'other',
 ]
 
-const STATUS_CONFIG = {
-  pending:   { label: 'Pending',   dot: 'bg-yellow-400',            text: 'text-yellow-400' },
-  running:   { label: 'Running',   dot: 'bg-blue-400 animate-pulse', text: 'text-blue-400'  },
-  completed: { label: 'Completed', dot: 'bg-green-400',             text: 'text-green-400'  },
-  failed:    { label: 'Failed',    dot: 'bg-red-400',               text: 'text-red-400'    },
+const JOB_STATUS = {
+  pending:   { label: 'Pending',   dot: 'bg-yellow-400',             text: 'text-yellow-400' },
+  running:   { label: 'Running',   dot: 'bg-blue-400 animate-pulse', text: 'text-blue-400'   },
+  completed: { label: 'Completed', dot: 'bg-green-400',              text: 'text-green-400'  },
+  failed:    { label: 'Failed',    dot: 'bg-red-400',                text: 'text-red-400'    },
 }
 
-function StatusBadge({ status }) {
-  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.pending
+const TABS = [
+  { id: 'tool',    label: '⚡ Generate Tool' },
+  { id: 'ideas',   label: '💡 AI Ideas'      },
+  { id: 'tracker', label: '📋 My Ideas'      },
+  { id: 'compare', label: '⚖️ Compare'       },
+]
+
+// ── Small components ─────────────────────────────────────────────────────────
+
+function JobStatusBadge({ status }) {
+  const cfg = JOB_STATUS[status] || JOB_STATUS.pending
   return (
     <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${cfg.text}`}>
       <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
@@ -28,14 +42,43 @@ function StatusBadge({ status }) {
   )
 }
 
-function GeneratingSteps({ step }) {
-  const steps = [
-    'Analyzing category & idea…',
-    'Generating tool configuration…',
-    'Saving to database…',
-  ]
+function AnalyzingSteps({ active }) {
+  const steps = ['Sending to Claude AI…', 'Scoring SEO & monetization…', 'Mapping intelligence data…']
+  const [step, setStep] = useState(0)
+
+  useEffect(() => {
+    if (!active) { setStep(0); return }
+    const t1 = setTimeout(() => setStep(1), 1200)
+    const t2 = setTimeout(() => setStep(2), 2800)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [active])
+
+  if (!active) return null
   return (
-    <div className="space-y-3 py-2">
+    <div className="mt-4 border-t border-gray-700 pt-4 space-y-2">
+      {steps.map((s, i) => (
+        <div key={i} className="flex items-center gap-3 text-xs">
+          {i < step ? (
+            <span className="text-green-400 text-sm shrink-0">✓</span>
+          ) : i === step ? (
+            <span className="w-3.5 h-3.5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block shrink-0" />
+          ) : (
+            <span className="w-3.5 h-3.5 rounded-full border border-gray-600 inline-block shrink-0" />
+          )}
+          <span className={i < step ? 'text-gray-500 line-through' : i === step ? 'text-white' : 'text-gray-600'}>
+            {s}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function GeneratingSteps({ step }) {
+  const steps = ['Analyzing category & idea…', 'Generating tool configuration…', 'Saving to database…']
+  return (
+    <div className="mt-6 border-t border-gray-700 pt-5 space-y-3">
+      <p className="text-xs text-gray-500">Estimated time: ~15–20 seconds</p>
       {steps.map((s, i) => (
         <div key={i} className="flex items-center gap-3 text-sm">
           {i < step ? (
@@ -56,7 +99,6 @@ function GeneratingSteps({ step }) {
 
 function ToolPreviewCard({ tool, onPublish, onEdit, onReset, publishing }) {
   if (!tool) return null
-  const fields = tool.input_fields || []
   return (
     <div className="bg-green-950/40 border border-green-500/40 rounded-xl p-5 mt-4">
       <div className="flex items-center gap-2 mb-4">
@@ -66,40 +108,21 @@ function ToolPreviewCard({ tool, onPublish, onEdit, onReset, publishing }) {
           <p className="text-gray-400 text-xs">Review before publishing</p>
         </div>
       </div>
-
       <div className="bg-gray-800 rounded-lg p-4 mb-4 space-y-2">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-white font-bold text-lg">{tool.name}</p>
             <p className="text-gray-400 text-xs font-mono">{tool.slug}</p>
           </div>
-          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-            tool.is_free ? 'bg-green-900 text-green-300' : 'bg-yellow-900 text-yellow-300'
-          }`}>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${tool.is_free ? 'bg-green-900 text-green-300' : 'bg-yellow-900 text-yellow-300'}`}>
             {tool.is_free ? 'Free' : `₹${tool.price}`}
           </span>
         </div>
         <p className="text-gray-300 text-sm">{tool.description}</p>
-        <div className="flex items-center gap-2 flex-wrap pt-1">
-          <span className="text-xs bg-indigo-900 text-indigo-300 px-2 py-0.5 rounded-full capitalize">
-            {tool.category}
-          </span>
-          <span className="text-xs text-gray-500">{fields.length} input fields</span>
-        </div>
-        {fields.length > 0 && (
-          <div className="pt-1">
-            <p className="text-xs text-gray-500 mb-1">Fields:</p>
-            <div className="flex flex-wrap gap-1">
-              {fields.map((f, i) => (
-                <span key={i} className="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded font-mono">
-                  {f.name}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+        <span className="text-xs bg-indigo-900 text-indigo-300 px-2 py-0.5 rounded-full capitalize">
+          {tool.category}
+        </span>
       </div>
-
       <div className="flex flex-col gap-2">
         <button
           onClick={onPublish}
@@ -108,16 +131,10 @@ function ToolPreviewCard({ tool, onPublish, onEdit, onReset, publishing }) {
         >
           {publishing ? 'Publishing…' : tool.approved ? 'Already Published' : 'Publish Tool →'}
         </button>
-        <button
-          onClick={onEdit}
-          className="w-full bg-gray-700 hover:bg-gray-600 text-white font-medium py-2.5 rounded-lg transition-colors text-sm"
-        >
+        <button onClick={onEdit} className="w-full bg-gray-700 hover:bg-gray-600 text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
           Edit in Builder
         </button>
-        <button
-          onClick={onReset}
-          className="w-full text-gray-400 hover:text-white text-sm py-1.5 transition-colors"
-        >
+        <button onClick={onReset} className="w-full text-gray-400 hover:text-white text-sm py-1.5 transition-colors">
           Generate Another Tool
         </button>
       </div>
@@ -125,61 +142,122 @@ function ToolPreviewCard({ tool, onPublish, onEdit, onReset, publishing }) {
   )
 }
 
+function IdeaCard({ idea, onAnalyze }) {
+  const complexColor = {
+    low:    'bg-green-900/40 text-green-400 border-green-700/30',
+    medium: 'bg-yellow-900/40 text-yellow-400 border-yellow-700/30',
+    high:   'bg-red-900/40 text-red-400 border-red-700/30',
+  }[idea.complexity] || 'bg-gray-700 text-gray-400 border-gray-600'
+
+  return (
+    <div className="bg-gray-800 border border-gray-700 hover:border-indigo-500/50 rounded-xl p-4 transition-colors flex flex-col gap-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-2 min-w-0">
+          <span className="text-2xl shrink-0 mt-0.5">{idea.icon || '🔧'}</span>
+          <div className="min-w-0">
+            <p className="text-white font-semibold text-sm leading-snug">{idea.name}</p>
+            <p className="text-gray-400 text-xs mt-0.5 leading-relaxed">{idea.description}</p>
+          </div>
+        </div>
+        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border shrink-0 capitalize ${complexColor}`}>
+          {idea.complexity}
+        </span>
+      </div>
+
+      {(idea.targetAudience || idea.estimatedMonthlySearches) && (
+        <div className="space-y-0.5 text-[10px] text-gray-500">
+          {idea.targetAudience && (
+            <p><span className="text-gray-400">Target:</span> {idea.targetAudience}</p>
+          )}
+          {idea.estimatedMonthlySearches && (
+            <p><span className="text-gray-400">Est. searches:</span> {idea.estimatedMonthlySearches}/mo</p>
+          )}
+        </div>
+      )}
+
+      {idea.tags?.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {idea.tags.slice(0, 4).map((tag, i) => (
+            <span key={i} className="text-[10px] bg-gray-700/70 text-gray-400 px-1.5 py-0.5 rounded font-mono">
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <button
+        onClick={() => onAnalyze(idea)}
+        className="w-full mt-auto py-2 bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/40 text-indigo-300 text-xs font-semibold rounded-lg transition-colors"
+      >
+        Analyze This →
+      </button>
+    </div>
+  )
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
+
 export default function AIFactoryPage() {
   const navigate = useNavigate()
 
-  // Generate form
+  // ── Tab state ──
+  const [activeTab, setActiveTab] = useState('tool')
+
+  // ── Form state (shared across tabs) ──
   const [category, setCategory] = useState('marketing')
   const [idea, setIdea]         = useState('')
-  const [mode, setMode]         = useState('tool') // 'tool' | 'ideas'
 
-  // Generation state
+  // ── Backend generation state ──
   const [isGenerating, setIsGenerating]     = useState(false)
   const [generatingStep, setGeneratingStep] = useState(0)
   const [generatedTool, setGeneratedTool]   = useState(null)
-  const [currentJobId, setCurrentJobId]     = useState(null)
   const [genError, setGenError]             = useState(null)
   const [publishing, setPublishing]         = useState(false)
 
-  // Ideas mode
-  const [ideas, setIdeas]                 = useState([])
-  const [ideaLoading, setIdeaLoading]     = useState(false)
-  const [buildingIdeaId, setBuildingIdeaId] = useState(null)
-
-  // Jobs history
-  const [jobs, setJobs]           = useState([])
+  // ── Jobs history ──
+  const [jobs, setJobs]               = useState([])
   const [jobsLoading, setJobsLoading] = useState(true)
   const [errorDetail, setErrorDetail] = useState(null)
 
-  // Intelligence (Phase 6A)
+  // ── Intelligence hook ──
   const {
-    intelligence, blueprint, loading: intelLoading, blueprintLoading, error: intelError,
-    analyze: runAnalysis, fetchBlueprint, reset: resetIntelligence,
+    intelligence, blueprint, generatedPrompt, generatedIdeas,
+    loading: intelLoading, blueprintLoading, promptLoading, ideasLoading,
+    error: intelError,
+    analyze, fetchBlueprint, fetchPrompt, fetchIdeas,
+    reset: resetIntelligence, resetBlueprint,
   } = useToolIntelligence()
 
-  const pollRef = useRef(null)
+  // ── Idea tracker hook ──
+  const { ideas: trackedIdeas, stats, saveIdea, updateIdeaStatus, deleteIdea } = useIdeaTracker()
 
-  const loadJobs = () => {
+  // Track which saved entry belongs to current analysis
+  const trackedIdRef = useRef(null)
+  const pollRef      = useRef(null)
+
+  // ── Jobs loading ──
+  const loadJobs = useCallback(() => {
     api.get('/api/factory/jobs')
       .then(r => setJobs(Array.isArray(r.data) ? r.data : []))
       .catch(() => {})
       .finally(() => setJobsLoading(false))
-  }
+  }, [])
 
-  useEffect(() => { loadJobs() }, [])
+  useEffect(() => { loadJobs() }, [loadJobs])
 
   useEffect(() => {
     const hasRunning = jobs.some(j => j.status === 'pending' || j.status === 'running')
     if (!hasRunning) return
     const timer = setInterval(loadJobs, 5000)
     return () => clearInterval(timer)
-  }, [jobs])
+  }, [jobs, loadJobs])
 
-  const stopPoll = () => {
+  const stopPoll = useCallback(() => {
     if (pollRef.current) { clearTimeout(pollRef.current); pollRef.current = null }
-  }
+  }, [])
 
-  const pollJobStatus = (jobId) => {
+  // ── Backend tool generation polling ──
+  const pollJobStatus = useCallback((jobId) => {
     let step = 0
     const poll = async () => {
       try {
@@ -187,9 +265,8 @@ export default function AIFactoryPage() {
         const job = res.data
         if (job.status === 'running' && step < 2) step++
         setGeneratingStep(step)
-
         if (job.status === 'completed') {
-          setGeneratedTool(job.saas_tools)
+          setGeneratedTool(job.saas_tools || job.tools)
           setIsGenerating(false)
           stopPoll()
           loadJobs()
@@ -210,9 +287,11 @@ export default function AIFactoryPage() {
       }
     }
     poll()
-  }
+  }, [loadJobs, stopPoll])
 
-  const handleGenerate = async () => {
+  // ── Handlers ─────────────────────────────────────────────────────────────
+
+  const handleGenerate = useCallback(async () => {
     setIsGenerating(true)
     setGeneratingStep(0)
     setGeneratedTool(null)
@@ -220,54 +299,68 @@ export default function AIFactoryPage() {
     stopPoll()
     try {
       const res = await api.post('/api/factory/generate', { category, idea })
-      setCurrentJobId(res.data.jobId)
       pollJobStatus(res.data.jobId)
     } catch (err) {
       setGenError(err.response?.data?.error || 'Failed to start generation')
       setIsGenerating(false)
     }
-  }
+  }, [category, idea, pollJobStatus, stopPoll])
 
-  const handleAnalyze = async () => {
-    await runAnalysis(idea, category)
-  }
-
-  const handleGenerateBlueprint = async () => {
-    await fetchBlueprint(idea, category, intelligence?.analysis || null, null)
-  }
-
-  const handleGenerateIdeas = async () => {
-    setIdeaLoading(true)
-    setIdeas([])
-    try {
-      const res = await api.post('/api/factory/ideas', { category, count: 5 })
-      setIdeas(res.data.ideas || [])
-    } catch (err) {
-      setGenError(err.response?.data?.error || 'Failed to generate ideas')
-    } finally {
-      setIdeaLoading(false)
+  const handleAnalyze = useCallback(async () => {
+    if (!idea.trim()) return
+    const result = await analyze(idea, category)
+    if (result) {
+      const entry = saveIdea({
+        toolIdea:   idea,
+        category,
+        score:      result.score?.overallScore || 0,
+        grade:      result.score?.grade        || '',
+        gradeLabel: result.score?.gradeLabel   || '',
+      })
+      trackedIdRef.current = entry?.id || null
     }
-  }
+  }, [idea, category, analyze, saveIdea])
 
-  const handleBuildIdea = async (ideaId) => {
-    setBuildingIdeaId(ideaId)
-    setGeneratedTool(null)
-    setGenError(null)
-    try {
-      const res = await api.post(`/api/factory/ideas/${ideaId}/build`)
-      setCurrentJobId(res.data.jobId)
-      setIsGenerating(true)
-      setGeneratingStep(0)
-      setMode('tool')
-      pollJobStatus(res.data.jobId)
-    } catch (err) {
-      setGenError(err.response?.data?.error || 'Build failed')
-    } finally {
-      setBuildingIdeaId(null)
+  const handleGenerateBlueprint = useCallback(async () => {
+    const bp = await fetchBlueprint(idea, category, intelligence?.analysis || null)
+    if (bp && trackedIdRef.current) {
+      updateIdeaStatus(trackedIdRef.current, 'blueprint')
     }
-  }
+  }, [idea, category, intelligence, fetchBlueprint, updateIdeaStatus])
 
-  const handlePublish = async () => {
+  const handleGeneratePrompt = useCallback(async () => {
+    const p = await fetchPrompt(blueprint, intelligence?.analysis || null, idea)
+    if (p && trackedIdRef.current) {
+      updateIdeaStatus(trackedIdRef.current, 'prompted')
+    }
+  }, [blueprint, intelligence, idea, fetchPrompt, updateIdeaStatus])
+
+  const handleGetIdeas = useCallback(async () => {
+    await fetchIdeas(category, 5)
+  }, [category, fetchIdeas])
+
+  // Clicking "Analyze This →" on an idea card: fill form + switch to tab 1 + analyze
+  const handleAnalyzeIdeaCard = useCallback(async (ideaItem) => {
+    const fullIdea = `${ideaItem.name}: ${ideaItem.description}`
+    setIdea(fullIdea)
+    resetIntelligence()
+    setActiveTab('tool')
+    // Small delay so the tab switch + state settle before analyze fires
+    await new Promise(r => setTimeout(r, 50))
+    const result = await analyze(fullIdea, category)
+    if (result) {
+      const entry = saveIdea({
+        toolIdea:   fullIdea,
+        category,
+        score:      result.score?.overallScore || 0,
+        grade:      result.score?.grade        || '',
+        gradeLabel: result.score?.gradeLabel   || '',
+      })
+      trackedIdRef.current = entry?.id || null
+    }
+  }, [category, analyze, saveIdea, resetIntelligence])
+
+  const handlePublish = useCallback(async () => {
     if (!generatedTool) return
     setPublishing(true)
     try {
@@ -279,117 +372,122 @@ export default function AIFactoryPage() {
     } finally {
       setPublishing(false)
     }
-  }
+  }, [generatedTool, loadJobs])
 
-  const handleJobPublish = async (toolId) => {
+  const handleJobPublish = useCallback(async (toolId) => {
     try {
       await api.put(`/api/tools/${toolId}`, { approved: true })
       loadJobs()
     } catch {}
-  }
+  }, [loadJobs])
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setGeneratedTool(null)
     setGenError(null)
-    setCurrentJobId(null)
     setIsGenerating(false)
-    setIdeas([])
     stopPoll()
     resetIntelligence()
-  }
+    trackedIdRef.current = null
+  }, [stopPoll, resetIntelligence])
+
+  const switchTab = useCallback((id) => {
+    setActiveTab(id)
+    if (id === 'tool') return
+    // Clear generation error when navigating away
+    setGenError(null)
+  }, [])
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div className="p-6">
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
             🤖 AI Factory
             <span className="text-xs bg-indigo-600 text-white px-2 py-1 rounded-full font-medium">⚡ LIVE</span>
-            <span className="text-xs bg-purple-700 text-purple-200 px-2 py-1 rounded-full font-medium">🧠 Intelligence</span>
+            <span className="text-xs bg-purple-700 text-purple-200 px-2 py-1 rounded-full font-medium">🧠 v2</span>
           </h1>
-          <p className="text-gray-400 mt-1">Generate complete AI tools automatically — with intelligence scoring, SEO analysis, and blueprints</p>
+          <p className="text-gray-400 mt-1 text-sm">
+            Intelligence scoring · blueprints · Claude Code prompts · idea tracking
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Tab bar */}
+        <div className="flex gap-1 bg-gray-800 p-1 rounded-xl border border-gray-700 mb-6 w-fit">
+          {TABS.map(({ id, label }) => (
+            <button
+              key={id}
+              onClick={() => switchTab(id)}
+              className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === id ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              {label}
+              {id === 'tracker' && trackedIdeas.length > 0 && (
+                <span className="ml-1.5 text-[10px] bg-white/20 text-white px-1.5 py-0.5 rounded-full">
+                  {trackedIdeas.length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
 
-          {/* ── LEFT: Generate + Intelligence Panel (3/5) ── */}
-          <div className="lg:col-span-3 space-y-4">
+        {/* ═══════════════════════════════════════════════════════════
+            TAB 1: Generate Tool
+        ═══════════════════════════════════════════════════════════ */}
+        {activeTab === 'tool' && (
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
-            {/* Mode Toggle */}
-            <div className="flex gap-1 bg-gray-800 p-1 rounded-xl border border-gray-700 w-fit">
-              {[
-                { id: 'tool',  label: '⚡ Generate Tool'  },
-                { id: 'ideas', label: '💡 Generate Ideas'  },
-              ].map(({ id, label }) => (
-                <button
-                  key={id}
-                  onClick={() => { setMode(id); handleReset() }}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    mode === id ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            {/* Left: form + intelligence */}
+            <div className="lg:col-span-3 space-y-4">
+              <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+                <div className="space-y-4">
 
-            {/* Form Card */}
-            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-              <div className="space-y-4">
+                  {/* Category */}
+                  <div>
+                    <label className="block text-sm text-gray-300 mb-2 font-medium">Category</label>
+                    <select
+                      value={category}
+                      onChange={e => { setCategory(e.target.value); if (intelligence) resetIntelligence() }}
+                      disabled={isGenerating}
+                      className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 capitalize disabled:opacity-50"
+                    >
+                      {CATEGORIES.map(c => (
+                        <option key={c} value={c} className="capitalize">{c}</option>
+                      ))}
+                    </select>
+                  </div>
 
-                {/* Category */}
-                <div>
-                  <label className="block text-sm text-gray-300 mb-2 font-medium">Category</label>
-                  <select
-                    value={category}
-                    onChange={e => { setCategory(e.target.value); resetIntelligence() }}
-                    disabled={isGenerating}
-                    className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 capitalize disabled:opacity-50"
-                  >
-                    {CATEGORIES.map(c => (
-                      <option key={c} value={c} className="capitalize">{c}</option>
-                    ))}
-                  </select>
-                </div>
+                  {/* Idea */}
+                  <div>
+                    <label className="block text-sm text-gray-300 mb-2 font-medium">
+                      Tool Idea
+                      <span className="text-gray-500 font-normal ml-2">optional for Generate</span>
+                    </label>
+                    <textarea
+                      value={idea}
+                      onChange={e => { setIdea(e.target.value); if (intelligence) resetIntelligence() }}
+                      disabled={isGenerating}
+                      rows={3}
+                      placeholder={"Describe the tool you want to build…\ne.g. A compound interest calculator for Indian investors"}
+                      className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500 resize-none disabled:opacity-50"
+                    />
+                  </div>
 
-                {/* Custom Idea */}
-                <div>
-                  <label className="block text-sm text-gray-300 mb-2 font-medium">
-                    Tool Idea
-                    <span className="text-gray-500 font-normal ml-2">optional</span>
-                  </label>
-                  <textarea
-                    value={idea}
-                    onChange={e => { setIdea(e.target.value); if (intelligence) resetIntelligence() }}
-                    disabled={isGenerating}
-                    rows={3}
-                    placeholder={"Describe the tool you want to build…\ne.g. A tool that writes LinkedIn posts from bullet points"}
-                    className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500 resize-none disabled:opacity-50"
-                  />
-                </div>
-
-                {/* Action Buttons */}
-                {mode === 'tool' ? (
+                  {/* Action buttons */}
                   <div className="grid grid-cols-2 gap-3">
-                    {/* Analyze button */}
                     <button
                       onClick={handleAnalyze}
-                      disabled={isGenerating || intelLoading}
+                      disabled={isGenerating || intelLoading || !idea.trim()}
                       className="py-3 bg-purple-600/20 hover:bg-purple-600/30 disabled:opacity-50 border border-purple-500/40 text-purple-300 font-semibold rounded-xl transition-all text-sm flex items-center justify-center gap-2"
                     >
                       {intelLoading ? (
-                        <>
-                          <span className="w-4 h-4 border border-purple-400 border-t-transparent rounded-full animate-spin" />
-                          Analyzing…
-                        </>
-                      ) : (
-                        <>🧠 Analyze Idea</>
-                      )}
+                        <><span className="w-4 h-4 border border-purple-400 border-t-transparent rounded-full animate-spin" />Analyzing…</>
+                      ) : '🧠 Analyze Idea'}
                     </button>
-
-                    {/* Generate button */}
                     <button
                       onClick={handleGenerate}
                       disabled={isGenerating || intelLoading}
@@ -398,195 +496,222 @@ export default function AIFactoryPage() {
                       {isGenerating ? '🤖 Building…' : '⚡ Generate Tool'}
                     </button>
                   </div>
-                ) : (
-                  <button
-                    onClick={handleGenerateIdeas}
-                    disabled={ideaLoading}
-                    className="w-full border border-indigo-500 hover:bg-indigo-600/10 disabled:opacity-60 text-indigo-400 font-semibold py-3.5 rounded-xl transition-all text-base"
-                  >
-                    {ideaLoading ? 'Generating ideas…' : '💡 Generate 5 Ideas'}
-                  </button>
+                </div>
+
+                {/* Analyzing animation */}
+                <AnalyzingSteps active={intelLoading} />
+
+                {/* Generating animation */}
+                {isGenerating && <GeneratingSteps step={generatingStep} />}
+
+                {/* Error */}
+                {(genError || intelError) && !isGenerating && !intelLoading && (
+                  <div className="mt-4 p-4 bg-red-950/40 border border-red-500/40 rounded-lg">
+                    <p className="text-red-400 text-sm font-medium">Error</p>
+                    <p className="text-red-300 text-xs mt-1">{genError || intelError}</p>
+                    <button onClick={handleReset} className="mt-2 text-xs text-red-400 hover:text-red-300 underline">
+                      Reset
+                    </button>
+                  </div>
+                )}
+
+                {/* Tool preview (backend generation result) */}
+                {generatedTool && !isGenerating && (
+                  <ToolPreviewCard
+                    tool={generatedTool}
+                    onPublish={handlePublish}
+                    onEdit={() => navigate(`/admin/tools/builder?id=${generatedTool.id}`)}
+                    onReset={handleReset}
+                    publishing={publishing}
+                  />
                 )}
               </div>
 
-              {/* Generating animation */}
-              {isGenerating && (
-                <div className="mt-6 border-t border-gray-700 pt-5">
-                  <p className="text-sm text-gray-400 mb-3">Estimated time: ~15–20 seconds</p>
-                  <GeneratingSteps step={generatingStep} />
-                </div>
+              {/* Intelligence panel — shows skeleton while loading, panel when done */}
+              {!isGenerating && (
+                <IntelligencePanel
+                  data={intelligence}
+                  loading={intelLoading}
+                  blueprint={blueprint}
+                  blueprintLoading={blueprintLoading}
+                  onGenerateBlueprint={handleGenerateBlueprint}
+                  generatedPrompt={generatedPrompt}
+                  promptLoading={promptLoading}
+                  onGeneratePrompt={handleGeneratePrompt}
+                />
               )}
 
-              {/* Intelligence / generation error */}
-              {(genError || intelError) && !isGenerating && (
-                <div className="mt-4 p-4 bg-red-950/40 border border-red-500/40 rounded-lg">
-                  <p className="text-red-400 text-sm font-medium">Error</p>
-                  <p className="text-red-300 text-xs mt-1">{genError || intelError}</p>
-                  <button onClick={handleReset} className="mt-2 text-xs text-red-400 hover:text-red-300 underline">
-                    Reset
-                  </button>
-                </div>
-              )}
-
-              {/* Tool Preview */}
-              {generatedTool && !isGenerating && (
-                <ToolPreviewCard
-                  tool={generatedTool}
-                  onPublish={handlePublish}
-                  onEdit={() => navigate(`/admin/tools/builder?id=${generatedTool.id}`)}
-                  onReset={handleReset}
-                  publishing={publishing}
+              {/* Blueprint detailed view */}
+              {blueprint && (
+                <BlueprintViewer
+                  blueprint={blueprint}
+                  onClose={resetBlueprint}
                 />
               )}
             </div>
 
-            {/* ── Intelligence Panel ── */}
-            {intelligence && !isGenerating && (
-              <IntelligencePanel
-                data={intelligence}
-                onGenerateBlueprint={handleGenerateBlueprint}
-                blueprintLoading={blueprintLoading}
-              />
-            )}
+            {/* Right: jobs history */}
+            <div className="lg:col-span-2">
+              <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden sticky top-6">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
+                  <h2 className="text-sm font-semibold text-white">Factory Jobs</h2>
+                  <button onClick={loadJobs} className="text-xs text-gray-400 hover:text-white transition-colors">
+                    Refresh
+                  </button>
+                </div>
 
-            {/* ── Blueprint Viewer ── */}
-            {blueprint && (
-              <BlueprintViewer
-                blueprint={blueprint}
-                onClose={() => fetchBlueprint.__reset?.() || (() => {})()} // reset via hook re-trigger
-              />
-            )}
-
-            {/* Ideas Panel */}
-            {mode === 'ideas' && ideas.length > 0 && (
-              <div className="space-y-3">
-                <p className="text-sm text-gray-400 font-medium">
-                  {ideas.length} ideas generated for <span className="text-white capitalize">{category}</span>
-                </p>
-                {ideas.map((idea, i) => (
-                  <div key={idea.id || i} className="bg-gray-800 border border-gray-700 hover:border-indigo-500/60 rounded-xl p-5 transition-colors">
-                    <div className="flex items-start justify-between gap-4 mb-3">
-                      <div>
-                        <h3 className="text-white font-bold">{idea.name}</h3>
-                        <p className="text-gray-400 text-sm mt-0.5">{idea.description}</p>
-                      </div>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${
-                        !idea.estimated_price ? 'bg-green-900 text-green-300' : 'bg-yellow-900 text-yellow-300'
-                      }`}>
-                        {idea.estimated_price ? `₹${idea.estimated_price}` : 'Free'}
-                      </span>
-                    </div>
-                    {idea.target_audience && (
-                      <p className="text-xs text-gray-500 mb-0.5">
-                        <span className="text-gray-400">Target:</span> {idea.target_audience}
-                      </p>
-                    )}
-                    {idea.problem_solved && (
-                      <p className="text-xs text-gray-500 mb-3">
-                        <span className="text-gray-400">Solves:</span> {idea.problem_solved}
-                      </p>
-                    )}
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => { setIdea(`${idea.name}: ${idea.description}`); setMode('tool'); runAnalysis(`${idea.name}: ${idea.description}`, category) }}
-                        className="flex-1 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-sm font-medium py-2 rounded-lg transition-colors"
-                      >
-                        🧠 Analyze
-                      </button>
-                      <button
-                        onClick={() => idea.id && handleBuildIdea(idea.id)}
-                        disabled={!idea.id || buildingIdeaId === idea.id}
-                        className="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-medium py-2 rounded-lg transition-colors"
-                      >
-                        {buildingIdeaId === idea.id ? 'Building…' : 'Build This Tool →'}
-                      </button>
-                    </div>
+                {jobsLoading ? (
+                  <div className="p-5 space-y-3">
+                    {[1, 2, 3].map(i => <div key={i} className="h-14 bg-gray-700 rounded-lg animate-pulse" />)}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* ── RIGHT: Jobs History (2/5) ── */}
-          <div className="lg:col-span-2">
-            <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
-                <h2 className="text-sm font-semibold text-white">Factory Jobs</h2>
-                <button onClick={loadJobs} className="text-xs text-gray-400 hover:text-white transition-colors">
-                  Refresh
-                </button>
-              </div>
-
-              {jobsLoading ? (
-                <div className="p-6 space-y-3">
-                  {[1,2,3].map(i => (
-                    <div key={i} className="h-14 bg-gray-700 rounded-lg animate-pulse" />
-                  ))}
-                </div>
-              ) : jobs.length === 0 ? (
-                <div className="p-8 text-center">
-                  <p className="text-gray-500 text-sm">No jobs yet</p>
-                  <p className="text-gray-600 text-xs mt-1">Generated tools will appear here</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-gray-700 max-h-[600px] overflow-y-auto">
-                  {jobs.map(job => (
-                    <div key={job.id} className="px-4 py-3 hover:bg-gray-700/40 transition-colors">
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <div className="min-w-0">
-                          <p className="text-white text-sm font-medium capitalize truncate">
-                            {job.saas_tools?.name || job.category}
-                          </p>
-                          <p className="text-gray-500 text-xs capitalize">{job.category}</p>
+                ) : jobs.length === 0 ? (
+                  <div className="p-8 text-center">
+                    <p className="text-gray-500 text-sm">No jobs yet</p>
+                    <p className="text-gray-600 text-xs mt-1">Generated tools appear here</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-gray-700 max-h-[600px] overflow-y-auto">
+                    {jobs.map(job => (
+                      <div key={job.id} className="px-4 py-3 hover:bg-gray-700/40 transition-colors">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <div className="min-w-0">
+                            <p className="text-white text-sm font-medium capitalize truncate">
+                              {job.saas_tools?.name || job.tools?.name || job.category}
+                            </p>
+                            <p className="text-gray-500 text-xs capitalize">{job.category}</p>
+                          </div>
+                          <JobStatusBadge status={job.status} />
                         </div>
-                        <StatusBadge status={job.status} />
-                      </div>
-
-                      <p className="text-gray-500 text-xs mb-2">
-                        {new Date(job.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
-                      </p>
-
-                      <div className="flex gap-3">
-                        {job.status === 'completed' && job.saas_tools && (
-                          <>
-                            <a
-                              href={`/dashboard/tools/${job.saas_tools.slug}`}
-                              className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                        <p className="text-gray-500 text-xs mb-2">
+                          {new Date(job.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
+                        </p>
+                        <div className="flex gap-3">
+                          {job.status === 'completed' && (job.saas_tools || job.tools) && (() => {
+                            const tool = job.saas_tools || job.tools
+                            return (
+                              <>
+                                <a
+                                  href={`/dashboard/tools/${tool.slug}`}
+                                  className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                                >
+                                  View
+                                </a>
+                                {!tool.approved && (
+                                  <button
+                                    onClick={() => handleJobPublish(tool.id)}
+                                    className="text-xs text-green-400 hover:text-green-300 transition-colors"
+                                  >
+                                    Publish
+                                  </button>
+                                )}
+                                {tool.approved && <span className="text-xs text-green-500">Live</span>}
+                              </>
+                            )
+                          })()}
+                          {job.status === 'failed' && (
+                            <button
+                              onClick={() => setErrorDetail(job.error_message)}
+                              className="text-xs text-red-400 hover:text-red-300 transition-colors"
                             >
-                              View
-                            </a>
-                            {!job.saas_tools.approved && (
-                              <button
-                                onClick={() => handleJobPublish(job.saas_tools.id)}
-                                className="text-xs text-green-400 hover:text-green-300 transition-colors"
-                              >
-                                Publish
-                              </button>
-                            )}
-                            {job.saas_tools.approved && (
-                              <span className="text-xs text-green-500">Live</span>
-                            )}
-                          </>
-                        )}
-                        {job.status === 'failed' && (
-                          <button
-                            onClick={() => setErrorDetail(job.error_message)}
-                            className="text-xs text-red-400 hover:text-red-300 transition-colors"
-                          >
-                            Error details
-                          </button>
-                        )}
+                              Error details
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════
+            TAB 2: Generate Ideas
+        ═══════════════════════════════════════════════════════════ */}
+        {activeTab === 'ideas' && (
+          <div className="space-y-5">
+
+            {/* Controls */}
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-5">
+              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+                <div className="flex-1">
+                  <label className="block text-sm text-gray-300 mb-2 font-medium">Category</label>
+                  <select
+                    value={category}
+                    onChange={e => setCategory(e.target.value)}
+                    className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 capitalize"
+                  >
+                    {CATEGORIES.map(c => (
+                      <option key={c} value={c} className="capitalize">{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  onClick={handleGetIdeas}
+                  disabled={ideasLoading}
+                  className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white font-semibold rounded-xl transition-all text-sm flex items-center gap-2 shrink-0"
+                >
+                  {ideasLoading ? (
+                    <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Generating…</>
+                  ) : '💡 Get AI Ideas'}
+                </button>
+              </div>
+              {intelError && (
+                <p className="mt-3 text-sm text-red-400 bg-red-950/30 border border-red-800/30 rounded-lg px-3 py-2">
+                  {intelError}
+                </p>
+              )}
+            </div>
+
+            {/* Ideas grid */}
+            {generatedIdeas.length > 0 && (
+              <>
+                <p className="text-sm text-gray-400">
+                  {generatedIdeas.length} ideas for <span className="text-white font-medium capitalize">{category}</span>
+                  <span className="text-gray-600 ml-2">— click "Analyze This →" to score and track</span>
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {generatedIdeas.map((item, i) => (
+                    <IdeaCard key={i} idea={item} onAnalyze={handleAnalyzeIdeaCard} />
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* Empty state */}
+            {!ideasLoading && generatedIdeas.length === 0 && (
+              <div className="text-center py-16 bg-gray-800 border border-gray-700 rounded-xl">
+                <p className="text-5xl mb-4">💡</p>
+                <p className="text-gray-400 text-sm font-medium">Select a category and click "Get AI Ideas"</p>
+                <p className="text-gray-600 text-xs mt-1">Claude will suggest 5 high-potential tool ideas</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════
+            TAB 3: My Ideas
+        ═══════════════════════════════════════════════════════════ */}
+        {activeTab === 'tracker' && (
+          <IdeaTracker
+            ideas={trackedIdeas}
+            stats={stats}
+            updateIdeaStatus={updateIdeaStatus}
+            deleteIdea={deleteIdea}
+          />
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════
+            TAB 4: Compare
+        ═══════════════════════════════════════════════════════════ */}
+        {activeTab === 'compare' && (
+          <CompareMode />
+        )}
+
       </div>
 
-      {/* Error Detail Modal */}
+      {/* Error detail modal */}
       {errorDetail && (
         <div
           className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"

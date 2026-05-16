@@ -117,8 +117,12 @@ const ExpandedRow = memo(function ExpandedRow({ idea, onStatusChange }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function IdeaTracker() {
-  const { ideas, stats, updateIdeaStatus, deleteIdea } = useIdeaTracker()
+export default function IdeaTracker({ ideas: propIdeas, stats: propStats, updateIdeaStatus: propUpdate, deleteIdea: propDelete } = {}) {
+  const hook = useIdeaTracker()
+  const ideas           = propIdeas  ?? hook.ideas
+  const stats           = propStats  ?? hook.stats
+  const updateIdeaStatus = propUpdate ?? hook.updateIdeaStatus
+  const deleteIdea       = propDelete ?? hook.deleteIdea
 
   const [filter, setFilter]       = useState('all')
   const [expandedId, setExpandedId] = useState(null)
