@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api from '../../../services/api.service'
 import { useToolIntelligence } from '../../../hooks/useToolIntelligence'
 import { useIdeaTracker }      from '../../../hooks/useIdeaTracker'
 import IntelligencePanel from './IntelligencePanel'
@@ -75,7 +74,7 @@ function AnalyzingSteps({ active }) {
 }
 
 function GeneratingSteps({ step }) {
-  const steps = ['Analyzing category & idea…', 'Generating tool configuration…', 'Saving to database…']
+  const steps = ['Analyzing category & idea…', 'Generating tool configuration…', 'Processing response…']
   return (
     <div className="mt-6 border-t border-gray-700 pt-5 space-y-3">
       <p className="text-xs text-gray-500">Estimated time: ~15–20 seconds</p>
@@ -216,7 +215,7 @@ export default function AIFactoryPage() {
 
   // ── Jobs history ──
   const [jobs, setJobs]               = useState([])
-  const [jobsLoading, setJobsLoading] = useState(true)
+  const [jobsLoading, setJobsLoading] = useState(false)
   const [errorDetail, setErrorDetail] = useState(null)
 
   // ── Intelligence hook ──
@@ -233,78 +232,34 @@ export default function AIFactoryPage() {
 
   // Track which saved entry belongs to current analysis
   const trackedIdRef = useRef(null)
-  const pollRef      = useRef(null)
 
-  // ── Jobs loading ──
-  const loadJobs = useCallback(() => {
-    api.get('/api/factory/jobs')
-      .then(r => setJobs(Array.isArray(r.data) ? r.data : []))
-      .catch(() => {})
-      .finally(() => setJobsLoading(false))
+  const addToJobs = useCallback((tool) => {
+    setJobs(prev => [{ id: tool.id, category: tool.category, status: 'completed', created_at: tool.generatedAt, tool }, ...prev].slice(0, 20))
   }, [])
-
-  useEffect(() => { loadJobs() }, [loadJobs])
-
-  useEffect(() => {
-    const hasRunning = jobs.some(j => j.status === 'pending' || j.status === 'running')
-    if (!hasRunning) return
-    const timer = setInterval(loadJobs, 5000)
-    return () => clearInterval(timer)
-  }, [jobs, loadJobs])
-
-  const stopPoll = useCallback(() => {
-    if (pollRef.current) { clearTimeout(pollRef.current); pollRef.current = null }
-  }, [])
-
-  // ── Backend tool generation polling ──
-  const pollJobStatus = useCallback((jobId) => {
-    let step = 0
-    const poll = async () => {
-      try {
-        const res = await api.get(`/api/factory/jobs/${jobId}`)
-        const job = res.data
-        if (job.status === 'running' && step < 2) step++
-        setGeneratingStep(step)
-        if (job.status === 'completed') {
-          setGeneratedTool(job.saas_tools || job.tools)
-          setIsGenerating(false)
-          stopPoll()
-          loadJobs()
-          return
-        }
-        if (job.status === 'failed') {
-          setGenError(job.error_message || 'Generation failed')
-          setIsGenerating(false)
-          stopPoll()
-          loadJobs()
-          return
-        }
-        pollRef.current = setTimeout(poll, 2000)
-      } catch {
-        setGenError('Failed to poll job status')
-        setIsGenerating(false)
-        stopPoll()
-      }
-    }
-    poll()
-  }, [loadJobs, stopPoll])
 
   // ── Handlers ─────────────────────────────────────────────────────────────
 
   const handleGenerate = useCallback(async () => {
-    setIsGenerating(true)
-    setGeneratingStep(0)
-    setGeneratedTool(null)
-    setGenError(null)
-    stopPoll()
+    setIsGenerating(true); setGeneratingStep(0); setGeneratedTool(null); setGenError(null)
     try {
-      const res = await api.post('/api/factory/generate', { category, idea })
-      pollJobStatus(res.data.jobId)
+      setGeneratingStep(0)
+      const res = await fetch('/api/generate-tool', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category, idea }),
+      })
+      setGeneratingStep(1)
+      if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || `Error ${res.status}`) }
+      const { tool } = await res.json()
+      setGeneratingStep(2)
+      setGeneratedTool(tool)
+      addToJobs(tool)
     } catch (err) {
-      setGenError(err.response?.data?.error || 'Failed to start generation')
+      setGenError(err.message || 'Tool generation failed')
+    } finally {
       setIsGenerating(false)
     }
-  }, [category, idea, pollJobStatus, stopPoll])
+  }, [category, idea, addToJobs])
 
   const handleAnalyze = useCallback(async () => {
     if (!idea.trim()) return
@@ -360,35 +315,18 @@ export default function AIFactoryPage() {
     }
   }, [category, analyze, saveIdea, resetIntelligence])
 
-  const handlePublish = useCallback(async () => {
+  const handlePublish = useCallback(() => {
     if (!generatedTool) return
-    setPublishing(true)
-    try {
-      await api.put(`/api/tools/${generatedTool.id}`, { approved: true })
-      setGeneratedTool(t => ({ ...t, approved: true }))
-      loadJobs()
-    } catch {
-      setGenError('Publish failed')
-    } finally {
-      setPublishing(false)
-    }
-  }, [generatedTool, loadJobs])
-
-  const handleJobPublish = useCallback(async (toolId) => {
-    try {
-      await api.put(`/api/tools/${toolId}`, { approved: true })
-      loadJobs()
-    } catch {}
-  }, [loadJobs])
+    setGeneratedTool(t => ({ ...t, approved: true }))
+  }, [generatedTool])
 
   const handleReset = useCallback(() => {
     setGeneratedTool(null)
     setGenError(null)
     setIsGenerating(false)
-    stopPoll()
     resetIntelligence()
     trackedIdRef.current = null
-  }, [stopPoll, resetIntelligence])
+  }, [resetIntelligence])
 
   const switchTab = useCallback((id) => {
     setActiveTab(id)
@@ -550,23 +488,16 @@ export default function AIFactoryPage() {
               )}
             </div>
 
-            {/* Right: jobs history */}
+            {/* Right: session history */}
             <div className="lg:col-span-2">
               <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden sticky top-6">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
-                  <h2 className="text-sm font-semibold text-white">Factory Jobs</h2>
-                  <button onClick={loadJobs} className="text-xs text-gray-400 hover:text-white transition-colors">
-                    Refresh
-                  </button>
+                <div className="px-4 py-3 border-b border-gray-700">
+                  <h2 className="text-sm font-semibold text-white">Session History</h2>
                 </div>
 
-                {jobsLoading ? (
-                  <div className="p-5 space-y-3">
-                    {[1, 2, 3].map(i => <div key={i} className="h-14 bg-gray-700 rounded-lg animate-pulse" />)}
-                  </div>
-                ) : jobs.length === 0 ? (
+                {jobs.length === 0 ? (
                   <div className="p-8 text-center">
-                    <p className="text-gray-500 text-sm">No jobs yet</p>
+                    <p className="text-gray-500 text-sm">No tools generated yet</p>
                     <p className="text-gray-600 text-xs mt-1">Generated tools appear here</p>
                   </div>
                 ) : (
@@ -576,47 +507,15 @@ export default function AIFactoryPage() {
                         <div className="flex items-start justify-between gap-2 mb-1">
                           <div className="min-w-0">
                             <p className="text-white text-sm font-medium capitalize truncate">
-                              {job.saas_tools?.name || job.tools?.name || job.category}
+                              {job.tool?.name || job.category}
                             </p>
                             <p className="text-gray-500 text-xs capitalize">{job.category}</p>
                           </div>
                           <JobStatusBadge status={job.status} />
                         </div>
-                        <p className="text-gray-500 text-xs mb-2">
+                        <p className="text-gray-500 text-xs">
                           {new Date(job.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
                         </p>
-                        <div className="flex gap-3">
-                          {job.status === 'completed' && (job.saas_tools || job.tools) && (() => {
-                            const tool = job.saas_tools || job.tools
-                            return (
-                              <>
-                                <a
-                                  href={`/dashboard/tools/${tool.slug}`}
-                                  className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
-                                >
-                                  View
-                                </a>
-                                {!tool.approved && (
-                                  <button
-                                    onClick={() => handleJobPublish(tool.id)}
-                                    className="text-xs text-green-400 hover:text-green-300 transition-colors"
-                                  >
-                                    Publish
-                                  </button>
-                                )}
-                                {tool.approved && <span className="text-xs text-green-500">Live</span>}
-                              </>
-                            )
-                          })()}
-                          {job.status === 'failed' && (
-                            <button
-                              onClick={() => setErrorDetail(job.error_message)}
-                              className="text-xs text-red-400 hover:text-red-300 transition-colors"
-                            >
-                              Error details
-                            </button>
-                          )}
-                        </div>
                       </div>
                     ))}
                   </div>
