@@ -87,6 +87,7 @@ export const TOOL_CATALOGUE = {
       {
         title: 'Finance',
         items: [
+          { icon: '📊', label: 'Tax Calculator',          to: '/tools/tax-calculator'        },
           { icon: '🏦', label: 'Loan EMI Calculator',     to: '/tools/loan-calculator'       },
           { icon: '📊', label: 'Percentage Calculator',   to: '/tools/percentage-calculator' },
           { icon: '💰', label: 'Interest Calculator',     to: '/tools/interest-calculator',  comingSoon: true },

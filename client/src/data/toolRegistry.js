@@ -441,6 +441,24 @@ export const TOOL_REGISTRY = [
   // ── CALCULATORS ───────────────────────────────────────────────────────────
 
   {
+    slug: 'tax-calculator',
+    name: 'Tax Calculator',
+    category: 'calculators',
+    subcategory: 'Finance',
+    icon: '📊',
+    description: 'Calculate your income tax instantly for India (Old/New regime) and USA. Get slab-wise breakdown, effective tax rate, and TDS estimate.',
+    isFeatured: true,
+    isNew: true,
+    isPremium: false,
+    comingSoon: false,
+    tags: ['tax', 'income tax', 'ITR', 'tax calculator', 'TDS', 'finance', 'tax slab', 'new regime', 'old regime', 'US tax', 'federal tax'],
+    relatedSlugs: ['loan-calculator', 'percentage-calculator', 'bmi-calculator'],
+    seo: {
+      title: 'Tax Calculator — India & US Income Tax Calculator Free | AWE-OS',
+      description: 'Calculate income tax for India (Old/New Regime, FY 2024-25) and USA (2024 Federal). Slab-wise breakdown, effective rate, TDS, and regime comparison. Free, instant, browser-based.',
+    },
+  },
+  {
     slug: 'bmi-calculator',
     name: 'BMI Calculator',
     category: 'calculators',
