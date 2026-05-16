@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react'
-import api from '../services/api.service'
 
 function gradeFromScore(score) {
   if (score >= 85) return { grade: 'A+', gradeLabel: 'Exceptional Opportunity' }
@@ -61,16 +60,15 @@ function mapClaudeResponse(raw, category) {
   }
 }
 
-/**
- * Hook for the Phase 6A intelligence pipeline.
- * analyze() routes through /api/analyze-tool serverless function.
- * fetchBlueprint() still uses the backend.
- */
 export function useToolIntelligence() {
   const [intelligence,     setIntelligence]     = useState(null)
   const [blueprint,        setBlueprint]        = useState(null)
+  const [generatedPrompt,  setGeneratedPrompt]  = useState(null)
+  const [generatedIdeas,   setGeneratedIdeas]   = useState([])
   const [loading,          setLoading]          = useState(false)
   const [blueprintLoading, setBlueprintLoading] = useState(false)
+  const [promptLoading,    setPromptLoading]    = useState(false)
+  const [ideasLoading,     setIdeasLoading]     = useState(false)
   const [error,            setError]            = useState(null)
 
   const analyze = useCallback(async (prompt, category) => {
@@ -78,6 +76,7 @@ export function useToolIntelligence() {
     setLoading(true)
     setError(null)
     setBlueprint(null)
+    setGeneratedPrompt(null)
     try {
       const res = await fetch('/api/analyze-tool', {
         method: 'POST',
@@ -101,40 +100,97 @@ export function useToolIntelligence() {
     }
   }, [])
 
-  const fetchBlueprint = useCallback(async (prompt, category, analysis, ideaId) => {
+  const fetchBlueprint = useCallback(async (toolIdea, category, analysis) => {
     setBlueprintLoading(true)
     setError(null)
     try {
-      const res = await api.post('/api/factory/intelligence/blueprint', {
-        prompt,
-        category,
-        analysis: analysis || null,
-        ideaId:   ideaId   || null,
+      const res = await fetch('/api/generate-blueprint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ toolIdea, category, analysis: analysis || null }),
       })
-      setBlueprint(res.data.blueprint)
-      return res.data.blueprint
+      if (!res.ok) throw new Error(`Blueprint error ${res.status}`)
+      const bp = await res.json()
+      setBlueprint(bp)
+      return bp
     } catch (err) {
-      setError(err.response?.data?.error || 'Blueprint generation failed')
+      setError(err.message || 'Blueprint generation failed')
       return null
     } finally {
       setBlueprintLoading(false)
     }
   }, [])
 
+  const fetchPrompt = useCallback(async (blueprint, analysis, toolIdea) => {
+    setPromptLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/generate-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ blueprint, analysis: analysis || null, toolIdea }),
+      })
+      if (!res.ok) throw new Error(`Prompt error ${res.status}`)
+      const { prompt } = await res.json()
+      setGeneratedPrompt(prompt)
+      return prompt
+    } catch (err) {
+      setError(err.message || 'Prompt generation failed')
+      return null
+    } finally {
+      setPromptLoading(false)
+    }
+  }, [])
+
+  const fetchIdeas = useCallback(async (category, count = 5) => {
+    setIdeasLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/generate-ideas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category, count }),
+      })
+      if (!res.ok) throw new Error(`Ideas error ${res.status}`)
+      const { ideas } = await res.json()
+      setGeneratedIdeas(ideas || [])
+      return ideas || []
+    } catch (err) {
+      setError(err.message || 'Ideas generation failed')
+      return []
+    } finally {
+      setIdeasLoading(false)
+    }
+  }, [])
+
   const reset = useCallback(() => {
     setIntelligence(null)
     setBlueprint(null)
+    setGeneratedPrompt(null)
+    setGeneratedIdeas([])
     setError(null)
+  }, [])
+
+  const resetBlueprint = useCallback(() => {
+    setBlueprint(null)
+    setGeneratedPrompt(null)
   }, [])
 
   return {
     intelligence,
     blueprint,
+    generatedPrompt,
+    generatedIdeas,
     loading,
     blueprintLoading,
+    promptLoading,
+    ideasLoading,
     error,
     analyze,
     fetchBlueprint,
+    fetchPrompt,
+    fetchIdeas,
     reset,
+    resetBlueprint,
   }
 }
