@@ -12,8 +12,8 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 2500,
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1500,
         messages: [{
           role: 'user',
           content: `Create a detailed implementation blueprint for building "${toolIdea}" (category: ${category}) as a React tool for AWE-OS free tools website.
@@ -76,13 +76,22 @@ Return ONLY valid JSON with no markdown fences:
       }),
     });
 
+    if (!response.ok) {
+      const errBody = await response.text();
+      console.error('Claude API error:', response.status, errBody);
+      return res.status(500).json({ error: `Claude API ${response.status}: ${errBody}` });
+    }
     const data = await response.json();
     const text = data.content?.[0]?.text || '';
     const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return res.status(500).json({ error: 'No JSON in AI response' });
+    if (!match) {
+      console.error('No JSON in Claude response:', text);
+      return res.status(500).json({ error: 'No JSON in AI response' });
+    }
     const blueprint = JSON.parse(match[0]);
-    res.status(200).json(blueprint);
+    return res.status(200).json(blueprint);
   } catch (error) {
-    res.status(500).json({ error: 'Blueprint generation failed: ' + error.message });
+    console.error('Blueprint generation error:', error);
+    return res.status(500).json({ error: 'Blueprint generation failed: ' + error.message });
   }
 }
