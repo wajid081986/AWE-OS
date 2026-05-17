@@ -80,6 +80,9 @@ const TOOL_COMPONENTS = {
 
   // Productivity / Legal
   'contract-generator':    () => import('./ContractGenerator'),
+
+  // Finance
+  'fd-calculator':         () => import('./FDCalculator'),
 }
 
 // Module-level cache: slug → lazy component.

@@ -462,6 +462,25 @@ export const TOOL_REGISTRY = [
   // ── CALCULATORS ───────────────────────────────────────────────────────────
 
   {
+    slug: 'fd-calculator',
+    name: 'FD Calculator',
+    category: 'calculators',
+    subcategory: 'Finance',
+    icon: '🏦',
+    description: 'Calculate fixed deposit maturity amount, TDS on interest, and compare FD rates across SBI, HDFC, ICICI, Axis, Kotak, and Post Office. Also calculates RD returns.',
+    isFeatured: true,
+    isNew: true,
+    isPremium: false,
+    comingSoon: false,
+    tags: ['fd calculator', 'fixed deposit calculator', 'rd calculator', 'sbi fd', 'hdfc fd', 'tds on fd', 'fd interest calculator', 'india'],
+    relatedSlugs: ['sip-calculator', 'loan-calculator', 'tax-calculator'],
+    seo: {
+      title: 'FD Calculator — Fixed Deposit & RD Calculator with Bank Comparison India | AWE-OS',
+      description: 'Calculate FD maturity amount and TDS. Compare fixed deposit rates across SBI, HDFC, ICICI, Axis, Kotak and Post Office. Free FD & RD calculator for India.',
+    },
+  },
+
+  {
     slug: 'sip-calculator',
     name: 'SIP Calculator',
     category: 'calculators',
