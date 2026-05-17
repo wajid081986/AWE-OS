@@ -90,6 +90,7 @@ export const TOOL_CATALOGUE = {
           { icon: '📊', label: 'Tax Calculator',          to: '/tools/tax-calculator'        },
           { icon: '🏦', label: 'Loan EMI Calculator',     to: '/tools/loan-calculator'       },
           { icon: '📊', label: 'Percentage Calculator',   to: '/tools/percentage-calculator' },
+          { icon: '📈', label: 'ROI Calculator',          to: '/tools/roi-calculator'        },
           { icon: '💰', label: 'Interest Calculator',     to: '/tools/interest-calculator',  comingSoon: true },
         ],
       },
@@ -130,6 +131,23 @@ export const TOOL_CATALOGUE = {
           { icon: '🔄', label: 'CSV to JSON',             to: '/tools/csv-to-json'        },
           { icon: '🖼️', label: 'Image Compressor',        to: '/tools/image-compressor'   },
           { icon: '⬛', label: 'QR Code Generator',       to: '/tools/qr-code-generator'  },
+        ],
+      },
+    ],
+  },
+
+  productivity: {
+    label: 'Productivity',
+    icon: '🧾',
+    to: '/tools/productivity',
+    count: '1+',
+    description: 'Invoice generation, billing and business tools',
+    accent: 'indigo',
+    sections: [
+      {
+        title: 'Billing',
+        items: [
+          { icon: '🧾', label: 'Invoice Generator', to: '/tools/invoice' },
         ],
       },
     ],

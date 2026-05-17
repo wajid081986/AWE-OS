@@ -74,6 +74,27 @@ export const CATEGORY_META = {
     },
   },
 
+  productivity: {
+    slug: 'productivity',
+    name: 'Productivity',
+    title: 'Free Productivity Tools — Invoice Generator & More | AWE-OS',
+    description: 'Free productivity tools for freelancers and businesses. Create GST invoices, manage clients, and export PDFs — no subscription required.',
+    icon: '🧾',
+    accent: 'indigo',
+    applicationCategory: 'BusinessApplication',
+    intro: {
+      heading: 'Free Productivity Tools for Freelancers & Businesses',
+      body: 'Professional tools that help you bill clients, manage projects, and run your business without expensive software. All tools are free and work in your browser.',
+      whyTitle: 'Why use AWE-OS Productivity Tools?',
+      whyPoints: [
+        'No subscription — free for freelancers and small businesses',
+        'GST-compliant invoicing for Indian businesses',
+        'Export to PDF in one click',
+        'Works on any device, no install required',
+      ],
+    },
+  },
+
   ai: {
     slug: 'ai',
     name: 'AI Tools',
@@ -693,6 +714,28 @@ export const TOOL_REGISTRY = [
     seo: {
       title: 'CSV to JSON Converter — Convert CSV Files Free Online | AWE-OS',
       description: 'Convert CSV files to JSON format instantly in your browser. Free CSV to JSON converter — no upload needed.',
+    },
+  },
+
+  // ── PRODUCTIVITY ──────────────────────────────────────────────────────────
+
+  {
+    slug: 'invoice',
+    name: 'Invoice Generator',
+    category: 'productivity',
+    subcategory: 'Billing',
+    icon: '🧾',
+    description: 'Create professional GST invoices with live preview, PDF export, and client management. Free for Indian freelancers and businesses.',
+    isFeatured: true,
+    isNew: false,
+    isPremium: false,
+    comingSoon: false,
+    tags: ['invoice', 'gst', 'pdf', 'billing', 'freelancer', 'invoice generator', 'gst invoice'],
+    relatedSlugs: ['tax-calculator', 'loan-calculator', 'percentage-calculator'],
+    path: '/tools/invoice',
+    seo: {
+      title: 'Invoice Generator — Free GST Invoice Maker Online | AWE-OS',
+      description: 'Create professional GST-compliant invoices with live preview and one-click PDF export. Free for Indian freelancers and small businesses. No sign-up required.',
     },
   },
 

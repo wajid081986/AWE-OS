@@ -367,6 +367,14 @@
     <priority>0.7</priority>
   </url>
 
+  <!-- Productivity -->
+  <url>
+    <loc>https://www.awe-os.com/tools/invoice</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- AI Tools -->
   <url>
     <loc>https://www.awe-os.com/tools/resume-builder</loc>

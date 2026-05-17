@@ -695,6 +695,7 @@ const TOOLS = {
   'qr-code-generator':           { title: 'QR Code Generator — Create QR Codes Free Online | AWE-OS',          description: 'Generate QR codes for URLs, text, WiFi, contacts, and more. Download as PNG. 100% free.' },
   'image-compressor':            { title: 'Image Compressor — Compress JPG & PNG Free Online | AWE-OS',         description: 'Compress images without losing quality. Reduce JPG, PNG, WEBP file sizes instantly in your browser.' },
   'csv-to-json':                 { title: 'CSV to JSON Converter — Convert CSV Files Free Online | AWE-OS',     description: 'Convert CSV files to JSON format instantly in your browser. Free CSV to JSON converter.' },
+  'invoice':                     { title: 'Invoice Generator — Free GST Invoice Maker Online | AWE-OS',          description: 'Create professional GST-compliant invoices with live preview and one-click PDF export. Free for Indian freelancers and businesses.' },
   'resume-builder':              { title: 'AI Resume Builder — Create Professional Resume Free | AWE-OS',       description: 'Build a professional, ATS-friendly resume with AI. Multiple templates, instant download. Free.' },
   'ai-content-writer':           { title: 'AI Content Writer — Generate Blog Posts & Copy Free | AWE-OS',       description: 'Write blog posts, social media captions, and ad copy with AI. GPT-powered content writer. Free.' },
 };
