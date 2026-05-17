@@ -1,16 +1,19 @@
 /**
  * DynamicToolPage — unified entry point for all /tools/:slug routes.
  *
- * Resolution chain:
- *  1. Slug is in TOOL_COMPONENTS map  → render dedicated React component (lazy)
- *  2. Slug is a known alias           → render component for canonical slug
- *  3. No component found              → fall back to API-driven ToolDetailPage
+ * AUTO-REGISTRATION: To add a new tool, add ONE line to TOOL_COMPONENTS:
+ *   'your-slug': () => import('./YourComponent')
+ * No other changes needed — lazy() wrapping, aliases, and fallback are
+ * all handled automatically.
  *
- * Error isolation layers (outermost → innermost):
- *  ChunkErrorBoundary → catches chunk download failures (network, post-deploy 404)
- *    Suspense → handles lazy loading state
- *      ToolErrorBoundary → catches render errors inside individual tools
- *        <Component />
+ * Resolution chain:
+ *  1. Slug found in TOOL_COMPONENTS (or via SLUG_ALIASES) → lazy-render component
+ *  2. No component found → fall back to API-driven ToolDetailPage
+ *
+ * Error isolation (outermost → innermost):
+ *  ChunkErrorBoundary → chunk download failures (network, post-deploy 404)
+ *    Suspense → lazy loading state
+ *      ToolErrorBoundary → render errors inside the tool
  */
 
 import { lazy, Suspense } from 'react'
@@ -18,70 +21,80 @@ import { useParams } from 'react-router-dom'
 import { SLUG_ALIASES } from '../../data/toolRegistry'
 import { ChunkErrorBoundary, ToolErrorBoundary } from '../../components/errors'
 
+// ── Tool import registry ───────────────────────────────────────────────────
+// Add new tools here: 'slug': () => import('./ComponentFile')
+// lazy() is applied on first access and cached — do NOT wrap in lazy() here.
+
 const TOOL_COMPONENTS = {
   // PDF — Organize
-  'merge-pdf':           lazy(() => import('./pdf/MergePDF')),
-  'split-pdf':           lazy(() => import('./pdf/SplitPDF')),
-  'compress-pdf':        lazy(() => import('./pdf/CompressPDF')),
-  'rotate-pdf':          lazy(() => import('./pdf/RotatePDF')),
-  'remove-pages-pdf':    lazy(() => import('./pdf/RemovePagesPDF')),
-  'extract-pages-pdf':   lazy(() => import('./pdf/ExtractPagesPDF')),
-  'organize-pdf':        lazy(() => import('./pdf/OrganizePDF')),
-  'test-ai-tool':        lazy(() => import('../tools/TestAiTool')),
+  'merge-pdf':           () => import('./pdf/MergePDF'),
+  'split-pdf':           () => import('./pdf/SplitPDF'),
+  'compress-pdf':        () => import('./pdf/CompressPDF'),
+  'rotate-pdf':          () => import('./pdf/RotatePDF'),
+  'remove-pages-pdf':    () => import('./pdf/RemovePagesPDF'),
+  'extract-pages-pdf':   () => import('./pdf/ExtractPagesPDF'),
+  'organize-pdf':        () => import('./pdf/OrganizePDF'),
+  'test-ai-tool':        () => import('../tools/TestAiTool'),
 
   // PDF — Convert to PDF
-  'jpg-to-pdf':          lazy(() => import('./pdf/JPGtoPDF')),
-  'word-to-pdf':         lazy(() => import('./pdf/WordToPDF')),
-  'excel-to-pdf':        lazy(() => import('./pdf/ExcelToPDF')),
-  'powerpoint-to-pdf':   lazy(() => import('./pdf/PowerPointToPDF')),
+  'jpg-to-pdf':          () => import('./pdf/JPGtoPDF'),
+  'word-to-pdf':         () => import('./pdf/WordToPDF'),
+  'excel-to-pdf':        () => import('./pdf/ExcelToPDF'),
+  'powerpoint-to-pdf':   () => import('./pdf/PowerPointToPDF'),
 
   // PDF — Convert from PDF
-  'pdf-to-jpg':          lazy(() => import('./pdf/PDFtoJPG')),
-  'pdf-to-word':         lazy(() => import('./pdf/PDFtoWord')),
-  'pdf-to-excel':        lazy(() => import('./pdf/PDFtoExcel')),
+  'pdf-to-jpg':          () => import('./pdf/PDFtoJPG'),
+  'pdf-to-word':         () => import('./pdf/PDFtoWord'),
+  'pdf-to-excel':        () => import('./pdf/PDFtoExcel'),
 
   // PDF — Edit
-  'watermark-pdf':       lazy(() => import('./pdf/WatermarkPDF')),
-  'page-numbers-pdf':    lazy(() => import('./pdf/PageNumbersPDF')),
+  'watermark-pdf':       () => import('./pdf/WatermarkPDF'),
+  'page-numbers-pdf':    () => import('./pdf/PageNumbersPDF'),
 
   // PDF — Security
-  'protect-pdf':         lazy(() => import('./pdf/ProtectPDF')),
-  'unlock-pdf':          lazy(() => import('./pdf/UnlockPDF')),
+  'protect-pdf':         () => import('./pdf/ProtectPDF'),
+  'unlock-pdf':          () => import('./pdf/UnlockPDF'),
 
   // Calculators
-  'roi-calculator':        lazy(() => import('./ROICalculator')),
-  'tax-calculator':        lazy(() => import('./TaxCalculator')),
-  'bmi-calculator':        lazy(() => import('./BMICalculator')),
-  'age-calculator':        lazy(() => import('./AgeCalculator')),
-  'loan-calculator':       lazy(() => import('./LoanCalculator')),
-  'percentage-calculator': lazy(() => import('./PercentageCalculator')),
-  'gpa-calculator':        lazy(() => import('./GPACalculator')),
+  'age-calculator':        () => import('./AgeCalculator'),
+  'bmi-calculator':        () => import('./BMICalculator'),
+  'gpa-calculator':        () => import('./GPACalculator'),
+  'loan-calculator':       () => import('./LoanCalculator'),
+  'percentage-calculator': () => import('./PercentageCalculator'),
+  'roi-calculator':        () => import('./ROICalculator'),
+  'sip-calculator':        () => import('./SIPCalculator'),
+  'tax-calculator':        () => import('./TaxCalculator'),
 
-  // Converters
-  'unit-converter':     lazy(() => import('./UnitConverter')),
-  'word-counter':       lazy(() => import('./WordCounter')),
-  'password-generator': lazy(() => import('./PasswordGenerator')),
-  'color-picker':       lazy(() => import('./ColorPicker')),
-  'qr-code-generator':  lazy(() => import('./QRCodeGenerator')),
-  'image-compressor':   lazy(() => import('./ImageCompressor')),
-  'csv-to-json':        lazy(() => import('./CSVtoJSON')),
+  // Converters & Utilities
+  'color-picker':          () => import('./ColorPicker'),
+  'csv-to-json':           () => import('./CSVtoJSON'),
+  'image-compressor':      () => import('./ImageCompressor'),
+  'password-generator':    () => import('./PasswordGenerator'),
+  'qr-code-generator':     () => import('./QRCodeGenerator'),
+  'unit-converter':        () => import('./UnitConverter'),
+  'word-counter':          () => import('./WordCounter'),
 
   // AI Tools
-  'resume-builder':     lazy(() => import('./ai/ResumeBuilder')),
-  'ai-content-writer':  lazy(() => import('./ai/ContentWriter')),
+  'ai-content-writer':     () => import('./ai/ContentWriter'),
+  'resume-builder':        () => import('./ai/ResumeBuilder'),
 
   // Productivity / Legal
-  'contract-generator': lazy(() => import('./ContractGenerator')),
-  'sip-calculator':     lazy(() => import('./SIPCalculator')),
+  'contract-generator':    () => import('./ContractGenerator'),
 }
 
-const ALIAS_COMPONENT_MAP = Object.fromEntries(
-  Object.entries(SLUG_ALIASES).map(([alias, canonical]) => [alias, TOOL_COMPONENTS[canonical]])
-)
+// Module-level cache: slug → lazy component.
+// Ensures the same lazy() instance is returned for a given slug across renders,
+// preventing unnecessary remounts.
+const _lazyCache = {}
 
-const ALL_COMPONENTS = { ...TOOL_COMPONENTS, ...ALIAS_COMPONENT_MAP }
+function getOrCreateLazy(slug, importFn) {
+  if (!_lazyCache[slug]) {
+    _lazyCache[slug] = lazy(importFn)
+  }
+  return _lazyCache[slug]
+}
 
-const ToolDetailPage = lazy(() => import('../ToolDetailPage'))
+// ── Loading spinner ────────────────────────────────────────────────────────
 
 function PageLoader() {
   return (
@@ -99,21 +112,30 @@ function PageLoader() {
   )
 }
 
+// ── Lazy fallback (API-driven tools) ───────────────────────────────────────
+
+const ToolDetailPage = lazy(() => import('../ToolDetailPage'))
+
+// ── Main component ─────────────────────────────────────────────────────────
+
 export default function DynamicToolPage() {
   const { slug } = useParams()
-  const Component = ALL_COMPONENTS[slug]
+
+  // Resolve alias first, then look up import function
+  const canonicalSlug = SLUG_ALIASES[slug] ?? slug
+  const importFn      = TOOL_COMPONENTS[canonicalSlug]
+  const ToolComponent = importFn ? getOrCreateLazy(canonicalSlug, importFn) : null
 
   return (
     <ChunkErrorBoundary>
       <Suspense fallback={<PageLoader />}>
-        {Component
-          ? (
-            <ToolErrorBoundary toolName={slug}>
-              <Component />
-            </ToolErrorBoundary>
-          )
-          : <ToolDetailPage />
-        }
+        {ToolComponent ? (
+          <ToolErrorBoundary toolName={slug}>
+            <ToolComponent />
+          </ToolErrorBoundary>
+        ) : (
+          <ToolDetailPage />
+        )}
       </Suspense>
     </ChunkErrorBoundary>
   )
