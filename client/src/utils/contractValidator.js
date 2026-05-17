@@ -1,49 +1,83 @@
-import * as yup from 'yup'
-
 const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/
 
-export const fullFormSchema = yup.object({
-  // Step 1 — Parties
-  contractType:      yup.string().required('Please select a contract type'),
-  freelancerName:    yup.string().required('Your name is required').min(2, 'At least 2 characters').max(100),
-  freelancerAddress: yup.string().required('Your address is required').min(10, 'Please enter a complete address'),
-  freelancerPAN:     yup.string().nullable().optional()
-    .test('pan', 'Invalid PAN format (e.g. ABCDE1234F)', v => !v || PAN_REGEX.test(v)),
-  clientName:        yup.string().required('Client name is required').min(2).max(150),
-  clientAddress:     yup.string().required('Client address is required').min(10, 'Please enter a complete address'),
-  clientPAN:         yup.string().nullable().optional(),
-
-  // Step 2 — Project & Financial
-  projectDescription: yup.string().required('Project description is required').min(20, 'Please provide at least 20 characters'),
-  contractValue:      yup.number().transform(v => (isNaN(v) ? undefined : v)).nullable().optional().min(0).max(99999999),
-  paymentTerms:       yup.string().required('Please select payment terms'),
-  advanceAmount:      yup.number().transform(v => (isNaN(v) ? undefined : v)).nullable().optional().min(0),
-  startDate:          yup.date().required('Start date is required').typeError('Enter a valid date'),
-  endDate:            yup.date().nullable().optional().typeError('Enter a valid date')
-    .min(yup.ref('startDate'), 'End date must be after start date'),
-  deliverables:       yup.string().nullable().optional(),
-
-  // Step 3 — Legal
-  jurisdiction:         yup.string().required('Please select a jurisdiction'),
-  confidentialityLevel: yup.string().required('Please select confidentiality level'),
-  terminationClause:    yup.string().required('Please select a termination notice period'),
-  ipOwnership:          yup.string().required('Please select IP ownership'),
-  disputeResolution:    yup.string().required('Please select a dispute resolution method'),
-  liabilityLimit:       yup.string().nullable().optional(),
-  nonCompete:           yup.boolean().optional(),
-  nonSolicitation:      yup.boolean().optional(),
-
-  // Step 4 — Review
-  additionalClauses:       yup.string().nullable().optional(),
-  freelancerSignatureName: yup.string().nullable().optional(),
-  clientSignatureName:     yup.string().nullable().optional(),
-  contractDate:            yup.date().required('Contract date is required').typeError('Enter a valid date'),
-})
-
-// Fields to validate per step (used with trigger())
 export const STEP_FIELDS = {
   1: ['contractType', 'freelancerName', 'freelancerAddress', 'freelancerPAN', 'clientName', 'clientAddress'],
   2: ['projectDescription', 'contractValue', 'paymentTerms', 'startDate', 'endDate'],
   3: ['jurisdiction', 'confidentialityLevel', 'terminationClause', 'ipOwnership', 'disputeResolution'],
   4: ['contractDate'],
+}
+
+export function validateFields(values, fields) {
+  const errors = {}
+  const err = (f, msg) => { errors[f] = { message: msg } }
+
+  for (const field of fields) {
+    const v = values[field]
+    switch (field) {
+      case 'contractType':
+        if (!v) err('contractType', 'Please select a contract type')
+        break
+      case 'freelancerName':
+        if (!v?.trim()) err('freelancerName', 'Your name is required')
+        else if (v.trim().length < 2) err('freelancerName', 'At least 2 characters')
+        break
+      case 'freelancerAddress':
+        if (!v?.trim()) err('freelancerAddress', 'Your address is required')
+        else if (v.trim().length < 10) err('freelancerAddress', 'Please enter a complete address')
+        break
+      case 'freelancerPAN':
+        if (v && !PAN_REGEX.test(v.toUpperCase()))
+          err('freelancerPAN', 'Invalid PAN format (e.g. ABCDE1234F)')
+        break
+      case 'clientName':
+        if (!v?.trim()) err('clientName', 'Client name is required')
+        else if (v.trim().length < 2) err('clientName', 'At least 2 characters')
+        break
+      case 'clientAddress':
+        if (!v?.trim()) err('clientAddress', 'Client address is required')
+        else if (v.trim().length < 10) err('clientAddress', 'Please enter a complete address')
+        break
+      case 'projectDescription':
+        if (!v?.trim()) err('projectDescription', 'Project description is required')
+        else if (v.trim().length < 20) err('projectDescription', 'Please provide at least 20 characters')
+        break
+      case 'contractValue': {
+        const n = Number(v)
+        if (v !== '' && v != null && (isNaN(n) || n < 0))
+          err('contractValue', 'Must be a positive number')
+        else if (!isNaN(n) && n > 99999999)
+          err('contractValue', 'Value too large')
+        break
+      }
+      case 'paymentTerms':
+        if (!v) err('paymentTerms', 'Please select payment terms')
+        break
+      case 'startDate':
+        if (!v) err('startDate', 'Start date is required')
+        break
+      case 'endDate':
+        if (v && values.startDate && new Date(v) <= new Date(values.startDate))
+          err('endDate', 'End date must be after start date')
+        break
+      case 'jurisdiction':
+        if (!v) err('jurisdiction', 'Please select a jurisdiction')
+        break
+      case 'confidentialityLevel':
+        if (!v) err('confidentialityLevel', 'Please select confidentiality level')
+        break
+      case 'terminationClause':
+        if (!v) err('terminationClause', 'Please select a termination notice period')
+        break
+      case 'ipOwnership':
+        if (!v) err('ipOwnership', 'Please select IP ownership')
+        break
+      case 'disputeResolution':
+        if (!v) err('disputeResolution', 'Please select a dispute resolution method')
+        break
+      case 'contractDate':
+        if (!v) err('contractDate', 'Contract date is required')
+        break
+    }
+  }
+  return errors
 }

@@ -1,6 +1,4 @@
-import { useState, useMemo } from 'react'
-import { Controller } from 'react-hook-form'
-import Select from 'react-select'
+import { useState } from 'react'
 import ContractTemplateSelector from './ContractTemplateSelector'
 import ContractPreview from './ContractPreview'
 import ClauseEditor from './ClauseEditor'
@@ -10,95 +8,57 @@ import { getContractTemplate } from '../../../utils/contractTemplates'
 import { runComplianceCheck } from '../../../utils/indianLegalCompliance'
 import { STEP_FIELDS } from '../../../utils/contractValidator'
 
-// ── Design constants ───────────────────────────────────────────────────────────
-
 const STEPS = [
-  { n: 1, title: 'Parties',        icon: '👥' },
-  { n: 2, title: 'Project Terms',  icon: '💼' },
-  { n: 3, title: 'Legal Terms',    icon: '⚖️' },
-  { n: 4, title: 'Review',         icon: '📄' },
+  { n: 1, title: 'Parties',       icon: '👥' },
+  { n: 2, title: 'Project Terms', icon: '💼' },
+  { n: 3, title: 'Legal Terms',   icon: '⚖️' },
+  { n: 4, title: 'Review',        icon: '📄' },
 ]
 
-const SELECT_STYLES = {
-  control: (b, s) => ({
-    ...b,
-    backgroundColor:  'rgba(255,255,255,0.05)',
-    borderColor:       s.isFocused ? '#60a5fa' : 'rgba(255,255,255,0.2)',
-    boxShadow:         s.isFocused ? '0 0 0 1px #60a5fa' : 'none',
-    '&:hover': { borderColor: 'rgba(255,255,255,0.35)' },
-    borderRadius: '0.75rem',
-    minHeight: '42px',
-    cursor: 'pointer',
-  }),
-  menu: (b) => ({ ...b, backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '0.75rem', zIndex: 50 }),
-  option: (b, s) => ({
-    ...b,
-    backgroundColor: s.isSelected ? '#3b82f6' : s.isFocused ? 'rgba(255,255,255,0.08)' : 'transparent',
-    color: 'white',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-  }),
-  singleValue:        (b) => ({ ...b, color: 'white', fontSize: '0.875rem' }),
-  placeholder:        (b) => ({ ...b, color: '#6b7280', fontSize: '0.875rem' }),
-  input:              (b) => ({ ...b, color: 'white' }),
-  indicatorSeparator: () => ({ display: 'none' }),
-  dropdownIndicator:  (b) => ({ ...b, color: 'rgba(255,255,255,0.4)', '&:hover': { color: 'rgba(255,255,255,0.7)' } }),
-  clearIndicator:     (b) => ({ ...b, color: 'rgba(255,255,255,0.4)', '&:hover': { color: 'rgba(255,255,255,0.7)' } }),
-}
-
-// ── Field options ──────────────────────────────────────────────────────────────
-
-const opt = (v) => ({ value: v, label: v })
-
-const PAYMENT_OPTS = [
+const PAYMENT_TERMS = [
   'Net 15', 'Net 30', '50% Advance + 50% on Delivery',
   'Monthly Retainer', 'Milestone-Based', 'On Completion',
-].map(opt)
-
-const JURISDICTION_OPTS = [
+]
+const JURISDICTIONS = [
   'Mumbai, Maharashtra', 'Delhi, Delhi', 'Bangalore, Karnataka',
   'Chennai, Tamil Nadu', 'Kolkata, West Bengal', 'Pune, Maharashtra',
   'Hyderabad, Telangana', 'Ahmedabad, Gujarat', 'Jaipur, Rajasthan',
   'Lucknow, Uttar Pradesh',
-].map(opt)
-
+]
 const CONFIDENTIALITY_OPTS = [
   'Standard - General business information',
   'High - Proprietary data and trade secrets',
   'Critical - Highly sensitive classified information',
-].map(opt)
-
+]
 const TERMINATION_OPTS = [
   '7 days written notice', '15 days written notice',
   '30 days written notice', '60 days written notice',
-].map(opt)
-
+]
 const IP_OPTS = [
   'Client owns all IP',
   'Freelancer retains IP',
   'Shared ownership (50/50)',
   'Client owns deliverables, Freelancer retains methods',
-].map(opt)
-
+]
 const DISPUTE_OPTS = [
   'Mutual negotiation first, then arbitration',
   'Arbitration under Arbitration and Conciliation Act 1996',
   'Court proceedings only',
   'Mediation then arbitration',
-].map(opt)
-
+]
 const LIABILITY_OPTS = [
   'Equal to contract value', '50% of contract value',
   '3 months of fees', 'Unlimited', 'No liability clause',
-].map(opt)
+]
 
-// ── Shared components ──────────────────────────────────────────────────────────
+// ── Shared style constants ─────────────────────────────────────────────────────
 
-const INPUT = 'w-full bg-white/5 border border-white/20 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors'
+const INPUT    = 'w-full bg-white/5 border border-white/20 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors'
 const TEXTAREA = INPUT + ' resize-none'
-const LABEL = 'block text-sm font-medium text-gray-300 mb-1.5'
-const ERR = 'text-xs text-red-400 mt-1'
-const REQ = <span className="text-red-400 ml-0.5">*</span>
+const SELECT   = 'w-full bg-slate-800 border border-white/20 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors cursor-pointer'
+const LABEL    = 'block text-sm font-medium text-gray-300 mb-1.5'
+const ERR      = 'text-xs text-red-400 mt-1'
+const REQ      = <span className="text-red-400 ml-0.5">*</span>
 
 function Field({ label, required, error, children, hint }) {
   return (
@@ -111,41 +71,27 @@ function Field({ label, required, error, children, hint }) {
   )
 }
 
-function CtrlSelect({ name, control, options, placeholder, error }) {
+function NativeSelect({ name, options, placeholder, value, onChange }) {
   return (
-    <Controller
-      name={name}
-      control={control}
-      render={({ field: { onChange, value } }) => (
-        <Select
-          options={options}
-          value={options.find(o => o.value === value) || null}
-          onChange={o => onChange(o?.value || '')}
-          placeholder={placeholder || 'Select…'}
-          styles={SELECT_STYLES}
-          theme={t => ({ ...t, borderRadius: 12 })}
-        />
-      )}
-    />
+    <select name={name} value={value || ''} onChange={e => onChange(e.target.value)} className={SELECT}>
+      <option value="" disabled>{placeholder || 'Select…'}</option>
+      {options.map(opt => (
+        <option key={opt} value={opt} className="bg-slate-800 text-white">{opt}</option>
+      ))}
+    </select>
   )
 }
 
 // ── Step 1: Parties ────────────────────────────────────────────────────────────
 
-function Step1({ register, control, errors, watch, setValue }) {
+function Step1({ register, setValue, errors, watch }) {
   const contractType = watch('contractType')
   return (
     <div className="space-y-6">
-      <Controller
-        name="contractType"
-        control={control}
-        render={({ field: { onChange, value } }) => (
-          <ContractTemplateSelector
-            value={value}
-            onChange={onChange}
-            error={errors.contractType?.message}
-          />
-        )}
+      <ContractTemplateSelector
+        value={contractType}
+        onChange={val => setValue('contractType', val)}
+        error={errors.contractType?.message}
       />
 
       {contractType && (
@@ -193,10 +139,10 @@ function Step1({ register, control, errors, watch, setValue }) {
 
 // ── Step 2: Project & Financial ────────────────────────────────────────────────
 
-function Step2({ register, control, errors, watch }) {
-  const paymentTerms = watch('paymentTerms')
+function Step2({ register, setValue, errors, watch }) {
+  const paymentTerms  = watch('paymentTerms')
   const contractValue = watch('contractValue')
-  const charCount = (watch('projectDescription') || '').length
+  const charCount     = (watch('projectDescription') || '').length
 
   const fmt = (n) => {
     if (!n) return ''
@@ -207,8 +153,7 @@ function Step2({ register, control, errors, watch }) {
     <div className="space-y-5">
       <Field label="Project / Service Description" required error={errors.projectDescription?.message}
         hint={`${charCount}/2000 characters`}>
-        <textarea {...register('projectDescription')} className={TEXTAREA} rows={5}
-          maxLength={2000}
+        <textarea {...register('projectDescription')} className={TEXTAREA} rows={5} maxLength={2000}
           placeholder="Describe the project scope, objectives, and your responsibilities in detail. The more specific, the better for enforceability." />
       </Field>
 
@@ -219,7 +164,13 @@ function Step2({ register, control, errors, watch }) {
         </Field>
 
         <Field label="Payment Terms" required error={errors.paymentTerms?.message}>
-          <CtrlSelect name="paymentTerms" control={control} options={PAYMENT_OPTS} placeholder="Select payment terms…" />
+          <NativeSelect
+            name="paymentTerms"
+            options={PAYMENT_TERMS}
+            placeholder="Select payment terms…"
+            value={paymentTerms}
+            onChange={val => setValue('paymentTerms', val)}
+          />
         </Field>
 
         {paymentTerms === '50% Advance + 50% on Delivery' && (
@@ -248,38 +199,45 @@ function Step2({ register, control, errors, watch }) {
 
 // ── Step 3: Legal Terms ────────────────────────────────────────────────────────
 
-function Step3({ register, control, errors, watch }) {
-  const nonCompete     = watch('nonCompete')
+function Step3({ setValue, errors, watch }) {
+  const nonCompete      = watch('nonCompete')
   const nonSolicitation = watch('nonSolicitation')
 
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Governing Jurisdiction / Court" required error={errors.jurisdiction?.message}>
-          <CtrlSelect name="jurisdiction" control={control} options={JURISDICTION_OPTS} placeholder="Select city & state…" />
+          <NativeSelect name="jurisdiction" options={JURISDICTIONS} placeholder="Select city & state…"
+            value={watch('jurisdiction')} onChange={val => setValue('jurisdiction', val)} />
         </Field>
 
         <Field label="Confidentiality Level" required error={errors.confidentialityLevel?.message}>
-          <CtrlSelect name="confidentialityLevel" control={control} options={CONFIDENTIALITY_OPTS} placeholder="Select level…" />
+          <NativeSelect name="confidentialityLevel" options={CONFIDENTIALITY_OPTS} placeholder="Select level…"
+            value={watch('confidentialityLevel')} onChange={val => setValue('confidentialityLevel', val)} />
         </Field>
 
         <Field label="Termination Notice Period" required error={errors.terminationClause?.message}>
-          <CtrlSelect name="terminationClause" control={control} options={TERMINATION_OPTS} placeholder="Select notice period…" />
+          <NativeSelect name="terminationClause" options={TERMINATION_OPTS} placeholder="Select notice period…"
+            value={watch('terminationClause')} onChange={val => setValue('terminationClause', val)} />
         </Field>
 
         <Field label="Intellectual Property Ownership" required error={errors.ipOwnership?.message}>
-          <CtrlSelect name="ipOwnership" control={control} options={IP_OPTS} placeholder="Select IP ownership…" />
+          <NativeSelect name="ipOwnership" options={IP_OPTS} placeholder="Select IP ownership…"
+            value={watch('ipOwnership')} onChange={val => setValue('ipOwnership', val)} />
         </Field>
 
         <div className="sm:col-span-2">
           <Field label="Dispute Resolution Method" required error={errors.disputeResolution?.message}>
-            <CtrlSelect name="disputeResolution" control={control} options={DISPUTE_OPTS} placeholder="Select dispute resolution…" />
+            <NativeSelect name="disputeResolution" options={DISPUTE_OPTS} placeholder="Select dispute resolution…"
+              value={watch('disputeResolution')} onChange={val => setValue('disputeResolution', val)} />
           </Field>
         </div>
 
         <div className="sm:col-span-2">
-          <Field label="Liability Limitation" error={errors.liabilityLimit?.message} hint="Optional — leave blank to use contract value as default">
-            <CtrlSelect name="liabilityLimit" control={control} options={LIABILITY_OPTS} placeholder="Select liability cap…" />
+          <Field label="Liability Limitation" error={errors.liabilityLimit?.message}
+            hint="Optional — leave blank to use contract value as default">
+            <NativeSelect name="liabilityLimit" options={LIABILITY_OPTS} placeholder="Select liability cap…"
+              value={watch('liabilityLimit')} onChange={val => setValue('liabilityLimit', val)} />
           </Field>
         </div>
       </div>
@@ -288,7 +246,9 @@ function Step3({ register, control, errors, watch }) {
         <p className="text-sm font-medium text-gray-300">Restrictive Covenants</p>
 
         <label className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${nonCompete ? 'border-blue-500/50 bg-blue-500/10' : 'border-white/10 hover:border-white/25'}`}>
-          <input {...register('nonCompete')} type="checkbox" className="mt-0.5 accent-blue-500" />
+          <input type="checkbox" checked={!!nonCompete}
+            onChange={e => setValue('nonCompete', e.target.checked)}
+            className="mt-0.5 accent-blue-500" />
           <div>
             <p className="text-sm font-medium text-white">Non-Compete Clause</p>
             <p className="text-xs text-gray-400 mt-0.5">Service provider agrees not to work with competitors for 6 months post-contract</p>
@@ -296,7 +256,9 @@ function Step3({ register, control, errors, watch }) {
         </label>
 
         <label className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${nonSolicitation ? 'border-blue-500/50 bg-blue-500/10' : 'border-white/10 hover:border-white/25'}`}>
-          <input {...register('nonSolicitation')} type="checkbox" className="mt-0.5 accent-blue-500" />
+          <input type="checkbox" checked={!!nonSolicitation}
+            onChange={e => setValue('nonSolicitation', e.target.checked)}
+            className="mt-0.5 accent-blue-500" />
           <div>
             <p className="text-sm font-medium text-white">Non-Solicitation Clause</p>
             <p className="text-xs text-gray-400 mt-0.5">Neither party can poach the other's clients or employees for 12 months post-contract</p>
@@ -312,12 +274,10 @@ function Step3({ register, control, errors, watch }) {
 function Step4({ register, errors, contractData, complianceResults, formData }) {
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="sm:col-span-2 sm:w-48">
-          <Field label="Contract Date" required error={errors.contractDate?.message}>
-            <input {...register('contractDate')} type="date" className={INPUT} />
-          </Field>
-        </div>
+      <div className="sm:w-48">
+        <Field label="Contract Date" required error={errors.contractDate?.message}>
+          <input {...register('contractDate')} type="date" className={INPUT} />
+        </Field>
       </div>
 
       <ClauseEditor register={register} errors={errors} />
@@ -338,16 +298,16 @@ function Step4({ register, errors, contractData, complianceResults, formData }) 
 // ── Main Wizard ────────────────────────────────────────────────────────────────
 
 export default function ContractWizard() {
-  const [step, setStep]                   = useState(1)
-  const [contractData, setContractData]   = useState(null)
-  const [compliance, setCompliance]       = useState(null)
+  const [step, setStep]                 = useState(1)
+  const [contractData, setContractData] = useState(null)
+  const [compliance, setCompliance]     = useState(null)
 
-  const { register, control, trigger, watch, getValues, formState: { errors } } = useContractForm()
+  const { register, setValue, trigger, watch, getValues, formState: { errors } } = useContractForm()
 
   const formData = watch()
 
   const generateContract = () => {
-    const data = getValues()
+    const data     = getValues()
     const template = getContractTemplate(data.contractType, data)
     const checks   = runComplianceCheck(data, data.contractType)
     setContractData(template)
@@ -366,7 +326,7 @@ export default function ContractWizard() {
     if (step === 4) { setContractData(null); setCompliance(null) }
   }
 
-  const stepProps = { register, control, errors, watch, getValues }
+  const stepProps = { register, setValue, errors, watch, getValues }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -377,9 +337,7 @@ export default function ContractWizard() {
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <span className="text-xs text-gray-300">100% Browser-Based • No Data Stored</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">
-          Contract Generator
-        </h1>
+        <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">Contract Generator</h1>
         <p className="text-gray-400 text-sm sm:text-base max-w-xl mx-auto">
           Create NDA, Service Agreement, or Employment contracts tailored for Indian law and jurisdiction — then export as a professional PDF.
         </p>
@@ -388,30 +346,26 @@ export default function ContractWizard() {
       {/* Progress stepper */}
       <div className="mb-8">
         <div className="flex items-center justify-between relative">
-          {/* Track line */}
           <div className="absolute left-0 right-0 top-5 h-0.5 bg-white/10 -z-10">
             <div
               className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500"
               style={{ width: `${((step - 1) / (STEPS.length - 1)) * 100}%` }}
             />
           </div>
-
           {STEPS.map(s => {
-            const done    = step > s.n
-            const active  = step === s.n
+            const done   = step > s.n
+            const active = step === s.n
             return (
               <div key={s.n} className="flex flex-col items-center gap-2">
-                <div
-                  className={`
-                    w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-all duration-300
-                    ${done
-                      ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                      : active
-                        ? 'bg-gradient-to-br from-blue-500 to-purple-600 border-blue-400 text-white shadow-lg shadow-blue-500/30 scale-110'
-                        : 'bg-white/5 border-white/20 text-gray-400'
-                    }
-                  `}
-                >
+                <div className={`
+                  w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-all duration-300
+                  ${done
+                    ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                    : active
+                      ? 'bg-gradient-to-br from-blue-500 to-purple-600 border-blue-400 text-white shadow-lg shadow-blue-500/30 scale-110'
+                      : 'bg-white/5 border-white/20 text-gray-400'
+                  }
+                `}>
                   {done ? '✓' : s.icon}
                 </div>
                 <span className={`text-xs font-medium hidden sm:block ${active ? 'text-white' : done ? 'text-emerald-400' : 'text-gray-500'}`}>
@@ -428,9 +382,7 @@ export default function ContractWizard() {
         <div className="flex items-center gap-2 mb-6">
           <span className="text-xl">{STEPS[step - 1].icon}</span>
           <div>
-            <h2 className="text-base font-semibold text-white">
-              Step {step}: {STEPS[step - 1].title}
-            </h2>
+            <h2 className="text-base font-semibold text-white">Step {step}: {STEPS[step - 1].title}</h2>
             <p className="text-xs text-gray-400">
               {step === 1 && 'Choose contract type and enter party details'}
               {step === 2 && 'Define project scope and financial terms'}
@@ -440,7 +392,7 @@ export default function ContractWizard() {
           </div>
         </div>
 
-        {step === 1 && <Step1 {...stepProps} setValue={undefined} />}
+        {step === 1 && <Step1 {...stepProps} />}
         {step === 2 && <Step2 {...stepProps} />}
         {step === 3 && <Step3 {...stepProps} />}
         {step === 4 && (
@@ -456,11 +408,8 @@ export default function ContractWizard() {
       {/* Navigation */}
       <div className="flex items-center justify-between mt-6 gap-3">
         {step > 1 ? (
-          <button
-            type="button"
-            onClick={handleBack}
-            className="flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl text-sm font-medium transition-colors"
-          >
+          <button type="button" onClick={handleBack}
+            className="flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl text-sm font-medium transition-colors">
             ← Back
           </button>
         ) : (
@@ -471,21 +420,15 @@ export default function ContractWizard() {
           <span className="text-xs text-gray-500">{step} of {STEPS.length}</span>
 
           {step < 4 && (
-            <button
-              type="button"
-              onClick={handleNext}
-              className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl text-sm font-semibold transition-all hover:scale-[1.02] shadow-lg shadow-blue-500/20"
-            >
+            <button type="button" onClick={handleNext}
+              className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl text-sm font-semibold transition-all hover:scale-[1.02] shadow-lg shadow-blue-500/20">
               {step === 3 ? 'Generate Contract →' : 'Next →'}
             </button>
           )}
 
           {step === 4 && contractData && (
-            <button
-              type="button"
-              onClick={generateContract}
-              className="px-5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl text-sm font-medium transition-colors"
-            >
+            <button type="button" onClick={generateContract}
+              className="px-5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl text-sm font-medium transition-colors">
               🔄 Regenerate
             </button>
           )}
