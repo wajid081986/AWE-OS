@@ -32,6 +32,7 @@ const ACCENT = {
   green:  { badge: 'bg-green-50  text-green-700  border-green-200',  dot: 'bg-green-500'  },
   purple: { badge: 'bg-purple-50 text-purple-700 border-purple-200', dot: 'bg-purple-500' },
   blue:   { badge: 'bg-blue-50   text-blue-700   border-blue-200',   dot: 'bg-blue-500'   },
+  indigo: { badge: 'bg-indigo-50 text-indigo-700 border-indigo-200', dot: 'bg-indigo-500' },
 }
 
 // ── Tool card inside CategoryPage ────────────────────────────────────────────

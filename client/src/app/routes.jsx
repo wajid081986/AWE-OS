@@ -7,6 +7,7 @@
  *   /tools/calculators  → CategoryPage (category="calculators")
  *   /tools/converters   → CategoryPage (category="converters")
  *   /tools/ai           → CategoryPage (category="ai")
+ *   /tools/productivity → CategoryPage (category="productivity")
  *   /tools/:slug        → DynamicToolPage (resolves component from registry,
  *                          falls back to API-driven ToolDetailPage for
  *                          autonomously-generated tools)
@@ -126,10 +127,11 @@ export default function AppRoutes() {
         <Route path="/tools/free"        element={lazy$(<FreeToolsPage />)} />
 
         {/* Category landing pages — must be before /tools/:slug */}
-        <Route path="/tools/pdf"         element={lazy$(<CategoryPage category="pdf" />)} />
-        <Route path="/tools/calculators" element={lazy$(<CategoryPage category="calculators" />)} />
-        <Route path="/tools/converters"  element={lazy$(<CategoryPage category="converters" />)} />
-        <Route path="/tools/ai"          element={lazy$(<CategoryPage category="ai" />)} />
+        <Route path="/tools/pdf"          element={lazy$(<CategoryPage category="pdf" />)} />
+        <Route path="/tools/calculators"  element={lazy$(<CategoryPage category="calculators" />)} />
+        <Route path="/tools/converters"   element={lazy$(<CategoryPage category="converters" />)} />
+        <Route path="/tools/ai"           element={lazy$(<CategoryPage category="ai" />)} />
+        <Route path="/tools/productivity" element={lazy$(<CategoryPage category="productivity" />)} />
 
         {/* Dynamic tool renderer — handles all /tools/:slug routes.
             Dedicated components are resolved first; unknown slugs fall back
