@@ -441,6 +441,24 @@ export const TOOL_REGISTRY = [
   // ── CALCULATORS ───────────────────────────────────────────────────────────
 
   {
+    slug: 'roi-calculator',
+    name: 'ROI Calculator',
+    category: 'calculators',
+    subcategory: 'Finance',
+    icon: '📈',
+    description: 'Calculate return on investment with detailed analysis, charts, and scenario comparisons.',
+    isFeatured: true,
+    isNew: true,
+    isPremium: false,
+    comingSoon: false,
+    tags: ['roi', 'investment', 'finance', 'calculator', 'return on investment', 'cagr', 'annualized roi'],
+    relatedSlugs: ['loan-calculator', 'percentage-calculator', 'tax-calculator'],
+    seo: {
+      title: 'ROI Calculator — Calculate Return on Investment Free | AWE-OS',
+      description: 'Free online ROI calculator with charts and scenario comparison. Calculate return on investment, annualized ROI (CAGR), and compare up to 3 investments. Instant, browser-based.',
+    },
+  },
+  {
     slug: 'tax-calculator',
     name: 'Tax Calculator',
     category: 'calculators',

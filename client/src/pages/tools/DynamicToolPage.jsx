@@ -49,6 +49,7 @@ const TOOL_COMPONENTS = {
   'unlock-pdf':          lazy(() => import('./pdf/UnlockPDF')),
 
   // Calculators
+  'roi-calculator':        lazy(() => import('./ROICalculator')),
   'tax-calculator':        lazy(() => import('./TaxCalculator')),
   'bmi-calculator':        lazy(() => import('./BMICalculator')),
   'age-calculator':        lazy(() => import('./AgeCalculator')),
