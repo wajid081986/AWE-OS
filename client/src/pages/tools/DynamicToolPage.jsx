@@ -83,6 +83,7 @@ const TOOL_COMPONENTS = {
 
   // Finance
   'fd-calculator':         () => import('./FDCalculator'),
+  'ppf-calculator':        () => import('./PPFCalculator'),
 }
 
 // Module-level cache: slug → lazy component.

@@ -93,6 +93,7 @@ export const TOOL_CATALOGUE = {
           { icon: '📈', label: 'ROI Calculator',          to: '/tools/roi-calculator'        },
           { icon: '📊', label: 'SIP Calculator',          to: '/tools/sip-calculator'        },
           { icon: '🏦', label: 'FD Calculator',           to: '/tools/fd-calculator'         },
+          { icon: '🏛️', label: 'PPF Calculator',          to: '/tools/ppf-calculator'        },
           { icon: '💰', label: 'Interest Calculator',     to: '/tools/interest-calculator',  comingSoon: true },
         ],
       },

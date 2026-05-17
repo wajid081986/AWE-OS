@@ -481,6 +481,25 @@ export const TOOL_REGISTRY = [
   },
 
   {
+    slug: 'ppf-calculator',
+    name: 'PPF Calculator',
+    category: 'calculators',
+    subcategory: 'Finance',
+    icon: '🏛️',
+    description: 'Calculate PPF maturity amount, year-by-year interest growth, 80C tax savings, partial withdrawal eligibility, and 5-year extension projections.',
+    isFeatured: true,
+    isNew: true,
+    isPremium: false,
+    comingSoon: false,
+    tags: ['ppf calculator', 'public provident fund calculator', 'ppf interest calculator', 'ppf maturity calculator', 'ppf 80c deduction', 'ppf withdrawal', 'ppf extension', 'india tax saving'],
+    relatedSlugs: ['fd-calculator', 'sip-calculator', 'tax-calculator'],
+    seo: {
+      title: 'PPF Calculator — Public Provident Fund Maturity & Tax Calculator India | AWE-OS',
+      description: 'Calculate PPF maturity amount, total interest, 80C tax savings, partial withdrawal eligibility, and 5-year extension growth. Year-by-year breakdown. Free online PPF calculator for India.',
+    },
+  },
+
+  {
     slug: 'sip-calculator',
     name: 'SIP Calculator',
     category: 'calculators',
