@@ -72,6 +72,7 @@ const TOOL_COMPONENTS = {
 
   // Productivity / Legal
   'contract-generator': lazy(() => import('./ContractGenerator')),
+  'sip-calculator':     lazy(() => import('./SIPCalculator')),
 }
 
 const ALIAS_COMPONENT_MAP = Object.fromEntries(

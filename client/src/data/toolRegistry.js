@@ -462,6 +462,25 @@ export const TOOL_REGISTRY = [
   // ── CALCULATORS ───────────────────────────────────────────────────────────
 
   {
+    slug: 'sip-calculator',
+    name: 'SIP Calculator',
+    category: 'calculators',
+    subcategory: 'Finance',
+    icon: '📊',
+    description: 'Calculate SIP returns, lumpsum growth, and goal-based SIP amounts for Indian mutual funds. Compare returns at 8%, 12%, 15%, 18% with charts.',
+    isFeatured: true,
+    isNew: true,
+    isPremium: false,
+    comingSoon: false,
+    tags: ['sip calculator', 'sip return calculator', 'mutual fund calculator', 'lumpsum calculator', 'goal sip', 'india sip calculator'],
+    relatedSlugs: ['roi-calculator', 'loan-calculator', 'tax-calculator'],
+    seo: {
+      title: 'SIP Calculator — Free SIP & Mutual Fund Return Calculator India | AWE-OS',
+      description: 'Calculate SIP returns, lumpsum growth and goal-based SIP for Indian mutual funds. Compare 8%, 12%, 15%, 18% returns with interactive charts. 100% free.',
+    },
+  },
+
+  {
     slug: 'roi-calculator',
     name: 'ROI Calculator',
     category: 'calculators',
