@@ -1,4 +1,5 @@
 {
+  "_comment": "2026-05-17 redeploy: contract-generator, sip-calculator, productivity route",
   "buildCommand": "cd client && npm run build",
   "outputDirectory": "client/dist",
   "installCommand": "cd client && npm install --production=false",
