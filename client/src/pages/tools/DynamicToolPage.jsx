@@ -69,6 +69,9 @@ const TOOL_COMPONENTS = {
   // AI Tools
   'resume-builder':     lazy(() => import('./ai/ResumeBuilder')),
   'ai-content-writer':  lazy(() => import('./ai/ContentWriter')),
+
+  // Productivity / Legal
+  'contract-generator': lazy(() => import('./ContractGenerator')),
 }
 
 const ALIAS_COMPONENT_MAP = Object.fromEntries(

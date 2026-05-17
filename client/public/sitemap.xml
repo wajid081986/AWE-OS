@@ -369,6 +369,12 @@
 
   <!-- Productivity -->
   <url>
+    <loc>https://www.awe-os.com/tools/contract-generator</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.awe-os.com/tools/invoice</loc>
     <lastmod>2026-05-17</lastmod>
     <changefreq>monthly</changefreq>

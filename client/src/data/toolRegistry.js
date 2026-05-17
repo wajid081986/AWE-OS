@@ -739,6 +739,25 @@ export const TOOL_REGISTRY = [
     },
   },
 
+  {
+    slug: 'contract-generator',
+    name: 'Contract Generator',
+    category: 'productivity',
+    subcategory: 'Legal Tools',
+    icon: '📝',
+    description: 'Generate professional NDA, Service Agreement, and Employment contracts for Indian freelancers with GST/TDS compliance checks and instant PDF export.',
+    isFeatured: true,
+    isNew: true,
+    isPremium: false,
+    comingSoon: false,
+    tags: ['contract generator', 'nda india', 'service agreement', 'employment contract', 'freelance contract india', 'gst contract', 'tds freelance'],
+    relatedSlugs: ['invoice', 'tax-calculator', 'percentage-calculator'],
+    seo: {
+      title: 'Contract Generator — Free Indian Freelance Contract Maker | AWE-OS',
+      description: 'Generate professional NDA, Service Agreement and Employment contracts for Indian freelancers. GST/TDS compliance check and instant PDF download — free.',
+    },
+  },
+
   // ── AI TOOLS ──────────────────────────────────────────────────────────────
 
   {

@@ -140,14 +140,20 @@ export const TOOL_CATALOGUE = {
     label: 'Productivity',
     icon: '🧾',
     to: '/tools/productivity',
-    count: '1+',
-    description: 'Invoice generation, billing and business tools',
+    count: '2+',
+    description: 'Invoice generation, contracts, billing and business tools',
     accent: 'indigo',
     sections: [
       {
         title: 'Billing',
         items: [
           { icon: '🧾', label: 'Invoice Generator', to: '/tools/invoice' },
+        ],
+      },
+      {
+        title: 'Legal Tools',
+        items: [
+          { icon: '📝', label: 'Contract Generator', to: '/tools/contract-generator' },
         ],
       },
     ],
