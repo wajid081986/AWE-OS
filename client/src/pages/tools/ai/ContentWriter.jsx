@@ -16,37 +16,37 @@ const LENGTHS = [
 ]
 
 const STEPS = [
-  'Select the content type you want to generate (Blog Post, Ad Copy, Email, etc.).',
-  'Enter your topic or title — be specific for better results.',
-  'Optionally set your target audience, keywords, tone, and length.',
-  'Click "Generate Content" and wait 10–20 seconds for the AI to write your content.',
-  'Review and edit the output, then copy or download it.',
+  "Select the content type from the dropdown: Blog Post, Product Description, Social Media Post, Email Newsletter, Ad Copy, Press Release, or Landing Page Copy. Each type produces differently structured output — blog posts have an introduction and body sections; product descriptions lead with benefits; ad copy is short and direct. Choose the type that matches your intended publishing channel.",
+  "Enter your topic or title in the Topic/Title field. Specificity matters significantly: 'Benefits of remote work' produces a generic article while 'Benefits of remote work for early-stage Indian SaaS startups' produces targeted, relevant content. Add your target audience in the next field — this shifts the vocabulary, assumed knowledge level, and examples the AI uses in the output.",
+  "Add keywords in the Keywords field if specific terms must appear in the output — useful for SEO-targeted blog posts, product descriptions that must mention specific product names, or any content where particular phrases are required. Separate multiple keywords with commas. Select your preferred tone from seven options: Professional, Casual, Persuasive, Informative, Friendly, Humorous, or Authoritative.",
+  "Choose a length: Short (~150 words for social captions and short ads), Medium (~400 words for product descriptions and emails), or Long (~800 words for full blog articles). Click 'Generate Content'. The AI completes the request in 10–20 seconds — a progress indicator shows while the content is being written.",
+  "Read through the generated output in the right panel and make any changes directly in the editable textarea. Add proprietary details, adjust specific claims, or rework any section that does not quite match your voice. Then copy to clipboard or download as a .txt file. Editing a generated draft is typically 5–10x faster than writing from scratch.",
 ]
 
 const FAQS = [
   {
     q: 'What content types can I generate?',
-    a: 'Blog posts, product descriptions, social media posts, email newsletters, ad copy, press releases, and landing page copy — seven content types covering the most common writing tasks for marketers and content teams.',
+    a: "Seven types are available: Blog Post (structured articles with introduction, body sections, and conclusion), Product Description (benefit-led copy with features and a CTA), Social Media Post (short copy for LinkedIn, Instagram, or Twitter), Email Newsletter (content with natural conversational flow), Ad Copy (short, punchy persuasive text for display or search ads), Press Release (formal news format with headline and boilerplate), and Landing Page Copy (conversion-focused text with a clear value proposition). Each type automatically applies the appropriate structural conventions for that content format.",
   },
   {
     q: 'How long does generation take?',
-    a: 'Typically 10–20 seconds depending on the chosen length and current server load. Longer content types like blog posts naturally take more time than short ad copy.',
+    a: "Generation typically takes 10–20 seconds depending on selected length and current server load. Short content (~150 words) usually completes in 8–12 seconds; medium (~400 words) in 12–18 seconds; long blog posts (~800 words) may take up to 25 seconds during peak usage. If generation exceeds 30 seconds, a temporary network issue or server capacity constraint may be the cause — wait a moment and try again. Pro accounts receive prioritised queue access during high-demand periods, which reduces wait times significantly.",
   },
   {
     q: 'Can I edit the generated content?',
-    a: 'Yes — the output textarea is fully editable. Click inside it to make changes before copying or downloading. The AI provides a strong first draft; editing it is usually faster than writing from scratch.',
+    a: "Yes — the output is a fully editable textarea. Click anywhere in the generated text to position your cursor and make changes: add proprietary details, adjust specific claims, insert internal links, change product names, or rework any section. Editing the AI output is almost always faster than writing from scratch because the structure, key points, tone, and natural flow are already established. Most users spend 5–10 minutes refining a 400-word draft rather than 30–60 minutes writing one from a blank page.",
   },
   {
     q: 'Is there a usage limit?',
-    a: 'Free tier has daily usage limits. Pro users get unlimited AI content generations across all tools. Pay-per-use access is also available for one-off needs without a subscription.',
+    a: "Free accounts have a daily generation limit — typically three to five generations depending on content length. When the limit is reached, you can wait until the next day for it to reset, or upgrade to a Pro subscription for unlimited daily generations across all AI tools. Pay-per-use access is also available for one-off needs without a monthly subscription commitment. Pro plans additionally provide access to longer content options, priority generation queue, and the ability to run multiple generation requests in a single session without daily caps.",
   },
   {
     q: 'How specific should my topic be?',
-    a: 'The more specific the better. "Benefits of remote work" produces a generic article; "Benefits of remote work for early-stage SaaS startups in 2025" produces focused, relevant content. Add target audience and keywords to sharpen the output further.',
+    a: "As specific as possible — specificity is the single biggest factor in output quality. A vague topic like 'social media marketing' produces a broad, generic article covering well-known basics. A specific topic like 'using Instagram Reels to drive organic traffic for D2C fashion brands in India targeting 18–25-year-olds' produces targeted content with relevant examples. Adding your target audience in the dedicated field reinforces specificity further. For blog posts, writing a specific H1-style title as your topic input — rather than a broad subject — consistently produces better-structured, more useful output.",
   },
   {
-    q: 'What tone options are available?',
-    a: 'Professional, Casual, Persuasive, Informative, Friendly, Humorous, and Authoritative. Tone significantly affects the writing style — Persuasive works well for ad copy; Informative suits how-to articles; Friendly is ideal for social media posts.' ,
+    q: 'What tone options are available and when should I use each?',
+    a: "Seven tones are available. Professional suits B2B content, formal proposals, and industry publications. Casual works for lifestyle blogs, community newsletters, and direct-to-consumer brands. Persuasive is ideal for ad copy, sales emails, and landing pages where you want readers to take a specific action. Informative suits how-to guides, explainer articles, and educational content. Friendly works well for social media posts and customer-facing emails. Humorous suits entertainment content and brands with a light personality. Authoritative is best for expert commentary, research summaries, and thought leadership pieces.",
   },
 ]
 

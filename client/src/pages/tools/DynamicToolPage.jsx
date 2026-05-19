@@ -46,6 +46,8 @@ const TOOL_COMPONENTS = {
   'pdf-to-jpg':          () => import('./pdf/PDFtoJPG'),
   'pdf-to-word':         () => import('./pdf/PDFtoWord'),
   'pdf-to-excel':        () => import('./pdf/PDFtoExcel'),
+  'pdf-to-text':         () => import('./pdf/PDFtoText'),
+  'pdf-to-ppt':          () => import('./pdf/PDFtoPPT'),
 
   // PDF — Edit
   'watermark-pdf':       () => import('./pdf/WatermarkPDF'),
@@ -58,17 +60,23 @@ const TOOL_COMPONENTS = {
   // Calculators
   'age-calculator':        () => import('./AgeCalculator'),
   'bmi-calculator':        () => import('./BMICalculator'),
+  'discount-calculator':   () => import('./DiscountCalculator'),
   'gpa-calculator':        () => import('./GPACalculator'),
+  'gst-calculator':        () => import('./GSTCalculator'),
   'loan-calculator':       () => import('./LoanCalculator'),
   'percentage-calculator': () => import('./PercentageCalculator'),
   'roi-calculator':        () => import('./ROICalculator'),
   'sip-calculator':        () => import('./SIPCalculator'),
   'tax-calculator':        () => import('./TaxCalculator'),
+  'tip-calculator':        () => import('./TipCalculator'),
 
   // Converters & Utilities
+  'base-converter':        () => import('./BaseConverter'),
   'color-picker':          () => import('./ColorPicker'),
   'csv-to-json':           () => import('./CSVtoJSON'),
+  'currency-converter':    () => import('./CurrencyConverter'),
   'image-compressor':      () => import('./ImageCompressor'),
+  'json-formatter':        () => import('./JSONFormatter'),
   'password-generator':    () => import('./PasswordGenerator'),
   'qr-code-generator':     () => import('./QRCodeGenerator'),
   'unit-converter':        () => import('./UnitConverter'),
@@ -80,6 +88,7 @@ const TOOL_COMPONENTS = {
 
   // Productivity / Legal
   'contract-generator':    () => import('./ContractGenerator'),
+  'invoice-generator':     () => import('./InvoiceGenerator'),
 
   // Finance
   'fd-calculator':         () => import('./FDCalculator'),

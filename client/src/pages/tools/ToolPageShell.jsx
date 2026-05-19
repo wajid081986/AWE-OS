@@ -3,7 +3,7 @@
  *
  * Provides:
  *   - React Helmet meta (title, description, canonical)
- *   - Schema.org JSON-LD: SoftwareApplication + HowTo + FAQPage + BreadcrumbList
+ *   - Schema.org JSON-LD: SoftwareApplication + HowTo + BreadcrumbList
  *   - Category-aware breadcrumb navigation
  *   - Two-column layout (main content + sticky sidebar)
  *   - Related tools sidebar (from toolRegistry)
@@ -204,7 +204,7 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
         <meta name="twitter:image:alt"   content={`${name} — AWE-OS`} />
         {/* Schema.org */}
         <script type="application/ld+json">{JSON.stringify(softwareSchema)}</script>
-        {howToSchema    && <script type="application/ld+json">{JSON.stringify(howToSchema)}</script>}
+        {howToSchema && <script type="application/ld+json">{JSON.stringify(howToSchema)}</script>}
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       </Helmet>
 
