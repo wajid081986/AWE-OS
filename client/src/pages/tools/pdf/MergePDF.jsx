@@ -3,6 +3,7 @@ import { PDFDocument } from 'pdf-lib'
 import ToolPageShell from '../ToolPageShell'
 import PDFDropZone from '../../../components/tools/PDFDropZone'
 import { downloadFile, formatBytes } from './pdfUtils'
+import { TOOL_ABOUT } from '../../../data/toolPageContent'
 
 function MergeTool() {
   const [files, setFiles] = useState([])
@@ -95,25 +96,38 @@ function MergeTool() {
 }
 
 const STEPS = [
-  'Click the upload area or drag and drop two or more PDF files into the drop zone. Files can be added in any order.',
-  'Review the numbered file list. Use the ↑ and ↓ arrow buttons to reorder files into your exact desired merge sequence. Use × to remove any unwanted file.',
-  'Click "Merge PDFs" to combine all files. A progress indicator will appear for large batches.',
-  'Your merged PDF downloads automatically to your device. Open it to verify all pages appear in the correct order.',
+  "Click 'Add Files' or drag and drop two or more PDF files into the upload area. You can add files from your computer, phone, or tablet — no account or login required.",
+  "Reorder your files by dragging the file cards up or down. The final PDF will follow this exact order. Use the ↑↓ arrows or drag handles to arrange pages correctly before merging.",
+  "Click the 'Merge PDF' button. AWE-OS processes all files locally in your browser using the pdf-lib library — your documents are never uploaded to any server.",
+  "Your merged PDF downloads automatically to your device. Open it to verify the page order. If you need to reorder pages after merging, use the Organize PDF tool.",
 ]
 const FAQS = [
-  { q: 'How many PDF files can I merge at once?', a: 'There is no enforced limit. You can merge as many PDFs as you need. Very large batches (50+ files or several hundred megabytes) may take a little longer due to browser memory, but the tool handles them gracefully without crashing.' },
-  { q: 'Does merging affect PDF quality or file size?', a: 'No quality is ever lost. pdf-lib copies every page exactly — fonts, images, hyperlinks, annotations, and vector graphics are preserved without re-encoding. The output file size is roughly the sum of the inputs, minus any resources pdf-lib automatically deduplicates.' },
-  { q: 'Are my files uploaded to a server when I merge?', a: 'Never. All merging runs entirely in your browser using the pdf-lib JavaScript library. Your files are not transmitted anywhere, not stored on any server, and are discarded the moment you close or refresh the page.' },
-  { q: 'Can I merge password-protected PDFs?', a: 'Password-encrypted PDFs cannot be merged directly — they will fail to load. First remove the password using the Unlock PDF tool on AWE-OS, then upload the unlocked versions to the merger.' },
-  { q: 'How do I reorder individual pages within the merged PDF?', a: 'After merging, open the merged file in the Organize PDF tool. You can drag individual pages into any sequence, delete unwanted pages, or split the merged document back into sections.' },
-  { q: 'What if I need to merge image files, not PDFs?', a: 'Convert your images to PDF first using the JPG to PDF tool, which turns any number of JPG, PNG, or WEBP images into a single PDF. You can then merge that PDF with other documents.' },
+  {
+    q: "How many PDF files can I merge at once?",
+    a: "There is no hard limit on the number of files you can merge. You can combine 2, 10, or even 50+ PDF files in one go. Very large batches (100+ files or files totalling several hundred MB) may take longer to process because everything runs locally in your browser memory. For best results with very large merges, use Chrome or Edge on a desktop computer.",
+  },
+  {
+    q: "Does merging PDFs affect the quality or file size?",
+    a: "No quality is ever lost when merging. AWE-OS copies every page exactly as-is — all text, images, hyperlinks, annotations, and vector graphics are preserved without re-encoding. The output file size is roughly the sum of the input file sizes, minus any resources pdf-lib automatically deduplicates such as embedded fonts shared across documents.",
+  },
+  {
+    q: "Are my files uploaded to a server when I merge?",
+    a: "Never. All merging runs entirely in your browser using the pdf-lib JavaScript library. Your files are never transmitted anywhere, never stored on any server, and are permanently discarded the moment you close or refresh the page. This makes AWE-OS Merge PDF one of the most private PDF tools available online.",
+  },
+  {
+    q: "Can I merge password-protected PDFs?",
+    a: "Password-protected PDFs cannot be merged directly — they will fail to load into the tool. You need to first remove the password using the Unlock PDF tool on AWE-OS, then upload the unlocked versions to merge. This is a browser security restriction, not a limitation of our tool.",
+  },
+  {
+    q: "How do I reorder individual pages within the merged PDF?",
+    a: "After merging, open the merged file in the Organize PDF tool on AWE-OS. You can drag individual pages into any sequence, delete unwanted pages, or split the merged document back into sections. This two-step workflow — Merge then Organize — gives you full control over the final document structure.",
+  },
+  {
+    q: "What if I need to merge image files, not PDFs?",
+    a: "Convert your images to PDF first using the JPG to PDF tool on AWE-OS, which turns any number of JPG, PNG, or WEBP images into a single PDF. You can then merge that PDF with other documents using this tool. This is useful for combining scanned receipts, photos, or screenshots with existing PDF reports.",
+  },
 ]
-const ABOUT = [
-  'Merging PDFs is one of the most frequent document tasks in professional, academic, and personal workflows. Whether you are assembling a multi-chapter report, combining scanned receipts for an expense claim, packaging a proposal with its appendices, or consolidating monthly statements into a yearly archive, the AWE-OS PDF Merger handles the job in seconds without any software installation.',
-  'Upload your PDFs in any order, then use the numbered arrow controls to arrange them into the exact sequence you need. The list shows the final merge order before you commit — add, remove, or rearrange until the structure is exactly right. Each file is labelled with its name and size so you can easily identify what you have uploaded.',
-  'The tool uses the pdf-lib JavaScript library, which runs entirely inside your browser. Every page, font, embedded image, hyperlink, annotation, and form field is copied faithfully from source to output — nothing is re-encoded, re-compressed, or altered in any way. Because all processing is local, your documents never leave your device and your sensitive content stays private.',
-  'Common real-world uses include: consolidating quarterly financial reports into a single year-end document, combining a cover letter with a resume and portfolio into one submission PDF, merging separately scanned pages into a complete contract, packaging technical documentation with its diagrams, and archiving multiple invoices into a single records file.',
-]
+const ABOUT = TOOL_ABOUT['merge-pdf']
 
 export default function MergePDF() {
   return (

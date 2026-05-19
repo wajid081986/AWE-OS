@@ -37,6 +37,14 @@ try {
   process.exit(1)
 }
 
+let TOOL_ABOUT = {}
+try {
+  const content = await import('../src/data/toolPageContent.js')
+  TOOL_ABOUT = content.TOOL_ABOUT ?? {}
+} catch (e) {
+  console.warn('⚠️  Could not import toolPageContent.js — about sections will be skipped.')
+}
+
 try {
   const blog = await import('../src/data/blogPosts.js')
   BLOG_POSTS = blog.BLOG_POSTS
@@ -149,12 +157,18 @@ function buildToolBody(tool) {
     ? `<section aria-label="Related tools"><h2>Related Tools</h2><ul>${relatedLinks}</ul></section>`
     : ''
 
+  const aboutParas = TOOL_ABOUT[tool.slug] ?? []
+  const aboutSection = aboutParas.length
+    ? `<section aria-label="About ${esc(tool.name)}">${aboutParas.map(p => `<p>${esc(p)}</p>`).join('\n')}</section>`
+    : ''
+
   return `${bc}
 <main>
 <h1>${esc(tool.icon ?? '')} ${esc(tool.name)}</h1>
 <p>${esc(tool.seo?.description ?? tool.description)}</p>
 <p>${esc(tool.description)}</p>
 ${tagList}
+${aboutSection}
 ${relatedSection}
 </main>`
 }

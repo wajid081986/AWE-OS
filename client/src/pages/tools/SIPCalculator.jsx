@@ -5,6 +5,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import ToolPageShell from './ToolPageShell'
+import { TOOL_ABOUT } from '../../data/toolPageContent'
 
 // ── Formatting ────────────────────────────────────────────────────────────────
 
@@ -624,46 +625,41 @@ function SIPTool() {
 // ── SEO content ───────────────────────────────────────────────────────────────
 
 const STEPS = [
-  'Choose a calculation mode: SIP for recurring monthly investments, Lumpsum for a one-time investment, or Goal-Based to calculate how much you need to invest monthly to reach a target corpus.',
-  'Use the sliders to set your investment amount and time horizon. Quick-preset buttons let you jump straight to common scenarios like "₹10,000 for 10 years" or "₹1 Crore in 15 years."',
-  'Adjust the Expected Return rate based on the fund type you plan to invest in — use 8–10% for index or debt funds, 12–15% for large-cap equity, and 15–18% for mid-cap funds.',
-  'Read the three summary cards for your total corpus and estimated returns, then use the Corpus Growth chart to see exactly how wealth accumulates year by year.',
-  'Compare outcomes at 8%, 12%, 15%, and 18% returns in the rate comparison table, then browse the Top Mutual Funds section for direct-plan fund options on Groww and Zerodha.',
+  "Select your calculation mode at the top: SIP Mode calculates how much your fixed monthly investment will grow over time; Lumpsum Mode calculates the future value of a one-time investment; Goal-Based Mode calculates how much you need to invest monthly to reach a specific target corpus.",
+  "Enter your investment amount. In SIP mode, enter your monthly SIP amount in rupees (e.g. ₹5,000). In Lumpsum mode, enter the one-time investment amount. In Goal-Based mode, enter your target corpus (e.g. ₹50,00,000 for a ₹50 lakh goal). Use the preset buttons for quick amounts.",
+  "Set the expected annual return rate using the slider or type directly. For reference: debt/liquid funds typically return 6–8%, balanced funds 10–12%, large-cap equity funds 12–14%, and mid/small-cap funds 15–18% historically. SEBI mandates that all mutual fund advertisements use past returns and warn that future returns are not guaranteed.",
+  "Enter the investment time horizon in years. SIP returns are highly sensitive to time due to compounding — the same ₹10,000 per month at 12% grows to ₹23 lakh in 10 years but ₹99 lakh in 20 years. The longer the horizon, the more powerful the compounding effect becomes.",
+  "Read the 3 summary cards: Total Amount Invested, Estimated Returns, and Final Corpus. The corpus growth chart shows year-by-year growth. Use the rate comparison table (8% / 12% / 15% / 18%) to see how sensitive your outcome is to return assumptions, and browse the Top Mutual Funds section for SEBI-registered fund options.",
 ]
 
 const FAQS = [
   {
-    q: 'What is a SIP and why is it better than investing a lump sum?',
-    a: 'A SIP (Systematic Investment Plan) lets you invest a fixed amount every month, regardless of market conditions. When markets fall, your fixed amount buys more units; when markets rise, existing units gain value. This mechanism — called rupee-cost averaging — smooths out volatility over time. A lumpsum can outperform if timed well at market lows, but for salaried investors without a windfall, SIP is the more practical and lower-risk strategy.',
+    q: "What is the difference between SIP and lumpsum investment?",
+    a: "A SIP (Systematic Investment Plan) invests a fixed amount every month regardless of market conditions — this is called rupee-cost averaging, and it reduces the risk of investing all your money at a market peak. A lumpsum investment puts all your money to work at once, which can give better returns if markets rise after you invest, but carries higher timing risk. For salaried investors who receive monthly income, SIP is generally recommended because it aligns with cash flow and automates disciplined investing without requiring market timing decisions.",
   },
   {
-    q: 'What expected return rate should I use for my SIP calculation?',
-    a: 'It depends on the fund category. Large-cap equity funds have historically delivered 12–14% CAGR; mid-cap funds 15–18%; small-cap 18–22%; Nifty 50 index funds approximately 13–15%; ELSS funds 12–16%; and debt or hybrid funds 7–10%. Use a conservative rate — 12% for equity — when planning. Hitting your target will feel like a bonus, and missing it won\'t be a shock.',
+    q: "What expected return rate should I use for the SIP calculator?",
+    a: "The right return rate depends on the type of mutual fund you plan to invest in. As a general reference: liquid and debt funds have historically returned 6–8% annually; balanced advantage funds 9–11%; large-cap equity funds 11–13%; multi-cap and flexi-cap funds 12–14%; mid-cap funds 14–16%; and small-cap funds 15–18% over long periods. For conservative long-term planning, most financial advisors suggest using 10–12% for equity funds. Always remember that mutual fund returns are not guaranteed — past performance is indicative but not a promise of future results, as required to be stated by SEBI regulations.",
   },
   {
-    q: 'How does the Goal-Based SIP calculator work?',
-    a: 'You enter the corpus you want to accumulate — say ₹1 crore for retirement — and the number of years you have. The calculator reverses the SIP future-value formula to tell you exactly how much you must invest monthly at your chosen return rate. The comparison table shows the required SIP at 8%, 12%, 15%, and 18% simultaneously, so you can trade off between investing more conservatively and investing less at a higher assumed return.',
+    q: "How does the Goal-Based SIP calculator work?",
+    a: "The Goal-Based mode reverses the standard SIP formula. Instead of asking 'how much will my monthly SIP grow to?', it asks 'how much do I need to invest monthly to reach my goal?'. You enter your target corpus (e.g. ₹1 crore), your expected return rate, and your time horizon. The calculator uses the present value of annuity formula to compute the required monthly SIP amount. This is particularly useful for planning specific financial goals like a house down payment, child's higher education, or retirement corpus.",
   },
   {
-    q: 'Is the comparison at 8%, 12%, 15%, and 18% realistic?',
-    a: 'These four rates bracket the realistic range for Indian mutual funds. 8% is a conservative floor, similar to guaranteed instruments like PPF or fixed deposits. 12% is a reasonable long-term equity benchmark. 15% is achievable with a diversified equity portfolio in strong market cycles. 18% is an optimistic scenario for mid and small-cap categories — possible but not guaranteed over every period. Use this table to see how sensitive your outcome is to return-rate assumptions.',
+    q: "Are the return rates of 8%, 12%, 15%, 18% realistic for Indian mutual funds?",
+    a: "These rates represent a realistic range based on long-term historical data from Indian equity mutual funds. The 8% rate reflects conservative debt fund or balanced fund performance. The 12% rate is widely used as a standard benchmark for large-cap equity funds over 10+ year periods. The 15% rate reflects above-average large-cap or multi-cap fund performance. The 18% rate represents top-performing mid/small-cap funds in strong bull market periods. No rate is guaranteed, and short-term returns can vary significantly. Financial advisors generally recommend using 10–12% for planning purposes to avoid over-optimistic projections.",
   },
   {
-    q: 'Are these SIP projections exact?',
-    a: 'No. The calculator assumes a constant annual return compounded monthly, which simplifies the real behaviour of mutual funds that fluctuate year to year. These are planning estimates, not guarantees. The further out you project, the wider the range of actual outcomes. Revisit your SIP amount at least once a year and adjust it as your income and financial goals evolve.',
+    q: "Are SIP return projections in this calculator exact?",
+    a: "No — the projections are estimates based on the assumption of constant annual returns throughout the investment period. In reality, mutual fund returns fluctuate year to year based on market conditions. The calculator uses the standard SIP future value formula: FV = P × [(1 + r)^n – 1] ÷ r × (1 + r), where P is the monthly investment, r is the monthly return rate (annual rate ÷ 12), and n is the total number of months. This formula assumes reinvestment of all returns and no fund expenses, so actual returns will differ slightly. Treat projections as planning estimates, not guaranteed outcomes.",
   },
   {
-    q: 'When should I start a SIP — now or wait for a market correction?',
-    a: 'Start immediately. Time in the market beats timing the market for SIP investors. Because you invest a fixed amount each month, a market fall is actually beneficial — you accumulate more units at lower prices. Waiting for a "better entry point" makes no mathematical sense with a SIP; with a lumpsum it may, but even then, missing years of compounding is costly. The best SIP start date is always today.',
+    q: "When is the best time to start a SIP?",
+    a: "The best time to start a SIP is now — or as early as possible. This is because SIP returns are driven primarily by time in the market, not timing the market. Starting 5 years earlier can double your final corpus due to compounding. For example, ₹10,000 per month at 12% for 20 years grows to approximately ₹99 lakh, but the same SIP for 25 years grows to approximately ₹1.89 crore — nearly double, by just adding 5 more years. Market timing is largely irrelevant for long-term SIPs because rupee-cost averaging automatically buys more units when markets fall and fewer when markets rise.",
   },
 ]
 
-const ABOUT = [
-  'You\'ve decided to start investing in mutual funds but feel pulled in three directions: your colleague swears by ₹10,000 monthly SIPs, your cousin put ₹5 lakh in at once last year, and your parents say "just do PPF." The AWE-OS SIP Calculator cuts through that noise — showing you exactly how much each approach grows, side by side, in under ten seconds.',
-  'A Systematic Investment Plan works on a deceptively simple premise: invest a fixed amount every month, no matter what the market is doing. When the Nifty drops, your ₹10,000 buys more units; when it rallies, those units gain value. This mechanism — called rupee-cost averaging — smooths out the volatility inherent in equity markets. Compounding amplifies this: returns earned in early years themselves earn returns in later years, creating an exponential growth curve that becomes dramatic over 15–20 year horizons. A ₹10,000 monthly SIP at 12% for 20 years grows to roughly ₹99 lakh — you invested only ₹24 lakh of your own money, and the remaining ₹75 lakh is pure compounding.',
-  'This calculator offers three modes for three different questions. SIP mode answers: "what does my monthly investment grow to?" Lumpsum mode answers: "what is this one-time amount worth in N years?" Goal-Based mode works in reverse: you enter a target corpus and duration, and the calculator tells you exactly how much you must invest each month. The rate comparison table beneath the chart shows all four scenarios — 8%, 12%, 15%, 18% — simultaneously, so you can see how a 3% difference in fund performance over 20 years can mean the difference between ₹80 lakh and ₹2.5 crore on the same investment.',
-  'Common real-world uses include: planning retirement by calculating how long it takes ₹15,000 per month to reach ₹2 crore; estimating the future value of a ₹5 lakh bonus invested in an index fund; finding the SIP needed to fund a child\'s education in 15 years; and comparing active mid-cap funds at 15% against passive Nifty index funds at 13% over a 25-year horizon. All calculations happen entirely in your browser — no data leaves your device. Mutual fund investments are subject to market risks; actual returns will differ from projections. This tool is for planning purposes only — consult a SEBI-registered investment advisor before making investment decisions.',
-]
+const ABOUT = TOOL_ABOUT['sip-calculator']
 
 // ── Page export ───────────────────────────────────────────────────────────────
 

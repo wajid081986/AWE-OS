@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import ToolPageShell from './ToolPageShell'
+import { TOOL_ABOUT } from '../../data/toolPageContent'
 
 function BMITool() {
   const [unit, setUnit] = useState('metric')
@@ -125,27 +126,40 @@ function BMITool() {
 }
 
 const STEPS = [
-  'Select your preferred unit system — Metric (centimetres and kilograms) or Imperial (feet, inches, and pounds) — using the toggle at the top of the calculator.',
-  'Enter your height in the appropriate field. For Imperial, enter feet and inches separately. Enter your weight in kilograms or pounds depending on your selected unit.',
-  'Click "Calculate BMI". Your Body Mass Index is computed instantly and displayed prominently alongside your weight category.',
-  'Review your BMI value, category label (Underweight, Normal, Overweight, or Obese), and your position on the visual colour-coded scale that shows all four ranges at once.',
+  "Select your unit system at the top of the calculator. Choose Metric (centimetres and kilograms) if you know your measurements in the standard international format, or Imperial (feet, inches, and pounds) if you are more comfortable with the US system. Both give identical BMI results.",
+  "Enter your height. In metric mode, enter centimetres (e.g. 170 cm). In imperial mode, enter feet and inches separately (e.g. 5 ft 7 in). Make sure you are entering your actual measured height, not an estimate — even a 2 cm difference changes your BMI category.",
+  "Enter your current body weight in kilograms (metric) or pounds (imperial). Use your most recent measurement taken in the morning before eating for the most accurate result. The BMI value and category update instantly as you type.",
+  "Read your BMI score and category label. AWE-OS shows both the standard WHO thresholds and the Asian/Indian-specific thresholds recommended by the Indian Council of Medical Research (ICMR), which classify a BMI above 23 as overweight — lower than the WHO cutoff of 25.",
 ]
 
 const FAQS = [
-  { q: 'What is BMI?', a: 'Body Mass Index (BMI) is a numerical value derived from your height and weight using the formula: weight (kg) ÷ height² (m²). It was developed in the 19th century as a population-level screening tool and is still used by healthcare organisations worldwide as a first-pass indicator of weight status.' },
-  { q: 'What is a healthy BMI range?', a: 'For adults, a BMI of 18.5 to 24.9 is classified as Normal weight. Below 18.5 is Underweight, 25.0 to 29.9 is Overweight, and 30.0 or above is classified as Obese. These thresholds are defined by the World Health Organization and used universally by GPs and clinicians.' },
-  { q: 'Is BMI accurate for everyone?', a: 'BMI is a screening measure, not a clinical diagnosis. It does not distinguish between fat mass and lean muscle mass, and does not account for age, sex, ethnicity, or fat distribution. Highly muscular individuals and athletes often have a high BMI without elevated body fat. Always consult a healthcare professional for a comprehensive health assessment.' },
-  { q: 'How often should I check my BMI?', a: 'Monthly or quarterly checks are sufficient for most adults. BMI changes slowly in response to diet and exercise, so daily monitoring adds little useful information. Tracking it over several months gives a more meaningful picture of long-term progress than single measurements.' },
-  { q: 'Can children use this BMI calculator?', a: 'This calculator is designed for adults aged 18 and over. For children and teenagers, BMI is interpreted using age- and sex-specific percentile charts rather than fixed thresholds, because body composition changes significantly during growth. Use a dedicated paediatric BMI tool for anyone under 18.' },
-  { q: 'What is the difference between BMI and body fat percentage?', a: 'BMI estimates weight status relative to height but cannot measure body composition. Body fat percentage directly measures how much of your weight is fat versus lean tissue. Two people with identical BMIs can have very different body fat levels. BMI is a convenient initial screen; body fat percentage from a DEXA scan or bioelectrical impedance test is more precise.' },
+  {
+    q: "What is BMI and how is it calculated?",
+    a: "BMI stands for Body Mass Index. It is calculated by dividing your weight in kilograms by the square of your height in metres: BMI = kg ÷ m². For example, a person who weighs 70 kg and is 1.75 m tall has a BMI of 70 ÷ (1.75 × 1.75) = 22.9. It was developed by Belgian mathematician Adolphe Quetelet in the 1830s and is used by the WHO as a population-level screening tool for weight-related health risks.",
+  },
+  {
+    q: "What is a healthy BMI range for Indian adults?",
+    a: "For the general population, WHO defines 18.5–24.9 as the healthy BMI range. However, research shows that South Asian and Indian populations have higher body fat percentages at the same BMI as Western populations, and face increased metabolic risks at lower BMI values. The Indian Council of Medical Research (ICMR) and Asia-Pacific guidelines recommend: Underweight below 18.5, Normal 18.5–22.9, Overweight 23–24.9, Obese 25 and above. AWE-OS displays both thresholds so you can compare.",
+  },
+  {
+    q: "Is BMI an accurate measure of health?",
+    a: "BMI is a useful screening indicator but has well-documented limitations. It does not distinguish between muscle mass and fat mass — a bodybuilder may show as obese despite very low body fat. It also does not account for fat distribution (abdominal fat is more dangerous than peripheral fat), age-related changes in body composition, or ethnic differences in body structure. Medical professionals always use BMI alongside other measurements such as waist circumference, blood pressure, and lipid profiles for a complete health assessment.",
+  },
+  {
+    q: "How often should I check my BMI?",
+    a: "For most adults, checking BMI every 3 to 6 months is sufficient to track significant weight changes over time. Daily or weekly BMI checking is generally not useful because normal body weight fluctuates by 1–2 kg depending on hydration, food intake, and time of day. If you are actively working on weight management with a dietitian or doctor, they will advise the appropriate monitoring frequency for your situation.",
+  },
+  {
+    q: "Can children use this BMI calculator?",
+    a: "This calculator uses adult BMI formulas and is designed for people aged 18 and above. Children and teenagers have different healthy BMI ranges that vary by age and sex — paediatric BMI is assessed using age-and-sex-specific growth charts, not fixed thresholds. For children under 18, please use a dedicated paediatric BMI calculator or consult a paediatrician for an accurate assessment.",
+  },
+  {
+    q: "What is the difference between BMI and body fat percentage?",
+    a: "BMI is an indirect proxy for body fat calculated from height and weight — it is fast and free to measure but imprecise. Body fat percentage directly measures the proportion of your body that is fat tissue, typically using DEXA scans, bioelectrical impedance scales, or skinfold callipers. Body fat percentage is a more accurate health indicator, especially for athletes, older adults, and people with high muscle mass. A healthy body fat range is approximately 10–20% for men and 18–28% for women, regardless of BMI.",
+  },
 ]
 
-const ABOUT = [
-  'Body Mass Index is the starting point for millions of health conversations every day — between patients and GPs, in public health surveys, and in personal fitness tracking. The AWE-OS BMI Calculator lets you check your BMI instantly using either metric (cm/kg) or imperial (ft/in/lb) measurements, with no sign-up, no app download, and no data sent anywhere.',
-  'The calculation follows the standard WHO formula: weight in kilograms divided by height in metres squared. For imperial inputs, your feet and pounds are converted internally before the formula runs — the result is mathematically identical to a metric calculation. Your BMI is then mapped to one of four WHO-defined categories: Underweight (below 18.5), Normal weight (18.5–24.9), Overweight (25–29.9), and Obese (30 and above). A colour-coded visual scale shows exactly where your value sits across all four ranges simultaneously.',
-  'It is important to use BMI as a starting point rather than a verdict. The metric has well-documented limitations: it does not differentiate between fat mass and muscle mass, it does not account for where fat is distributed on the body, and it applies the same thresholds to all ethnic groups despite research showing that metabolic risks appear at lower BMI values in some populations. Athletes and strength trainers routinely fall into the "Overweight" category despite having excellent cardiovascular fitness and low body fat. For these reasons, BMI results are most useful in context alongside other indicators such as waist circumference, blood pressure, and physical activity level.',
-  'Despite these limitations, BMI remains the most accessible and reproducible screening tool available — it requires only two measurements, no specialist equipment, and no lab work. Healthcare professionals use it as an entry point to guide more detailed assessments when values fall outside the normal range. For most adults tracking general weight trends over time, BMI provides a consistent, comparable snapshot. All calculations in this tool happen entirely in your browser; no data is collected or stored.',
-]
+const ABOUT = TOOL_ABOUT['bmi-calculator']
 
 export default function BMICalculator() {
   return (

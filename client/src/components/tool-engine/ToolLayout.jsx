@@ -10,7 +10,6 @@ import { SITE_URL, getToolCanonical } from '../../utils/canonicalUrl'
 import {
   generateToolSchema,
   generateHowToSchema,
-  generateFAQSchema,
   generateBreadcrumbSchema,
 } from '../../utils/schema'
 import ToolContainer  from './ToolContainer'
@@ -60,7 +59,6 @@ export default function ToolLayout({
       keywords:            toolMeta?.tags,
     }),
     generateHowToSchema(toolName, steps),
-    generateFAQSchema(faqs),
     generateBreadcrumbSchema(breadcrumbItems),
   ].filter(Boolean)
 
