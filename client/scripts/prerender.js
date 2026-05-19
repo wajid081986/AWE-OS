@@ -82,11 +82,15 @@ function replaceOG(html, prop, newContent) {
   return html.replace(re, `$1${esc(newContent)}$2`)
 }
 
-function injectMeta(template, { title, description, canonical, schema }) {
+function injectMeta(template, { title, description, canonical, schema, schemas, keywords }) {
   let html = template
 
   html = html.replace(/(<title>)[^<]*(<\/title>)/, `$1${esc(title)}$2`)
   html = replaceMeta(html, 'description', description)
+
+  if (keywords) {
+    html = replaceMeta(html, 'keywords', keywords)
+  }
 
   if (/rel="canonical"/.test(html)) {
     html = html.replace(/(<link\s+rel="canonical"\s+href=")[^"]*(")/i, `$1${canonical}$2`)
@@ -100,8 +104,9 @@ function injectMeta(template, { title, description, canonical, schema }) {
   html = replaceMeta(html, 'twitter:title',       title)
   html = replaceMeta(html, 'twitter:description', description)
 
-  if (schema) {
-    const jsonld = `  <script type="application/ld+json">${JSON.stringify(schema)}</script>`
+  const allSchemas = schemas ?? (schema ? [schema] : [])
+  for (const s of allSchemas) {
+    const jsonld = `  <script type="application/ld+json">${JSON.stringify(s)}</script>`
     html = html.replace('</head>', `${jsonld}\n</head>`)
   }
 
@@ -244,6 +249,71 @@ function writeRoute(path, html) {
   writeFileSync(outFile, html, 'utf-8')
 }
 
+// ── Schema helpers ────────────────────────────────────────────────────────────
+
+function getFAQs(tool) {
+  const name = tool.name
+
+  if (tool.category === 'pdf') {
+    return [
+      { q: `Is this PDF tool free to use?`,         a: `Yes, AWE-OS ${name} is completely free. No signup, no watermark, no file size limits for most operations.` },
+      { q: `Are my PDF files safe?`,                a: `Your files are processed entirely in your browser. No files are uploaded to any server — your documents never leave your device.` },
+      { q: `What browsers does this tool support?`, a: `AWE-OS tools work on all modern browsers — Chrome, Firefox, Safari, and Edge. No software installation required.` },
+      { q: `Can I use this on mobile?`,             a: `Yes, AWE-OS ${name} works on mobile browsers on both Android and iOS devices.` },
+    ]
+  }
+
+  if (tool.category === 'calculators') {
+    return [
+      { q: `Is this calculator accurate?`,  a: `AWE-OS ${name} uses standard financial/health formulas. Results are for reference purposes — consult a professional for financial or medical decisions.` },
+      { q: `Is this calculator free?`,      a: `Yes, completely free. No signup required.` },
+      { q: `Does this work offline?`,       a: `Once the page loads, the calculator works without internet — all calculations happen in your browser.` },
+      { q: `Is my data stored anywhere?`,   a: `No. All inputs stay in your browser. AWE-OS does not store, log, or transmit your calculation data.` },
+    ]
+  }
+
+  if (tool.slug.includes('generator')) {
+    return [
+      { q: `Are generated items stored?`,   a: `No. Everything is generated locally in your browser and never sent to any server.` },
+      { q: `Is this tool free?`,            a: `Yes, completely free with no usage limits.` },
+      { q: `Can I generate in bulk?`,       a: `Currently AWE-OS ${name} supports single generation. Bulk feature is on our roadmap.` },
+      { q: `What formats are supported?`,   a: `See the tool interface for supported output formats.` },
+    ]
+  }
+
+  return [
+    { q: `Is this tool free?`,       a: `Yes, completely free. No account needed.` },
+    { q: `Is my data safe?`,         a: `All processing happens in your browser. No data is uploaded or stored.` },
+    { q: `Does it work on mobile?`,  a: `Yes, works on all modern mobile browsers.` },
+    { q: `Are there usage limits?`,  a: `No usage limits. Use as many times as you need.` },
+  ]
+}
+
+function buildBreadcrumbSchema(tool) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home',                    item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Tools',                   item: `${SITE_URL}/tools` },
+      { '@type': 'ListItem', position: 3, name: getCatName(tool.category), item: `${SITE_URL}/tools/${getCatSlug(tool.category)}` },
+      { '@type': 'ListItem', position: 4, name: tool.name,                 item: `${SITE_URL}/tools/${tool.slug}` },
+    ],
+  }
+}
+
+function buildFAQSchema(tool) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: getFAQs(tool).map(f => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  }
+}
+
 // ── Route definitions ─────────────────────────────────────────────────────────
 
 const STATIC_ROUTES = [
@@ -333,18 +403,23 @@ const TOOL_ROUTES = TOOL_REGISTRY
     path: `/tools/${t.slug}`,
     title: t.seo.title,
     description: t.seo.description,
-    schema: {
-      '@context': 'https://schema.org',
-      '@type': 'SoftwareApplication',
-      name: t.name,
-      description: t.description,
-      url: `${SITE_URL}/tools/${t.slug}`,
-      applicationCategory: 'UtilitiesApplication',
-      operatingSystem: 'Web Browser',
-      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-      author: { '@type': 'Organization', name: 'AWE-OS', url: SITE_URL },
-      keywords: t.tags?.join(', '),
-    },
+    keywords: [...(t.tags ?? []), 'free online tool', 'no signup', 'browser based'].join(', '),
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: t.name,
+        description: t.description,
+        url: `${SITE_URL}/tools/${t.slug}`,
+        applicationCategory: 'WebApplication',
+        operatingSystem: 'Web Browser',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' },
+        provider: { '@type': 'Organization', name: 'AWE-OS', url: SITE_URL },
+        keywords: t.tags?.join(', '),
+      },
+      buildBreadcrumbSchema(t),
+      buildFAQSchema(t),
+    ],
     _tool: t,
   }))
 
@@ -397,7 +472,9 @@ for (const route of ALL_ROUTES) {
       title:       route.title,
       description: route.description,
       canonical,
-      schema:      route.schema ?? null,
+      schema:      route.schema   ?? null,
+      schemas:     route.schemas  ?? null,
+      keywords:    route.keywords ?? null,
     })
 
     // 2. Inject static <body> content for crawlers
