@@ -109,16 +109,6 @@ export default function BlogPostPage() {
     ],
   }
 
-  const faqSchema = post.faqs?.length ? {
-    '@context': 'https://schema.org',
-    '@type':    'FAQPage',
-    mainEntity: post.faqs.map(({ q, a }) => ({
-      '@type':        'Question',
-      name:           q,
-      acceptedAnswer: { '@type': 'Answer', text: a },
-    })),
-  } : null
-
   return (
     <>
       <Helmet>
@@ -131,7 +121,6 @@ export default function BlogPostPage() {
         <meta property="article:published_time" content={toISO(post.date)} />
         <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
-        {faqSchema && <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>}
       </Helmet>
 
       <div className="min-h-screen bg-gray-50">

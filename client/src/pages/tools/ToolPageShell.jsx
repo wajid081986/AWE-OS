@@ -159,16 +159,6 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
     })),
   } : null
 
-  const faqSchema = faqs?.length ? {
-    '@context':  'https://schema.org',
-    '@type':     'FAQPage',
-    mainEntity:  faqs.map(({ q, a }) => ({
-      '@type':         'Question',
-      name:            q,
-      acceptedAnswer:  { '@type': 'Answer', text: a },
-    })),
-  } : null
-
   // Breadcrumb includes category if available
   const breadcrumbItems = [
     { '@type': 'ListItem', position: 1, name: 'Home',  item: SITE_URL },
@@ -215,7 +205,6 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
         {/* Schema.org */}
         <script type="application/ld+json">{JSON.stringify(softwareSchema)}</script>
         {howToSchema    && <script type="application/ld+json">{JSON.stringify(howToSchema)}</script>}
-        {faqSchema      && <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>}
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       </Helmet>
 

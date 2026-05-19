@@ -258,16 +258,6 @@ export default function ToolDetailPage() {
     { name: 'Tools',     url: `${SITE_URL}/tools` },
     { name: tool.name,   url: pageUrl },
   ])
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type':    'FAQPage',
-    mainEntity: FAQS(tool.name).map(({ q, a }) => ({
-      '@type':        'Question',
-      name:           q,
-      acceptedAnswer: { '@type': 'Answer', text: a },
-    })),
-  }
-
   const steps    = [
     'Enter your content or upload your file in the input area below.',
     `Click the "${tool.name}" button to process your request.`,
@@ -289,7 +279,6 @@ export default function ToolDetailPage() {
         <meta name="twitter:title"       content={seoTitle} />
         <meta name="twitter:description" content={seoDesc} />
         <script type="application/ld+json">{JSON.stringify(toolSchema)}</script>
-        <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       </Helmet>
 

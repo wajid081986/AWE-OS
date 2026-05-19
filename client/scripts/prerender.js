@@ -251,92 +251,6 @@ function writeRoute(path, html) {
 
 // ── Schema helpers ────────────────────────────────────────────────────────────
 
-function getFAQs(tool) {
-  const name = tool.name
-
-  if (tool.category === 'pdf') {
-    return [
-      {
-        q: `Is this PDF tool free to use?`,
-        a: `Yes, AWE-OS ${name} is completely free to use. No account or signup is required, no watermarks are added to your files, and there are no file size restrictions for most standard operations.`,
-      },
-      {
-        q: `Are my PDF files safe when using this tool?`,
-        a: `Your files are processed entirely in your browser using client-side JavaScript. No files are ever uploaded to our servers — your documents stay completely private and never leave your device at any point.`,
-      },
-      {
-        q: `Which browsers are supported by this PDF tool?`,
-        a: `AWE-OS ${name} works on all modern browsers including Google Chrome, Mozilla Firefox, Apple Safari, and Microsoft Edge. No plugins, extensions, or software installation of any kind is required.`,
-      },
-      {
-        q: `Can I use this PDF tool on a mobile device?`,
-        a: `Yes, AWE-OS ${name} is fully compatible with mobile browsers on both Android and iOS devices. The tool is responsive and designed to work well on smartphones and tablets without requiring any app download.`,
-      },
-    ]
-  }
-
-  if (tool.category === 'calculators') {
-    return [
-      {
-        q: `How accurate is this calculator?`,
-        a: `AWE-OS ${name} uses standard financial and health formulas widely accepted across the industry. All results are provided for reference and informational purposes only — please consult a qualified professional before making financial or medical decisions.`,
-      },
-      {
-        q: `Is this calculator free to use?`,
-        a: `Yes, AWE-OS ${name} is completely free to use with no hidden fees, no subscription plan required, and no account or signup needed. Simply enter your values and receive instant results without any cost.`,
-      },
-      {
-        q: `Does this calculator work without an internet connection?`,
-        a: `Once the page has fully loaded in your browser, the calculator works entirely offline without needing an active internet connection. All calculations are performed locally within your browser using JavaScript.`,
-      },
-      {
-        q: `Is my calculation data stored or shared?`,
-        a: `No, your input data is never stored, logged, or transmitted anywhere. All calculations happen entirely within your current browser session, and AWE-OS does not collect or retain any of your personal calculation data.`,
-      },
-    ]
-  }
-
-  if (tool.slug.includes('generator')) {
-    return [
-      {
-        q: `Are the items I generate stored on your servers?`,
-        a: `No, nothing is stored or transmitted to any external server. All generation happens entirely within your browser using local JavaScript — your outputs are never sent, saved, or logged on our end in any way.`,
-      },
-      {
-        q: `Is this generator tool free to use?`,
-        a: `Yes, AWE-OS ${name} is completely free to use with no usage limits, no account required, and no hidden charges of any kind. You can use the tool as many times as you need without any restrictions.`,
-      },
-      {
-        q: `Can I generate items in bulk using this tool?`,
-        a: `Currently AWE-OS ${name} supports generating one item at a time. A bulk generation feature that allows multiple outputs in a single session is on our product roadmap and planned for a future update.`,
-      },
-      {
-        q: `What output formats does this tool support?`,
-        a: `The supported output formats are clearly displayed within the tool interface itself. Available formats depend on the specific generator — please refer to the options shown on screen when you open and use the tool.`,
-      },
-    ]
-  }
-
-  return [
-    {
-      q: `Is this tool free to use?`,
-      a: `Yes, this AWE-OS tool is completely free to use. There is no account, subscription, or payment of any kind required — simply open the tool in your browser and start using it immediately with no restrictions whatsoever.`,
-    },
-    {
-      q: `Is my data safe when using this tool?`,
-      a: `Yes, your data is completely safe. All processing happens locally in your browser using client-side JavaScript. No data is uploaded to our servers, and AWE-OS does not store, log, or transmit any of your personal information.`,
-    },
-    {
-      q: `Does this tool work on mobile devices?`,
-      a: `Yes, this tool works on all modern mobile browsers including Chrome for Android and Safari for iOS. No app download is required — simply visit the page on your mobile device and start using the tool immediately.`,
-    },
-    {
-      q: `Are there any usage limits on this tool?`,
-      a: `There are no usage limits on this AWE-OS tool. You can use it as many times as you need, process as many items as required, and return as often as you like — all completely free without any restrictions or quotas.`,
-    },
-  ]
-}
-
 function buildBreadcrumbSchema(tool) {
   return {
     '@context': 'https://schema.org',
@@ -350,17 +264,7 @@ function buildBreadcrumbSchema(tool) {
   }
 }
 
-function buildFAQSchema(tool) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: getFAQs(tool).map(f => ({
-      '@type': 'Question',
-      name: f.q,
-      acceptedAnswer: { '@type': 'Answer', text: f.a },
-    })),
-  }
-}
+// FAQPage schema removed — deprecated by Google as of May 7 2026
 
 // ── Route definitions ─────────────────────────────────────────────────────────
 
@@ -480,7 +384,6 @@ const TOOL_ROUTES = TOOL_REGISTRY
         provider: { '@type': 'Organization', name: 'AWE-OS', url: SITE_URL },
       },
       buildBreadcrumbSchema(t),
-      buildFAQSchema(t),
     ],
     _tool: t,
   }))
