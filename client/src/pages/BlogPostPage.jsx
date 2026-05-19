@@ -95,8 +95,18 @@ export default function BlogPostPage() {
     },
     url:         postUrl,
     inLanguage:  'en-US',
-    articleBody: plainText.slice(0, 500),
+    articleBody: plainText.slice(0, 1500),
     wordCount:   plainText.split(/\s+/).filter(Boolean).length,
+  }
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type':    'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home',  item: 'https://www.awe-os.com' },
+      { '@type': 'ListItem', position: 2, name: 'Blog',  item: 'https://www.awe-os.com/blog' },
+      { '@type': 'ListItem', position: 3, name: post.title },
+    ],
   }
 
   const faqSchema = post.faqs?.length ? {
@@ -120,6 +130,7 @@ export default function BlogPostPage() {
         <meta property="og:type" content="article" />
         <meta property="article:published_time" content={toISO(post.date)} />
         <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
         {faqSchema && <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>}
       </Helmet>
 

@@ -286,7 +286,7 @@ export const TOOL_REGISTRY = [
     tags: ['excel to pdf', 'xlsx to pdf', 'xls to pdf', 'spreadsheet to pdf', 'convert excel'],
     relatedSlugs: ['pdf-to-excel', 'word-to-pdf', 'merge-pdf'],
     seo: {
-      title: 'Excel to PDF — Convert Excel Spreadsheets to PDF Free | AWE-OS',
+      title: 'Excel to PDF — Convert Spreadsheets to PDF Free | AWE-OS',
       description: 'Convert Excel spreadsheets to PDF free online. Preserve tables, charts, and formatting. No registration needed.',
     },
   },
@@ -475,8 +475,8 @@ export const TOOL_REGISTRY = [
     tags: ['fd calculator', 'fixed deposit calculator', 'rd calculator', 'sbi fd', 'hdfc fd', 'tds on fd', 'fd interest calculator', 'india'],
     relatedSlugs: ['sip-calculator', 'loan-calculator', 'tax-calculator'],
     seo: {
-      title: 'FD Calculator — Fixed Deposit & RD Calculator with Bank Comparison India | AWE-OS',
-      description: 'Calculate FD maturity amount and TDS. Compare fixed deposit rates across SBI, HDFC, ICICI, Axis, Kotak and Post Office. Free FD & RD calculator for India.',
+      title: 'FD Calculator — Fixed Deposit & RD Calculator India | AWE-OS',
+      description: 'Calculate FD maturity and TDS. Compare fixed deposit rates across SBI, HDFC, ICICI, Axis, Kotak and Post Office. Free FD & RD calculator for India.',
     },
   },
 
@@ -494,8 +494,8 @@ export const TOOL_REGISTRY = [
     tags: ['ppf calculator', 'public provident fund calculator', 'ppf interest calculator', 'ppf maturity calculator', 'ppf 80c deduction', 'ppf withdrawal', 'ppf extension', 'india tax saving'],
     relatedSlugs: ['fd-calculator', 'sip-calculator', 'tax-calculator'],
     seo: {
-      title: 'PPF Calculator — Public Provident Fund Maturity & Tax Calculator India | AWE-OS',
-      description: 'Calculate PPF maturity amount, total interest, 80C tax savings, partial withdrawal eligibility, and 5-year extension growth. Year-by-year breakdown. Free online PPF calculator for India.',
+      title: 'PPF Calculator — Maturity & 80C Tax Savings India | AWE-OS',
+      description: 'Calculate PPF maturity, 80C tax savings, and partial withdrawal eligibility. Year-by-year breakdown with 5-year extension. Free PPF calculator India.',
     },
   },
 
@@ -513,7 +513,7 @@ export const TOOL_REGISTRY = [
     tags: ['sip calculator', 'sip return calculator', 'mutual fund calculator', 'lumpsum calculator', 'goal sip', 'india sip calculator'],
     relatedSlugs: ['roi-calculator', 'loan-calculator', 'tax-calculator'],
     seo: {
-      title: 'SIP Calculator — Free SIP & Mutual Fund Return Calculator India | AWE-OS',
+      title: 'SIP Calculator — SIP & Mutual Fund Returns India | AWE-OS',
       description: 'Calculate SIP returns, lumpsum growth and goal-based SIP for Indian mutual funds. Compare 8%, 12%, 15%, 18% returns with interactive charts. 100% free.',
     },
   },
@@ -532,8 +532,8 @@ export const TOOL_REGISTRY = [
     tags: ['roi', 'investment', 'finance', 'calculator', 'return on investment', 'cagr', 'annualized roi'],
     relatedSlugs: ['loan-calculator', 'percentage-calculator', 'tax-calculator'],
     seo: {
-      title: 'ROI Calculator — Calculate Return on Investment Free | AWE-OS',
-      description: 'Free online ROI calculator with charts and scenario comparison. Calculate return on investment, annualized ROI (CAGR), and compare up to 3 investments. Instant, browser-based.',
+      title: 'ROI Calculator — Return on Investment Calculator | AWE-OS',
+      description: 'Free ROI calculator with charts. Calculate return on investment, annualized ROI (CAGR), and compare up to 3 investments. Instant, browser-based.',
     },
   },
   {
@@ -550,8 +550,8 @@ export const TOOL_REGISTRY = [
     tags: ['tax', 'income tax', 'ITR', 'tax calculator', 'TDS', 'finance', 'tax slab', 'new regime', 'old regime', 'US tax', 'federal tax'],
     relatedSlugs: ['loan-calculator', 'percentage-calculator', 'bmi-calculator'],
     seo: {
-      title: 'Tax Calculator — India & US Income Tax Calculator Free | AWE-OS',
-      description: 'Calculate income tax for India (Old/New Regime, FY 2024-25) and USA (2024 Federal). Slab-wise breakdown, effective rate, TDS, and regime comparison. Free, instant, browser-based.',
+      title: 'Tax Calculator — India & US Income Tax Free | AWE-OS',
+      description: 'Calculate India income tax (Old/New Regime, FY 2024-25) and US Federal tax. Slab breakdown, effective rate, TDS, regime comparison. Free, browser-based.',
     },
   },
   {
@@ -604,7 +604,7 @@ export const TOOL_REGISTRY = [
     tags: ['loan calculator', 'emi calculator', 'mortgage calculator', 'interest calculator', 'monthly payment'],
     relatedSlugs: ['percentage-calculator', 'bmi-calculator'],
     seo: {
-      title: 'Loan EMI Calculator — Monthly Payment Calculator Free | AWE-OS',
+      title: 'Loan EMI Calculator — Monthly Payment & Amortization | AWE-OS',
       description: 'Calculate monthly EMI for any loan. Get a complete amortization schedule. Free, instant loan calculator.',
     },
   },
@@ -622,7 +622,7 @@ export const TOOL_REGISTRY = [
     tags: ['percentage calculator', 'percent of number', 'percentage change', 'increase decrease percentage'],
     relatedSlugs: ['loan-calculator', 'gpa-calculator', 'bmi-calculator'],
     seo: {
-      title: 'Percentage Calculator — Calculate Percent Free Online | AWE-OS',
+      title: 'Percentage Calculator — Calculate Percent Free | AWE-OS',
       description: 'Calculate any percentage instantly. Percentage of total, percentage change, increase and decrease calculations.',
     },
   },
@@ -661,7 +661,7 @@ export const TOOL_REGISTRY = [
     tags: ['unit converter', 'length converter', 'weight converter', 'temperature converter', 'metric imperial'],
     relatedSlugs: ['word-counter', 'percentage-calculator'],
     seo: {
-      title: 'Unit Converter — Convert Length, Weight, Temperature Free | AWE-OS',
+      title: 'Unit Converter — Length, Weight & Temperature Free | AWE-OS',
       description: 'Convert between all units of measurement. Length, weight, temperature, speed, volume, and more. Free online unit converter.',
     },
   },
@@ -769,7 +769,7 @@ export const TOOL_REGISTRY = [
     tags: ['csv to json', 'csv converter', 'json converter', 'data converter', 'file format converter'],
     relatedSlugs: ['unit-converter', 'word-counter', 'password-generator'],
     seo: {
-      title: 'CSV to JSON Converter — Convert CSV Files Free Online | AWE-OS',
+      title: 'CSV to JSON Converter — Convert CSV Files Free | AWE-OS',
       description: 'Convert CSV files to JSON format instantly in your browser. Free CSV to JSON converter — no upload needed.',
     },
   },
@@ -792,7 +792,7 @@ export const TOOL_REGISTRY = [
     path: '/tools/invoice',
     seo: {
       title: 'Invoice Generator — Free GST Invoice Maker Online | AWE-OS',
-      description: 'Create professional GST-compliant invoices with live preview and one-click PDF export. Free for Indian freelancers and small businesses. No sign-up required.',
+      description: 'Create GST-compliant invoices with live preview and one-click PDF export. Free for Indian freelancers and small businesses. No sign-up required.',
     },
   },
 
@@ -810,7 +810,7 @@ export const TOOL_REGISTRY = [
     tags: ['contract generator', 'nda india', 'service agreement', 'employment contract', 'freelance contract india', 'gst contract', 'tds freelance'],
     relatedSlugs: ['invoice', 'tax-calculator', 'percentage-calculator'],
     seo: {
-      title: 'Contract Generator — Free Indian Freelance Contract Maker | AWE-OS',
+      title: 'Contract Generator — Free Freelance Contracts India | AWE-OS',
       description: 'Generate professional NDA, Service Agreement and Employment contracts for Indian freelancers. GST/TDS compliance check and instant PDF download — free.',
     },
   },

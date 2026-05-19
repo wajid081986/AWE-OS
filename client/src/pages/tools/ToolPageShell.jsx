@@ -140,7 +140,8 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
     url:                 pageUrl,
     applicationCategory: appCategory,
     operatingSystem:     'Web Browser',
-    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    offers:      { '@type': 'Offer', price: '0', priceCurrency: 'USD', availability: 'https://schema.org/InStock' },
+    image:       { '@type': 'ImageObject', url: OG_IMAGE, width: 1200, height: 630 },
     author: { '@type': 'Organization', name: 'AWE-OS', url: SITE_URL },
     ...(toolMeta?.tags?.length && { keywords: toolMeta.tags.join(', ') }),
   }

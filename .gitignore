@@ -46,3 +46,4 @@ secrets.txt
 credentials.txt
 *.pem
 *.p12
+.vercel

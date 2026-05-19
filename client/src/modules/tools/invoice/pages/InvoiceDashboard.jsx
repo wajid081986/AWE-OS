@@ -45,7 +45,7 @@ td:not(:first-child){text-align:right}
 </style></head><body>
 <div class="hdr">
   <div>
-    ${bi.logo ? `<img src="${bi.logo}" style="height:56px;object-fit:contain;margin-bottom:8px"><br>` : ''}
+    ${bi.logo ? `<img src="${bi.logo}" alt="Business Logo" style="height:56px;object-fit:contain;margin-bottom:8px"><br>` : ''}
     <div class="co">${bi.name || 'Your Business'}</div>
     ${bi.email   ? `<div class="meta">${bi.email}</div>` : ''}
     ${bi.phone   ? `<div class="meta">${bi.phone}</div>` : ''}

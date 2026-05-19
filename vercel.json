@@ -1,10 +1,31 @@
 {
-"buildCommand": "cd client && npm run build",
+  "buildCommand": "cd client && npm run build",
   "outputDirectory": "client/dist",
   "installCommand": "cd client && npm install --production=false",
   "framework": "vite",
+  "redirects": [
+    { "source": "/tools/pdf-merger",     "destination": "/tools/merge-pdf",      "permanent": true },
+    { "source": "/tools/emi-calculator", "destination": "/tools/loan-calculator", "permanent": true },
+    { "source": "/tools/image-to-pdf",   "destination": "/tools/jpg-to-pdf",      "permanent": true }
+  ],
   "rewrites": [
-    {"source": "/api/(.*)", "destination": "/api/$1"},
-    {"source": "/((?!api/).*)", "destination": "/index.html"}
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options",        "value": "DENY" },
+        { "key": "X-XSS-Protection",       "value": "1; mode=block" },
+        { "key": "Referrer-Policy",         "value": "strict-origin-when-cross-origin" }
+      ]
+    }
   ]
 }

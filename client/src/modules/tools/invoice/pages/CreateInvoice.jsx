@@ -86,7 +86,7 @@ td:not(:first-child){text-align:right}
 </style></head><body>
 <div class="hdr">
   <div>
-    ${biz.logo ? `<img src="${biz.logo}" style="height:56px;object-fit:contain;margin-bottom:10px"><br>` : ''}
+    ${biz.logo ? `<img src="${biz.logo}" alt="Business Logo" style="height:56px;object-fit:contain;margin-bottom:10px"><br>` : ''}
     <div class="co">${biz.name || 'Your Business'}</div>
     ${biz.email   ? `<div class="meta">${biz.email}</div>` : ''}
     ${biz.phone   ? `<div class="meta">${biz.phone}</div>` : ''}

@@ -63,12 +63,33 @@ export default function BlogPage() {
     ? BLOG_POSTS
     : BLOG_POSTS.filter(p => p.category === activeCategory)
 
+  const blogSchema = {
+    '@context':   'https://schema.org',
+    '@type':      'CollectionPage',
+    name:         'AWE-OS Blog — Guides, Tips & Tutorials',
+    description:  'Guides, tips, and tutorials on AI tools, PDF tools, productivity, career, and more.',
+    url:          'https://www.awe-os.com/blog',
+    publisher: {
+      '@type': 'Organization',
+      name:    'AWE-OS',
+      url:     'https://www.awe-os.com',
+    },
+    hasPart: BLOG_POSTS.slice(0, 10).map(p => ({
+      '@type':         'Article',
+      headline:        p.title,
+      url:             `https://www.awe-os.com/blog/${p.slug}`,
+      datePublished:   new Date(p.date).toISOString(),
+      author: { '@type': 'Person', name: p.author },
+    })),
+  }
+
   return (
     <>
       <Helmet>
         <title>Blog — Free Tools, Productivity Tips & AI Guides | AWE-OS</title>
         <meta name="description" content="Explore guides, tips, and tutorials on AI tools, PDF tools, productivity, career, and more. Free resources from the AWE-OS team." />
         <link rel="canonical" href="https://www.awe-os.com/blog" />
+        <script type="application/ld+json">{JSON.stringify(blogSchema)}</script>
       </Helmet>
 
       <div className="min-h-screen bg-gray-50">
