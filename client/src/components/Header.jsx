@@ -228,6 +228,74 @@ export default function Header() {
             >
               Pricing
             </Link>
+
+            <Link
+              to="/about"
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                location.pathname === '/about'
+                  ? 'text-blue-600 bg-blue-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              About
+            </Link>
+            <Link
+              to="/contact"
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                location.pathname === '/contact'
+                  ? 'text-blue-600 bg-blue-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              Contact
+            </Link>
+
+            {/* Legal dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => toggleMenu('legal')}
+                aria-expanded={openMenu === 'legal'}
+                aria-haspopup="true"
+                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                  openMenu === 'legal' || ['/privacy-policy', '/terms'].includes(location.pathname)
+                    ? 'text-blue-600 bg-blue-50'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                Legal
+                <svg
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${openMenu === 'legal' ? 'rotate-180' : ''}`}
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {openMenu === 'legal' && (
+                <div
+                  className="absolute right-0 top-full mt-1.5 z-[60] bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden"
+                  style={{ minWidth: 200 }}
+                  role="menu"
+                >
+                  <div className="p-2 space-y-0.5">
+                    <Link
+                      to="/privacy-policy"
+                      onClick={() => setOpenMenu(null)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-blue-50 group transition-colors"
+                    >
+                      <span className="text-sm text-gray-700 group-hover:text-blue-700 transition-colors">Privacy Policy</span>
+                    </Link>
+                    <Link
+                      to="/terms"
+                      onClick={() => setOpenMenu(null)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-blue-50 group transition-colors"
+                    >
+                      <span className="text-sm text-gray-700 group-hover:text-blue-700 transition-colors">Terms of Service</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
           </nav>
 
           {/* ── Right actions ─────────────────────────────────────── */}
@@ -367,6 +435,44 @@ export default function Header() {
               <span>📝 Blog</span>
               <span className="text-gray-400 text-xs">Articles →</span>
             </Link>
+
+            <Link
+              to="/about"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center justify-between py-4 text-sm font-semibold text-gray-900 border-b border-gray-100"
+            >
+              <span>👋 About</span>
+              <span className="text-gray-400 text-xs">Our story →</span>
+            </Link>
+
+            <Link
+              to="/contact"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center justify-between py-4 text-sm font-semibold text-gray-900 border-b border-gray-100"
+            >
+              <span>✉️ Contact</span>
+              <span className="text-gray-400 text-xs">Get in touch →</span>
+            </Link>
+
+            <div className="border-b border-gray-100">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pt-4 pb-2 px-1">Legal</p>
+              <Link
+                to="/privacy-policy"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-between py-3 text-sm font-medium text-gray-700"
+              >
+                <span>🔒 Privacy Policy</span>
+                <span className="text-gray-400 text-xs">→</span>
+              </Link>
+              <Link
+                to="/terms"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-between py-3 pb-4 text-sm font-medium text-gray-700"
+              >
+                <span>📋 Terms of Service</span>
+                <span className="text-gray-400 text-xs">→</span>
+              </Link>
+            </div>
 
             {/* Auth */}
             <div className="pt-4 pb-6">
