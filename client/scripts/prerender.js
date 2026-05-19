@@ -256,36 +256,84 @@ function getFAQs(tool) {
 
   if (tool.category === 'pdf') {
     return [
-      { q: `Is this PDF tool free to use?`,         a: `Yes, AWE-OS ${name} is completely free. No signup, no watermark, no file size limits for most operations.` },
-      { q: `Are my PDF files safe?`,                a: `Your files are processed entirely in your browser. No files are uploaded to any server — your documents never leave your device.` },
-      { q: `What browsers does this tool support?`, a: `AWE-OS tools work on all modern browsers — Chrome, Firefox, Safari, and Edge. No software installation required.` },
-      { q: `Can I use this on mobile?`,             a: `Yes, AWE-OS ${name} works on mobile browsers on both Android and iOS devices.` },
+      {
+        q: `Is this PDF tool free to use?`,
+        a: `Yes, AWE-OS ${name} is completely free to use. No account or signup is required, no watermarks are added to your files, and there are no file size restrictions for most standard operations.`,
+      },
+      {
+        q: `Are my PDF files safe when using this tool?`,
+        a: `Your files are processed entirely in your browser using client-side JavaScript. No files are ever uploaded to our servers — your documents stay completely private and never leave your device at any point.`,
+      },
+      {
+        q: `Which browsers are supported by this PDF tool?`,
+        a: `AWE-OS ${name} works on all modern browsers including Google Chrome, Mozilla Firefox, Apple Safari, and Microsoft Edge. No plugins, extensions, or software installation of any kind is required.`,
+      },
+      {
+        q: `Can I use this PDF tool on a mobile device?`,
+        a: `Yes, AWE-OS ${name} is fully compatible with mobile browsers on both Android and iOS devices. The tool is responsive and designed to work well on smartphones and tablets without requiring any app download.`,
+      },
     ]
   }
 
   if (tool.category === 'calculators') {
     return [
-      { q: `Is this calculator accurate?`,  a: `AWE-OS ${name} uses standard financial/health formulas. Results are for reference purposes — consult a professional for financial or medical decisions.` },
-      { q: `Is this calculator free?`,      a: `Yes, completely free. No signup required.` },
-      { q: `Does this work offline?`,       a: `Once the page loads, the calculator works without internet — all calculations happen in your browser.` },
-      { q: `Is my data stored anywhere?`,   a: `No. All inputs stay in your browser. AWE-OS does not store, log, or transmit your calculation data.` },
+      {
+        q: `How accurate is this calculator?`,
+        a: `AWE-OS ${name} uses standard financial and health formulas widely accepted across the industry. All results are provided for reference and informational purposes only — please consult a qualified professional before making financial or medical decisions.`,
+      },
+      {
+        q: `Is this calculator free to use?`,
+        a: `Yes, AWE-OS ${name} is completely free to use with no hidden fees, no subscription plan required, and no account or signup needed. Simply enter your values and receive instant results without any cost.`,
+      },
+      {
+        q: `Does this calculator work without an internet connection?`,
+        a: `Once the page has fully loaded in your browser, the calculator works entirely offline without needing an active internet connection. All calculations are performed locally within your browser using JavaScript.`,
+      },
+      {
+        q: `Is my calculation data stored or shared?`,
+        a: `No, your input data is never stored, logged, or transmitted anywhere. All calculations happen entirely within your current browser session, and AWE-OS does not collect or retain any of your personal calculation data.`,
+      },
     ]
   }
 
   if (tool.slug.includes('generator')) {
     return [
-      { q: `Are generated items stored?`,   a: `No. Everything is generated locally in your browser and never sent to any server.` },
-      { q: `Is this tool free?`,            a: `Yes, completely free with no usage limits.` },
-      { q: `Can I generate in bulk?`,       a: `Currently AWE-OS ${name} supports single generation. Bulk feature is on our roadmap.` },
-      { q: `What formats are supported?`,   a: `See the tool interface for supported output formats.` },
+      {
+        q: `Are the items I generate stored on your servers?`,
+        a: `No, nothing is stored or transmitted to any external server. All generation happens entirely within your browser using local JavaScript — your outputs are never sent, saved, or logged on our end in any way.`,
+      },
+      {
+        q: `Is this generator tool free to use?`,
+        a: `Yes, AWE-OS ${name} is completely free to use with no usage limits, no account required, and no hidden charges of any kind. You can use the tool as many times as you need without any restrictions.`,
+      },
+      {
+        q: `Can I generate items in bulk using this tool?`,
+        a: `Currently AWE-OS ${name} supports generating one item at a time. A bulk generation feature that allows multiple outputs in a single session is on our product roadmap and planned for a future update.`,
+      },
+      {
+        q: `What output formats does this tool support?`,
+        a: `The supported output formats are clearly displayed within the tool interface itself. Available formats depend on the specific generator — please refer to the options shown on screen when you open and use the tool.`,
+      },
     ]
   }
 
   return [
-    { q: `Is this tool free?`,       a: `Yes, completely free. No account needed.` },
-    { q: `Is my data safe?`,         a: `All processing happens in your browser. No data is uploaded or stored.` },
-    { q: `Does it work on mobile?`,  a: `Yes, works on all modern mobile browsers.` },
-    { q: `Are there usage limits?`,  a: `No usage limits. Use as many times as you need.` },
+    {
+      q: `Is this tool free to use?`,
+      a: `Yes, this AWE-OS tool is completely free to use. There is no account, subscription, or payment of any kind required — simply open the tool in your browser and start using it immediately with no restrictions whatsoever.`,
+    },
+    {
+      q: `Is my data safe when using this tool?`,
+      a: `Yes, your data is completely safe. All processing happens locally in your browser using client-side JavaScript. No data is uploaded to our servers, and AWE-OS does not store, log, or transmit any of your personal information.`,
+    },
+    {
+      q: `Does this tool work on mobile devices?`,
+      a: `Yes, this tool works on all modern mobile browsers including Chrome for Android and Safari for iOS. No app download is required — simply visit the page on your mobile device and start using the tool immediately.`,
+    },
+    {
+      q: `Are there any usage limits on this tool?`,
+      a: `There are no usage limits on this AWE-OS tool. You can use it as many times as you need, process as many items as required, and return as often as you like — all completely free without any restrictions or quotas.`,
+    },
   ]
 }
 
@@ -321,17 +369,31 @@ const STATIC_ROUTES = [
     path: '/',
     title: 'AWE-OS — Free Online Tools: PDF, Calculators, AI & More',
     description: '50+ free browser-based tools. Merge, compress & convert PDFs; BMI, loan EMI & SIP calculators; QR code generator, AI resume builder. No sign-up required.',
-    schema: {
-      '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      name: 'AWE-OS',
-      url: SITE_URL,
-      potentialAction: {
-        '@type': 'SearchAction',
-        target: `${SITE_URL}/tools?q={search_term_string}`,
-        'query-input': 'required name=search_term_string',
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'AWE-OS',
+        url: SITE_URL,
+        description: '50+ free browser-based tools. No sign-up required.',
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${SITE_URL}/tools?q={search_term_string}`,
+          },
+          'query-input': 'required name=search_term_string',
+        },
       },
-    },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Organization',
+        name: 'AWE-OS',
+        url: SITE_URL,
+        logo: `${SITE_URL}/og-image.svg`,
+        sameAs: ['https://twitter.com/awe_os'],
+      },
+    ],
   },
   {
     path: '/tools',
@@ -413,9 +475,9 @@ const TOOL_ROUTES = TOOL_REGISTRY
         url: `${SITE_URL}/tools/${t.slug}`,
         applicationCategory: 'WebApplication',
         operatingSystem: 'Web Browser',
+        screenshot: `${SITE_URL}/og-image.svg`,
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' },
         provider: { '@type': 'Organization', name: 'AWE-OS', url: SITE_URL },
-        keywords: t.tags?.join(', '),
       },
       buildBreadcrumbSchema(t),
       buildFAQSchema(t),
