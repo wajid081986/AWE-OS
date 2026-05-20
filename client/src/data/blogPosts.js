@@ -816,6 +816,192 @@ export const BLOG_POSTS = [
   },
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // 13. New vs Old Tax Regime FY 2025-26
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    id: 13,
+    slug: 'new-vs-old-tax-regime-fy-2025-26',
+    title: 'New Tax Regime vs Old Tax Regime FY 2025-26: Which is Better for You?',
+    date: '2026-05-20',
+    category: 'Finance',
+    author: 'AWE-OS Team',
+    readTime: '8 min read',
+    excerpt:
+      'Zero tax up to ₹12,75,000 under the new regime. But does the old regime win when deductions are high? Exact tax calculations for ₹10L, ₹15L, and ₹20L salaries — with a free calculator to find your answer in 2 minutes.',
+    metaTitle: 'New vs Old Tax Regime FY 2025-26: Which Saves You More Money?',
+    metaDescription:
+      'Confused between old and new tax regime for FY 2025-26? See exact tax calculations for ₹10L, ₹15L, ₹20L salaries with examples. Use our free tax calculator to find your best option.',
+    relatedTools: [
+      { label: 'Income Tax Calculator', slug: 'tax-calculator',  icon: '🧾' },
+      { label: 'SIP Calculator',        slug: 'sip-calculator',  icon: '📈' },
+      { label: 'PPF Calculator',        slug: 'ppf-calculator',  icon: '💰' },
+    ],
+    faqs: [
+      {
+        q: 'Is the new tax regime compulsory for FY 2025-26?',
+        a: 'No. The new regime is the default — it applies automatically unless you opt out. If you want to use the old regime, you must explicitly select it when filing your ITR for FY 2025-26. Salaried employees can also indicate their preference to their employer at the start of the financial year for TDS purposes.',
+      },
+      {
+        q: 'Can I switch between the old and new regime every year?',
+        a: 'Salaried employees and pensioners without business income can switch between the two regimes every year at the time of filing their ITR. Taxpayers with business or professional income can switch to the old regime only once and cannot switch back again after that.',
+      },
+      {
+        q: 'What is the zero-tax income limit in FY 2025-26?',
+        a: 'Under the new tax regime, the zero-tax limit for salaried employees is ₹12,75,000 gross salary. The ₹75,000 standard deduction brings taxable income to ₹12,00,000, and Section 87A wipes out all tax at that level. Under the old regime, the 87A rebate applies up to ₹5,00,000 taxable income — effectively around ₹6,50,000–₹7,00,000 gross salary after standard deduction and 80C.',
+      },
+      {
+        q: 'Is HRA available in the new tax regime?',
+        a: 'No. House Rent Allowance (HRA) exemption is not available under the new tax regime. This is one of the most significant deductions that metro-city employees lose when opting for the new regime. If your HRA exemption is ₹2,00,000 or more per year, factor this carefully into your comparison before deciding.',
+      },
+      {
+        q: 'What deductions are still allowed in the new tax regime?',
+        a: "The new regime allows the ₹75,000 standard deduction for salaried employees and the employer's NPS contribution under Section 80CCD(2) up to 14% of basic salary. Most other deductions — 80C, 80D, HRA, home loan interest under 24(b), LTA — are not available. The trade-off is lower slab rates and a much higher 87A rebate threshold of ₹12,00,000.",
+      },
+    ],
+    content: [
+      {
+        type: 'p',
+        text: 'Every March, Indian salaried employees face the same question: new tax regime or old one? Since FY 2023-24, the new regime became the default — you are placed in it automatically unless you explicitly opt out. For FY 2025-26, one number changes the calculation for most people: **₹12,75,000**. If your gross salary is at or below this amount, you pay exactly zero income tax under the new regime. No investment proofs. No rent receipts. Zero tax, automatically.',
+      },
+      {
+        type: 'h2',
+        text: 'What Changed in FY 2025-26?',
+      },
+      {
+        type: 'p',
+        text: 'The biggest shift is the zero-tax threshold. Under the new regime, salaried employees get a standard deduction of ₹75,000. Section 87A then gives a complete rebate if taxable income is ₹12,00,000 or below. Put the two together: ₹12,75,000 gross salary minus ₹75,000 standard deduction equals exactly ₹12,00,000 taxable income — which attracts zero tax. That is a threshold that did not exist even two years ago, and it makes the new regime compelling for the majority of salaried employees.',
+      },
+      {
+        type: 'p',
+        text: 'The old regime still exists, but you must explicitly opt for it. Its advantage is the deductions most salaried employees know well: Section 80C investments (PPF, ELSS, life insurance premiums) up to ₹1,50,000; health insurance premiums under 80D; HRA if you pay rent in a metro city; and home loan interest under Section 24(b) up to ₹2,00,000 per year. Whether these deductions outweigh the new regime\'s lower slabs depends entirely on how much you can genuinely claim.',
+      },
+      {
+        type: 'h2',
+        text: 'Tax Slab Comparison: Old Regime vs New Regime',
+      },
+      {
+        type: 'p',
+        text: 'Here is how the two regimes compare across every income band:',
+      },
+      {
+        type: 'table',
+        headers: ['Income Slab', 'Old Regime', 'New Regime'],
+        rows: [
+          ['₹0 – ₹2,50,000', 'Nil', 'Nil'],
+          ['₹2,50,001 – ₹4,00,000', '5%', 'Nil'],
+          ['₹4,00,001 – ₹5,00,000', '5%', '5%'],
+          ['₹5,00,001 – ₹8,00,000', '20%', '5%'],
+          ['₹8,00,001 – ₹10,00,000', '20%', '10%'],
+          ['₹10,00,001 – ₹12,00,000', '30%', '10%'],
+          ['₹12,00,001 – ₹16,00,000', '30%', '15%'],
+          ['₹16,00,001 – ₹20,00,000', '30%', '20%'],
+          ['₹20,00,001 – ₹24,00,000', '30%', '25%'],
+          ['Above ₹24,00,000', '30%', '30%'],
+          ['**Standard Deduction**', '₹50,000', '₹75,000'],
+          ['**87A Rebate (zero tax if taxable ≤)**', '₹5,00,000', '₹12,00,000'],
+        ],
+      },
+      {
+        type: 'p',
+        text: 'The new regime charges lower rates at every band from ₹2.5 lakh to ₹12 lakh. The old regime charges more in those same bands, but lets you reduce your taxable income significantly with deductions before those rates apply. The key question is always: are your deductions large enough to overcome the slab advantage of the new regime?',
+      },
+      {
+        type: 'h2',
+        text: 'Real Examples — Who Actually Pays Less?',
+      },
+      {
+        type: 'p',
+        text: 'Slabs alone do not tell the full story. Here are three salary levels worked out with exact numbers so you can find the scenario closest to yours.',
+      },
+      {
+        type: 'h2',
+        text: 'Example 1: Gross Salary ₹10,00,000',
+      },
+      {
+        type: 'p',
+        text: '**New regime:** Subtract ₹75,000 standard deduction → taxable income ₹9,25,000. Since ₹9,25,000 is below ₹12,00,000, Section 87A wipes out all tax entirely. **New regime tax: ₹0.**',
+      },
+      {
+        type: 'p',
+        text: '**Old regime** with standard deduction (₹50,000) + 80C investments (₹1,50,000) + 80D health insurance (₹25,000): taxable income = ₹7,75,000. Tax = ₹12,500 at 5% on the ₹2,50,000–₹5,00,000 band + ₹55,000 at 20% on the remaining ₹2,75,000 = ₹67,500, plus 4% cess = **₹70,200.**',
+      },
+      {
+        type: 'p',
+        text: '**New regime saves ₹70,200** — with no investment required and no receipts to submit.',
+      },
+      {
+        type: 'h2',
+        text: 'Example 2: Gross Salary ₹15,00,000',
+      },
+      {
+        type: 'p',
+        text: '**New regime:** Taxable income ₹14,25,000 after standard deduction. Tax = ₹20,000 (₹4L–₹8L at 5%) + ₹40,000 (₹8L–₹12L at 10%) + ₹33,750 (₹12L–₹14.25L at 15%) = ₹93,750 + 4% cess. **New regime tax: ₹97,500.**',
+      },
+      {
+        type: 'p',
+        text: '**Old regime** with standard deduction (₹50,000) + 80C (₹1,50,000) + HRA (₹1,00,000) + 80D (₹25,000): total deductions ₹3,25,000, taxable income ₹11,75,000. Tax = ₹12,500 at 5% + ₹1,00,000 at 20% + ₹52,500 at 30% on the ₹10L–₹11.75L band = ₹1,65,000 + 4% cess. **Old regime tax: ₹1,71,600.**',
+      },
+      {
+        type: 'p',
+        text: '**New regime wins by ₹74,100.** For old regime to pull ahead at ₹15 lakh, total deductions would need to exceed roughly ₹5,60,000 — meaning a significant home loan and NPS contribution on top of 80C, HRA, and 80D.',
+      },
+      {
+        type: 'h2',
+        text: 'Example 3: Gross Salary ₹20,00,000',
+      },
+      {
+        type: 'p',
+        text: '**New regime:** Taxable income ₹19,25,000. Tax = ₹20,000 (₹4L–₹8L) + ₹40,000 (₹8L–₹12L) + ₹60,000 (₹12L–₹16L) + ₹65,000 (₹16L–₹19.25L at 20%) = ₹1,85,000 + 4% cess. **New regime tax: ₹1,92,400.**',
+      },
+      {
+        type: 'p',
+        text: '**Old regime with maximum deductions** — standard (₹50,000) + 80C (₹1,50,000) + home loan interest Section 24(b) (₹2,00,000) + HRA metro city (₹2,50,000) + 80D for self and senior citizen parents (₹75,000) + NPS 80CCD(1B) (₹50,000) — total: ₹7,75,000 in deductions. Taxable income: ₹12,25,000. Tax = ₹12,500 + ₹1,00,000 + ₹67,500 on the ₹10L–₹12.25L band at 30% = ₹1,80,000 + 4% cess. **Old regime tax: ₹1,87,200.**',
+      },
+      {
+        type: 'p',
+        text: '**Old regime wins here — but only by ₹5,200, and only under very specific conditions.** This scenario requires owning a home in one city while renting in a metro city, maxing out 80C, holding health insurance for senior citizen parents, and contributing to NPS. Most salaried employees do not clear all five of those conditions simultaneously.',
+      },
+      {
+        type: 'h2',
+        text: 'Who Should Choose Which Regime?',
+      },
+      {
+        type: 'p',
+        text: 'The new regime is the straightforward choice for most salaried employees — lower slabs, zero tax below ₹12,75,000, and no paperwork. The old regime is worth calculating only if your total claimable deductions are genuinely large.',
+      },
+      {
+        type: 'ul',
+        items: [
+          '**Choose the new regime** if your gross salary is ₹12,75,000 or below — zero tax is guaranteed',
+          'Choose the new regime if you do not have a home loan and are not making 80C investments specifically for tax saving',
+          'Choose the new regime if you want hassle-free filing without collecting investment proofs',
+          '**Choose the old regime** if combined deductions exceed ₹5,60,000 at ₹15 lakh income, or ₹7,60,000 at ₹20 lakh income',
+          'Old regime makes sense if you have home loan interest + HRA + maxed 80C + NPS + senior parent 80D all at once',
+          'When in doubt, run both scenarios through the calculator with your exact numbers — it takes under two minutes',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'How to Decide in 2 Minutes',
+      },
+      {
+        type: 'callout',
+        title: 'Stop Guessing — Calculate Your Exact Tax Right Now',
+        text: 'Enter your gross salary, HRA received, home loan details, and 80C investments. The calculator shows both regimes side by side and tells you exactly which one saves more money.',
+        link: { href: '/tools/tax-calculator', label: 'Open Free Tax Calculator' },
+      },
+      {
+        type: 'h2',
+        text: 'Conclusion',
+      },
+      {
+        type: 'p',
+        text: 'For FY 2025-26, the new tax regime is the right call for the majority of Indian salaried employees — especially anyone earning below ₹12,75,000 gross, where the effective tax is zero. At higher incomes the old regime becomes competitive only if you can stack up very large deductions: home loan interest, substantial HRA, full 80C, NPS contributions, and 80D for senior parents, all at the same time. Without that full combination, the new regime\'s lower slabs almost always deliver a smaller bill with far less effort. Use the tax calculator above with your actual numbers before deciding — a five-minute check can save you money for the entire year.',
+      },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // 12. Image Compression Guide 2025
   // ─────────────────────────────────────────────────────────────────────────────
   {

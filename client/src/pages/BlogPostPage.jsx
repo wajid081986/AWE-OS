@@ -8,6 +8,18 @@ const CATEGORY_COLORS = {
   'Marketing':   'bg-green-100 text-green-700',
   'Career':      'bg-blue-100 text-blue-700',
   'Calculators': 'bg-orange-100 text-orange-700',
+  'Finance':     'bg-teal-100 text-teal-700',
+  'Converters':  'bg-yellow-100 text-yellow-700',
+}
+
+// Converts **bold** markers to <strong> elements
+function renderInline(text) {
+  if (typeof text !== 'string' || !text.includes('**')) return text
+  return text.split(/(\*\*[^*]+\*\*)/).map((part, i) =>
+    part.startsWith('**') && part.endsWith('**')
+      ? <strong key={i} className="font-semibold text-gray-900">{part.slice(2, -2)}</strong>
+      : part
+  )
 }
 
 function ContentBlock({ block }) {
@@ -15,14 +27,52 @@ function ContentBlock({ block }) {
     case 'h2':
       return <h2 className="text-xl font-bold text-gray-900 mt-8 mb-3">{block.text}</h2>
     case 'p':
-      return <p className="text-gray-700 leading-relaxed mb-4">{block.text}</p>
+      return <p className="text-gray-700 leading-relaxed mb-4">{renderInline(block.text)}</p>
     case 'ul':
       return (
         <ul className="list-disc list-outside pl-5 mb-4 space-y-1.5">
           {block.items.map((item, i) => (
-            <li key={i} className="text-gray-700 leading-relaxed">{item}</li>
+            <li key={i} className="text-gray-700 leading-relaxed">{renderInline(item)}</li>
           ))}
         </ul>
+      )
+    case 'table':
+      return (
+        <div className="overflow-x-auto mb-6">
+          <table className="min-w-full text-sm border border-gray-200 rounded-xl overflow-hidden">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                {block.headers.map((h, i) => (
+                  <th key={i} className="px-4 py-3 text-left font-semibold text-gray-900 whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {block.rows.map((row, ri) => (
+                <tr key={ri} className={ri % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                  {row.map((cell, ci) => (
+                    <td key={ci} className="px-4 py-3 text-gray-700 border-t border-gray-100 whitespace-nowrap">{renderInline(cell)}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
+    case 'callout':
+      return (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-6 mt-2">
+          <p className="text-sm font-bold text-blue-900 mb-1">{block.title}</p>
+          <p className="text-sm text-blue-800 mb-3 leading-relaxed">{block.text}</p>
+          {block.link && (
+            <Link
+              to={block.link.href}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"
+            >
+              {block.link.label} →
+            </Link>
+          )}
+        </div>
       )
     default:
       return null
