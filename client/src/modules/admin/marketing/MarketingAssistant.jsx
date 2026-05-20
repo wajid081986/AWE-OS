@@ -26,10 +26,26 @@ const AWE_TOOLS = [
   { slug: 'resume-builder',        name: 'AI Resume Builder',          desc: 'Create ATS-friendly resumes with AI assistance'           },
 ]
 
-const PLATFORMS  = ['Twitter/X', 'LinkedIn', 'Instagram', 'Facebook', 'WhatsApp', 'Telegram']
-const TONES      = ['Professional', 'Casual', 'Friendly', 'Witty', 'Urgent', 'Inspiring']
-const LANGUAGES  = ['English', 'Hindi', 'Hinglish']
-const POST_TYPES = ['Awareness', 'Engagement', 'Conversion', 'Story', 'Tips', 'Question']
+const PLATFORMS = ['Twitter/X', 'LinkedIn', 'Instagram', 'Facebook', 'WhatsApp', 'Telegram']
+const LANGUAGES = ['English', 'Hindi', 'Hinglish']
+
+const TONES = [
+  { value: 'funny',         label: '😄 Funny — Humorous, relatable'         },
+  { value: 'viral',         label: '🔥 Viral — Hook-driven, shareable'       },
+  { value: 'informative',   label: '📚 Informative — Educational, helpful'   },
+  { value: 'emotional',     label: '❤️ Emotional — Connects with feelings'   },
+  { value: 'fomo',          label: '⚡ FOMO — Fear of missing out, urgency'  },
+  { value: 'inspirational', label: '✨ Inspirational — Motivating, uplifting' },
+]
+
+const POST_TYPES = [
+  { value: 'problem-solution', label: '🎯 Problem + Solution — Show pain point, AWE-OS solves it' },
+  { value: 'tool-highlight',   label: '🛠️ Tool Highlight — Feature spotlight with CTA'            },
+  { value: 'before-after',     label: '↔️ Before vs After — Without AWE-OS vs With AWE-OS'        },
+  { value: 'quick-tip',        label: '💡 Quick Tip — Short useful tip, tool as solution'          },
+  { value: 'comparison',       label: '⚖️ Comparison — AWE-OS vs other tools/methods'             },
+  { value: 'cta-post',         label: '📣 Direct CTA — Strong call to action, drive clicks'       },
+]
 
 const TABS = [
   { id: 'tool',    label: '🛠️ Tool Promoter' },
@@ -68,9 +84,11 @@ function SelectField({ label, value, onChange, options }) {
         onChange={e => onChange(e.target.value)}
         className="w-full bg-gray-900 border border-gray-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
       >
-        {options.map(o => (
-          <option key={o} value={o}>{o}</option>
-        ))}
+        {options.map(o => {
+          const val = typeof o === 'string' ? o : o.value
+          const lbl = typeof o === 'string' ? o : o.label
+          return <option key={val} value={val}>{lbl}</option>
+        })}
       </select>
     </div>
   )
@@ -159,7 +177,7 @@ function PostResults({ posts, onSave }) {
 
 // ── Tab 1: Tool Promoter ──────────────────────────────────────────────────────
 
-const DEFAULT_TOOL_FORM = { toolSlug: AWE_TOOLS[0].slug, platform: 'LinkedIn', tone: 'Professional', language: 'English', postType: 'Awareness' }
+const DEFAULT_TOOL_FORM = { toolSlug: AWE_TOOLS[0].slug, platform: 'LinkedIn', tone: 'funny', language: 'English', postType: 'problem-solution' }
 
 function ToolPromoterTab() {
   const [form,    setForm]    = useState(DEFAULT_TOOL_FORM)
@@ -219,7 +237,7 @@ function ToolPromoterTab() {
 
 // ── Tab 2: Blog Promoter ──────────────────────────────────────────────────────
 
-const DEFAULT_BLOG_FORM = { blogTitle: '', blogUrl: '', keyInsight: '', platform: 'LinkedIn', tone: 'Professional', language: 'English', postType: 'Awareness' }
+const DEFAULT_BLOG_FORM = { blogTitle: '', blogUrl: '', keyInsight: '', platform: 'LinkedIn', tone: 'funny', language: 'English', postType: 'problem-solution' }
 
 function BlogPromoterTab() {
   const [form,    setForm]    = useState(DEFAULT_BLOG_FORM)

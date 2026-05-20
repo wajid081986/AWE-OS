@@ -123,6 +123,22 @@ Requirements:
 - Always include awe-os.com or the direct URL naturally in the post
 - Sound authentic, not like an advertisement
 
+Post type guide:
+- problem-solution: Start with a relatable problem, end with AWE-OS as the solution
+- tool-highlight: Showcase one specific feature of the tool with clear CTA
+- before-after: Compare life/work before vs after using AWE-OS tool
+- quick-tip: Give a useful tip, naturally mention the tool as the way to do it
+- comparison: Compare AWE-OS (free, no signup) vs alternatives (paid, complex)
+- cta-post: Direct promotional post with strong action-driving language
+
+Tone guide:
+- funny: Use humor, relatable situations, light memes format
+- viral: Start with a hook/pattern interrupt, use numbers, create curiosity
+- informative: Teach something valuable, establish AWE-OS as expert resource
+- emotional: Connect with feelings (stress, pride, achievement, relief)
+- fomo: Create urgency, highlight what they're missing by not using AWE-OS
+- inspirational: Motivate action, connect tool to bigger life/career goals
+
 Respond ONLY with a valid JSON array of exactly 3 strings. No markdown, no code blocks, no explanation.
 Format: ["post 1 text", "post 2 text", "post 3 text"]`
 }
