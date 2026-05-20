@@ -74,7 +74,8 @@ const ProductManager    = lazy(() => import('../modules/admin/products/ProductMa
 const CalculatorBuilder = lazy(() => import('../modules/admin/calculators/CalculatorBuilder'))
 const UserManager       = lazy(() => import('../modules/admin/users/UserManager'))
 const RevenuePage       = lazy(() => import('../modules/admin/revenue/RevenuePage'))
-const AIFactoryPage     = lazy(() => import('../modules/admin/factory/AIFactoryPage'))
+const AIFactoryPage       = lazy(() => import('../modules/admin/factory/AIFactoryPage'))
+const MarketingAssistant  = lazy(() => import('../modules/admin/marketing/MarketingAssistant'))
 const AgentControlPage  = lazy(() => import('../modules/admin/agents/AgentControlPage'))
 const AgentsMonitor          = lazy(() => import('../modules/admin/agents/AgentsMonitor'))
 const MultiAgentDashboard    = lazy(() => import('../modules/admin/multi-agent/MultiAgentDashboard'))
@@ -187,6 +188,7 @@ export default function AppRoutes() {
           <Route path="/admin/users"         element={lazy$(<UserManager />)} />
           <Route path="/admin/revenue"       element={lazy$(<RevenuePage />)} />
           <Route path="/admin/factory"       element={lazy$(<AIFactoryPage />)} />
+          <Route path="/admin/marketing"     element={lazy$(<MarketingAssistant />)} />
           <Route path="/admin/agents"        element={lazy$(<AgentsMonitor />)} />
           <Route path="/admin/pipeline"      element={lazy$(<AgentControlPage />)} />
           <Route path="/admin/multi-agent"   element={lazy$(<MultiAgentDashboard />)} />

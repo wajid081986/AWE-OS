@@ -12,11 +12,15 @@ const PRO_PLANS   = ['pro_monthly', 'pro_yearly']
 const TOOL_PLANS  = { 'resume-builder': 'resume_builder', 'content-writer': 'content_writer' }
 
 // ── Auth + subscription gate ─────────────────────────────────
+const ADMIN_ONLY_TOOLS = ['marketing-assistant']
+
 async function requirePayment(req, res, next) {
   if (!req.user) return res.status(401).json({ success: false, error: 'Login required' })
 
   const { tool } = req.body
-  const userId   = req.user.userId
+  if (ADMIN_ONLY_TOOLS.includes(tool)) return next()
+
+  const userId = req.user.userId
 
   try {
     const { data: user } = await supabase
@@ -94,6 +98,35 @@ Skills: ${data.skills}
 Write a polished, ATS-friendly resume. Use clear section headers (PROFESSIONAL SUMMARY, EXPERIENCE, EDUCATION, SKILLS). Keep descriptions concise and action-oriented. Do not add any commentary — output only the resume.`
 }
 
+function buildMarketingPrompt(data) {
+  const isToolMode = data.mode === 'tool'
+  const charLimit  = data.platform === 'Twitter/X' ? '280 characters maximum per post' : '100–300 words per post'
+  const langNote   = data.language === 'Hinglish' ? ' (casual mix of Hindi and English — use Hinglish naturally, not literal translation)' : ''
+
+  const subject = isToolMode
+    ? `the free online tool "${data.toolName}" — ${data.toolDesc}. Tool URL: ${data.toolUrl}`
+    : `a blog post titled "${data.blogTitle}". URL: ${data.blogUrl}${data.keyInsight ? `. Key insight to highlight: ${data.keyInsight}` : ''}`
+
+  return `You are the social media manager for AWE-OS (awe-os.com), a free online tools website for Indian users.
+
+Generate exactly 3 unique ${data.platform} posts promoting ${subject}
+
+Requirements:
+- Platform: ${data.platform}
+- Tone: ${data.tone}
+- Language: ${data.language}${langNote}
+- Post type: ${data.postType}
+- Length: ${charLimit}
+- Each post must use a completely different hook or angle
+- Include 2–4 relevant emojis per post
+- Include 3–5 relevant hashtags per post
+- Always include awe-os.com or the direct URL naturally in the post
+- Sound authentic, not like an advertisement
+
+Respond ONLY with a valid JSON array of exactly 3 strings. No markdown, no code blocks, no explanation.
+Format: ["post 1 text", "post 2 text", "post 3 text"]`
+}
+
 function buildContentPrompt(data) {
   const wordTarget = data.length === 'short' ? '150 words' : data.length === 'medium' ? '400 words' : '800 words'
   return `Write a ${data.type} about "${data.topic}".
@@ -122,6 +155,12 @@ router.post('/', requireAuth, requirePayment, async (req, res) => {
     if (!data.topic) return res.status(400).json({ success: false, error: 'topic is required' })
     prompt = buildContentPrompt(data)
     maxTokens = LENGTH_TOKENS[data.length] || 700
+  } else if (tool === 'marketing-assistant') {
+    if (!data.mode) return res.status(400).json({ success: false, error: 'mode is required' })
+    if (data.mode === 'tool' && !data.toolName) return res.status(400).json({ success: false, error: 'toolName is required' })
+    if (data.mode === 'blog' && !data.blogTitle) return res.status(400).json({ success: false, error: 'blogTitle is required' })
+    prompt    = buildMarketingPrompt(data)
+    maxTokens = 900
   } else {
     return res.status(400).json({ success: false, error: `Unknown tool: ${tool}` })
   }
@@ -134,7 +173,17 @@ router.post('/', requireAuth, requirePayment, async (req, res) => {
       temperature: 0.7,
     })
 
-    const content = completion.choices[0]?.message?.content || ''
+    const rawContent = completion.choices[0]?.message?.content || ''
+
+    if (tool === 'marketing-assistant') {
+      try {
+        const posts = JSON.parse(rawContent)
+        if (Array.isArray(posts)) return res.json({ success: true, posts })
+      } catch {}
+      return res.json({ success: true, posts: [rawContent] })
+    }
+
+    const content = rawContent
     res.json({ success: true, content })
   } catch (err) {
     console.error('[tools.generate] OpenAI error:', err.message)
