@@ -106,22 +106,45 @@ router.post('/generate', requireAuth, requireAdmin, async (req, res) => {
     quickguide:     'Be concise and practical. Bullet points over paragraphs where possible.',
   }
 
-  const userPrompt = `Write a ${wordCount}-word SEO blog post for AWE-OS.
+  const userPrompt = `You are writing a LONG-FORM SEO blog post.
+MANDATORY MINIMUM: ${wordCount} words. DO NOT stop before reaching ${wordCount} words.
 
 Topic: ${topic}
-Target keyword (use naturally 3-5 times): ${keyword || topic}
-${toolSlug ? `Primary AWE-OS tool to promote: ${toolName || toolSlug} (link href: /tools/${toolSlug})` : ''}
+Target Keyword: "${keyword || topic}"
+AWE-OS Tool: ${toolName || toolSlug || 'AWE-OS free tools'} at https://www.awe-os.com${toolSlug ? `/tools/${toolSlug}` : ''}
+Tone: ${toneGuides[tone] || toneGuides.beginner}
 Category: ${category}
-Tone style: ${toneGuides[tone] || toneGuides.beginner}
-${indianContext ? 'Include Indian examples, ₹ amounts, Indian financial regulations and SEBI/RBI context where relevant.' : ''}
+Indian Context: ${indianContext ? 'Yes — use ₹ symbol, Indian examples, SEBI/RBI/ICMR regulations' : 'No'}
 
-Return ONLY the JSON object. No other text.`
+REQUIRED STRUCTURE (follow exactly, write each section FULLY):
+
+1. Opening paragraph (100 words) — hook, relatable problem, no heading
+2. H2: What is [topic]? (150 words minimum — full explanation)
+3. H2: [Main educational section] (200 words minimum — include data table with real Indian numbers)
+4. H2: Real Examples with ₹ Calculations (200 words minimum — 3 detailed examples with actual math)
+5. H2: Who Should [Use/Know] This? (150 words — 5 specific scenarios)
+6. H2: Step by Step — How to Use AWE-OS [Tool Name] (150 words — numbered steps + callout)
+7. H2: Common Mistakes to Avoid (100 words — 3-4 mistakes)
+8. H2: Frequently Asked Questions (include 5 FAQs with 80+ word answers each)
+9. Conclusion paragraph (100 words — summary + CTA to AWE-OS tool)
+
+CONTENT RULES:
+- Every H2 section MUST have at least 2-3 full paragraphs
+- Include AT LEAST 2 data tables with real Indian numbers (not placeholders)
+- Include AT LEAST 1 callout block linking to AWE-OS tool
+- FAQ answers minimum 80 words each
+- Use Indian number format: ₹12,75,000
+- Bold important numbers and conclusions
+- Short paragraphs max 3 lines
+- Total word count MUST be minimum ${wordCount} words
+
+Return complete JSON object. Make content blocks detailed and complete.`
 
   try {
     const completion = await openai.chat.completions.create({
       model:       'gpt-4o-mini',
       messages:    [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: userPrompt }],
-      max_tokens:  3000,
+      max_tokens:  4000,
       temperature: 0.7,
     })
 
