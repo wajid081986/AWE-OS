@@ -214,6 +214,44 @@ ${post.date ? `<time datetime="${esc(post.date)}">${esc(post.date)}</time>` : ''
 </main>`
 }
 
+function buildHomeBody() {
+  const allTools = TOOL_REGISTRY.filter(t => !t.comingSoon && t.slug !== 'test-ai-tool')
+  const totalTools = allTools.length
+
+  const SECTIONS = [
+    { key: 'pdf',          label: 'PDF Tools'               },
+    { key: 'calculators',  label: 'Calculators'              },
+    { key: 'converters',   label: 'Converters & Generators'  },
+    { key: 'productivity', label: 'Productivity'             },
+    { key: 'ai',           label: 'AI Tools'                 },
+  ]
+
+  const categorySections = SECTIONS.map(s => {
+    const tools = allTools.filter(t => t.category === s.key)
+    if (!tools.length) return ''
+    const toolLinks = tools
+      .map(t => `<li><a href="${t.path || `/tools/${t.slug}`}">${esc(t.name)}</a> — ${esc(t.description)}</li>`)
+      .join('')
+    return `<section id="section-${s.key}" aria-label="${esc(s.label)}">
+<h2>${esc(s.label)}</h2>
+<ul>${toolLinks}</ul>
+</section>`
+  }).join('\n')
+
+  return `<main>
+<h1>${totalTools}+ Free Tools. No Signup. Just Works.</h1>
+<p>PDF tools, calculators, converters, and AI tools — all free, all in your browser.</p>
+<p>Search tools — PDF, calculator, currency...</p>
+<div aria-label="Platform statistics">
+  <span>${totalTools}+ Tools</span>
+  <span>100% Free</span>
+  <span>No Signup</span>
+  <span>Works in Browser</span>
+</div>
+${categorySections}
+</main>`
+}
+
 function buildStaticBody(route) {
   // Strip " | AWE-OS" suffix and use as h1 text
   const h1 = route.title.replace(/\s*[|—–]\s*AWE-OS\s*$/i, '').trim()
@@ -464,6 +502,8 @@ for (const route of ALL_ROUTES) {
       bodyHTML = buildCategoryBody(route._cat)
     } else if (route._post) {
       bodyHTML = buildBlogBody(route._post)
+    } else if (route.path === '/') {
+      bodyHTML = buildHomeBody()
     } else if (route.path === '/tools') {
       bodyHTML = buildToolsIndexBody()
     } else if (route.path === '/blog') {
