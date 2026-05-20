@@ -816,6 +816,218 @@ export const BLOG_POSTS = [
   },
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // 14. SIP vs FD India 2025
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    id: 14,
+    slug: 'sip-vs-fd-india-2025',
+    title: 'SIP vs FD in 2025: Which Gives Better Returns for Indian Investors?',
+    date: '2026-05-20',
+    category: 'Finance',
+    author: 'AWE-OS Team',
+    readTime: '9 min read',
+    excerpt:
+      'Zero-risk FD or market-linked SIP — which one actually builds more wealth for Indian middle-class investors in 2025? Real ₹10,000/month calculations, tax breakdowns, and a clear decision framework.',
+    metaTitle: 'SIP vs FD in 2025: Which Gives Better Returns for Indians?',
+    metaDescription:
+      'Compare SIP vs FD returns, tax, and risk for Indian investors in 2025. See real ₹10,000/month calculations, break-even analysis, and who should choose what. Free calculators included.',
+    relatedTools: [
+      { label: 'SIP Calculator', slug: 'sip-calculator', icon: '📈' },
+      { label: 'FD Calculator',  slug: 'fd-calculator',  icon: '🏦' },
+      { label: 'Tax Calculator', slug: 'tax-calculator',  icon: '🧾' },
+    ],
+    faqs: [
+      {
+        q: 'Is SIP better than FD for 5 years?',
+        a: 'For exactly 5 years, it depends on your risk tolerance. Equity SIP can deliver 10–15% in 5 years but can also give 2–5% if markets correct near your exit date. For any 5-year goal where you cannot afford capital loss, a 60% FD + 40% debt mutual fund split is safer. Pure equity SIP is best suited for 7+ year horizons.',
+      },
+      {
+        q: 'Can I lose money in SIP?',
+        a: 'Yes — in the short term. In any given 1–3 year period, equity SIP can produce negative returns. However, based on Nifty 50 historical data, every 10-year SIP period since 1990 has delivered positive returns. Risk reduces significantly as your investment horizon extends. SIP is a long-term instrument, not a short-term one.',
+      },
+      {
+        q: 'Is FD interest fully taxable in India?',
+        a: 'Yes. FD interest is added to your total income and taxed at your applicable slab rate — 5%, 20%, or 30%. TDS of 10% is deducted if annual interest exceeds ₹40,000 (₹50,000 for senior citizens). If your total income is below the taxable limit, submit Form 15G (below 60 years) or Form 15H (60+) to your bank to prevent TDS deduction.',
+      },
+      {
+        q: 'What is the minimum SIP amount in India?',
+        a: 'Most mutual funds allow SIP from ₹500 per month. Some direct plan platforms (Zerodha Coin, Groww, Paytm Money) go as low as ₹100 per month. FDs typically require a minimum lump sum of ₹1,000. Both instruments are genuinely accessible for first-time investors with limited surplus.',
+      },
+      {
+        q: 'SIP vs FD — which is better for a government employee?',
+        a: "Government employees already benefit from EPF or GPF at 8.25% interest, plus often a defined pension — their fixed-income allocation is largely covered. For them, SIP in equity funds makes strong sense for long-term goals like children's education or retirement top-up. Also consider NPS Tier 2 for tax-efficient, flexible market-linked allocation.",
+      },
+    ],
+    content: [
+      {
+        type: 'p',
+        text: "Ramesh, a 32-year-old software engineer in Pune, gets ₹50,000 in-hand every month. His father says: put ₹10,000 in FD every month — safe, tension-free. His colleague says: start a SIP — FD ke returns inflation bhi nahi beat karte. Both are right. Both are wrong. The real answer depends on one thing — YOUR goal. Here's the complete breakdown.",
+      },
+      {
+        type: 'h2',
+        text: 'What Exactly Are SIP and FD?',
+      },
+      {
+        type: 'p',
+        text: 'Before comparing, a quick definition. A **SIP (Systematic Investment Plan)** is a method of investing a fixed amount every month in a mutual fund — the fund buys units at that day\'s market price (NAV). Returns are market-linked and not guaranteed. An **FD (Fixed Deposit)** is a contract with a bank or post office where you lock in money for a fixed tenure at a pre-agreed interest rate. Returns are guaranteed. Both are legitimate instruments — built for different purposes.',
+      },
+      {
+        type: 'table',
+        headers: ['', 'SIP', 'FD'],
+        rows: [
+          ['What it is', 'Monthly mutual fund investment', 'Bank or post office deposit'],
+          ['Returns', 'Market-linked (10–15% equity)', 'Fixed rate (6.5–9%)'],
+          ['Risk', 'Market risk — can fall short-term', 'Near zero — fully guaranteed'],
+          ['Lock-in', 'None (ELSS funds: 3 years)', 'Penalty on early withdrawal'],
+          ['Minimum', '₹500/month', '₹1,000 lump sum'],
+          ['Best for', 'Long-term wealth creation', 'Short-term goals, safety'],
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'The Real Numbers — ₹10,000/Month for 10 and 20 Years',
+      },
+      {
+        type: 'p',
+        text: 'This is where the conversation gets serious. Here is exactly what ₹10,000 invested every month does in a SIP versus a Recurring Deposit (RD — the month-by-month equivalent of an FD):',
+      },
+      {
+        type: 'table',
+        headers: ['Duration', 'SIP @12% p.a.', 'RD @7% p.a.', 'SIP Advantage'],
+        rows: [
+          ['10 years', '₹23,23,391', '₹17,40,000', '+₹5,83,391'],
+          ['20 years', '₹98,93,190', '₹52,60,000', '+₹46,33,190'],
+          ['20 years @15%', '₹1,51,59,550', '₹52,60,000', '+₹99,00,000'],
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Total invested in both cases: ₹12,00,000 over 10 years, ₹24,00,000 over 20 years. **At 20 years, the SIP corpus is nearly double the RD corpus at the same monthly investment.** The gap widens dramatically with time — this is compounding at work. The 15% row is within the historical return range for mid-cap and flexi-cap funds over 20-year periods, as seen in multiple fund category averages.',
+      },
+      {
+        type: 'p',
+        text: 'One important note: the 12% assumption is grounded in the Nifty 50 TRI\'s approximate 20-year CAGR of ~13.5% — a reasonable real-world benchmark, not a guaranteed return. Equity SIP returns fluctuate year to year. You could see -20% in a correction year and +40% in a rally. The long-term average is what these numbers reflect.',
+      },
+      {
+        type: 'h2',
+        text: 'The Tax Trap — FD Looks Safe But Isn\'t',
+      },
+      {
+        type: 'p',
+        text: 'Here is the section most bank FD advertisements quietly skip. FD interest is **fully taxable at your income slab rate** — 5%, 20%, or 30%. This changes the real return dramatically once inflation is factored in:',
+      },
+      {
+        type: 'table',
+        headers: ['Tax Bracket', 'FD Rate', 'Post-Tax Return', 'Inflation 2025', 'Real Return'],
+        rows: [
+          ['0% (new regime ≤ ₹12L income)', '7%', '7.0%', '5%', '+2.0%'],
+          ['20% slab', '7%', '5.6%', '5%', '+0.6%'],
+          ['30% slab', '7%', '4.9%', '5%', '**-0.1% ⚠️**'],
+        ],
+      },
+      {
+        type: 'p',
+        text: 'To make this concrete: a ₹5,00,000 FD at 7% generates ₹35,000 in interest per year. In the 30% bracket, ₹10,500 goes to tax, leaving ₹24,500 — a post-tax return of 4.9%. With inflation running at 5%, your purchasing power is shrinking in real terms. **For any investor in the 30% tax bracket, long-term FD is not wealth creation — it is wealth preservation at best, and silent erosion at worst.** By contrast, equity SIP gains held over one year attract LTCG tax of only 12.5% on gains above ₹1,25,000 per year (Budget 2024 update) — a significantly lower effective rate for most retail investors.',
+      },
+      {
+        type: 'h2',
+        text: 'When FD Beats SIP — 4 Real Scenarios',
+      },
+      {
+        type: 'p',
+        text: 'This is not a one-sided debate. FD is genuinely the right instrument in these four situations:',
+      },
+      {
+        type: 'ul',
+        items: [
+          "**Emergency fund (6 months of expenses):** Your emergency fund must never sit in equity SIP. Markets can drop 30–40% exactly when a job loss or medical crisis forces you to withdraw. A sweep-in FD or liquid FD is the only appropriate instrument here — non-negotiable.",
+          "**Goals within 3 years (wedding, home down payment, car purchase):** Equity SIP in 3 years or less can give negative returns if markets are in a downturn at your exit date. For any goal where you cannot afford capital loss, FD — or a short-term debt mutual fund at most — is correct. Your sister's wedding budget belongs in an FD, not a SIP.",
+          '**Retired investors aged 65+ who need regular income:** Senior citizen FDs from banks like AU Small Finance Bank or Jana Bank offer 8–9%, with a ₹50,000 TDS exemption threshold. This creates predictable quarterly interest income. SIP volatility is inappropriate for someone drawing down their corpus for living expenses.',
+          '**First-time investors who cannot tolerate uncertainty:** A guaranteed 7% return you can sleep through is worth more than a theoretical 13% that causes anxiety and triggers panic-selling at the worst possible moment. Start with FD to build the savings habit, then graduate to SIP as you understand how market cycles work.',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'When SIP Beats FD — 4 Real Scenarios',
+      },
+      {
+        type: 'p',
+        text: 'SIP has a structural edge in these four situations — and the advantage compounds with every passing year:',
+      },
+      {
+        type: 'ul',
+        items: [
+          '**A 25-year-old starting their career:** ₹5,000 per month in SIP at 12% from age 25 grows to approximately ₹2.76 crore by retirement. The same amount in an RD at 7% gives roughly ₹1.05 crore. **The ₹1.71 crore gap is the direct cost of being too conservative when you have the most valuable asset available: time.**',
+          "**Any goal 10+ years away (child's college fund, retirement, early financial independence):** Time is the structural advantage SIP has over every other instrument. Give equity SIP 10 or more years and compounding does the heavy lifting. Historically, no 10-year SIP period in the Nifty 50 since 1990 has produced an overall loss.",
+          '**Investors in the 20% or 30% tax bracket:** At 30% slab, your FD real return is approximately zero — sometimes negative. Equity SIP LTCG is 12.5% above ₹1,25,000 in annual gains — dramatically lower than slab rates. The higher your tax bracket, the more decisively SIP wins on an after-tax, after-inflation basis.',
+          '**Building a ₹1 crore corpus:** To reach ₹1 crore in 20 years — SIP at 12% requires approximately ₹10,100 per month. An RD at 7% requires ₹19,000 per month for the same goal. **SIP reaches the same target with ₹8,900 less every month** — money that can simultaneously fund your emergency FD.',
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'The Hybrid Strategy — What Smart Indian Investors Actually Do',
+      },
+      {
+        type: 'p',
+        text: 'The SIP vs FD debate is a false choice. Disciplined Indian investors do not pick one — they deploy both strategically. For someone saving ₹20,000 per month, here is a practical allocation framework:',
+      },
+      {
+        type: 'ul',
+        items: [
+          '**50% → SIP (₹10,000/month):** Long-term equity or flexi-cap mutual fund. The wealth engine. Leave it untouched for 10–20 years.',
+          '**30% → FD ladder (₹6,000/month):** Build three FDs — one maturing in 1 year, one in 2 years, one in 3 years. Each year, reinvest or deploy the maturing FD as needed. Creates rolling liquidity without surrendering the full corpus.',
+          '**20% → PPF or NPS (₹4,000/month):** PPF earns 7.1% tax-free with Section 80C deduction on ₹1,50,000 per year. NPS adds an additional ₹50,000 deduction under 80CCD(1B). Both lock in the retirement foundation while reducing your tax outgo today.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Every rupee has a defined job: FD covers emergencies and near-term goals, SIP builds long-term wealth, and PPF or NPS reduces taxes while funding retirement. None of the three instruments works as well in isolation as all three do together.',
+      },
+      {
+        type: 'h2',
+        text: 'Quick Decision Tool — Answer 3 Questions',
+      },
+      {
+        type: 'p',
+        text: 'Not sure where to start? Answer these three questions — your answer becomes clear in 60 seconds:',
+      },
+      {
+        type: 'ul',
+        items: [
+          '**When do you need the money?** Less than 3 years → FD. Between 3 and 7 years → balanced mix of FD and debt mutual funds. 7 years or more → primarily equity SIP.',
+          '**What is your income tax slab?** Zero bracket (new regime income under ₹12 lakh) → both instruments are reasonable, SIP still better for long-term goals. 20% slab → SIP significantly better for 7-year+ goals. 30% slab → SIP strongly preferred for anything beyond 5 years; FD real return approaches zero after tax and inflation.',
+          "**Can you watch your portfolio fall 15% and not panic-sell?** No → FD is the right choice for you, and that is perfectly fine. Yes, if the goal is 10+ years away → equity SIP. Partially → use the 50-30-20 hybrid allocation above.",
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Run Your Numbers — Free Calculators',
+      },
+      {
+        type: 'p',
+        text: 'The calculations above use averages. Your actual outcome depends on your fund selection, tenure, your bank\'s FD rate, and your tax bracket. Run your specific scenario in under 2 minutes:',
+      },
+      {
+        type: 'callout',
+        title: 'Model your exact SIP or FD scenario — free, no sign-up required',
+        text: 'Enter your monthly investment, tenure, and expected return rate. Both calculators run instantly in your browser — no app download, no account needed.',
+        links: [
+          { href: '/tools/sip-calculator', label: 'Free SIP Calculator' },
+          { href: '/tools/fd-calculator',  label: 'Free FD Calculator'  },
+        ],
+      },
+      {
+        type: 'h2',
+        text: 'Conclusion',
+      },
+      {
+        type: 'p',
+        text: "FD is the foundation. SIP is the house you build on top of it. Your emergency fund, your 2-year wedding budget, your risk-averse parents' savings — FD. Your retirement corpus, your child's college fund, your path to financial independence — SIP. The smartest investors do not debate FD vs SIP. They use both. Start today — even ₹500 per month in a SIP alongside a small FD ladder is better than waiting for the 'right time' that never comes.",
+      },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // 13. New vs Old Tax Regime FY 2025-26
   // ─────────────────────────────────────────────────────────────────────────────
   {

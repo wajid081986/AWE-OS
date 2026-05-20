@@ -59,21 +59,26 @@ function ContentBlock({ block }) {
           </table>
         </div>
       )
-    case 'callout':
+    case 'callout': {
+      const ctaLinks = [...(block.links || []), ...(block.link ? [block.link] : [])]
       return (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-6 mt-2">
           <p className="text-sm font-bold text-blue-900 mb-1">{block.title}</p>
           <p className="text-sm text-blue-800 mb-3 leading-relaxed">{block.text}</p>
-          {block.link && (
-            <Link
-              to={block.link.href}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"
-            >
-              {block.link.label} →
-            </Link>
+          {ctaLinks.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {ctaLinks.map((l, i) => (
+                <Link key={i} to={l.href}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                >
+                  {l.label} →
+                </Link>
+              ))}
+            </div>
           )}
         </div>
       )
+    }
     default:
       return null
   }
