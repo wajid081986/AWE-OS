@@ -93,7 +93,7 @@ REQUIRED STRUCTURE:
 
 Include at least 2 tables and 1 callout block.`
 
-// ── POST /generate ────────────────────────────────────────────────────────────
+// ── POST /generate — two-call approach for reliable long content ───────────────
 
 router.post('/generate', requireAuth, requireAdmin, async (req, res) => {
   const { topic, keyword, toolSlug, toolName, wordCount = 1200, tone = 'beginner', category = 'Finance', indianContext = true } = req.body
@@ -106,58 +106,138 @@ router.post('/generate', requireAuth, requireAdmin, async (req, res) => {
     quickguide:     'Be concise and practical. Bullet points over paragraphs where possible.',
   }
 
-  const userPrompt = `You are writing a LONG-FORM SEO blog post.
-MANDATORY MINIMUM: ${wordCount} words. DO NOT stop before reaching ${wordCount} words.
+  const toolUrl  = toolSlug ? `https://www.awe-os.com/tools/${toolSlug}` : 'https://www.awe-os.com'
+  const toolRef  = toolName || toolSlug || 'AWE-OS'
+  const indianCtx = indianContext ? 'Yes — use ₹ symbol, Indian number format (₹12,75,000), SEBI/RBI/ICMR context' : 'No'
+
+  try {
+    // ── Call 1: Metadata + section outline (gpt-4o, 800 tokens) ──────────────
+    const outlinePrompt = `Generate metadata and a section outline for a ${wordCount}-word blog post.
 
 Topic: ${topic}
 Target Keyword: "${keyword || topic}"
-AWE-OS Tool: ${toolName || toolSlug || 'AWE-OS free tools'} at https://www.awe-os.com${toolSlug ? `/tools/${toolSlug}` : ''}
-Tone: ${toneGuides[tone] || toneGuides.beginner}
+AWE-OS Tool to promote: ${toolRef} at ${toolUrl}
 Category: ${category}
-Indian Context: ${indianContext ? 'Yes — use ₹ symbol, Indian examples, SEBI/RBI/ICMR regulations' : 'No'}
+Indian Context: ${indianCtx}
 
-REQUIRED STRUCTURE (follow exactly, write each section FULLY):
+Return ONLY this JSON structure — NO body text in sections, headings only:
+{
+  "slug": "url-friendly-slug-from-topic",
+  "title": "Compelling full article title",
+  "metaTitle": "SEO title under 60 chars",
+  "metaDescription": "SEO description under 155 chars with target keyword",
+  "category": "${category}",
+  "excerpt": "2-3 sentence summary for blog listing page",
+  "readTime": "${Math.ceil(wordCount / 200)} min read",
+  "relatedTools": [{"label": "Tool Name", "slug": "tool-slug", "icon": "emoji"}],
+  "sections": [
+    {"heading": "Exact H2 heading text", "keyPoints": ["point 1", "point 2", "point 3"]},
+    {"heading": "...", "keyPoints": ["...", "..."]},
+    {"heading": "...", "keyPoints": ["...", "..."]},
+    {"heading": "...", "keyPoints": ["...", "..."]},
+    {"heading": "...", "keyPoints": ["...", "..."]},
+    {"heading": "...", "keyPoints": ["...", "..."]},
+    {"heading": "...", "keyPoints": ["...", "..."]}
+  ],
+  "faqQuestions": ["Question 1?", "Question 2?", "Question 3?", "Question 4?", "Question 5?"]
+}
 
-1. Opening paragraph (100 words) — hook, relatable problem, no heading
-2. H2: What is [topic]? (150 words minimum — full explanation)
-3. H2: [Main educational section] (200 words minimum — include data table with real Indian numbers)
-4. H2: Real Examples with ₹ Calculations (200 words minimum — 3 detailed examples with actual math)
-5. H2: Who Should [Use/Know] This? (150 words — 5 specific scenarios)
-6. H2: Step by Step — How to Use AWE-OS [Tool Name] (150 words — numbered steps + callout)
-7. H2: Common Mistakes to Avoid (100 words — 3-4 mistakes)
-8. H2: Frequently Asked Questions (include 5 FAQs with 80+ word answers each)
-9. Conclusion paragraph (100 words — summary + CTA to AWE-OS tool)
+Sections must cover: intro/overview, main explanation with data, real ₹ calculations, who should use this, step-by-step guide using ${toolRef}, common mistakes, and conclusion.`
 
-CONTENT RULES:
-- Every H2 section MUST have at least 2-3 full paragraphs
-- Include AT LEAST 2 data tables with real Indian numbers (not placeholders)
-- Include AT LEAST 1 callout block linking to AWE-OS tool
-- FAQ answers minimum 80 words each
-- Use Indian number format: ₹12,75,000
-- Bold important numbers and conclusions
-- Short paragraphs max 3 lines
-- Total word count MUST be minimum ${wordCount} words
+    const outlineRes = await openai.chat.completions.create({
+      model:       'gpt-4o',
+      messages:    [{ role: 'user', content: outlinePrompt }],
+      max_tokens:  800,
+      temperature: 0.7,
+    })
 
-Return complete JSON object. Make content blocks detailed and complete.`
+    const outline = parseAIJson(outlineRes.choices[0]?.message?.content || '')
 
-  try {
-    const completion = await openai.chat.completions.create({
-      model:       'gpt-4o-mini',
-      messages:    [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: userPrompt }],
+    // ── Call 2: Full content from outline (gpt-4o, 4000 tokens) ──────────────
+    const contentPrompt = `Expand this blog outline into detailed, long-form content.
+
+TOPIC: ${topic}
+TARGET KEYWORD: "${keyword || topic}" — use naturally 3-5 times
+TOOL: ${toolRef} at ${toolUrl}
+TONE: ${toneGuides[tone] || toneGuides.beginner}
+INDIAN CONTEXT: ${indianCtx}
+WORD COUNT: MINIMUM ${wordCount} words — do NOT stop early.
+
+OUTLINE TO EXPAND (write each section fully):
+${JSON.stringify(outline.sections || [], null, 2)}
+
+FAQ QUESTIONS TO ANSWER IN FULL:
+${(outline.faqQuestions || []).map((q, i) => `${i + 1}. ${q}`).join('\n')}
+
+STRICT CONTENT RULES:
+- Opening paragraph (no heading): 100+ words, relatable hook or problem
+- Each H2 section: 200-300 words minimum — write 2-3 full paragraphs per section
+- AT LEAST 2 data tables with real Indian numbers (actual ₹ amounts, percentages, dates)
+- AT LEAST 1 callout block with link to ${toolUrl}
+- Each FAQ answer: 100+ words minimum, detailed and practical
+- Bold key numbers and conclusions using **text**
+- Indian number format: ₹12,75,000 (not ₹1,275,000)
+- Short paragraphs, max 3 lines each
+
+Return ONLY this JSON (no other text):
+{
+  "content": [
+    {"type": "p", "text": "Opening hook paragraph — 100+ words..."},
+    {"type": "h2", "text": "Section heading from outline"},
+    {"type": "p", "text": "Full paragraph — 80+ words..."},
+    {"type": "p", "text": "Second paragraph — 80+ words..."},
+    {"type": "table", "headers": ["Column", "Column", "Column"], "rows": [["val", "val", "val"], ["val", "val", "val"]]},
+    {"type": "ul", "items": ["Detailed item 1", "Detailed item 2", "Detailed item 3"]},
+    {"type": "callout", "title": "Try it free", "text": "Use the free ${toolRef} at AWE-OS — no signup needed.", "links": [{"href": "${toolSlug ? `/tools/${toolSlug}` : '/'}", "label": "Open Free ${toolRef}"}]}
+  ],
+  "faqs": [
+    {"q": "Question?", "a": "Detailed answer 100+ words..."}
+  ]
+}`
+
+    const contentRes = await openai.chat.completions.create({
+      model:       'gpt-4o',
+      messages:    [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: contentPrompt }],
       max_tokens:  4000,
       temperature: 0.7,
     })
 
-    const raw  = completion.choices[0]?.message?.content || ''
-    const post = parseAIJson(raw)
+    const contentData = parseAIJson(contentRes.choices[0]?.message?.content || '')
 
-    post.author   = 'AWE-OS Team'
-    post.date     = new Date().toISOString().split('T')[0]
-    post.category = post.category || category
-    if (!post.faqs)         post.faqs         = []
-    if (!post.relatedTools) post.relatedTools = []
+    // ── Merge into final post ─────────────────────────────────────────────────
+    const post = {
+      slug:            outline.slug,
+      title:           outline.title,
+      date:            new Date().toISOString().split('T')[0],
+      category:        outline.category        || category,
+      author:          'AWE-OS Team',
+      readTime:        outline.readTime         || '7 min read',
+      excerpt:         outline.excerpt          || '',
+      metaTitle:       outline.metaTitle        || outline.title,
+      metaDescription: outline.metaDescription  || outline.excerpt || '',
+      relatedTools:    outline.relatedTools     || [],
+      content:         contentData.content      || [],
+      faqs:            contentData.faqs         || [],
+    }
 
-    res.json({ success: true, post })
+    // ── Word count validation ─────────────────────────────────────────────────
+    const actualWc = post.content
+      .map(b => b.text || (b.items || []).join(' ') || (b.headers ? [...(b.headers || []), ...(b.rows || []).flat()].join(' ') : ''))
+      .join(' ')
+      .split(/\s+/)
+      .filter(Boolean)
+      .length
+
+    if (actualWc < wordCount * 0.8) {
+      return res.json({
+        success:        false,
+        error:          `Generated content too short. Please try again.`,
+        actualWords:    actualWc,
+        requestedWords: wordCount,
+      })
+    }
+
+    res.json({ success: true, post, actualWords: actualWc })
   } catch (err) {
     console.error('[admin-blog/generate]', err.message)
     res.status(500).json({ success: false, error: err.message || 'Generation failed' })

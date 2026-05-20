@@ -148,6 +148,7 @@ function AIBlogWriterTab({ onPreFill }) {
   const [pubResult,   setPubResult]   = useState(null)
   const [copied,      setCopied]      = useState(false)
   const [genError,    setGenError]    = useState(null)
+  const [actualWords, setActualWords] = useState(null)
 
   // When Tab 2 sends a pre-fill
   useEffect(() => {
@@ -166,6 +167,7 @@ function AIBlogWriterTab({ onPreFill }) {
     setGenError(null)
     setPost(null)
     setPubResult(null)
+    setActualWords(null)
     try {
       const tool = AWE_TOOLS.find(t => t.slug === form.toolSlug)
       const res  = await api.post('/api/admin/blog/generate', {
@@ -174,6 +176,7 @@ function AIBlogWriterTab({ onPreFill }) {
       })
       if (res.data.success) {
         setPost(res.data.post)
+        setActualWords(res.data.actualWords || null)
         setMeta({
           title:           res.data.post.title,
           metaTitle:       res.data.post.metaTitle,
@@ -184,7 +187,12 @@ function AIBlogWriterTab({ onPreFill }) {
           readTime:        res.data.post.readTime,
         })
       } else {
-        setGenError(res.data.error || 'Generation failed.')
+        const aw = res.data.actualWords
+        const rw = res.data.requestedWords
+        setGenError(aw
+          ? `Only ${aw} words generated (target: ${rw}). Click Generate Again to retry.`
+          : res.data.error || 'Generation failed.'
+        )
       }
     } catch (err) {
       setGenError(err.response?.data?.error || 'Generation failed. Please try again.')
@@ -290,7 +298,14 @@ function AIBlogWriterTab({ onPreFill }) {
         <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 space-y-4 overflow-auto max-h-[80vh]">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-white">Article Preview</h2>
-            <span className="text-xs text-gray-500">{articleWc} words · {articleReadTime}</span>
+            {(() => {
+              const wc     = actualWords || articleWc
+              const target = form.wordCount
+              const pct    = wc / target
+              if (pct >= 0.8) return <span className="text-xs text-green-400 font-medium">✅ {wc} words · {articleReadTime}</span>
+              if (pct >= 0.6) return <span className="text-xs text-yellow-400 font-medium">⚠️ {wc} words (target: {target})</span>
+              return <span className="text-xs text-red-400 font-medium">❌ {wc} words — too short</span>
+            })()}
           </div>
 
           <Field label="Title">
