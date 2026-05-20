@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { icon: '📊', label: 'Overview',         to: '/admin',               end: true },
   { icon: '🤖', label: 'AI Factory',       to: '/admin/factory',       badge: '⚡'     },
   { icon: '📣', label: 'Marketing',        to: '/admin/marketing'                      },
+  { icon: '✍️', label: 'Blog Assistant',   to: '/admin/blog'                           },
   { icon: '🧬', label: 'Agents',           to: '/admin/agents',        badge: 'LIVE'   },
   { icon: '🛠️', label: 'Tool Builder',     to: '/admin/tools/builder'                  },
   { icon: '🔄', label: 'Pipeline Control', to: '/admin/pipeline',      badge: 'pending'},
