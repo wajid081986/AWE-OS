@@ -27,37 +27,48 @@ function DropdownItem({ icon, label, to, comingSoon, onClick }) {
   )
 }
 
-// ── Desktop mega-dropdown panel ───────────────────────────────────────────────
-function DesktopDropdown({ catKey, data, onClose }) {
-  const isPdf = catKey === 'pdf'
+// ── Desktop mega-menu: all categories in one wide panel ───────────────────────
+function AllToolsMegaMenu({ onClose }) {
+  const entries = Object.entries(TOOL_CATALOGUE)
   return (
     <div
       className="absolute left-0 top-full mt-1.5 z-[60] bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden"
-      style={{ minWidth: isPdf ? 640 : 360, maxWidth: 'calc(100vw - 2rem)' }}
+      style={{ minWidth: Math.min(entries.length * 180, 900), maxWidth: 'calc(100vw - 2rem)' }}
       role="menu"
     >
-      <div className={isPdf ? 'grid grid-cols-3 divide-x divide-gray-50' : 'grid grid-cols-2 divide-x divide-gray-50'}>
-        {data.sections.map((section) => (
-          <div key={section.title} className="p-4 min-w-0">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2.5 px-2">
-              {section.title}
+      <div
+        className="grid divide-x divide-gray-50"
+        style={{ gridTemplateColumns: `repeat(${entries.length}, minmax(0, 1fr))` }}
+      >
+        {entries.map(([key, cat]) => (
+          <div key={key} className="p-4 min-w-0">
+            <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2.5 px-2 flex items-center gap-1">
+              <span aria-hidden="true">{cat.icon}</span>
+              {cat.label}
             </p>
-            <div className="space-y-0.5">
-              {section.items.map(item => (
-                <DropdownItem key={item.label} {...item} onClick={onClose} />
-              ))}
-            </div>
+            {cat.sections.map(section => (
+              <div key={section.title} className="mb-3">
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1 px-2">
+                  {section.title}
+                </p>
+                <div className="space-y-0.5">
+                  {section.items.map(item => (
+                    <DropdownItem key={item.label} {...item} onClick={onClose} />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         ))}
       </div>
       <div className="border-t border-gray-100 bg-gray-50 px-5 py-2.5 flex items-center justify-between">
-        <span className="text-xs text-gray-400">{data.count} tools available</span>
+        <span className="text-xs text-gray-400">All tools in one place</span>
         <Link
-          to={data.to}
+          to="/tools"
           onClick={onClose}
           className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline"
         >
-          See all {data.label} →
+          Browse all tools →
         </Link>
       </div>
     </div>
@@ -162,8 +173,6 @@ export default function Header() {
     }
   }
 
-  const toggleMenu = (key) => setOpenMenu(prev => prev === key ? null : key)
-
   return (
     <>
       <header className={`sticky top-0 z-50 bg-white transition-shadow ${scrolled ? 'shadow-md' : 'border-b border-gray-100'}`}>
@@ -177,56 +186,42 @@ export default function Header() {
 
           {/* ── Desktop nav ──────────────────────────────────────── */}
           <nav ref={navRef} className="hidden lg:flex items-center gap-0.5 flex-1" aria-label="Main navigation">
-            {Object.entries(TOOL_CATALOGUE).map(([key, cat]) => (
-              <div key={key} className="relative">
-                <button
-                  onClick={() => toggleMenu(key)}
-                  aria-expanded={openMenu === key}
-                  aria-haspopup="true"
-                  className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                    openMenu === key
-                      ? 'text-blue-600 bg-blue-50'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
+
+            {/* Tools mega-menu */}
+            <div className="relative">
+              <button
+                onClick={() => setOpenMenu(prev => prev === 'tools' ? null : 'tools')}
+                aria-expanded={openMenu === 'tools'}
+                aria-haspopup="true"
+                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                  openMenu === 'tools'
+                    ? 'text-blue-600 bg-blue-50'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                Tools
+                <svg
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${openMenu === 'tools' ? 'rotate-180' : ''}`}
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                  aria-hidden="true"
                 >
-                  {cat.label}
-                  <svg
-                    className={`w-3.5 h-3.5 transition-transform duration-200 ${openMenu === key ? 'rotate-180' : ''}`}
-                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
-                    aria-hidden="true"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {openMenu === key && (
-                  <DesktopDropdown catKey={key} data={cat} onClose={() => setOpenMenu(null)} />
-                )}
-              </div>
-            ))}
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {openMenu === 'tools' && (
+                <AllToolsMegaMenu onClose={() => setOpenMenu(null)} />
+              )}
+            </div>
 
             <Link
-              to="/tools"
-              className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors whitespace-nowrap"
-            >
-              All Tools
-            </Link>
-            <Link
-              to="/tools/free"
-              className="px-3 py-2 rounded-lg text-sm font-medium text-green-700 hover:text-green-800 hover:bg-green-50 transition-colors whitespace-nowrap"
-            >
-              Free Tools
-            </Link>
-            <Link
               to="/blog"
-              className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors whitespace-nowrap"
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                location.pathname === '/blog'
+                  ? 'text-blue-600 bg-blue-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
             >
               Blog
-            </Link>
-            <Link
-              to="/pricing"
-              className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors whitespace-nowrap"
-            >
-              Pricing
             </Link>
 
             <Link
@@ -239,6 +234,7 @@ export default function Header() {
             >
               About
             </Link>
+
             <Link
               to="/contact"
               className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
@@ -249,53 +245,6 @@ export default function Header() {
             >
               Contact
             </Link>
-
-            {/* Legal dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => toggleMenu('legal')}
-                aria-expanded={openMenu === 'legal'}
-                aria-haspopup="true"
-                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                  openMenu === 'legal' || ['/privacy-policy', '/terms'].includes(location.pathname)
-                    ? 'text-blue-600 bg-blue-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                Legal
-                <svg
-                  className={`w-3.5 h-3.5 transition-transform duration-200 ${openMenu === 'legal' ? 'rotate-180' : ''}`}
-                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
-                  aria-hidden="true"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {openMenu === 'legal' && (
-                <div
-                  className="absolute right-0 top-full mt-1.5 z-[60] bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden"
-                  style={{ minWidth: 200 }}
-                  role="menu"
-                >
-                  <div className="p-2 space-y-0.5">
-                    <Link
-                      to="/privacy-policy"
-                      onClick={() => setOpenMenu(null)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-blue-50 group transition-colors"
-                    >
-                      <span className="text-sm text-gray-700 group-hover:text-blue-700 transition-colors">Privacy Policy</span>
-                    </Link>
-                    <Link
-                      to="/terms"
-                      onClick={() => setOpenMenu(null)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-blue-50 group transition-colors"
-                    >
-                      <span className="text-sm text-gray-700 group-hover:text-blue-700 transition-colors">Terms of Service</span>
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </div>
           </nav>
 
           {/* ── Right actions ─────────────────────────────────────── */}
@@ -324,7 +273,9 @@ export default function Header() {
                 className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                 aria-label="Search tools"
               >
-                <span aria-hidden="true">🔍</span>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                </svg>
               </button>
             )}
 
@@ -405,27 +356,10 @@ export default function Header() {
           </div>
 
           <div className="px-4 py-2">
+            {/* Tool category accordions */}
             {Object.entries(TOOL_CATALOGUE).map(([key, cat]) => (
               <MobileAccordion key={key} catKey={key} data={cat} onClose={() => setMobileOpen(false)} />
             ))}
-
-            <Link
-              to="/tools"
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center justify-between py-4 text-sm font-semibold text-gray-900 border-b border-gray-100"
-            >
-              <span>🔧 All Tools</span>
-              <span className="text-gray-400 text-xs">Browse all →</span>
-            </Link>
-
-            <Link
-              to="/tools/free"
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center justify-between py-4 text-sm font-semibold text-green-700 border-b border-gray-100"
-            >
-              <span>✅ Free Tools</span>
-              <span className="text-gray-400 text-xs">No sign up →</span>
-            </Link>
 
             <Link
               to="/blog"
@@ -453,26 +387,6 @@ export default function Header() {
               <span>✉️ Contact</span>
               <span className="text-gray-400 text-xs">Get in touch →</span>
             </Link>
-
-            <div className="border-b border-gray-100">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pt-4 pb-2 px-1">Legal</p>
-              <Link
-                to="/privacy-policy"
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-between py-3 text-sm font-medium text-gray-700"
-              >
-                <span>🔒 Privacy Policy</span>
-                <span className="text-gray-400 text-xs">→</span>
-              </Link>
-              <Link
-                to="/terms"
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-between py-3 pb-4 text-sm font-medium text-gray-700"
-              >
-                <span>📋 Terms of Service</span>
-                <span className="text-gray-400 text-xs">→</span>
-              </Link>
-            </div>
 
             {/* Auth */}
             <div className="pt-4 pb-6">
