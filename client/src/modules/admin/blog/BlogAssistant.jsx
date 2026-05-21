@@ -375,24 +375,39 @@ function AIBlogWriterTab({ onPreFill }) {
           {pubResult && (
             pubResult.success ? (
               <div className="bg-green-900/30 border border-green-700 rounded-xl p-4">
-                <p className="text-green-400 font-semibold text-sm mb-2">
-                  ✅ Published! Live at /blog/{pubResult.slug}
-                </p>
-                <a href={pubResult.liveUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-400 text-xs underline block mb-1">
-                  {pubResult.liveUrl}
-                </a>
-                {pubResult.commitUrl && (
-                  <a href={pubResult.commitUrl} target="_blank" rel="noopener noreferrer" className="text-gray-500 text-[11px] underline block mb-1">
-                    View commit on GitHub →
+                <p className="text-green-400 font-semibold text-sm mb-0.5">✅ Article published!</p>
+                <p className="text-gray-400 text-xs mb-3">Render.com will deploy in ~2 minutes.</p>
+                <div className="flex gap-2">
+                  <a
+                    href={pubResult.liveUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 py-2 text-center text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+                  >
+                    View Article →
                   </a>
-                )}
-                <p className="text-gray-500 text-[11px] mt-1">Render will auto-deploy in ~2 minutes.</p>
+                  {pubResult.commitUrl && (
+                    <a
+                      href={pubResult.commitUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 py-2 text-center text-xs font-semibold bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                    >
+                      View on GitHub →
+                    </a>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="bg-red-900/30 border border-red-700 rounded-xl p-4">
                 <p className="text-red-400 text-sm font-semibold mb-1">❌ Publish failed</p>
-                <p className="text-red-300 text-xs">{pubResult.error}</p>
-                <p className="text-gray-500 text-xs mt-2">Use "Copy as JS Object" to paste manually into blogPosts.js.</p>
+                <p className="text-red-300 text-xs mb-3">{pubResult.error}</p>
+                <button
+                  onClick={handleCopyJs}
+                  className="w-full py-2 text-xs font-semibold bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                >
+                  {copied ? '✓ Copied!' : '📋 Copy as JS Object — paste into blogPosts.js'}
+                </button>
               </div>
             )
           )}

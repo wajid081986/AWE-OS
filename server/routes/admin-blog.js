@@ -369,10 +369,17 @@ async function publishToGitHub(newPost) {
 
   const divider     = '─'.repeat(77)
   const commentLine = `\n  // ${divider}\n  // ${newPost.id}. ${newPost.title}\n  // ${divider}\n`
+
+  // JS-style object: unquoted keys, single-quoted strings
+  // Escape any apostrophes in content before converting quotes
+  const postString = JSON.stringify(newPost, null, 2)
+    .replace(/"([^"]+)":/g, '$1:')
+    .replace(/"((?:[^"\\])*)"/g, (_, s) => s.includes("'") ? `"${s}"` : `'${s}'`)
+
   const newContent  =
     currentContent.slice(0, insertPoint) +
     commentLine +
-    '  ' + JSON.stringify(newPost, null, 2).replace(/\n/g, '\n  ') +
+    '  ' + postString.replace(/\n/g, '\n  ') +
     ',' +
     currentContent.slice(insertPoint)
 
