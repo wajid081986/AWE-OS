@@ -305,16 +305,63 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
               </section>
             )}
 
-            {/* About section */}
-            {about?.length > 0 && (
-              <section className="mb-10 p-5 bg-gray-50 rounded-xl border border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-900 mb-3">About {name}</h2>
-                <div className="space-y-3">
-                  {about.map((para, i) => (
-                    <p key={i} className="text-gray-600 text-sm leading-relaxed">{para}</p>
-                  ))}
-                </div>
-              </section>
+            {/* About section — handles legacy string[] and new structured object */}
+            {about && (Array.isArray(about) ? about.length > 0 : (about.whatIsIt || about.howToUse?.length)) && (
+              Array.isArray(about) ? (
+                <section className="mb-10 p-5 bg-gray-50 rounded-xl border border-gray-200">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-3">About {name}</h2>
+                  <div className="space-y-3">
+                    {about.map((para, i) => (
+                      <p key={i} className="text-gray-600 text-sm leading-relaxed">{para}</p>
+                    ))}
+                  </div>
+                </section>
+              ) : (
+                <section className="mb-10 space-y-4">
+                  {about.whatIsIt && (
+                    <div className="p-5 bg-gray-50 rounded-xl border border-gray-200">
+                      <h2 className="text-xl font-semibold text-gray-900 mb-2">About {name}</h2>
+                      <p className="text-gray-600 text-sm leading-relaxed">{about.whatIsIt}</p>
+                    </div>
+                  )}
+                  {about.howToUse?.length > 0 && (
+                    <div className="p-5 bg-gray-50 rounded-xl border border-gray-200">
+                      <h2 className="text-base font-semibold text-gray-900 mb-3">How to Use</h2>
+                      <ol className="space-y-2 list-decimal list-inside">
+                        {about.howToUse.map((step, i) => (
+                          <li key={i} className="text-gray-600 text-sm leading-relaxed">{step}</li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+                  {about.whyUseUs?.length > 0 && (
+                    <div className="p-5 bg-blue-50 rounded-xl border border-blue-200">
+                      <h2 className="text-base font-semibold text-gray-900 mb-3">Why Choose AWE-OS</h2>
+                      <ul className="space-y-2">
+                        {about.whyUseUs.map((point, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                            <span className="text-green-500 font-bold shrink-0 mt-0.5">✓</span>
+                            {point}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {about.faqs?.length > 0 && (
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-900 mb-4">Frequently Asked Questions</h2>
+                      <div className="space-y-3">
+                        {about.faqs.map((faq, i) => (
+                          <div key={i} className="border border-gray-200 rounded-xl p-4 bg-white">
+                            <h3 className="text-sm font-semibold text-gray-900 mb-1.5">{faq.q}</h3>
+                            <p className="text-sm text-gray-600 leading-relaxed">{faq.a}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </section>
+              )
             )}
 
             {/* FAQ accordion */}

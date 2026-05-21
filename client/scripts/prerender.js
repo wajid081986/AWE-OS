@@ -157,10 +157,26 @@ function buildToolBody(tool) {
     ? `<section aria-label="Related tools"><h2>Related Tools</h2><ul>${relatedLinks}</ul></section>`
     : ''
 
-  const aboutParas = TOOL_ABOUT[tool.slug] ?? []
-  const aboutSection = aboutParas.length
-    ? `<section aria-label="About ${esc(tool.name)}">${aboutParas.map(p => `<p>${esc(p)}</p>`).join('\n')}</section>`
-    : ''
+  const aboutData = TOOL_ABOUT[tool.slug]
+  let aboutSection = ''
+  if (Array.isArray(aboutData) && aboutData.length) {
+    aboutSection = `<section aria-label="About ${esc(tool.name)}">${aboutData.map(p => `<p>${esc(p)}</p>`).join('\n')}</section>`
+  } else if (aboutData && typeof aboutData === 'object') {
+    const parts = []
+    if (aboutData.whatIsIt) parts.push(`<p>${esc(aboutData.whatIsIt)}</p>`)
+    if (aboutData.howToUse?.length) {
+      parts.push(`<h2>How to Use</h2><ol>${aboutData.howToUse.map(s => `<li>${esc(s)}</li>`).join('')}</ol>`)
+    }
+    if (aboutData.whyUseUs?.length) {
+      parts.push(`<h2>Why Choose AWE-OS</h2><ul>${aboutData.whyUseUs.map(s => `<li>${esc(s)}</li>`).join('')}</ul>`)
+    }
+    if (aboutData.faqs?.length) {
+      parts.push(`<h2>Frequently Asked Questions</h2>${aboutData.faqs.map(f => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join('')}`)
+    }
+    if (parts.length) {
+      aboutSection = `<section aria-label="About ${esc(tool.name)}">${parts.join('\n')}</section>`
+    }
+  }
 
   return `${bc}
 <main>

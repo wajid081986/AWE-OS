@@ -140,9 +140,11 @@ export default function CategoryPage({ category }) {
               {intro.heading || meta.name}
             </h1>
           </div>
-          <p className="text-gray-600 text-base max-w-2xl leading-relaxed">
-            {intro.body || meta.description}
-          </p>
+          <div className="text-gray-600 text-base max-w-2xl leading-relaxed space-y-3">
+            {(intro.body || meta.description).split('\n\n').map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+          </div>
 
           {/* Trust badges */}
           <div className="flex items-center gap-2.5 mt-5 flex-wrap">
@@ -193,6 +195,21 @@ export default function CategoryPage({ category }) {
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {/* ── FAQ section ─────────────────────────────────────────────────── */}
+        {intro.faqs?.length > 0 && (
+          <div className="mt-10">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+            <div className="space-y-3">
+              {intro.faqs.map((faq, i) => (
+                <div key={i} className="border border-gray-200 rounded-xl p-5 bg-white">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2">{faq.q}</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">{faq.a}</p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

@@ -726,6 +726,13 @@ export const BLOG_POSTS = [
       { label: 'Age Calculator',         slug: 'age-calculator',        icon: '🎂' },
       { label: 'Unit Converter',         slug: 'unit-converter',        icon: '📐' },
     ],
+    faqs: [
+      { q: 'Are all these calculators completely free?', a: 'Yes. Every calculator on AWE-OS is free with no usage limits, no account required, and no ads interrupting your results. The tools are funded by non-intrusive display advertising rather than user fees or subscriptions.' },
+      { q: 'Do these calculators work offline?', a: 'Once the page has loaded, all calculators run entirely in your browser and require no internet connection. You can bookmark the AWE-OS calculators page and use them on any device — university lab computers, mobile phones, or shared laptops — without signing in.' },
+      { q: 'Is my financial or health data saved anywhere?', a: 'No. All calculator inputs — income, investments, health measurements — are processed locally in your browser and never sent to any server. When you close the browser tab, all data is permanently discarded.' },
+      { q: 'Do these calculators work on mobile phones and tablets?', a: 'Yes. All calculators are mobile-optimised with responsive layouts that work on Android and iOS in Chrome, Firefox, Safari, and Edge. Charts and data tables are scrollable on small screens.' },
+      { q: 'How accurate is the GPA Calculator for Indian university systems?', a: 'The GPA Calculator uses the 4.0 scale standard in most international and Indian universities. For universities using a 10-point CGPA scale (common in IITs, NITs, and many Indian engineering colleges), multiply the 4.0 result by 2.5 to approximate the CGPA equivalent. Always check your specific university\'s grading policy for the most accurate conversion.' },
+    ],
     content: [
       {
         type: 'p',
@@ -780,6 +787,10 @@ export const BLOG_POSTS = [
         text: 'Science students convert units constantly — lab reports, data analysis, and cross-referencing international research papers all require fluency across metric and imperial systems. The AWE-OS Unit Converter covers length, weight, temperature, speed, and area with live conversion as you type. The swap button reverses the conversion direction in one click, and results display with up to eight decimal places for precision tasks.',
       },
       {
+        type: 'callout',
+        text: 'Try AWE-OS free calculators — GPA, BMI, Loan EMI, Percentage, and Age Calculator are all free, browser-based, and require no account. Open any calculator at awe-os.com/tools/calculators',
+      },
+      {
         type: 'h2',
         text: '7–10. Additional Tools Worth Bookmarking',
       },
@@ -799,6 +810,10 @@ export const BLOG_POSTS = [
       {
         type: 'p',
         text: 'Downloaded apps require storage, regular updates, and sometimes subscription payments. Browser-based tools are available on any device — your university lab computer, your phone, a friend\'s laptop in the library — with no installation and no account required. AWE-OS tools are designed to load instantly on any connection speed and work offline once loaded. Bookmark the tools you use most and they are always one tap away without cluttering your phone with single-purpose apps.',
+      },
+      {
+        type: 'callout',
+        text: 'All 10 calculators mentioned in this article are free at AWE-OS. No signup, no download — open and use from any device at awe-os.com/tools/calculators',
       },
     ],
   },
@@ -1605,6 +1620,7 @@ export const BLOG_POSTS = [
         'If the result looks good, click Download to save the compressed image',
         'Process multiple images in sequence — there are no daily usage limits',
       ]},
+      { type: 'callout', text: 'Compress your images instantly — free, no signup, processes entirely in your browser with no file upload required. Try it at awe-os.com/tools/image-compressor' },
       { type: 'h2', text: 'When Image Compression Matters Most' },
       { type: 'p', text: "Website performance is the most common reason for image compression. Google's PageSpeed Insights and Core Web Vitals measurements penalise pages with unoptimised images, directly affecting search ranking. For e-commerce sites, product images account for 60–80% of total page weight — compressing them from 2 MB to 200 KB per image can reduce page load time by seconds. For email marketing, most clients cap image sizes and some display broken images above a certain threshold. For social media, platforms compress images on upload anyway — pre-compressing to the platform's recommended dimensions prevents the platform's algorithm from making quality decisions for you." },
       { type: 'h2', text: 'Before You Compress: A Quick Checklist' },
