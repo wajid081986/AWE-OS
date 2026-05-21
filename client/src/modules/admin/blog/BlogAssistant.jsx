@@ -4,6 +4,9 @@ import KeywordResearchTab from './KeywordResearch'
 import SeoAuditor from './SeoAuditor'
 import SchemaGenerator from './SchemaGenerator'
 import InternalLinkAI from './InternalLinkAI'
+import ContentOptimizer from './ContentOptimizer'
+import KeywordClusters from './KeywordClusters'
+import EeatBooster from './EeatBooster'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -44,11 +47,18 @@ const IDEA_CATS = ['All', 'Finance', 'PDF Tools', 'Calculators', 'AI Tools', 'He
 const WORD_COUNTS = [800, 1200, 1500]
 
 const TABS = [
-  { id: 'write',    label: '✍️ AI Blog Writer'    },
-  { id: 'ideas',    label: '💡 Idea Generator'    },
-  { id: 'calendar', label: '📅 Content Calendar'  },
-  { id: 'seo',      label: '🔍 SEO Booster'       },
-  { id: 'research', label: '🔬 Keyword Research'  },
+  { id: 'write',               label: '✍️ AI Blog Writer'       },
+  { id: 'ideas',               label: '💡 Idea Generator'       },
+  { id: 'calendar',            label: '📅 Content Calendar'     },
+  { id: 'seo',                 label: '🔍 SEO Booster'          },
+  { id: 'research',            label: '🔬 Keyword Research'     },
+  { id: 'content-intelligence', label: '🧠 Content Intelligence' },
+]
+
+const CI_SUB_TABS = [
+  { id: 'optimizer', label: '✨ Content Optimizer' },
+  { id: 'clusters',  label: '🗺️ Keyword Clusters'  },
+  { id: 'eeat',      label: '🏆 EEAT Booster'      },
 ]
 
 const STATUS_COLORS = {
@@ -151,16 +161,19 @@ function AIBlogWriterTab({ onPreFill }) {
   const [meta,        setMeta]        = useState({})
   const [publishing,  setPublishing]  = useState(false)
   const [pubResult,   setPubResult]   = useState(null)
-  const [copied,      setCopied]      = useState(false)
-  const [genError,    setGenError]    = useState(null)
-  const [actualWords, setActualWords] = useState(null)
+  const [copied,       setCopied]       = useState(false)
+  const [genError,     setGenError]     = useState(null)
+  const [actualWords,  setActualWords]  = useState(null)
+  const [preFillToast, setPreFillToast] = useState(false)
 
-  // When Tab 2 sends a pre-fill
+  // When Phase 1/2 components send a pre-fill
   useEffect(() => {
     if (onPreFill?.topic) {
       setForm(f => ({ ...f, topic: onPreFill.topic, keyword: onPreFill.keyword || '', toolSlug: onPreFill.toolSlug || '' }))
       setPost(null)
       setPubResult(null)
+      setPreFillToast(true)
+      setTimeout(() => setPreFillToast(false), 3000)
     }
   }, [onPreFill])
 
@@ -238,6 +251,11 @@ function AIBlogWriterTab({ onPreFill }) {
       {/* ── Left: Form ── */}
       <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 space-y-4">
         <h2 className="text-sm font-semibold text-white">Article Setup</h2>
+        {preFillToast && (
+          <div className="bg-green-900/60 border border-green-700 text-green-300 text-xs px-3 py-2 rounded-lg">
+            ✅ Keyword loaded from Content Intelligence!
+          </div>
+        )}
 
         <Field label="Topic *">
           <Input value={form.topic} onChange={set('topic')} placeholder="New Tax Regime vs Old Tax Regime 2025" />
@@ -713,6 +731,36 @@ function SEOBoosterTab({ onWriteIdea }) {
   )
 }
 
+// ── TAB 6: Content Intelligence ──────────────────────────────────────────────
+
+function ContentIntelligenceTab({ onWriteArticle }) {
+  const [ciSubTab, setCiSubTab] = useState('optimizer')
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-gray-800 border border-gray-700 rounded-xl p-5 space-y-4">
+        <div className="flex gap-1 bg-gray-900 rounded-lg p-1">
+          {CI_SUB_TABS.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setCiSubTab(t.id)}
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+                ciSubTab === t.id ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {ciSubTab === 'optimizer' && <ContentOptimizer onPublishVersion={onWriteArticle} />}
+        {ciSubTab === 'clusters'  && <KeywordClusters  onWriteArticle={onWriteArticle} />}
+        {ciSubTab === 'eeat'      && <EeatBooster />}
+      </div>
+    </div>
+  )
+}
+
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export default function BlogAssistant() {
@@ -746,11 +794,12 @@ export default function BlogAssistant() {
           ))}
         </div>
 
-        {activeTab === 'write'    && <AIBlogWriterTab   onPreFill={preFill} />}
-        {activeTab === 'ideas'    && <IdeaGeneratorTab  onWriteIdea={handleWriteIdea} />}
-        {activeTab === 'calendar' && <ContentCalendarTab onWriteArticle={handleWriteIdea} />}
-        {activeTab === 'seo'      && <SEOBoosterTab onWriteIdea={handleWriteIdea} />}
-        {activeTab === 'research' && <KeywordResearchTab onWriteIdea={handleWriteIdea} />}
+        {activeTab === 'write'                && <AIBlogWriterTab   onPreFill={preFill} />}
+        {activeTab === 'ideas'                && <IdeaGeneratorTab  onWriteIdea={handleWriteIdea} />}
+        {activeTab === 'calendar'             && <ContentCalendarTab onWriteArticle={handleWriteIdea} />}
+        {activeTab === 'seo'                  && <SEOBoosterTab onWriteIdea={handleWriteIdea} />}
+        {activeTab === 'research'             && <KeywordResearchTab onWriteIdea={handleWriteIdea} />}
+        {activeTab === 'content-intelligence' && <ContentIntelligenceTab onWriteArticle={handleWriteIdea} />}
       </div>
     </div>
   )
