@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import api from '../../../services/api.service'
+import KeywordResearchTab from './KeywordResearch'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -44,6 +45,7 @@ const TABS = [
   { id: 'ideas',    label: '💡 Idea Generator'    },
   { id: 'calendar', label: '📅 Content Calendar'  },
   { id: 'seo',      label: '🔍 SEO Booster'       },
+  { id: 'research', label: '🔬 Keyword Research'  },
 ]
 
 const STATUS_COLORS = {
@@ -835,6 +837,7 @@ export default function BlogAssistant() {
         {activeTab === 'ideas'    && <IdeaGeneratorTab  onWriteIdea={handleWriteIdea} />}
         {activeTab === 'calendar' && <ContentCalendarTab onWriteArticle={handleWriteIdea} />}
         {activeTab === 'seo'      && <SEOBoosterTab />}
+        {activeTab === 'research' && <KeywordResearchTab onWriteIdea={handleWriteIdea} />}
       </div>
     </div>
   )

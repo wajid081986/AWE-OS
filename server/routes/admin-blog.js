@@ -580,6 +580,173 @@ ${(text || '').slice(0, 3000)}`
   }
 })
 
+// ── POST /keyword-research — deep two-call analysis ──────────────────────────
+
+router.post('/keyword-research', requireAuth, requireAdmin, async (req, res) => {
+  const { keyword, niche = 'Finance & Calculators', siteDA = 10 } = req.body
+  if (!keyword) return res.status(400).json({ success: false, error: 'keyword is required' })
+
+  const analysisPrompt = `You are a world-class SEO strategist for the Indian digital market.
+Analyze this keyword for India SEO: "${keyword}"
+Niche: ${niche} | Site DA: ${siteDA}
+
+Return ONLY valid JSON matching this exact structure — no extra text:
+{
+  "mainKeyword": {
+    "keyword": "${keyword}",
+    "monthlySearches": { "india": "XX,XXX/month", "global": "XXX,XXX/month" },
+    "competition": "Easy",
+    "competitionScore": 3,
+    "keywordDifficulty": 35,
+    "cpc": "₹28 per click",
+    "searchIntent": "Informational",
+    "intentExplanation": "Users want to learn how to...",
+    "seasonality": "Year-round",
+    "seasonalityNote": "Peaks in March-April tax season",
+    "canRank": {
+      "da10": { "possible": false, "timeMonths": 18, "confidence": "Low" },
+      "da20": { "possible": true,  "timeMonths": 9,  "confidence": "Medium" },
+      "da30": { "possible": true,  "timeMonths": 5,  "confidence": "High" }
+    },
+    "topCompetitors": [
+      { "site": "cleartax.in", "estimatedDA": "70+", "estimatedBacklinks": "300K+", "contentLength": "2,500w", "whyTheyRank": "High DA, comprehensive guide", "weakness": "No Indian examples with ₹ amounts" },
+      { "site": "bankbazaar.com", "estimatedDA": "65+", "estimatedBacklinks": "200K+", "contentLength": "2,000w", "whyTheyRank": "Financial authority site", "weakness": "No step-by-step calculator guide" },
+      { "site": "ndtv.com", "estimatedDA": "80+", "estimatedBacklinks": "1M+", "contentLength": "800w", "whyTheyRank": "News authority", "weakness": "Thin content, no calculations" }
+    ],
+    "userQuestions": ["How to calculate...", "Is ... taxable?", "Which is better..."],
+    "relatedSearches": ["related term 1", "related term 2", "related term 3"],
+    "verdict": "With Modifications",
+    "verdictScore": 6,
+    "verdictReason": "Competitive but winnable with better Indian examples and free tool CTA",
+    "adSensePotential": "High",
+    "adSenseCPCNote": "Financial keywords command ₹25-60 CPC in India"
+  },
+  "keywordClusters": [
+    {
+      "clusterName": "Informational",
+      "intent": "Informational",
+      "keywords": [
+        { "keyword": "...", "searches": "2,000/month", "difficulty": "Easy", "priority": "High" },
+        { "keyword": "...", "searches": "1,500/month", "difficulty": "Medium", "priority": "Medium" }
+      ]
+    },
+    {
+      "clusterName": "How-To",
+      "intent": "Informational",
+      "keywords": [
+        { "keyword": "how to ...", "searches": "3,000/month", "difficulty": "Easy", "priority": "High" }
+      ]
+    },
+    {
+      "clusterName": "Comparison",
+      "intent": "Commercial",
+      "keywords": [
+        { "keyword": "... vs ...", "searches": "1,000/month", "difficulty": "Medium", "priority": "Low" }
+      ]
+    }
+  ],
+  "competitorGaps": [
+    { "gap": "No one covers real ₹ worked examples for salaried employees", "opportunity": "Target ₹8-15 LPA earners with exact tax savings", "keyword": "...", "difficulty": "Easy" },
+    { "gap": "No calculator-linked article with free tool CTA", "opportunity": "Rank for tool-intent searches with AWE-OS calculator", "keyword": "...", "difficulty": "Easy" },
+    { "gap": "No Hindi/Hinglish hybrid content for tier-2 cities", "opportunity": "Capture growing vernacular search traffic", "keyword": "...", "difficulty": "Easy" }
+  ],
+  "serpFeatures": ["Featured Snippet", "People Also Ask", "Calculator", "Related Questions"],
+  "trendDirection": "Rising",
+  "trendNote": "Search volume growing 15% YoY due to new tax regime awareness"
+}`
+
+  const strategyPrompt = `You are an expert Indian SEO content strategist.
+Create a full content strategy for keyword: "${keyword}"
+Niche: ${niche} | Site DA: ${siteDA}
+
+Return ONLY valid JSON:
+{
+  "recommendedKeyword": {
+    "keyword": "better version of the input keyword",
+    "whyBest": "Lower competition, same intent, easier to rank",
+    "estimatedSearches": "5,000/month",
+    "difficulty": "Medium",
+    "rankingTimeline": "3-5 months"
+  },
+  "top8Alternatives": [
+    {
+      "keyword": "...", "searches": "3,000/month", "difficulty": "Easy", "difficultyScore": 3,
+      "canRankInMonths": 2, "articleAngle": "Complete guide with ₹ examples for FY2026",
+      "aweosTool": "SIP Calculator", "aweosToolSlug": "sip-calculator",
+      "indianContext": "Perfect for salaried class ₹5-15 LPA",
+      "estimatedTrafficIf3": "200-500/month", "priority": "High", "adSenseCPC": "₹32"
+    }
+  ],
+  "longTailGems": [
+    {
+      "keyword": "...", "searches": "500/month", "difficulty": "Easy",
+      "canRankInMonths": 2, "articleIdea": "...", "whyItWorks": "Zero competition, highly specific intent"
+    }
+  ],
+  "contentBrief": {
+    "recommendedTitle": "...",
+    "metaTitle": "... | AWE-OS",
+    "metaDescription": "...",
+    "targetWordCount": 1500,
+    "recommendedH2s": ["H2 section 1", "H2 section 2", "H2 section 3", "H2 section 4", "H2 section 5"],
+    "mustInclude": ["Real ₹ calculation example", "Comparison table", "AWE-OS tool CTA"],
+    "internalLinks": ["/tools/sip-calculator", "/tools/tax-calculator"],
+    "faqQuestions": ["FAQ 1?", "FAQ 2?", "FAQ 3?", "FAQ 4?", "FAQ 5?"],
+    "uniqueAngle": "First article to combine free calculator + real FY2026 numbers + Hindi explanation"
+  },
+  "monthlyPlan": [
+    { "week": 1, "keyword": "...", "title": "...", "priority": "High", "estimatedRankingTime": "2 months" },
+    { "week": 2, "keyword": "...", "title": "...", "priority": "High", "estimatedRankingTime": "3 months" },
+    { "week": 3, "keyword": "...", "title": "...", "priority": "Medium", "estimatedRankingTime": "4 months" },
+    { "week": 4, "keyword": "...", "title": "...", "priority": "Easy", "estimatedRankingTime": "2 months" }
+  ],
+  "indianInsights": {
+    "searchBehavior": "Most searches happen on mobile, evenings 8-11pm IST",
+    "targetAudience": "Salaried employees aged 25-40, tier-1 and tier-2 cities",
+    "hinglishTip": "Use 'Tax bachao tips' angle for WhatsApp sharing",
+    "bestPublishDay": "Tuesday",
+    "bestPublishTime": "9-11am IST",
+    "socialStrategy": "LinkedIn for professionals, WhatsApp for mass sharing",
+    "whatsappAngle": "Forward-friendly headline: 'Save ₹54,000 tax this year — share with friends'"
+  },
+  "roiProjection": {
+    "month3":  { "traffic": "200-500",   "adRevenue": "₹500-1,500"   },
+    "month6":  { "traffic": "1,000-3,000", "adRevenue": "₹2,000-8,000" },
+    "month12": { "traffic": "5,000-15,000", "adRevenue": "₹10,000-40,000" },
+    "assumptions": "Based on Indian AdSense CPM ₹80-150, 3-5% CTR, publishing 8-10 articles in this cluster"
+  }
+}`
+
+  try {
+    const [call1, call2] = await Promise.all([
+      openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: 'You are a world-class SEO strategist specializing in Indian digital market. Provide brutally honest, data-driven keyword analysis. Return ONLY valid JSON.' },
+          { role: 'user', content: analysisPrompt },
+        ],
+        max_tokens: 2500, temperature: 0.3,
+      }),
+      openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: 'You are an expert content strategist for Indian SEO. Create detailed actionable content plans. Return ONLY valid JSON.' },
+          { role: 'user', content: strategyPrompt },
+        ],
+        max_tokens: 2500, temperature: 0.3,
+      }),
+    ])
+
+    const analysis = parseAIJson(call1.choices[0]?.message?.content || '')
+    const strategy = parseAIJson(call2.choices[0]?.message?.content || '')
+
+    res.json({ success: true, analysis, strategy })
+  } catch (err) {
+    console.error('[admin-blog/keyword-research]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
 // ── POST /keywords ────────────────────────────────────────────────────────────
 
 router.post('/keywords', requireAuth, requireAdmin, async (req, res) => {
