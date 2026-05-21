@@ -2,16 +2,13 @@ const express          = require('express')
 const OpenAI           = require('openai')
 const fs               = require('fs')
 const path             = require('path')
-const { execSync }     = require('child_process')
 const requireAuth      = require('../middleware/auth')
 
 const router = express.Router()
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
-const BLOG_POSTS_PATH = path.resolve(__dirname, '../../client/src/data/blogPosts.js')
-const REPO_ROOT       = path.resolve(__dirname, '../..')
-const DATA_DIR        = path.resolve(__dirname, '../data')
-const CALENDAR_PATH   = path.join(DATA_DIR, 'blog-calendar.json')
+const DATA_DIR      = path.resolve(__dirname, '../data')
+const CALENDAR_PATH = path.join(DATA_DIR, 'blog-calendar.json')
 
 // ── Admin guard ───────────────────────────────────────────────────────────────
 
@@ -93,7 +90,7 @@ REQUIRED STRUCTURE:
 
 Include at least 2 tables and 1 callout block.`
 
-// ── POST /generate — three-call approach for reliable 1500-word content ──────
+// ── POST /generate — word-count-targeted three-call approach ─────────────────
 
 router.post('/generate', requireAuth, requireAdmin, async (req, res) => {
   const { topic, keyword, toolSlug, toolName, wordCount = 1200, tone = 'beginner', category = 'Finance', indianContext = true } = req.body
@@ -112,6 +109,58 @@ router.post('/generate', requireAuth, requireAdmin, async (req, res) => {
   const indianCtx = indianContext
     ? 'Yes — use ₹ symbol, Indian number format (₹12,75,000), SEBI/RBI/ICMR context where relevant'
     : 'No'
+
+  // ── Word count config — adjust tokens and section targets per length ────────
+  let call2MaxTokens, call3MaxTokens, call2Target, call3Target, call2SectionGuide, call3SectionGuide
+
+  if (wordCount <= 800) {
+    call2MaxTokens = 1500; call3MaxTokens = 1500
+    call2Target = 400;     call3Target = 400
+    call2SectionGuide = `Write sections 1-4 only. EXACT TARGET: ${call2Target} words total.
+- Opening paragraph: exactly 80 words
+- H2: What is [topic]? — exactly 100 words, 1 paragraph
+- H2: How it works — exactly 120 words, include 1 small table
+- H2: Who should use this — exactly 100 words, 3 bullet points
+DO NOT write more than ${call2Target} words. Stop exactly at target.`
+    call3SectionGuide = `Write sections 5-7 only. EXACT TARGET: ${call3Target} words total.
+- H2: Step by step guide — exactly 120 words, 4 numbered steps
+- H2: Common mistakes — exactly 80 words, 3 bullet points
+- H2: FAQ — exactly 200 words total across 3 FAQs (65 words each answer)
+- Conclusion: exactly 80 words
+DO NOT write more than ${call3Target} words. Stop exactly at target.`
+  } else if (wordCount <= 1200) {
+    call2MaxTokens = 2000; call3MaxTokens = 2000
+    call2Target = 600;     call3Target = 600
+    call2SectionGuide = `Write sections 1-5 only. EXACT TARGET: ${call2Target} words total.
+- Opening paragraph: exactly 100 words
+- H2: What is [topic]? — exactly 150 words, 2 paragraphs
+- H2: Main explanation with data table — exactly 150 words + table
+- H2: Real examples with ₹ calculations — exactly 150 words, 2 examples
+- H2: Who should use this — exactly 100 words, 4 bullet points
+STOP at ${call2Target} words. Do not write beyond this.`
+    call3SectionGuide = `Write sections 6-9 only. EXACT TARGET: ${call3Target} words total.
+- H2: Step by step guide — exactly 150 words, 5 numbered steps
+- H2: Common mistakes — exactly 100 words, 3 bullet points
+- H2: FAQ — exactly 250 words total across 4 FAQs (60 words each answer)
+- Conclusion with CTA: exactly 100 words
+STOP at ${call3Target} words. Do not write beyond this.`
+  } else {
+    call2MaxTokens = 2500; call3MaxTokens = 2500
+    call2Target = 750;     call3Target = 750
+    call2SectionGuide = `Write sections 1-5 only. EXACT TARGET: ${call2Target} words total.
+- Opening paragraph: exactly 120 words
+- H2: What is [topic]? — exactly 180 words, 2-3 full paragraphs
+- H2: Main explanation with data table — exactly 180 words + complete table
+- H2: Real examples with ₹ calculations — exactly 200 words, 3 detailed examples
+- H2: Who should use this — exactly 150 words, 5 detailed bullet points
+STOP at exactly ${call2Target} words. Count carefully.`
+    call3SectionGuide = `Write sections 6-9 only. EXACT TARGET: ${call3Target} words total.
+- H2: Step by step guide — exactly 180 words, 5-6 steps
+- H2: Common mistakes — exactly 120 words, 4 bullet points
+- H2: FAQ — exactly 350 words total across 5 FAQs (70 words each answer)
+- Conclusion with CTA: exactly 100 words
+STOP at exactly ${call3Target} words. Count carefully.`
+  }
 
   try {
     // ── Call 1: Metadata only (gpt-4o, 500 tokens) ───────────────────────────
@@ -143,19 +192,19 @@ Indian Context: ${indianCtx}
     })
     const metadata = parseAIJson(call1.choices[0]?.message?.content || '')
 
-    // ── Call 2: First half — sections 1-5 (gpt-4o, 2500 tokens) ─────────────
+    // ── Call 2: First half content (gpt-4o, dynamic tokens) ──────────────────
     const half1System = `You are a professional SEO content writer.
-Write sections 1-5 of a long-form blog post.
+Write the first half of a long-form blog post about "${topic}".
 Return ONLY a valid JSON array of content blocks. No extra text.
 
 STRICT RULES:
-- Section 2 (What is X): Write 3 full paragraphs, 60+ words each
-- Section 3 (Main explanation): Write 3 full paragraphs + 1 complete table
-- Section 4 (Examples): Write 3 COMPLETE examples with full math shown
-  Each example: setup paragraph + calculation + result paragraph = 80+ words
-- Section 5 (Who should use): Write intro + 5 detailed scenarios, 30+ words each
-- Opening paragraph: 80+ words, relatable hook
-- TOTAL MUST BE 750+ words across all blocks
+- TOTAL TARGET: ${call2Target} words across all blocks
+- Each paragraph block: minimum 60 words
+- Tables: include complete rows with real Indian ₹ figures
+- Bullet items: full sentences, 20+ words each
+- CRITICAL: Count your words as you write. Target is exactly ${call2Target} words.
+  Write to hit the target — not more, not less.
+  If you reach the target mid-sentence, finish that sentence and stop.
 
 Content block types:
 {"type":"p","text":"paragraph text here"}
@@ -164,27 +213,13 @@ Content block types:
 {"type":"ul","items":["item 1 full sentence","item 2 full sentence"]}
 {"type":"table","headers":["Col1","Col2","Col3"],"rows":[["v1","v2","v3"]]}
 
-DO NOT stop early. Write ALL 5 sections completely.
+DO NOT stop early. Write ALL sections completely.
 DO NOT return anything except the JSON array.`
 
-    const half1Prompt = `Write the FIRST HALF (sections 1-5) of a blog post.
+    const half1Prompt = `${call2SectionGuide}
+
 Topic: "${topic}" | Keyword: "${kw}" | Tool: ${toolRef} (${toolUrl})
 Indian Context: ${indianCtx} | Tone: ${toneGuide}
-
-SECTION 1 — Opening paragraph (NO heading tag):
-100+ words. Hook with a relatable problem or surprising fact about ${topic}.
-
-SECTION 2 — H2: What is ${topic.split(' ').slice(0, 5).join(' ')}?
-150+ words. Full explanation with Indian context. At least 2 paragraphs.
-
-SECTION 3 — H2: [Data/Comparison section with a complete table]
-200+ words. Include a complete data table with real Indian ₹ figures, percentages, or dates. 2-3 paragraphs plus the table.
-
-SECTION 4 — H2: Real Examples with ₹ Calculations
-200+ words. 3 detailed worked examples with actual arithmetic. Use ₹12,75,000 format.
-
-SECTION 5 — H2: Who Should Know This?
-150+ words. 5 specific reader scenarios or profiles who benefit most.
 
 Rules: bold key numbers (**₹5,000**), short paragraphs (max 3 lines), Indian number format.
 Return as a raw JSON array of content blocks (no wrapping object).`
@@ -192,28 +227,26 @@ Return as a raw JSON array of content blocks (no wrapping object).`
     const call2 = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [{ role: 'system', content: half1System }, { role: 'user', content: half1Prompt }],
-      max_tokens: 2500, temperature: 0.7,
+      max_tokens: call2MaxTokens, temperature: 0.7,
     })
-    const raw2       = call2.choices[0]?.message?.content || ''
-    const firstHalf  = parseAIJson(raw2)
+    const raw2        = call2.choices[0]?.message?.content || ''
+    const firstHalf   = parseAIJson(raw2)
     const firstBlocks = Array.isArray(firstHalf) ? firstHalf : (firstHalf.content || [])
 
-    // ── Call 3: Second half — sections 6-9 + FAQs (gpt-4o, 2500 tokens) ─────
+    // ── Call 3: Second half content + FAQs (gpt-4o, dynamic tokens) ──────────
+    const calloutHref  = toolSlug ? `/tools/${toolSlug}` : '/'
     const half2System = `You are a professional SEO content writer.
-Write sections 6-9 of a long-form blog post.
+Write the second half of a long-form blog post about "${topic}".
 Return ONLY a valid JSON object with two keys: blocks and faqs.
 No extra text outside the JSON.
 
 STRICT RULES:
-- Section 6 (How to use tool): Write intro + numbered steps + callout
-  Each step must be a full sentence with detail, 20+ words
-- Section 7 (Mistakes): Write intro paragraph + 4 mistakes as ul items
-  Each mistake item: 25+ words explaining what and why
-- Section 8 (FAQ heading only): Just add H2 heading block
-- Section 9 (Conclusion): Write 2 full paragraphs, 60+ words each
-  Include strong CTA to AWE-OS tool with URL
+- TOTAL TARGET: ${call3Target} words in blocks + 100+ words per FAQ answer
+- Each step in step-by-step: full sentence with detail, 20+ words
+- Each mistake bullet: 25+ words explaining what and why
+- Conclusion: 2 full paragraphs, 60+ words each
 - EACH FAQ ANSWER: minimum 100 words, explain thoroughly
-- TOTAL CONTENT must be 750+ words
+- CRITICAL: Count your words as you write. Target is exactly ${call3Target} words for blocks.
 
 Return format:
 {
@@ -221,7 +254,7 @@ Return format:
     {"type":"h2","text":"Step by Step..."},
     {"type":"p","text":"..."},
     {"type":"ul","items":["Step 1: ...","Step 2: ..."]},
-    {"type":"callout","text":"...","links":[{"href":"/tools/slug","label":"Tool Name"}]},
+    {"type":"callout","text":"...","links":[{"href":"${calloutHref}","label":"${toolRef}"}]},
     {"type":"h2","text":"Common Mistakes..."},
     {"type":"ul","items":["Mistake 1: explanation..."]},
     {"type":"h2","text":"Frequently Asked Questions"},
@@ -237,52 +270,22 @@ Return format:
   ]
 }`
 
-    const calloutHref  = toolSlug ? `/tools/${toolSlug}` : '/'
-    const half2Prompt = `Write the SECOND HALF (sections 6-9) of a blog post.
+    const half2Prompt = `${call3SectionGuide}
+
 Topic: "${topic}" | Keyword: "${kw}" | Tool: ${toolRef} (${toolUrl})
 Indian Context: ${indianCtx} | Tone: ${toneGuide}
 
-SECTION 6 — H2: Step by Step — How to Use ${toolRef}
-150+ words. Numbered steps (1-5) for using the AWE-OS tool. Follow with a callout block.
-
-SECTION 7 — H2: Common Mistakes to Avoid
-100+ words. 3-4 specific mistakes people make related to ${topic}. Use a bullet list.
-
-SECTION 8 — H2: Frequently Asked Questions
-Write 5 FAQs. Each answer MUST be 100 words minimum — detailed and practical.
-
-SECTION 9 — Conclusion (NO heading tag)
-100+ words. Summarise key takeaways and end with a strong CTA to use ${toolRef} at ${toolUrl}.
-
-Return this exact JSON structure:
-{
-  "content": [
-    {"type":"h2","text":"Step by Step — How to Use ${toolRef}"},
-    {"type":"p","text":"intro paragraph..."},
-    {"type":"ul","items":["Step 1: ...","Step 2: ...","Step 3: ...","Step 4: ...","Step 5: ..."]},
-    {"type":"callout","title":"Try it Free","text":"Use the free ${toolRef} at AWE-OS — no signup needed.","links":[{"href":"${calloutHref}","label":"Open Free ${toolRef}"}]},
-    {"type":"h2","text":"Common Mistakes to Avoid"},
-    {"type":"ul","items":["Mistake 1: ...","Mistake 2: ...","Mistake 3: ..."]},
-    {"type":"p","text":"conclusion paragraph 100+ words..."}
-  ],
-  "faqs": [
-    {"q":"Question 1?","a":"100+ word detailed answer..."},
-    {"q":"Question 2?","a":"100+ word detailed answer..."},
-    {"q":"Question 3?","a":"100+ word detailed answer..."},
-    {"q":"Question 4?","a":"100+ word detailed answer..."},
-    {"q":"Question 5?","a":"100+ word detailed answer..."}
-  ]
-}`
+Return the JSON object with "blocks" and "faqs" keys as specified in the system prompt.`
 
     const call3 = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [{ role: 'system', content: half2System }, { role: 'user', content: half2Prompt }],
-      max_tokens: 2500, temperature: 0.7,
+      max_tokens: call3MaxTokens, temperature: 0.7,
     })
-    const raw3        = call3.choices[0]?.message?.content || ''
-    const secondData  = parseAIJson(raw3)
+    const raw3         = call3.choices[0]?.message?.content || ''
+    const secondData   = parseAIJson(raw3)
     const secondBlocks = Array.isArray(secondData) ? secondData : (secondData.blocks || secondData.content || [])
-    const faqs        = secondData.faqs || []
+    const faqs         = secondData.faqs || []
 
     // ── Merge into final post ─────────────────────────────────────────────────
     const allContent = [...firstBlocks, ...secondBlocks]
@@ -331,7 +334,70 @@ Return this exact JSON structure:
   }
 })
 
-// ── POST /publish ─────────────────────────────────────────────────────────────
+// ── POST /publish — GitHub API (works on Render.com ephemeral FS) ─────────────
+
+async function publishToGitHub(newPost) {
+  const GITHUB_TOKEN = process.env.GITHUB_TOKEN
+  if (!GITHUB_TOKEN) throw new Error('GITHUB_TOKEN env variable not set — add it in Render dashboard')
+
+  const REPO      = 'wajid081986/AWE-OS'
+  const FILE_PATH = 'client/src/data/blogPosts.js'
+  const BRANCH    = 'main'
+  const API_BASE  = 'https://api.github.com'
+  const HEADERS   = {
+    'Authorization': `token ${GITHUB_TOKEN}`,
+    'Accept':        'application/vnd.github.v3+json',
+    'User-Agent':    'AWE-OS-Blog-Assistant',
+  }
+
+  // Step 1: Get current file + SHA from GitHub
+  const getRes = await fetch(`${API_BASE}/repos/${REPO}/contents/${FILE_PATH}?ref=${BRANCH}`, { headers: HEADERS })
+  if (!getRes.ok) throw new Error(`GitHub GET failed: ${getRes.status} ${getRes.statusText}`)
+  const fileData       = await getRes.json()
+  const currentContent = Buffer.from(fileData.content, 'base64').toString('utf8')
+  const fileSha        = fileData.sha
+
+  // Step 2: Assign next id
+  const idMatches = [...currentContent.matchAll(/\bid:\s*(\d+)/g)]
+  const maxId     = idMatches.length ? Math.max(...idMatches.map(m => parseInt(m[1]))) : 0
+  newPost.id      = maxId + 1
+
+  // Step 3: Insert new post at top of BLOG_POSTS array
+  const MARKER      = 'export const BLOG_POSTS = ['
+  const insertPoint = currentContent.indexOf(MARKER) + MARKER.length
+  if (insertPoint === MARKER.length - 1) throw new Error('BLOG_POSTS array marker not found in blogPosts.js')
+
+  const divider     = '─'.repeat(77)
+  const commentLine = `\n  // ${divider}\n  // ${newPost.id}. ${newPost.title}\n  // ${divider}\n`
+  const newContent  =
+    currentContent.slice(0, insertPoint) +
+    commentLine +
+    '  ' + JSON.stringify(newPost, null, 2).replace(/\n/g, '\n  ') +
+    ',' +
+    currentContent.slice(insertPoint)
+
+  // Step 4: Push to GitHub via Contents API
+  const pushRes = await fetch(`${API_BASE}/repos/${REPO}/contents/${FILE_PATH}`, {
+    method: 'PUT',
+    headers: { ...HEADERS, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message: `blog: add "${newPost.title}"`,
+      content: Buffer.from(newContent, 'utf8').toString('base64'),
+      sha:     fileSha,
+      branch:  BRANCH,
+    })
+  })
+  const pushData = await pushRes.json()
+  if (!pushRes.ok) throw new Error(pushData.message || 'GitHub push failed')
+
+  return {
+    success:   true,
+    slug:      newPost.slug,
+    id:        newPost.id,
+    liveUrl:   `https://www.awe-os.com/blog/${newPost.slug}`,
+    commitUrl: pushData.commit?.html_url,
+  }
+}
 
 router.post('/publish', requireAuth, requireAdmin, async (req, res) => {
   const { post } = req.body
@@ -340,64 +406,23 @@ router.post('/publish', requireAuth, requireAdmin, async (req, res) => {
   }
 
   try {
-    const source = fs.readFileSync(BLOG_POSTS_PATH, 'utf8')
-
-    // Derive next id from existing ids in file
-    const idMatches = source.match(/\bid:\s*(\d+)/g) || []
-    const maxId = idMatches.reduce((max, m) => {
-      const n = parseInt(m.replace(/[^\d]/g, ''))
-      return n > max ? n : max
-    }, 0)
-
-    // Build clean post (only schema fields — strip tags/toolLinks/unknowns)
     const cleanPost = {
-      id:              maxId + 1,
       slug:            post.slug,
       title:           post.title,
       date:            new Date().toISOString().split('T')[0],
-      category:        post.category     || 'General',
+      category:        post.category        || 'General',
       author:          'AWE-OS Team',
-      readTime:        post.readTime     || '5 min read',
-      excerpt:         post.excerpt      || '',
-      metaTitle:       post.metaTitle    || post.title,
+      readTime:        post.readTime        || '5 min read',
+      excerpt:         post.excerpt         || '',
+      metaTitle:       post.metaTitle       || post.title,
       metaDescription: post.metaDescription || post.excerpt || '',
-      relatedTools:    post.relatedTools || [],
-      content:         post.content      || [],
+      relatedTools:    post.relatedTools    || [],
+      content:         post.content         || [],
       ...(Array.isArray(post.faqs) && post.faqs.length ? { faqs: post.faqs } : {}),
     }
 
-    // Insert at the start of BLOG_POSTS array
-    const MARKER  = 'export const BLOG_POSTS = ['
-    const mIdx    = source.indexOf(MARKER)
-    if (mIdx === -1) throw new Error('BLOG_POSTS array marker not found in blogPosts.js')
-
-    const insertAt  = mIdx + MARKER.length
-    const divider   = '─'.repeat(66)
-    const header    = `\n  // ${divider}\n  // ${cleanPost.id}. ${cleanPost.title}\n  // ${divider}\n`
-    const postJs    = JSON.stringify(cleanPost, null, 2).split('\n').join('\n  ')
-    const newSource = source.slice(0, insertAt) + header + '  ' + postJs + ',\n' + source.slice(insertAt)
-
-    fs.writeFileSync(BLOG_POSTS_PATH, newSource, 'utf8')
-
-    // Git operations
-    const git = (cmd) => execSync(cmd, { cwd: REPO_ROOT, stdio: 'pipe', timeout: 30_000 }).toString().trim()
-    try {
-      git('git add client/src/data/blogPosts.js')
-      git(`git commit -m "blog: add ${cleanPost.title}"`)
-      git('git push origin main')
-    } catch (gitErr) {
-      return res.json({
-        success:  true,
-        partial:  true,
-        slug:     cleanPost.slug,
-        id:       cleanPost.id,
-        liveUrl:  `https://awe-os.com/blog/${cleanPost.slug}`,
-        warning:  'File saved but git push failed — push manually to deploy.',
-        gitError: gitErr.message?.split('\n')[0],
-      })
-    }
-
-    res.json({ success: true, slug: cleanPost.slug, id: cleanPost.id, liveUrl: `https://awe-os.com/blog/${cleanPost.slug}` })
+    const result = await publishToGitHub(cleanPost)
+    res.json(result)
   } catch (err) {
     console.error('[admin-blog/publish]', err.message)
     res.status(500).json({ success: false, error: err.message })

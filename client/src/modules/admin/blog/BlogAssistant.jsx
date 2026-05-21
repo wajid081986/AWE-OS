@@ -302,9 +302,9 @@ function AIBlogWriterTab({ onPreFill }) {
               const wc     = actualWords || articleWc
               const target = form.wordCount
               const pct    = wc / target
-              if (pct >= 0.8) return <span className="text-xs text-green-400 font-medium">✅ {wc} words · {articleReadTime}</span>
-              if (pct >= 0.6) return <span className="text-xs text-yellow-400 font-medium">⚠️ {wc} words (target: {target})</span>
-              return <span className="text-xs text-red-400 font-medium">❌ {wc} words — too short</span>
+              if (pct >= 0.9) return <span className="text-xs text-green-400 font-medium">✅ Generated: {wc} words (target: {target})</span>
+              if (pct >= 0.8) return <span className="text-xs text-yellow-400 font-medium">⚠️ Generated: {wc} words (target: {target})</span>
+              return <span className="text-xs text-red-400 font-medium">❌ Generated: {wc} words (target: {target})</span>
             })()}
           </div>
 
@@ -375,14 +375,18 @@ function AIBlogWriterTab({ onPreFill }) {
           {pubResult && (
             pubResult.success ? (
               <div className="bg-green-900/30 border border-green-700 rounded-xl p-4">
-                <p className="text-green-400 font-semibold text-sm mb-1">
-                  {pubResult.partial ? '⚠️ File saved — push manually to deploy' : '✅ Published!'}
+                <p className="text-green-400 font-semibold text-sm mb-2">
+                  ✅ Published! Live at /blog/{pubResult.slug}
                 </p>
-                {pubResult.partial && <p className="text-yellow-400 text-xs mb-2">{pubResult.warning}</p>}
-                <a href={pubResult.liveUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-400 text-xs underline">
+                <a href={pubResult.liveUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-400 text-xs underline block mb-1">
                   {pubResult.liveUrl}
                 </a>
-                <p className="text-gray-500 text-[11px] mt-1">Live in ~2 min after Vercel rebuilds.</p>
+                {pubResult.commitUrl && (
+                  <a href={pubResult.commitUrl} target="_blank" rel="noopener noreferrer" className="text-gray-500 text-[11px] underline block mb-1">
+                    View commit on GitHub →
+                  </a>
+                )}
+                <p className="text-gray-500 text-[11px] mt-1">Render will auto-deploy in ~2 minutes.</p>
               </div>
             ) : (
               <div className="bg-red-900/30 border border-red-700 rounded-xl p-4">
