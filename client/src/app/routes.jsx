@@ -77,6 +77,7 @@ const RevenuePage       = lazy(() => import('../modules/admin/revenue/RevenuePag
 const AIFactoryPage       = lazy(() => import('../modules/admin/factory/AIFactoryPage'))
 const MarketingAssistant  = lazy(() => import('../modules/admin/marketing/MarketingAssistant'))
 const BlogAssistant       = lazy(() => import('../modules/admin/blog/BlogAssistant'))
+const TrafficGrowth       = lazy(() => import('../modules/admin/traffic/TrafficGrowth'))
 const AgentControlPage  = lazy(() => import('../modules/admin/agents/AgentControlPage'))
 const AgentsMonitor          = lazy(() => import('../modules/admin/agents/AgentsMonitor'))
 const MultiAgentDashboard    = lazy(() => import('../modules/admin/multi-agent/MultiAgentDashboard'))
@@ -190,6 +191,7 @@ export default function AppRoutes() {
           <Route path="/admin/revenue"       element={lazy$(<RevenuePage />)} />
           <Route path="/admin/factory"       element={lazy$(<AIFactoryPage />)} />
           <Route path="/admin/marketing"     element={lazy$(<MarketingAssistant />)} />
+          <Route path="/admin/traffic"       element={lazy$(<TrafficGrowth />)} />
           <Route path="/admin/blog"          element={lazy$(<BlogAssistant />)} />
           <Route path="/admin/agents"        element={lazy$(<AgentsMonitor />)} />
           <Route path="/admin/pipeline"      element={lazy$(<AgentControlPage />)} />
