@@ -774,4 +774,238 @@ difficulty values: Easy | Medium | Hard`
   }
 })
 
+// ── POST /seo-audit ───────────────────────────────────────────────────────────
+
+router.post('/seo-audit', requireAuth, requireAdmin, async (req, res) => {
+  const { articleText, targetKeyword, articleTitle } = req.body
+  if (!articleText) return res.status(400).json({ success: false, error: 'articleText is required' })
+
+  const wordCount = articleText.trim().split(/\s+/).length
+  const keywordLower = (targetKeyword || '').toLowerCase()
+  const titleLower   = (articleTitle  || '').toLowerCase()
+
+  const prompt = `You are an expert SEO analyst specialising in the Indian content market. Analyse this article and return a JSON object with these exact fields:
+
+Article Title: "${articleTitle || '(not provided)'}"
+Target Keyword: "${targetKeyword || '(not provided)'}"
+Word Count: ${wordCount}
+
+Article Text (first 3000 chars):
+${articleText.slice(0, 3000)}
+
+Return ONLY valid JSON with this structure:
+{
+  "overallScore": <0-100 integer>,
+  "metrics": {
+    "titleScore":     { "score": <0-100>, "status": <"good"|"warning"|"poor">, "issue": "<one sentence>", "fix": "<one actionable fix>" },
+    "keywordDensity": { "score": <0-100>, "status": <"good"|"warning"|"poor">, "percentage": <number>, "issue": "<one sentence>", "fix": "<fix>" },
+    "headingsScore":  { "score": <0-100>, "status": <"good"|"warning"|"poor">, "h2Count": <integer>, "issue": "<one sentence>", "fix": "<fix>" },
+    "wordCount":      { "score": <0-100>, "status": <"good"|"warning"|"poor">, "count": ${wordCount}, "issue": "<one sentence>", "fix": "<fix>" },
+    "readability":    { "score": <0-100>, "status": <"good"|"warning"|"poor">, "level": "<Easy|Medium|Hard>", "issue": "<one sentence>", "fix": "<fix>" },
+    "internalLinks":  { "score": <0-100>, "status": <"good"|"warning"|"poor">, "count": <integer>, "issue": "<one sentence>", "fix": "<fix>" },
+    "eeat":           { "score": <0-100>, "status": <"good"|"warning"|"poor">, "issue": "<one sentence>", "fix": "<fix>" },
+    "indianContext":  { "score": <0-100>, "status": <"good"|"warning"|"poor">, "hasIndianExamples": <true|false>, "issue": "<one sentence>", "fix": "<fix>" }
+  },
+  "topSuggestions": ["<top priority fix>", "<2nd fix>", "<3rd fix>"],
+  "rewrittenTitle": "<SEO-optimised title with keyword, under 60 chars>",
+  "improvedMetaDesc": "<compelling meta description 140-155 chars with keyword and CTA>"
+}`
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 1200,
+      temperature: 0.3,
+    })
+    const raw    = completion.choices[0]?.message?.content || ''
+    const result = parseAIJson(raw)
+    res.json({ success: true, result })
+  } catch (err) {
+    console.error('[admin-blog/seo-audit]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /generate-schema ─────────────────────────────────────────────────────
+
+router.post('/generate-schema', requireAuth, requireAdmin, async (req, res) => {
+  const { schemaType, formData } = req.body
+  if (!schemaType || !formData) return res.status(400).json({ success: false, error: 'schemaType and formData are required' })
+
+  const prompts = {
+    Article: `Generate a valid schema.org Article JSON-LD script tag using:
+headline: "${formData.headline || ''}"
+description: "${formData.description || ''}"
+author: "${formData.author || ''}"
+datePublished: "${formData.datePublished || ''}"
+dateModified: "${formData.dateModified || formData.datePublished || ''}"
+url: "${formData.url || ''}"
+image: "${formData.imageUrl || ''}"
+publisher: { name: "AWE-OS", url: "https://awe-os.com" }`,
+
+    Tool: `Generate a valid schema.org SoftwareApplication JSON-LD script tag using:
+name: "${formData.name || ''}"
+description: "${formData.description || ''}"
+url: "${formData.url || ''}"
+applicationCategory: "${formData.category || 'UtilitiesApplication'}"
+operatingSystem: "${formData.operatingSystem || 'Any'}"
+price: "${formData.price || '0'}"
+priceCurrency: "${formData.priceCurrency || 'INR'}"
+${formData.rating ? `aggregateRating: { ratingValue: "${formData.rating}", reviewCount: "${formData.ratingCount || '100'}" }` : ''}`,
+
+    FAQ: `Generate a valid schema.org FAQPage JSON-LD script tag using these Q&A pairs:
+${(formData.pairs || []).map((p, i) => `Q${i + 1}: "${p.q}" A${i + 1}: "${p.a}"`).join('\n')}`,
+
+    HowTo: `Generate a valid schema.org HowTo JSON-LD script tag using:
+name: "${formData.name || ''}"
+description: "${formData.description || ''}"
+totalTime: "${formData.totalTime || 'PT5M'}"
+steps: ${JSON.stringify((formData.steps || []).filter(Boolean))}`,
+
+    Breadcrumb: `Generate a valid schema.org BreadcrumbList JSON-LD script tag using these items:
+${(formData.items || []).map((item, i) => `Position ${i + 1}: name="${item.name}" url="${item.url}"`).join('\n')}`,
+  }
+
+  const prompt = `${prompts[schemaType] || ''}
+
+Return ONLY the complete <script type="application/ld+json">...</script> block with properly formatted, valid JSON-LD. No explanation, no markdown fences.`
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 800,
+      temperature: 0.1,
+    })
+    const schema = (completion.choices[0]?.message?.content || '').trim()
+    res.json({ success: true, schema })
+  } catch (err) {
+    console.error('[admin-blog/generate-schema]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /internal-links ──────────────────────────────────────────────────────
+
+const AWE_TOOLS_LIST = [
+  { name: 'Merge PDF',          slug: 'merge-pdf',           url: 'https://awe-os.com/tools/merge-pdf',           category: 'PDF Tools' },
+  { name: 'Compress PDF',       slug: 'compress-pdf',        url: 'https://awe-os.com/tools/compress-pdf',        category: 'PDF Tools' },
+  { name: 'Split PDF',          slug: 'split-pdf',           url: 'https://awe-os.com/tools/split-pdf',           category: 'PDF Tools' },
+  { name: 'JPG to PDF',         slug: 'jpg-to-pdf',          url: 'https://awe-os.com/tools/jpg-to-pdf',          category: 'PDF Tools' },
+  { name: 'PDF to JPG',         slug: 'pdf-to-jpg',          url: 'https://awe-os.com/tools/pdf-to-jpg',          category: 'PDF Tools' },
+  { name: 'Word to PDF',        slug: 'word-to-pdf',         url: 'https://awe-os.com/tools/word-to-pdf',         category: 'PDF Tools' },
+  { name: 'Rotate PDF',         slug: 'rotate-pdf',          url: 'https://awe-os.com/tools/rotate-pdf',          category: 'PDF Tools' },
+  { name: 'Watermark PDF',      slug: 'watermark-pdf',       url: 'https://awe-os.com/tools/watermark-pdf',       category: 'PDF Tools' },
+  { name: 'Protect PDF',        slug: 'protect-pdf',         url: 'https://awe-os.com/tools/protect-pdf',         category: 'PDF Tools' },
+  { name: 'Unlock PDF',         slug: 'unlock-pdf',          url: 'https://awe-os.com/tools/unlock-pdf',          category: 'PDF Tools' },
+  { name: 'Image Compressor',   slug: 'image-compressor',    url: 'https://awe-os.com/tools/image-compressor',    category: 'Image Tools' },
+  { name: 'QR Code Generator',  slug: 'qr-code-generator',   url: 'https://awe-os.com/tools/qr-code-generator',   category: 'Image Tools' },
+  { name: 'BMI Calculator',     slug: 'bmi-calculator',      url: 'https://awe-os.com/tools/bmi-calculator',      category: 'Calculators' },
+  { name: 'SIP Calculator',     slug: 'sip-calculator',      url: 'https://awe-os.com/tools/sip-calculator',      category: 'Calculators' },
+  { name: 'GST Calculator',     slug: 'gst-calculator',      url: 'https://awe-os.com/tools/gst-calculator',      category: 'Calculators' },
+  { name: 'EMI Calculator',     slug: 'emi-calculator',      url: 'https://awe-os.com/tools/emi-calculator',      category: 'Calculators' },
+  { name: 'Percentage Calculator', slug: 'percentage-calculator', url: 'https://awe-os.com/tools/percentage-calculator', category: 'Calculators' },
+  { name: 'Age Calculator',     slug: 'age-calculator',      url: 'https://awe-os.com/tools/age-calculator',      category: 'Calculators' },
+  { name: 'FD Calculator',      slug: 'fd-calculator',       url: 'https://awe-os.com/tools/fd-calculator',       category: 'Calculators' },
+  { name: 'PPF Calculator',     slug: 'ppf-calculator',      url: 'https://awe-os.com/tools/ppf-calculator',      category: 'Calculators' },
+  { name: 'Word Counter',       slug: 'word-counter',        url: 'https://awe-os.com/tools/word-counter',        category: 'Text Tools' },
+  { name: 'Character Counter',  slug: 'character-counter',   url: 'https://awe-os.com/tools/character-counter',   category: 'Text Tools' },
+  { name: 'Case Converter',     slug: 'case-converter',      url: 'https://awe-os.com/tools/case-converter',      category: 'Text Tools' },
+  { name: 'Password Generator', slug: 'password-generator',  url: 'https://awe-os.com/tools/password-generator',  category: 'Text Tools' },
+  { name: 'Unit Converter',     slug: 'unit-converter',      url: 'https://awe-os.com/tools/unit-converter',      category: 'Converters' },
+  { name: 'Currency Converter', slug: 'currency-converter',  url: 'https://awe-os.com/tools/currency-converter',  category: 'Converters' },
+  { name: 'AI Resume Builder',  slug: 'ai-resume-builder',   url: 'https://awe-os.com/tools/ai-resume-builder',   category: 'AI Tools' },
+  { name: 'AI Content Writer',  slug: 'ai-content-writer',   url: 'https://awe-os.com/tools/ai-content-writer',   category: 'AI Tools' },
+  { name: 'AI Grammar Checker', slug: 'ai-grammar-checker',  url: 'https://awe-os.com/tools/ai-grammar-checker',  category: 'AI Tools' },
+  { name: 'Invoice Generator',  slug: 'invoice-generator',   url: 'https://awe-os.com/tools/invoice-generator',   category: 'Productivity' },
+]
+
+const AWE_BLOGS_LIST = [
+  { title: 'How to Merge PDF Files for Free Online',             slug: 'how-to-merge-pdf-files-online-free',               url: 'https://awe-os.com/blog/how-to-merge-pdf-files-online-free' },
+  { title: 'Best Free PDF Compressor Tools in 2025',            slug: 'best-free-pdf-compressor-tools-2025',              url: 'https://awe-os.com/blog/best-free-pdf-compressor-tools-2025' },
+  { title: 'BMI Calculator Guide for Indians',                  slug: 'bmi-calculator-guide-for-indians',                 url: 'https://awe-os.com/blog/bmi-calculator-guide-for-indians' },
+  { title: 'SIP Calculator: How to Plan Your Investments',      slug: 'sip-calculator-investment-planning-india',         url: 'https://awe-os.com/blog/sip-calculator-investment-planning-india' },
+  { title: 'Top 10 Free Online Calculators for Students',       slug: 'top-10-free-online-calculators-for-students',      url: 'https://awe-os.com/blog/top-10-free-online-calculators-for-students' },
+  { title: 'How to Convert JPG to PDF on Any Device',           slug: 'how-to-convert-jpg-to-pdf',                        url: 'https://awe-os.com/blog/how-to-convert-jpg-to-pdf' },
+  { title: 'Image Compression Guide 2025',                      slug: 'image-compression-guide-2025',                     url: 'https://awe-os.com/blog/image-compression-guide-2025' },
+  { title: 'How to Create a Strong Password',                   slug: 'how-to-create-strong-password',                    url: 'https://awe-os.com/blog/how-to-create-strong-password' },
+  { title: 'GST Calculator: Calculate GST Online in India',     slug: 'gst-calculator-india-guide',                       url: 'https://awe-os.com/blog/gst-calculator-india-guide' },
+  { title: 'Word Count Tips for Students and Writers',          slug: 'word-count-tips-for-students',                     url: 'https://awe-os.com/blog/word-count-tips-for-students' },
+  { title: 'How to Build an ATS-Friendly Resume in India',      slug: 'how-to-build-ats-resume-india',                    url: 'https://awe-os.com/blog/how-to-build-ats-resume-india' },
+  { title: 'Currency Converter: USD to INR Explained',          slug: 'currency-converter-usd-to-inr',                    url: 'https://awe-os.com/blog/currency-converter-usd-to-inr' },
+  { title: 'QR Code Generator: Create Free QR Codes',          slug: 'qr-code-generator-guide',                          url: 'https://awe-os.com/blog/qr-code-generator-guide' },
+  { title: 'EMI Calculator Guide for Home and Car Loans',       slug: 'emi-calculator-guide-india',                       url: 'https://awe-os.com/blog/emi-calculator-guide-india' },
+  { title: 'Best Free AI Writing Tools in 2025',                slug: 'best-free-ai-writing-tools-2025',                  url: 'https://awe-os.com/blog/best-free-ai-writing-tools-2025' },
+  { title: 'How to Protect a PDF with a Password',              slug: 'how-to-protect-pdf-with-password',                 url: 'https://awe-os.com/blog/how-to-protect-pdf-with-password' },
+]
+
+router.post('/internal-links', requireAuth, requireAdmin, async (req, res) => {
+  const { articleText } = req.body
+  if (!articleText) return res.status(400).json({ success: false, error: 'articleText is required' })
+
+  const toolsJson = JSON.stringify(AWE_TOOLS_LIST.map(t => ({ name: t.name, url: t.url, category: t.category })))
+  const blogsJson = JSON.stringify(AWE_BLOGS_LIST.map(b => ({ title: b.title, url: b.url })))
+
+  const prompt = `You are an expert SEO internal linking strategist for AWE-OS, a free online tools website targeting Indian users.
+
+Analyse this article and suggest internal links using ONLY tools and blog posts from the provided lists.
+
+Article (first 4000 chars):
+${articleText.slice(0, 4000)}
+
+Available AWE-OS Tools:
+${toolsJson}
+
+Available AWE-OS Blog Posts:
+${blogsJson}
+
+Return ONLY valid JSON with this exact structure:
+{
+  "toolLinks": [
+    {
+      "anchorText": "<2-4 word natural anchor>",
+      "url": "<exact URL from the tools list>",
+      "context": "<quote 8-12 words from the article where this link fits naturally>",
+      "reason": "<one sentence why this link adds value>"
+    }
+  ],
+  "blogLinks": [
+    {
+      "anchorText": "<2-4 word natural anchor>",
+      "url": "<exact URL from the blog list>",
+      "context": "<quote 8-12 words from the article where this link fits naturally>",
+      "reason": "<one sentence why this link adds value>"
+    }
+  ],
+  "contentGaps": [
+    {
+      "topic": "<topic not yet covered on AWE-OS that this article references>",
+      "reason": "<why writing this content would help rank and link here>"
+    }
+  ]
+}
+
+Rules:
+- Only suggest 3-6 tool links and 2-4 blog links maximum
+- Only use URLs from the provided lists (no invention)
+- Each anchor text must read naturally in context
+- contentGaps: max 3 items, only genuine missing content`
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 1500,
+      temperature: 0.3,
+    })
+    const raw    = completion.choices[0]?.message?.content || ''
+    const result = parseAIJson(raw)
+    res.json({ success: true, result })
+  } catch (err) {
+    console.error('[admin-blog/internal-links]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
 module.exports = router

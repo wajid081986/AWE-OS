@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import api from '../../../services/api.service'
 import KeywordResearchTab from './KeywordResearch'
+import SeoAuditor from './SeoAuditor'
+import SchemaGenerator from './SchemaGenerator'
+import InternalLinkAI from './InternalLinkAI'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -608,34 +611,19 @@ function ContentCalendarTab({ onWriteArticle }) {
 
 // ── TAB 4: SEO Booster ────────────────────────────────────────────────────────
 
-function SEOBoosterTab() {
-  const [articleText,  setArticleText]  = useState('')
-  const [seoTitle,     setSeoTitle]     = useState('')
-  const [seoKeyword,   setSeoKeyword]   = useState('')
-  const [analyzing,    setAnalyzing]    = useState(false)
-  const [seoResult,    setSeoResult]    = useState(null)
-  const [seoError,     setSeoError]     = useState(null)
+const SEO_SUB_TABS = [
+  { id: 'auditor',  label: '📊 SEO Auditor'      },
+  { id: 'schema',   label: '⚙️ Schema Generator'  },
+  { id: 'links',    label: '🔗 Internal Links'    },
+]
 
-  const [kwTopic,      setKwTopic]      = useState('')
-  const [kwLoading,    setKwLoading]    = useState(false)
-  const [keywords,     setKeywords]     = useState([])
-  const [kwError,      setKwError]      = useState(null)
+function SEOBoosterTab({ onWriteIdea }) {
+  const [seoSubTab, setSeoSubTab] = useState('auditor')
 
-  async function handleAnalyze() {
-    if (!articleText.trim()) { setSeoError('Paste article text first.'); return }
-    setAnalyzing(true)
-    setSeoError(null)
-    setSeoResult(null)
-    try {
-      const res = await api.post('/api/admin/blog/seo-analyze', { text: articleText, title: seoTitle, keyword: seoKeyword })
-      if (res.data.success) setSeoResult(res.data.result)
-      else setSeoError(res.data.error)
-    } catch (err) {
-      setSeoError(err.response?.data?.error || 'Analysis failed.')
-    } finally {
-      setAnalyzing(false)
-    }
-  }
+  const [kwTopic,   setKwTopic]   = useState('')
+  const [kwLoading, setKwLoading] = useState(false)
+  const [keywords,  setKeywords]  = useState([])
+  const [kwError,   setKwError]   = useState(null)
 
   async function handleKeywords() {
     if (!kwTopic.trim()) { setKwError('Enter a topic first.'); return }
@@ -653,108 +641,33 @@ function SEOBoosterTab() {
     }
   }
 
-  const scoreColor = seoResult?.readabilityScore === 'Good' ? 'text-green-400' : seoResult?.readabilityScore === 'Fair' ? 'text-yellow-400' : 'text-red-400'
-
   return (
     <div className="space-y-6">
-      {/* Section A: Article Optimizer */}
-      <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 space-y-4">
-        <h2 className="text-sm font-semibold text-white">📊 Article Optimizer</h2>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Article Title">
-            <Input value={seoTitle} onChange={setSeoTitle} placeholder="Your article title" />
-          </Field>
-          <Field label="Target Keyword">
-            <Input value={seoKeyword} onChange={setSeoKeyword} placeholder="primary keyword" />
-          </Field>
+      {/* ── SEO Intelligence sub-tabs ── */}
+      <div className="bg-gray-800 border border-gray-700 rounded-xl p-5 space-y-4">
+        <div className="flex gap-1 bg-gray-900 rounded-lg p-1">
+          {SEO_SUB_TABS.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setSeoSubTab(t.id)}
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+                seoSubTab === t.id ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
 
-        <Field label="Paste Article Text">
-          <textarea
-            value={articleText}
-            onChange={e => setArticleText(e.target.value)}
-            rows={6}
-            placeholder="Paste the full article text here..."
-            className="w-full bg-gray-900 border border-gray-700 text-white text-sm rounded-lg px-3 py-2 placeholder-gray-600 focus:outline-none focus:border-indigo-500 resize-none"
-          />
-        </Field>
-
-        <button
-          onClick={handleAnalyze}
-          disabled={analyzing}
-          className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg flex items-center justify-center gap-2"
-        >
-          {analyzing ? <><Spinner />Analyzing…</> : '🔍 Analyze & Improve'}
-        </button>
-        {seoError && <p className="text-red-400 text-sm">{seoError}</p>}
-
-        {seoResult && (
-          <div className="space-y-4 pt-2 border-t border-gray-700">
-            <div className="flex items-center gap-3">
-              <p className="text-sm font-semibold text-white">Readability:</p>
-              <span className={`text-sm font-bold ${scoreColor}`}>{seoResult.readabilityScore}</span>
-              <span className="text-xs text-gray-500">{seoResult.readabilityNotes}</span>
-            </div>
-
-            {seoResult.metaTitleSuggestion && (
-              <div>
-                <p className="text-xs font-medium text-gray-400 mb-1">Suggested Meta Title</p>
-                <p className="text-sm text-indigo-300 bg-gray-900 rounded-lg px-3 py-2">{seoResult.metaTitleSuggestion}</p>
-              </div>
-            )}
-
-            {seoResult.metaDescSuggestion && (
-              <div>
-                <p className="text-xs font-medium text-gray-400 mb-1">Suggested Meta Description</p>
-                <p className="text-sm text-indigo-300 bg-gray-900 rounded-lg px-3 py-2">{seoResult.metaDescSuggestion}</p>
-              </div>
-            )}
-
-            {seoResult.missingKeywords?.length > 0 && (
-              <div>
-                <p className="text-xs font-medium text-gray-400 mb-2">Missing Keywords</p>
-                <div className="flex flex-wrap gap-2">
-                  {seoResult.missingKeywords.map((kw, i) => (
-                    <span key={i} className="text-xs px-2.5 py-1 bg-yellow-900/40 text-yellow-300 rounded-lg">{kw}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {seoResult.faqSuggestions?.length > 0 && (
-              <div>
-                <p className="text-xs font-medium text-gray-400 mb-2">Suggested FAQs to Add</p>
-                <div className="space-y-2">
-                  {seoResult.faqSuggestions.map((faq, i) => (
-                    <div key={i} className="bg-gray-900 rounded-lg px-3 py-2">
-                      <p className="text-xs font-medium text-white">{faq.q}</p>
-                      <p className="text-xs text-gray-400 mt-1">{faq.a}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {seoResult.internalLinkSuggestions?.length > 0 && (
-              <div>
-                <p className="text-xs font-medium text-gray-400 mb-2">Internal Links to Add</p>
-                <div className="space-y-1">
-                  {seoResult.internalLinkSuggestions.map((l, i) => (
-                    <p key={i} className="text-xs text-gray-300">
-                      Link <span className="text-indigo-400">"{l.anchor}"</span> → /tools/{l.toolSlug} ({l.toolName})
-                    </p>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+        {seoSubTab === 'auditor' && <SeoAuditor />}
+        {seoSubTab === 'schema'  && <SchemaGenerator />}
+        {seoSubTab === 'links'   && <InternalLinkAI onWriteIdea={onWriteIdea} />}
       </div>
 
-      {/* Section B: Keyword Research */}
+      {/* ── Keyword Research ── */}
       <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 space-y-4">
-        <h2 className="text-sm font-semibold text-white">🔎 Keyword Research</h2>
+        <h2 className="text-sm font-semibold text-white">🔎 Quick Keyword Research</h2>
 
         <div className="flex gap-3">
           <div className="flex-1">
@@ -836,7 +749,7 @@ export default function BlogAssistant() {
         {activeTab === 'write'    && <AIBlogWriterTab   onPreFill={preFill} />}
         {activeTab === 'ideas'    && <IdeaGeneratorTab  onWriteIdea={handleWriteIdea} />}
         {activeTab === 'calendar' && <ContentCalendarTab onWriteArticle={handleWriteIdea} />}
-        {activeTab === 'seo'      && <SEOBoosterTab />}
+        {activeTab === 'seo'      && <SEOBoosterTab onWriteIdea={handleWriteIdea} />}
         {activeTab === 'research' && <KeywordResearchTab onWriteIdea={handleWriteIdea} />}
       </div>
     </div>
