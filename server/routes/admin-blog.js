@@ -93,135 +93,169 @@ REQUIRED STRUCTURE:
 
 Include at least 2 tables and 1 callout block.`
 
-// ── POST /generate — two-call approach for reliable long content ───────────────
+// ── POST /generate — three-call approach for reliable 1500-word content ──────
 
 router.post('/generate', requireAuth, requireAdmin, async (req, res) => {
   const { topic, keyword, toolSlug, toolName, wordCount = 1200, tone = 'beginner', category = 'Finance', indianContext = true } = req.body
   if (!topic) return res.status(400).json({ success: false, error: 'topic is required' })
 
-  const toneGuides = {
+  const toneGuide = {
     beginner:       'Write for someone completely new. Simple language, explain every term.',
     expert:         'Write for financially literate readers who want deep analysis, not basics.',
     conversational: 'Write like a friendly chat with a colleague — warm, direct, real examples.',
     quickguide:     'Be concise and practical. Bullet points over paragraphs where possible.',
-  }
+  }[tone] || 'Write for someone completely new. Simple language, explain every term.'
 
-  const toolUrl  = toolSlug ? `https://www.awe-os.com/tools/${toolSlug}` : 'https://www.awe-os.com'
-  const toolRef  = toolName || toolSlug || 'AWE-OS'
-  const indianCtx = indianContext ? 'Yes — use ₹ symbol, Indian number format (₹12,75,000), SEBI/RBI/ICMR context' : 'No'
+  const toolUrl   = toolSlug ? `https://www.awe-os.com/tools/${toolSlug}` : 'https://www.awe-os.com'
+  const toolRef   = toolName || toolSlug || 'AWE-OS'
+  const kw        = keyword  || topic
+  const indianCtx = indianContext
+    ? 'Yes — use ₹ symbol, Indian number format (₹12,75,000), SEBI/RBI/ICMR context where relevant'
+    : 'No'
 
   try {
-    // ── Call 1: Metadata + section outline (gpt-4o, 800 tokens) ──────────────
-    const outlinePrompt = `Generate metadata and a section outline for a ${wordCount}-word blog post.
+    // ── Call 1: Metadata only (gpt-4o, 500 tokens) ───────────────────────────
+    const metaPrompt = `Generate blog post metadata. Return ONLY valid JSON, no other text.
 
 Topic: ${topic}
-Target Keyword: "${keyword || topic}"
-AWE-OS Tool to promote: ${toolRef} at ${toolUrl}
+Target Keyword: "${kw}"
+AWE-OS Tool: ${toolRef} at ${toolUrl}
 Category: ${category}
 Indian Context: ${indianCtx}
 
-Return ONLY this JSON structure — NO body text in sections, headings only:
 {
-  "slug": "url-friendly-slug-from-topic",
-  "title": "Compelling full article title",
-  "metaTitle": "SEO title under 60 chars",
-  "metaDescription": "SEO description under 155 chars with target keyword",
+  "slug": "url-slug-from-topic",
+  "title": "Compelling article title with target keyword",
+  "metaTitle": "SEO title max 60 chars",
+  "metaDescription": "SEO description max 155 chars, include keyword",
   "category": "${category}",
-  "excerpt": "2-3 sentence summary for blog listing page",
+  "excerpt": "2-3 sentence blog listing summary",
   "readTime": "${Math.ceil(wordCount / 200)} min read",
-  "relatedTools": [{"label": "Tool Name", "slug": "tool-slug", "icon": "emoji"}],
-  "sections": [
-    {"heading": "Exact H2 heading text", "keyPoints": ["point 1", "point 2", "point 3"]},
-    {"heading": "...", "keyPoints": ["...", "..."]},
-    {"heading": "...", "keyPoints": ["...", "..."]},
-    {"heading": "...", "keyPoints": ["...", "..."]},
-    {"heading": "...", "keyPoints": ["...", "..."]},
-    {"heading": "...", "keyPoints": ["...", "..."]},
-    {"heading": "...", "keyPoints": ["...", "..."]}
-  ],
-  "faqQuestions": ["Question 1?", "Question 2?", "Question 3?", "Question 4?", "Question 5?"]
-}
-
-Sections must cover: intro/overview, main explanation with data, real ₹ calculations, who should use this, step-by-step guide using ${toolRef}, common mistakes, and conclusion.`
-
-    const outlineRes = await openai.chat.completions.create({
-      model:       'gpt-4o',
-      messages:    [{ role: 'user', content: outlinePrompt }],
-      max_tokens:  800,
-      temperature: 0.7,
-    })
-
-    const outline = parseAIJson(outlineRes.choices[0]?.message?.content || '')
-
-    // ── Call 2: Full content from outline (gpt-4o, 4000 tokens) ──────────────
-    const contentPrompt = `Expand this blog outline into detailed, long-form content.
-
-TOPIC: ${topic}
-TARGET KEYWORD: "${keyword || topic}" — use naturally 3-5 times
-TOOL: ${toolRef} at ${toolUrl}
-TONE: ${toneGuides[tone] || toneGuides.beginner}
-INDIAN CONTEXT: ${indianCtx}
-WORD COUNT: MINIMUM ${wordCount} words — do NOT stop early.
-
-OUTLINE TO EXPAND (write each section fully):
-${JSON.stringify(outline.sections || [], null, 2)}
-
-FAQ QUESTIONS TO ANSWER IN FULL:
-${(outline.faqQuestions || []).map((q, i) => `${i + 1}. ${q}`).join('\n')}
-
-STRICT CONTENT RULES:
-- Opening paragraph (no heading): 100+ words, relatable hook or problem
-- Each H2 section: 200-300 words minimum — write 2-3 full paragraphs per section
-- AT LEAST 2 data tables with real Indian numbers (actual ₹ amounts, percentages, dates)
-- AT LEAST 1 callout block with link to ${toolUrl}
-- Each FAQ answer: 100+ words minimum, detailed and practical
-- Bold key numbers and conclusions using **text**
-- Indian number format: ₹12,75,000 (not ₹1,275,000)
-- Short paragraphs, max 3 lines each
-
-Return ONLY this JSON (no other text):
-{
-  "content": [
-    {"type": "p", "text": "Opening hook paragraph — 100+ words..."},
-    {"type": "h2", "text": "Section heading from outline"},
-    {"type": "p", "text": "Full paragraph — 80+ words..."},
-    {"type": "p", "text": "Second paragraph — 80+ words..."},
-    {"type": "table", "headers": ["Column", "Column", "Column"], "rows": [["val", "val", "val"], ["val", "val", "val"]]},
-    {"type": "ul", "items": ["Detailed item 1", "Detailed item 2", "Detailed item 3"]},
-    {"type": "callout", "title": "Try it free", "text": "Use the free ${toolRef} at AWE-OS — no signup needed.", "links": [{"href": "${toolSlug ? `/tools/${toolSlug}` : '/'}", "label": "Open Free ${toolRef}"}]}
-  ],
-  "faqs": [
-    {"q": "Question?", "a": "Detailed answer 100+ words..."}
+  "relatedTools": [
+    {"label": "Tool Name", "slug": "tool-slug", "icon": "emoji"},
+    {"label": "Tool Name", "slug": "tool-slug", "icon": "emoji"}
   ]
 }`
 
-    const contentRes = await openai.chat.completions.create({
-      model:       'gpt-4o',
-      messages:    [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: contentPrompt }],
-      max_tokens:  4000,
-      temperature: 0.7,
+    const call1 = await openai.chat.completions.create({
+      model: 'gpt-4o', messages: [{ role: 'user', content: metaPrompt }],
+      max_tokens: 500, temperature: 0.7,
     })
+    const metadata = parseAIJson(call1.choices[0]?.message?.content || '')
 
-    const contentData = parseAIJson(contentRes.choices[0]?.message?.content || '')
+    // ── Call 2: First half — sections 1-5 (gpt-4o, 2500 tokens) ─────────────
+    const half1System = `You are writing ONLY the first 5 sections of a blog post about "${topic}".
+DO NOT write a conclusion. DO NOT write FAQs. STOP after section 5.
+Each section MUST be 150-200 words minimum.
+Total output must be 700-800 words of actual prose content.
+Return ONLY a valid JSON array of content blocks. No wrapper object. No other text.
+Example format: [{"type":"p","text":"..."},{"type":"h2","text":"..."},{"type":"table","headers":[...],"rows":[[...]]}]`
+
+    const half1Prompt = `Write the FIRST HALF (sections 1-5) of a blog post.
+Topic: "${topic}" | Keyword: "${kw}" | Tool: ${toolRef} (${toolUrl})
+Indian Context: ${indianCtx} | Tone: ${toneGuide}
+
+SECTION 1 — Opening paragraph (NO heading tag):
+100+ words. Hook with a relatable problem or surprising fact about ${topic}.
+
+SECTION 2 — H2: What is ${topic.split(' ').slice(0, 5).join(' ')}?
+150+ words. Full explanation with Indian context. At least 2 paragraphs.
+
+SECTION 3 — H2: [Data/Comparison section with a complete table]
+200+ words. Include a complete data table with real Indian ₹ figures, percentages, or dates. 2-3 paragraphs plus the table.
+
+SECTION 4 — H2: Real Examples with ₹ Calculations
+200+ words. 3 detailed worked examples with actual arithmetic. Use ₹12,75,000 format.
+
+SECTION 5 — H2: Who Should Know This?
+150+ words. 5 specific reader scenarios or profiles who benefit most.
+
+Rules: bold key numbers (**₹5,000**), short paragraphs (max 3 lines), Indian number format.
+Return as a raw JSON array of content blocks (no wrapping object).`
+
+    const call2 = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [{ role: 'system', content: half1System }, { role: 'user', content: half1Prompt }],
+      max_tokens: 2500, temperature: 0.7,
+    })
+    const raw2       = call2.choices[0]?.message?.content || ''
+    const firstHalf  = parseAIJson(raw2)
+    const firstBlocks = Array.isArray(firstHalf) ? firstHalf : (firstHalf.content || [])
+
+    // ── Call 3: Second half — sections 6-9 + FAQs (gpt-4o, 2500 tokens) ─────
+    const half2System = `You are writing ONLY the last 4 sections of a blog post about "${topic}".
+This is the SECOND HALF. Do NOT repeat sections 1-5. Start directly from section 6.
+Each FAQ answer MUST be 100 words minimum. Write detailed, practical answers.
+Total prose content must be 700-800 words.
+Return ONLY a valid JSON object with exactly two keys: "content" and "faqs". No other text.`
+
+    const calloutHref  = toolSlug ? `/tools/${toolSlug}` : '/'
+    const half2Prompt = `Write the SECOND HALF (sections 6-9) of a blog post.
+Topic: "${topic}" | Keyword: "${kw}" | Tool: ${toolRef} (${toolUrl})
+Indian Context: ${indianCtx} | Tone: ${toneGuide}
+
+SECTION 6 — H2: Step by Step — How to Use ${toolRef}
+150+ words. Numbered steps (1-5) for using the AWE-OS tool. Follow with a callout block.
+
+SECTION 7 — H2: Common Mistakes to Avoid
+100+ words. 3-4 specific mistakes people make related to ${topic}. Use a bullet list.
+
+SECTION 8 — H2: Frequently Asked Questions
+Write 5 FAQs. Each answer MUST be 100 words minimum — detailed and practical.
+
+SECTION 9 — Conclusion (NO heading tag)
+100+ words. Summarise key takeaways and end with a strong CTA to use ${toolRef} at ${toolUrl}.
+
+Return this exact JSON structure:
+{
+  "content": [
+    {"type":"h2","text":"Step by Step — How to Use ${toolRef}"},
+    {"type":"p","text":"intro paragraph..."},
+    {"type":"ul","items":["Step 1: ...","Step 2: ...","Step 3: ...","Step 4: ...","Step 5: ..."]},
+    {"type":"callout","title":"Try it Free","text":"Use the free ${toolRef} at AWE-OS — no signup needed.","links":[{"href":"${calloutHref}","label":"Open Free ${toolRef}"}]},
+    {"type":"h2","text":"Common Mistakes to Avoid"},
+    {"type":"ul","items":["Mistake 1: ...","Mistake 2: ...","Mistake 3: ..."]},
+    {"type":"p","text":"conclusion paragraph 100+ words..."}
+  ],
+  "faqs": [
+    {"q":"Question 1?","a":"100+ word detailed answer..."},
+    {"q":"Question 2?","a":"100+ word detailed answer..."},
+    {"q":"Question 3?","a":"100+ word detailed answer..."},
+    {"q":"Question 4?","a":"100+ word detailed answer..."},
+    {"q":"Question 5?","a":"100+ word detailed answer..."}
+  ]
+}`
+
+    const call3 = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [{ role: 'system', content: half2System }, { role: 'user', content: half2Prompt }],
+      max_tokens: 2500, temperature: 0.7,
+    })
+    const raw3        = call3.choices[0]?.message?.content || ''
+    const secondData  = parseAIJson(raw3)
+    const secondBlocks = Array.isArray(secondData) ? secondData : (secondData.content || [])
+    const faqs        = secondData.faqs || []
 
     // ── Merge into final post ─────────────────────────────────────────────────
+    const allContent = [...firstBlocks, ...secondBlocks]
+
     const post = {
-      slug:            outline.slug,
-      title:           outline.title,
+      slug:            metadata.slug            || topic.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+      title:           metadata.title           || topic,
       date:            new Date().toISOString().split('T')[0],
-      category:        outline.category        || category,
+      category:        metadata.category        || category,
       author:          'AWE-OS Team',
-      readTime:        outline.readTime         || '7 min read',
-      excerpt:         outline.excerpt          || '',
-      metaTitle:       outline.metaTitle        || outline.title,
-      metaDescription: outline.metaDescription  || outline.excerpt || '',
-      relatedTools:    outline.relatedTools     || [],
-      content:         contentData.content      || [],
-      faqs:            contentData.faqs         || [],
+      readTime:        metadata.readTime         || `${Math.ceil(wordCount / 200)} min read`,
+      excerpt:         metadata.excerpt          || '',
+      metaTitle:       metadata.metaTitle        || metadata.title || topic,
+      metaDescription: metadata.metaDescription  || metadata.excerpt || '',
+      relatedTools:    metadata.relatedTools     || [],
+      content:         allContent,
+      faqs,
     }
 
     // ── Word count validation ─────────────────────────────────────────────────
-    const actualWc = post.content
+    const actualWc = allContent
       .map(b => b.text || (b.items || []).join(' ') || (b.headers ? [...(b.headers || []), ...(b.rows || []).flat()].join(' ') : ''))
       .join(' ')
       .split(/\s+/)
@@ -231,7 +265,7 @@ Return ONLY this JSON (no other text):
     if (actualWc < wordCount * 0.8) {
       return res.json({
         success:        false,
-        error:          `Generated content too short. Please try again.`,
+        error:          `Generated content too short (${actualWc} words). Please try again.`,
         actualWords:    actualWc,
         requestedWords: wordCount,
       })
