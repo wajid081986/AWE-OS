@@ -144,12 +144,28 @@ Indian Context: ${indianCtx}
     const metadata = parseAIJson(call1.choices[0]?.message?.content || '')
 
     // ── Call 2: First half — sections 1-5 (gpt-4o, 2500 tokens) ─────────────
-    const half1System = `You are writing ONLY the first 5 sections of a blog post about "${topic}".
-DO NOT write a conclusion. DO NOT write FAQs. STOP after section 5.
-Each section MUST be 150-200 words minimum.
-Total output must be 700-800 words of actual prose content.
-Return ONLY a valid JSON array of content blocks. No wrapper object. No other text.
-Example format: [{"type":"p","text":"..."},{"type":"h2","text":"..."},{"type":"table","headers":[...],"rows":[[...]]}]`
+    const half1System = `You are a professional SEO content writer.
+Write sections 1-5 of a long-form blog post.
+Return ONLY a valid JSON array of content blocks. No extra text.
+
+STRICT RULES:
+- Section 2 (What is X): Write 3 full paragraphs, 60+ words each
+- Section 3 (Main explanation): Write 3 full paragraphs + 1 complete table
+- Section 4 (Examples): Write 3 COMPLETE examples with full math shown
+  Each example: setup paragraph + calculation + result paragraph = 80+ words
+- Section 5 (Who should use): Write intro + 5 detailed scenarios, 30+ words each
+- Opening paragraph: 80+ words, relatable hook
+- TOTAL MUST BE 750+ words across all blocks
+
+Content block types:
+{"type":"p","text":"paragraph text here"}
+{"type":"h2","text":"Section Heading"}
+{"type":"h3","text":"Sub heading"}
+{"type":"ul","items":["item 1 full sentence","item 2 full sentence"]}
+{"type":"table","headers":["Col1","Col2","Col3"],"rows":[["v1","v2","v3"]]}
+
+DO NOT stop early. Write ALL 5 sections completely.
+DO NOT return anything except the JSON array.`
 
     const half1Prompt = `Write the FIRST HALF (sections 1-5) of a blog post.
 Topic: "${topic}" | Keyword: "${kw}" | Tool: ${toolRef} (${toolUrl})
@@ -183,11 +199,43 @@ Return as a raw JSON array of content blocks (no wrapping object).`
     const firstBlocks = Array.isArray(firstHalf) ? firstHalf : (firstHalf.content || [])
 
     // ── Call 3: Second half — sections 6-9 + FAQs (gpt-4o, 2500 tokens) ─────
-    const half2System = `You are writing ONLY the last 4 sections of a blog post about "${topic}".
-This is the SECOND HALF. Do NOT repeat sections 1-5. Start directly from section 6.
-Each FAQ answer MUST be 100 words minimum. Write detailed, practical answers.
-Total prose content must be 700-800 words.
-Return ONLY a valid JSON object with exactly two keys: "content" and "faqs". No other text.`
+    const half2System = `You are a professional SEO content writer.
+Write sections 6-9 of a long-form blog post.
+Return ONLY a valid JSON object with two keys: blocks and faqs.
+No extra text outside the JSON.
+
+STRICT RULES:
+- Section 6 (How to use tool): Write intro + numbered steps + callout
+  Each step must be a full sentence with detail, 20+ words
+- Section 7 (Mistakes): Write intro paragraph + 4 mistakes as ul items
+  Each mistake item: 25+ words explaining what and why
+- Section 8 (FAQ heading only): Just add H2 heading block
+- Section 9 (Conclusion): Write 2 full paragraphs, 60+ words each
+  Include strong CTA to AWE-OS tool with URL
+- EACH FAQ ANSWER: minimum 100 words, explain thoroughly
+- TOTAL CONTENT must be 750+ words
+
+Return format:
+{
+  "blocks": [
+    {"type":"h2","text":"Step by Step..."},
+    {"type":"p","text":"..."},
+    {"type":"ul","items":["Step 1: ...","Step 2: ..."]},
+    {"type":"callout","text":"...","links":[{"href":"/tools/slug","label":"Tool Name"}]},
+    {"type":"h2","text":"Common Mistakes..."},
+    {"type":"ul","items":["Mistake 1: explanation..."]},
+    {"type":"h2","text":"Frequently Asked Questions"},
+    {"type":"p","text":"Conclusion paragraph..."},
+    {"type":"p","text":"Second conclusion paragraph with CTA..."}
+  ],
+  "faqs": [
+    {"q":"Question 1?","a":"Full answer minimum 100 words..."},
+    {"q":"Question 2?","a":"Full answer minimum 100 words..."},
+    {"q":"Question 3?","a":"Full answer minimum 100 words..."},
+    {"q":"Question 4?","a":"Full answer minimum 100 words..."},
+    {"q":"Question 5?","a":"Full answer minimum 100 words..."}
+  ]
+}`
 
     const calloutHref  = toolSlug ? `/tools/${toolSlug}` : '/'
     const half2Prompt = `Write the SECOND HALF (sections 6-9) of a blog post.
@@ -233,7 +281,7 @@ Return this exact JSON structure:
     })
     const raw3        = call3.choices[0]?.message?.content || ''
     const secondData  = parseAIJson(raw3)
-    const secondBlocks = Array.isArray(secondData) ? secondData : (secondData.content || [])
+    const secondBlocks = Array.isArray(secondData) ? secondData : (secondData.blocks || secondData.content || [])
     const faqs        = secondData.faqs || []
 
     // ── Merge into final post ─────────────────────────────────────────────────
@@ -255,23 +303,28 @@ Return this exact JSON structure:
     }
 
     // ── Word count validation ─────────────────────────────────────────────────
-    const actualWc = allContent
-      .map(b => b.text || (b.items || []).join(' ') || (b.headers ? [...(b.headers || []), ...(b.rows || []).flat()].join(' ') : ''))
-      .join(' ')
-      .split(/\s+/)
-      .filter(Boolean)
-      .length
+    const countWords = (str) => (str || '').split(/\s+/).filter(Boolean).length
 
-    if (actualWc < wordCount * 0.8) {
+    const call2Words        = firstBlocks.map(b => countWords(b.text || (b.items || []).join(' ') || (b.headers ? [...(b.headers || []), ...(b.rows || []).flat()].join(' ') : ''))).reduce((a, b) => a + b, 0)
+    const call3ContentWords = secondBlocks.map(b => countWords(b.text || (b.items || []).join(' ') || (b.headers ? [...(b.headers || []), ...(b.rows || []).flat()].join(' ') : ''))).reduce((a, b) => a + b, 0)
+    const faqWords          = faqs.map(f => countWords(f.q + ' ' + f.a)).reduce((a, b) => a + b, 0)
+    const totalWords        = call2Words + call3ContentWords + faqWords
+
+    console.log('[blog/generate] Call 2 words:', call2Words)
+    console.log('[blog/generate] Call 3 content words:', call3ContentWords)
+    console.log('[blog/generate] FAQ words:', faqWords)
+    console.log('[blog/generate] Total words:', totalWords)
+
+    if (totalWords < wordCount * 0.7) {
       return res.json({
         success:        false,
-        error:          `Generated content too short (${actualWc} words). Please try again.`,
-        actualWords:    actualWc,
+        error:          `Generated content too short (${totalWords} words). Please try again.`,
+        actualWords:    totalWords,
         requestedWords: wordCount,
       })
     }
 
-    res.json({ success: true, post, actualWords: actualWc })
+    res.json({ success: true, post, actualWords: totalWords })
   } catch (err) {
     console.error('[admin-blog/generate]', err.message)
     res.status(500).json({ success: false, error: err.message || 'Generation failed' })
