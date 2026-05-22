@@ -1,5 +1,125 @@
 export const CITY_PAGES = [
   {
+    slug: 'gst-calculator/chennai',
+    title: 'Effortlessly Calculate Your GST with Our Chennai-Specific Tool',
+    metaTitle: 'Chennai GST Calculator Tool - Fast & Free',
+    metaDescription: 'Use our GST Calculator in Chennai today! Fast, free, and easy to use for businesses and individuals.',
+    content: [
+      {
+        type: 'h1',
+        text: 'Effortlessly Calculate Your GST with Our Chennai-Specific Tool'
+      },
+      {
+        type: 'p',
+        text: "In bustling Chennai, where the economy is as vibrant as the Marina Beach, understanding and managing your GST efficiently is crucial for both businesses and individuals. The GST Calculator tool at AWE-OS.com is designed specifically for Chennai users, providing an easy and precise way to compute Goods and Services Tax. Whether you're a small business in T. Nagar or an IT firm in OMR, keeping track of GST can save you time and help you stay compliant with the latest tax regulations. This tool is a must-have for anyone looking to simplify their GST calculations in the Chennai context."
+      },
+      {
+        type: 'h2',
+        text: 'Why Chennai Businesses Use GST Calculator'
+      },
+      {
+        type: 'p',
+        text: "Chennai's thriving business landscape, which includes industries ranging from automobile manufacturing to IT services, necessitates a reliable way to handle GST. Businesses located in diverse localities like Guindy and Velachery benefit from using a GST Calculator to streamline their invoicing processes, ensuring that they remain tax compliant while focusing on growth and innovation."
+      },
+      {
+        type: 'p',
+        text: "In Chennai, renowned for its burgeoning tech parks and manufacturing hubs, industries such as textiles and electronics are constantly dealing with complex financial transactions. The GST Calculator helps these businesses by breaking down tax components, thus facilitating better financial planning and management. Whether it's a textile exporter in Parrys Corner or an auto component manufacturer in Ambattur, this tool is an invaluable asset."
+      },
+      {
+        type: 'h2',
+        text: 'How to Use GST Calculator in Chennai'
+      },
+      {
+        type: 'p',
+        text: 'Using the GST Calculator in Chennai is straightforward. First, visit the GST Calculator page on AWE-OS.com. Enter the net amount of your goods or services and select the applicable GST rate, which can range from 5% to 28% depending on the product category. The calculator will instantly display the GST amount and the total amount payable. This tool is tailored for Chennai’s dynamic business environment, allowing users to make quick and reliable calculations, ensuring seamless financial operations across the city.'
+      },
+      {
+        type: 'ul',
+        items: [
+          'Quick calculations tailored for Chennai businesses',
+          'Supports multiple GST rates',
+          'User-friendly interface',
+          'Accurate results for compliance',
+          'Saves time and effort for Chennai users'
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Chennai Business Examples'
+      },
+      {
+        type: 'p',
+        text: 'Consider a furniture retailer in Anna Nagar, who needs to calculate GST on a ₹1,00,000 sale. Using the GST Calculator, they can determine the GST component at 18%, which would be ₹18,000, making the total invoice amount ₹1,18,000. Similarly, a software company in Sholinganallur can use this tool to quickly compute GST for their service invoices, ensuring accurate billing and compliance.'
+      },
+      {
+        type: 'p',
+        text: 'For a boutique in Mylapore selling designer sarees at ₹50,000, calculating the 5% GST would mean adding ₹2,500 to the bill, leading to a total of ₹52,500. This precise calculation helps maintain transparency with customers and ensures that businesses adhere to tax regulations effectively.'
+      },
+      {
+        type: 'h2',
+        text: 'Features & Benefits for Chennai Users'
+      },
+      {
+        type: 'table',
+        headers: [
+          'Feature',
+          'Benefit for Chennai Users'
+        ],
+        rows: [
+          [
+            '100% Free',
+            'No cost for Chennai SMEs and freelancers'
+          ],
+          [
+            'Works in Browser',
+            'No installation — works on any device in Chennai'
+          ],
+          [
+            'Instant Results',
+            'Get output in seconds, not hours'
+          ],
+          [
+            'No Signup',
+            'Use immediately without registration'
+          ],
+          [
+            'Indian Context',
+            'Designed for Indian tax, business, and compliance needs'
+          ]
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Conclusion'
+      },
+      {
+        type: 'p',
+        text: "In summary, the GST Calculator is an essential tool for anyone involved in Chennai's business ecosystem. Its ease of use and accuracy make it an indispensable asset for small business owners, freelancers, and large enterprises alike. We encourage you to use this free tool to enhance your financial operations and ensure compliance with the Indian GST framework. Simplify your tax calculations today with AWE-OS.com’s GST Calculator tailored for Chennai."
+      }
+    ],
+    faqs: [
+      {
+        q: 'Is GST Calculator free to use in Chennai?',
+        a: 'Yes, the GST Calculator is completely free for users in Chennai. Designed to support local businesses and individuals, this tool eliminates the need for costly software or services, making it accessible to everyone from small shop owners to large corporations.'
+      },
+      {
+        q: 'Can Chennai businesses use this tool for compliance?',
+        a: 'Absolutely. Chennai businesses can use this tool to ensure accurate GST calculations, thereby maintaining compliance with tax regulations. By providing precise tax breakdowns, the calculator helps businesses avoid errors that could lead to penalties, ensuring smooth and compliant financial operations.'
+      },
+      {
+        q: 'How does GST Calculator help Chennai freelancers?',
+        a: 'For freelancers in Chennai, the GST Calculator is a vital resource for managing finances. It enables them to quickly calculate the amount of GST to be charged to clients, ensuring that they remain compliant and can focus more on their creative work rather than financial complexities.'
+      },
+      {
+        q: 'Is the tool available in languages used in Chennai?',
+        a: "Currently, the GST Calculator is available in English, which is widely used in Chennai's business community. We are working towards including more regional languages to make the tool even more accessible to a diverse user base in Chennai."
+      }
+    ],
+    wordCount: 769,
+    id: 7,
+    publishedAt: '2026-05-22'
+  },
+  {
     slug: 'gst-calculator/hyderabad',
     title: 'Hyderabad GST Calculator for Local Businesses',
     metaTitle: 'GST Calculator in Hyderabad | AWE-OS',
