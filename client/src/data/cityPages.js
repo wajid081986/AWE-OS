@@ -1,5 +1,125 @@
 export const CITY_PAGES = [
   {
+    slug: 'gst-calculator/surat',
+    title: 'Surat GST Calculator: Simplify Your Tax Calculations',
+    metaTitle: 'Surat GST Calculator Tool | AWE-OS',
+    metaDescription: 'Calculate GST easily with our free tool in Surat. Perfect for businesses & freelancers. Try now!',
+    content: [
+      {
+        type: 'h1',
+        text: 'GST Calculator for Surat Businesses and Individuals'
+      },
+      {
+        type: 'p',
+        text: "In Surat, a city known for its thriving textile and diamond industries, staying compliant with GST regulations is crucial for businesses. Whether you are a small textile shop owner in the bustling markets of Ring Road or a diamond trader in Varachha, accurately calculating GST is essential to keep your business running smoothly. Our GST Calculator is designed specifically for Surat's dynamic business environment, providing an easy and efficient way to handle your tax calculations. With Surat's rapid industrial growth, managing GST effectively can give you a competitive edge, and our tool is here to assist you in making accurate financial decisions."
+      },
+      {
+        type: 'h2',
+        text: 'Why Surat Businesses Use GST Calculator'
+      },
+      {
+        type: 'p',
+        text: "Surat's economy is diverse, with businesses ranging from small local shops to large export houses. For these businesses, understanding and calculating GST can be complex, especially with varying tax rates across different products and services. Our GST Calculator provides an easy solution, allowing Surat entrepreneurs to focus more on growing their businesses rather than getting bogged down by tax computations."
+      },
+      {
+        type: 'p',
+        text: "The textile industry, a cornerstone of Surat's economy, often deals with multiple GST slabs. Similarly, diamond traders need accurate GST calculations to ensure compliance and profitability. By using the GST Calculator, these industries can avoid costly mistakes and ensure seamless tax management, which is crucial for maintaining their market position both locally and globally."
+      },
+      {
+        type: 'h2',
+        text: 'How to Use GST Calculator in Surat'
+      },
+      {
+        type: 'p',
+        text: "Using the GST Calculator is straightforward and user-friendly, designed to accommodate even those who may not be tech-savvy. Simply enter the amount on which you wish to calculate GST. Choose the applicable GST rate, which can vary from 5% to 28% depending on your product or service. Click 'Calculate' to instantly see the GST amount and total payable amount. This tool is perfect for Surat businesses operating in a fast-paced environment, enabling quick and accurate tax calculations without the need for complex software or accounting knowledge."
+      },
+      {
+        type: 'ul',
+        items: [
+          'Simple interface for Surat users',
+          'Accurate calculations saving time',
+          'Supports multiple GST rates',
+          'Accessible on any device',
+          'Helps in maintaining compliance'
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Surat Business Examples'
+      },
+      {
+        type: 'p',
+        text: 'Take, for instance, a textile manufacturer in Udhna who needs to compute GST on bulk orders daily. By using our tool, they can quickly calculate the tax on each transaction, ensuring accurate billing. Similarly, a diamond trader in Mahidharpura market can use the GST Calculator to manage invoices for international clients, simplifying the complex tax structures involved in exports.'
+      },
+      {
+        type: 'p',
+        text: 'For a small restaurant owner in Athwa, understanding the GST on food items can be critical for pricing strategies. By entering ₹10,000 as the total bill amount, the calculator can swiftly provide the GST amount based on the applicable rate, allowing for transparent and compliant billing practices.'
+      },
+      {
+        type: 'h2',
+        text: 'Features & Benefits for Surat Users'
+      },
+      {
+        type: 'table',
+        headers: [
+          'Feature',
+          'Benefit for Surat Users'
+        ],
+        rows: [
+          [
+            '100% Free',
+            'No cost for Surat SMEs and freelancers'
+          ],
+          [
+            'Works in Browser',
+            'No installation — works on any device in Surat'
+          ],
+          [
+            'Instant Results',
+            'Get output in seconds, not hours'
+          ],
+          [
+            'No Signup',
+            'Use immediately without registration'
+          ],
+          [
+            'Indian Context',
+            'Designed for Indian tax, business, and compliance needs'
+          ]
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Conclusion'
+      },
+      {
+        type: 'p',
+        text: "For businesses and individuals in Surat, our GST Calculator is an invaluable tool for managing tax calculations with ease and accuracy. By offering a user-friendly interface and instant results, it supports Surat's vibrant business community in maintaining compliance and optimizing financial performance. We encourage Surat's entrepreneurs, freelancers, and business owners to take advantage of this free resource to simplify their GST management and focus more on what they do best — growing their business."
+      }
+    ],
+    faqs: [
+      {
+        q: 'Is GST Calculator free to use in Surat?',
+        a: 'Yes, the GST Calculator is completely free for Surat users. Designed to support local businesses and freelancers, it allows you to calculate GST without any cost, making it an ideal tool for managing your finances efficiently.'
+      },
+      {
+        q: 'Can Surat businesses use this tool for compliance?',
+        a: 'Absolutely, Surat businesses can rely on the GST Calculator to ensure compliance with the latest tax regulations. Whether you are in the textile or diamond industry, the calculator supports accurate calculations that help in maintaining proper records and adhering to GST laws.'
+      },
+      {
+        q: 'How does GST Calculator help Surat freelancers?',
+        a: 'For freelancers in Surat, the GST Calculator provides a simple way to compute taxes on their earnings. This is particularly useful for those offering services locally or to clients across India, ensuring they can manage their finances and remain compliant with minimal hassle.'
+      },
+      {
+        q: 'Is the tool available in languages used in Surat?',
+        a: 'The GST Calculator is designed with Indian users in mind, supporting English and Hindi. While it currently does not support Gujarati, our user-friendly interface ensures that it remains accessible to most users in Surat.'
+      }
+    ],
+    wordCount: 770,
+    id: 12,
+    publishedAt: '2026-05-22'
+  },
+  {
     slug: 'gst-calculator/jaipur',
     title: "Jaipur's Comprehensive GST Calculator",
     metaTitle: 'Jaipur GST Calculator Tool for Easy Business',
