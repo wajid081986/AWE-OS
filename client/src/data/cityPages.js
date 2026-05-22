@@ -1,5 +1,125 @@
 export const CITY_PAGES = [
   {
+    slug: 'gst-calculator/patna',
+    title: 'GST Calculator for Patna: Simplifying Tax Calculations',
+    metaTitle: 'GST Calculator for Patna Businesses',
+    metaDescription: 'Calculate GST easily in Patna. Try our free tool now!',
+    content: [
+      {
+        type: 'h1',
+        text: 'GST Calculator for Patna'
+      },
+      {
+        type: 'p',
+        text: "Navigating the complexities of GST can be particularly challenging for businesses and individuals in Patna, especially with the city's vibrant mix of traditional and modern enterprises. As Patna continues to grow as a business hub, understanding GST is crucial for compliance and financial planning. Our GST Calculator is designed to simplify this process, allowing you to effortlessly compute GST amounts, ensuring you remain compliant while focusing on your core business activities."
+      },
+      {
+        type: 'h2',
+        text: 'Why Patna Businesses Use GST Calculator'
+      },
+      {
+        type: 'p',
+        text: 'In Patna, where local markets like Mithapur and New Market are bustling with activity, businesses need a reliable tool to calculate GST accurately. This is especially true for small and medium enterprises (SMEs) that often operate with limited resources and cannot afford to maintain extensive accounting departments.'
+      },
+      {
+        type: 'p',
+        text: 'For industries such as textiles in Patna City and the emerging IT sector in areas like Kankarbagh, having a fast and efficient way to calculate GST is invaluable. These businesses often deal with multiple suppliers and clients, making GST calculations a critical part of their daily transactions.'
+      },
+      {
+        type: 'h2',
+        text: 'How to Use GST Calculator in Patna'
+      },
+      {
+        type: 'p',
+        text: "Using the GST Calculator in Patna is straightforward and designed for ease of use. First, enter the net amount of your transaction into the calculator. Next, select the applicable GST rate, which is typically 5%, 12%, 18%, or 28% depending on your goods or services. Finally, click 'Calculate' to instantly view the GST amount and the total transaction value including GST. This process ensures that Patna businesses can quickly and accurately determine their tax liabilities without any hassle."
+      },
+      {
+        type: 'ul',
+        items: [
+          'Easy to use for Patna traders',
+          'Supports multiple GST rates',
+          'No need for extensive accounting knowledge',
+          'Saves time for Patna businesses',
+          'Helps ensure compliance with Indian GST laws'
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Patna Business Examples'
+      },
+      {
+        type: 'p',
+        text: 'Consider a textile shop in Patna City that deals with wholesale fabric. Using the GST Calculator, the shop owner can quickly determine the GST payable on a bulk sale, ensuring accurate pricing for both the retailer and the end customer. Similarly, an IT services provider in Kankarbagh can use the tool to calculate GST on service invoices, streamlining their billing process.'
+      },
+      {
+        type: 'p',
+        text: 'For instance, if a local sweet shop in Mithapur sells ₹10,000 worth of sweets, they can easily calculate a 5% GST, amounting to ₹500. This straightforward calculation helps maintain transparency with customers and aids in financial planning.'
+      },
+      {
+        type: 'h2',
+        text: 'Features & Benefits for Patna Users'
+      },
+      {
+        type: 'table',
+        headers: [
+          'Feature',
+          'Benefit for Patna Users'
+        ],
+        rows: [
+          [
+            '100% Free',
+            'No cost for Patna SMEs and freelancers'
+          ],
+          [
+            'Works in Browser',
+            'No installation — works on any device in Patna'
+          ],
+          [
+            'Instant Results',
+            'Get output in seconds, not hours'
+          ],
+          [
+            'No Signup',
+            'Use immediately without registration'
+          ],
+          [
+            'Indian Context',
+            'Designed for Indian tax, business, and compliance needs'
+          ]
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Conclusion'
+      },
+      {
+        type: 'p',
+        text: 'In conclusion, the GST Calculator is an indispensable tool for businesses and individuals in Patna, offering ease of use, accuracy, and efficiency. Whether you are a shopkeeper in Mithapur or a freelancer in Kankarbagh, this tool can simplify your tax calculations, allowing you to focus on growing your business. Try our free GST Calculator today to experience its benefits firsthand and ensure seamless compliance with GST regulations.'
+      }
+    ],
+    faqs: [
+      {
+        q: 'Is GST Calculator free to use in Patna?',
+        a: 'Yes, our GST Calculator is completely free for users in Patna. It allows businesses and individuals to calculate GST without any charges, making it an ideal tool for SMEs and freelancers in the city.'
+      },
+      {
+        q: 'Can Patna businesses use this tool for compliance?',
+        a: 'Absolutely. Patna businesses can use the GST Calculator to ensure compliance with the latest GST regulations. It provides accurate calculations, helping businesses maintain proper records for audit and tax filing purposes.'
+      },
+      {
+        q: 'How does GST Calculator help Patna freelancers?',
+        a: 'For freelancers in Patna, the GST Calculator simplifies the process of calculating GST on invoices, ensuring they can focus more on their work rather than on complex tax computations. It streamlines invoicing, ensuring accurate and timely payment of taxes.'
+      },
+      {
+        q: 'Is the tool available in languages used in Patna?',
+        a: 'Currently, the GST Calculator is available in English, which is widely used for business transactions in Patna. However, we are working on offering additional language support to cater to the diverse linguistic needs of the city.'
+      }
+    ],
+    wordCount: 685,
+    id: 22,
+    publishedAt: '2026-05-22'
+  },
+  {
     slug: 'gst-calculator/visakhapatnam',
     title: 'Visakhapatnam GST Calculator for Businesses and Individuals',
     metaTitle: 'Visakhapatnam GST Calculator Tool - AWE-OS',
