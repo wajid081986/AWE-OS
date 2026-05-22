@@ -320,7 +320,7 @@ Return ONLY valid JSON:
 
 Tool: ${tool1Name || tool1Slug} — https://awe-os.com/tools/${tool1Slug}
 City: ${cityName}, India
-Target URL: /tools/${tool1Slug}/${citySlug}
+Target URL: /${tool1Slug}/${citySlug}
 Audience: ${cityName} businesses and individuals. Use ₹, ${cityName} examples, local business context.
 Requirement: MINIMUM 700 words across content blocks. Each section must have 2-3 full paragraphs.
 
@@ -456,7 +456,7 @@ async function publishCityPageToGitHub(newPage, slug) {
     success:   true,
     slug,
     id:        newPage.id,
-    liveUrl:   `https://www.awe-os.com/tools/${slug}`,
+    liveUrl:   `https://www.awe-os.com/${slug}`,
     commitUrl: pushData.commit?.html_url,
   }
 }

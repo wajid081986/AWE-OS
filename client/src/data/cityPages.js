@@ -1,2 +1,37 @@
 export const CITY_PAGES = [
+  {
+    id: 1,
+    toolSlug: 'gst-calculator',
+    toolName: 'GST Calculator',
+    cityName: 'Mumbai',
+    slug: 'gst-calculator/mumbai',
+    title: 'GST Calculator Mumbai — Free Online Tool for Mumbai Businesses',
+    metaTitle: 'Free GST Calculator Mumbai 2026 | AWE-OS',
+    metaDescription: 'Calculate GST for Mumbai businesses instantly. CGST + SGST breakdown. Free, no signup required.',
+    content: [
+      { type: 'p', text: 'Mumbai businesses handle thousands of GST transactions daily. Whether you run a retail shop in Dharavi, a restaurant in Bandra, or a consulting firm in BKC — accurate GST calculation protects you from compliance errors and audit risks.' },
+      { type: 'h2', text: 'GST Rates for Mumbai Businesses' },
+      { type: 'p', text: 'All Mumbai business sales are intra-state Maharashtra transactions — they attract CGST + SGST, never IGST. IGST applies only when selling to customers in other states.' },
+      { type: 'table',
+        headers: ['GST Rate', 'CGST', 'SGST', 'Common Examples'],
+        rows: [
+          ['5%', '2.5%', '2.5%', 'Restaurant meals, packaged food, textiles'],
+          ['12%', '6%', '6%', 'Processed foods, mobile phones, hotels'],
+          ['18%', '9%', '9%', 'Electronics, AC restaurants, professional services'],
+          ['28%', '14%', '14%', 'Luxury cars, tobacco, aerated drinks'],
+        ],
+      },
+      { type: 'h2', text: 'How to Calculate GST for Mumbai Transactions' },
+      { type: 'p', text: 'For a Mumbai garment retailer selling to a local customer: Product ₹2,000 at 5% GST. GST = ₹100 (CGST ₹50 + SGST ₹50). Total invoice: ₹2,100. For an IT services firm billing ₹50,000 at 18%: GST = ₹9,000 (CGST ₹4,500 + SGST ₹4,500). Total: ₹59,000.' },
+      { type: 'h2', text: 'GST Registration for Mumbai Businesses' },
+      { type: 'p', text: 'Mumbai businesses crossing ₹40 lakh annual turnover (₹20 lakh for services) must register for GST. Most established Mumbai businesses exceed this threshold. E-commerce sellers must register regardless of turnover.' },
+    ],
+    faqs: [
+      { q: 'Is GST calculated differently for Mumbai businesses?', a: 'No — GST rates are uniform across India. However, Mumbai businesses always pay CGST + SGST for local (intra-Maharashtra) transactions. IGST applies only when selling to customers outside Maharashtra. The AWE-OS GST Calculator automatically shows the correct split.' },
+      { q: 'What is the GST registration threshold in Mumbai?', a: 'Mumbai businesses must register for GST if annual turnover exceeds ₹40 lakhs for goods or ₹20 lakhs for services. E-commerce sellers must register regardless of turnover. Failure to register attracts a penalty equal to 10% of tax due or ₹10,000, whichever is higher.' },
+      { q: 'Which GST rate applies to Mumbai restaurants?', a: 'Non-AC Mumbai restaurants charge 5% GST without Input Tax Credit. AC restaurants may charge 5% (without ITC) or 18% (with ITC). For a ₹1,000 meal at a non-AC restaurant: GST = ₹50. For an AC restaurant at 18%: GST = ₹180.' },
+    ],
+    publishedAt: '2026-05-22',
+    wordCount: 680,
+  },
 ]

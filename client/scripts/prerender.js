@@ -53,6 +53,14 @@ try {
   BLOG_POSTS = []
 }
 
+let CITY_PAGES = []
+try {
+  const cityData = await import('../src/data/cityPages.js')
+  CITY_PAGES = cityData.CITY_PAGES ?? []
+} catch (e) {
+  console.warn('⚠️  Could not import cityPages.js — city routes will be skipped.')
+}
+
 // ── Lookup helpers ────────────────────────────────────────────────────────────
 
 const slugToTool     = new Map(TOOL_REGISTRY.map(t => [t.slug, t]))
@@ -210,6 +218,31 @@ function buildCategoryBody(cat) {
 <p>${esc(cat.description)}</p>
 ${cat.intro?.body ? `<p>${esc(cat.intro.body)}</p>` : ''}
 ${toolList}
+</main>`
+}
+
+function buildCityBody(cityPage) {
+  const toolLabel = cityPage.toolName || cityPage.toolSlug || ''
+  const cityLabel = cityPage.cityName || ''
+  const bc = breadcrumb([
+    { href: '/', label: 'Home' },
+    { href: '/tools', label: 'Tools' },
+    { href: `/tools/${cityPage.toolSlug}`, label: toolLabel },
+    { label: cityLabel },
+  ])
+  const blocks = (cityPage.content || []).map(b => {
+    if (b.type === 'h1' || b.type === 'h2') return `<h${b.type.slice(1)}>${esc(b.text)}</h${b.type.slice(1)}>`
+    if (b.type === 'p') return `<p>${esc(b.text)}</p>`
+    if (b.type === 'ul') return `<ul>${(b.items || []).map(i => `<li>${esc(i)}</li>`).join('')}</ul>`
+    return ''
+  }).join('\n')
+  const faqItems = (cityPage.faqs || []).map(f =>
+    `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`
+  ).join('\n')
+  return `${bc}
+<main>
+${blocks}
+${faqItems ? `<section><h2>Frequently Asked Questions</h2>${faqItems}</section>` : ''}
 </main>`
 }
 
@@ -473,11 +506,26 @@ const BLOG_ROUTES = BLOG_POSTS.map(post => ({
   _post: post,
 }))
 
+const CITY_ROUTES = CITY_PAGES.map(cityPage => ({
+  path: `/${cityPage.slug}`,   // e.g. /gst-calculator/mumbai
+  title: cityPage.metaTitle || cityPage.title || `${cityPage.toolName} for ${cityPage.cityName}`,
+  description: cityPage.metaDescription || '',
+  schema: {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: cityPage.title || '',
+    description: cityPage.metaDescription || '',
+    url: `${SITE_URL}/${cityPage.slug}`,
+  },
+  _cityPage: cityPage,
+}))
+
 const ALL_ROUTES = [
   ...STATIC_ROUTES,
   ...CATEGORY_ROUTES,
   ...TOOL_ROUTES,
   ...BLOG_ROUTES,
+  ...CITY_ROUTES,
 ]
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -518,6 +566,8 @@ for (const route of ALL_ROUTES) {
       bodyHTML = buildCategoryBody(route._cat)
     } else if (route._post) {
       bodyHTML = buildBlogBody(route._post)
+    } else if (route._cityPage) {
+      bodyHTML = buildCityBody(route._cityPage)
     } else if (route.path === '/') {
       bodyHTML = buildHomeBody()
     } else if (route.path === '/tools') {
@@ -544,6 +594,7 @@ console.log(`   📄 Static pages : ${STATIC_ROUTES.length}`)
 console.log(`   📂 Categories   : ${CATEGORY_ROUTES.length}`)
 console.log(`   🛠️  Tools        : ${TOOL_ROUTES.length}`)
 console.log(`   📝 Blog posts   : ${BLOG_ROUTES.length}`)
+console.log(`   🏙️  City pages   : ${CITY_ROUTES.length}`)
 
 if (errors.length) {
   console.error(`\n⚠️  ${errors.length} route(s) failed:`)

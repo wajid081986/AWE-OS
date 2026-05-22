@@ -1,5 +1,6 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, Navigate } from 'react-router-dom'
 import { CITY_PAGES } from '../data/cityPages'
+import { TOOL_REGISTRY } from '../data/toolRegistry'
 
 function renderBlock(block, i) {
   switch (block.type) {
@@ -46,33 +47,21 @@ function renderBlock(block, i) {
 export default function CityToolPage() {
   const { toolSlug, city } = useParams()
 
+  // Guard 1 — toolSlug must be a known AWE-OS tool
+  const validTool = TOOL_REGISTRY.find(t => t.slug === toolSlug)
+  if (!validTool) return <Navigate to="/404" replace />
+
   const page = CITY_PAGES.find(p =>
     p.slug === `${toolSlug}/${city}` ||
     (p.toolSlug === toolSlug &&
       (p.cityName || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') === city)
   )
 
-  const cityLabel  = (city || '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-  const toolLabel  = (toolSlug || '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+  const cityLabel = (city || '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+  const toolLabel = validTool.name || (toolSlug || '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 
-  if (!page) {
-    return (
-      <main className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <p className="text-5xl mb-4">🏙️</p>
-        <h1 className="text-2xl font-bold text-gray-900 mb-3">{toolLabel} for {cityLabel}</h1>
-        <p className="text-gray-500 mb-8">This city-specific page is being prepared — check back soon.</p>
-        <div className="flex gap-4 justify-center">
-          <Link to={`/tools/${toolSlug}`}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
-            Use {toolLabel} Free →
-          </Link>
-          <Link to="/tools" className="border border-gray-300 hover:border-gray-400 text-gray-700 px-6 py-3 rounded-lg font-medium transition-colors">
-            All Tools
-          </Link>
-        </div>
-      </main>
-    )
-  }
+  // Guard 2 — city page not yet published → redirect to the tool page
+  if (!page) return <Navigate to={`/tools/${toolSlug}`} replace />
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
@@ -82,9 +71,9 @@ export default function CityToolPage() {
         <span>/</span>
         <Link to="/tools" className="hover:text-indigo-600">Tools</Link>
         <span>/</span>
-        <Link to={`/tools/${toolSlug}`} className="hover:text-indigo-600 capitalize">{toolLabel}</Link>
+        <Link to={`/tools/${toolSlug}`} className="hover:text-indigo-600">{toolLabel}</Link>
         <span>/</span>
-        <span className="text-gray-800 capitalize">{cityLabel}</span>
+        <span className="text-gray-800">{cityLabel}</span>
       </nav>
 
       {/* Content blocks */}

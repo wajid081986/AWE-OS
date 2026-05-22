@@ -140,9 +140,6 @@ export default function AppRoutes() {
         <Route path="/tools/ai"           element={lazy$(<CategoryPage category="ai" />)} />
         <Route path="/tools/productivity" element={lazy$(<CategoryPage category="productivity" />)} />
 
-        {/* City-specific tool pages — must be before /tools/:slug */}
-        <Route path="/tools/:toolSlug/:city" element={lazy$(<CityToolPage />)} />
-
         {/* Dynamic tool renderer — handles all /tools/:slug routes.
             Dedicated components are resolved first; unknown slugs fall back
             to the API-driven ToolDetailPage (for autonomous-pipeline tools). */}
@@ -163,6 +160,11 @@ export default function AppRoutes() {
 
         {/* Legacy redirect shim: /privacy → /privacy-policy (same component) */}
         <Route path="/privacy" element={lazy$(<PrivacyPolicy />)} />
+
+        {/* City-specific tool pages — /:toolSlug/:city (e.g. /gst-calculator/mumbai).
+            RR6 ranks static segments higher, so /blog/:slug, /tools/:slug etc. all
+            win over this. Guard inside CityToolPage validates toolSlug vs TOOL_REGISTRY. */}
+        <Route path="/:toolSlug/:city" element={lazy$(<CityToolPage />)} />
 
       </Route>
 

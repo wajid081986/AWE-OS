@@ -255,7 +255,7 @@ export default function ProgrammaticSeo() {
             type:      'city',
             title:     page.title || `${toolName || toolSlug} for ${city}`,
             slug:      page.slug || slug,
-            url:       `https://awe-os.com/tools/${slug}`,
+            url:       `https://awe-os.com/${slug}`,
             date:      new Date().toISOString().split('T')[0],
             wordCount: page.wordCount || 0,
           })
@@ -265,7 +265,7 @@ export default function ProgrammaticSeo() {
             completed: prev.completed + 1,
             results: [...prev.results, {
               city, status: 'published',
-              url:      `/tools/${slug}`,
+              url:      `/${slug}`,
               wordCount: page.wordCount,
             }],
           }))
@@ -330,7 +330,7 @@ export default function ProgrammaticSeo() {
   const qualityOk = wordCount >= 600
 
   const cityUrlPreviews = form.tool1Slug
-    ? selectedCities.map(city => `/tools/${form.tool1Slug}/${toSlug(city)}`)
+    ? selectedCities.map(city => `/${form.tool1Slug}/${toSlug(city)}`)
     : []
 
   const customCities = selectedCities.filter(c => !INDIAN_CITIES.includes(c))
