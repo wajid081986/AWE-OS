@@ -1,5 +1,125 @@
 export const CITY_PAGES = [
   {
+    slug: 'gst-calculator/mumbai',
+    title: 'GST Calculator for Mumbai Businesses and Individuals',
+    metaTitle: 'GST Calculator Mumbai - Easy Tax Calculations',
+    metaDescription: 'Use our GST Calculator for Mumbai to simplify tax calculations. Free and easy to use for local businesses.',
+    content: [
+      {
+        type: 'h1',
+        text: 'GST Calculator for Mumbai: Simplify Your Tax Calculations'
+      },
+      {
+        type: 'p',
+        text: "Mumbai, the bustling financial hub of India, is home to a diverse range of businesses, from small startups in Andheri to large corporations in Nariman Point. With the introduction of the Goods and Services Tax (GST), businesses and individuals in Mumbai need a reliable tool to manage their tax calculations efficiently. Our GST Calculator is designed to cater specifically to Mumbai's dynamic business environment, helping you save time and avoid errors in tax computation."
+      },
+      {
+        type: 'h2',
+        text: 'Why Mumbai Businesses Use GST Calculator'
+      },
+      {
+        type: 'p',
+        text: 'In Mumbai, where the pace of business is ever-accelerating, efficiency is key. Businesses in areas like Lower Parel and Bandra Kurla Complex are constantly seeking ways to streamline their operations. The GST Calculator provides an easy solution to compute taxes accurately, ensuring compliance and freeing up resources for other critical business activities.'
+      },
+      {
+        type: 'p',
+        text: 'Industries such as textiles in Dharavi and entertainment in Film City benefit greatly from the GST Calculator. These sectors often deal with complex supply chains and multiple tax rates, making the calculator an invaluable tool for simplifying their financial processes and ensuring accurate tax reporting.'
+      },
+      {
+        type: 'h2',
+        text: 'How to Use GST Calculator in Mumbai'
+      },
+      {
+        type: 'p',
+        text: 'Using the GST Calculator in Mumbai is straightforward. Start by entering the taxable amount in rupees. Next, select the applicable GST rate, which can vary based on the product or service. The calculator will instantly provide the total GST amount and the gross amount payable. This tool is especially useful for Mumbai businesses dealing with frequent transactions, as it allows for quick and accurate calculations, helping maintain focus on core business activities.'
+      },
+      {
+        type: 'ul',
+        items: [
+          'Easy to use for all Mumbai residents',
+          'Accurate calculations tailored for Indian GST rates',
+          'Saves time for busy Mumbai professionals',
+          'Helps avoid costly errors in tax submissions',
+          "Accessible on any device for Mumbai's on-the-go lifestyle"
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Mumbai Business Examples'
+      },
+      {
+        type: 'p',
+        text: 'Consider a wholesaler in Crawford Market who deals with a variety of goods. With the GST Calculator, they can quickly determine the tax implications for each product category, ensuring they remain competitive with accurate pricing. Similarly, a tech startup in Powai can use the tool to manage their financial planning, helping them understand their cash flow better.'
+      },
+      {
+        type: 'p',
+        text: 'For instance, if a local café in Colaba generates a monthly revenue of ₹5,00,000, using the GST Calculator can help them accurately calculate their tax liability, allowing them to plan their finances better. This tool is a game-changer for businesses dealing with multiple transactions daily.'
+      },
+      {
+        type: 'h2',
+        text: 'Features & Benefits for Mumbai Users'
+      },
+      {
+        type: 'table',
+        headers: [
+          'Feature',
+          'Benefit for Mumbai Users'
+        ],
+        rows: [
+          [
+            '100% Free',
+            'No cost for Mumbai SMEs and freelancers'
+          ],
+          [
+            'Works in Browser',
+            'No installation — works on any device in Mumbai'
+          ],
+          [
+            'Instant Results',
+            'Get output in seconds, not hours'
+          ],
+          [
+            'No Signup',
+            'Use immediately without registration'
+          ],
+          [
+            'Indian Context',
+            'Designed for Indian tax, business, and compliance needs'
+          ]
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Conclusion'
+      },
+      {
+        type: 'p',
+        text: 'The GST Calculator is an essential tool for anyone in Mumbai looking to simplify their tax processes. From freelancers to large enterprises, this free tool offers a hassle-free way to ensure accurate tax calculations. Embrace efficiency and accuracy in your financial dealings by using our GST Calculator today.'
+      }
+    ],
+    faqs: [
+      {
+        q: 'Is GST Calculator free to use in Mumbai?',
+        a: 'Yes, the GST Calculator is completely free for all users in Mumbai, whether you are a small business owner or an independent professional. It allows you to make accurate tax calculations without any charges, making it an economical choice for your financial needs.'
+      },
+      {
+        q: 'Can Mumbai businesses use this tool for compliance?',
+        a: 'Absolutely. The GST Calculator is designed to align with the Indian GST framework, making it ideal for businesses in Mumbai to ensure compliance. It helps in accurate tax computation, which is crucial for avoiding penalties and staying compliant with tax regulations.'
+      },
+      {
+        q: 'How does GST Calculator help Mumbai freelancers?',
+        a: 'For freelancers in Mumbai, managing finances is crucial. The GST Calculator aids by providing quick and precise tax calculations, allowing freelancers to focus on their work rather than complex tax computations, thus saving time and reducing stress.'
+      },
+      {
+        q: 'Is the tool available in languages used in Mumbai?',
+        a: "Currently, the GST Calculator is available primarily in English. However, its user-friendly interface ensures that even those who are not fluent in English can use it easily. We are working on adding more language options to cater to Mumbai's diverse population."
+      }
+    ],
+    wordCount: 703,
+    id: 3,
+    publishedAt: '2026-05-22'
+  },
+  {
     slug: 'gst-calculator/hyderabad',
     title: 'GST Calculator for Hyderabad Businesses and Individuals',
     metaTitle: 'Hyderabad GST Calculator – Calculate Your Taxes Easily',
