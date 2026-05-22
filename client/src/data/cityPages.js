@@ -1,5 +1,125 @@
 export const CITY_PAGES = [
   {
+    slug: 'gst-calculator/kolkata',
+    title: 'Calculate GST Effortlessly with the Kolkata GST Calculator',
+    metaTitle: 'Kolkata GST Calculator - Easy & Accurate',
+    metaDescription: 'Use the GST Calculator in Kolkata for accurate tax calculations. Try it now!',
+    content: [
+      {
+        type: 'h1',
+        text: 'Kolkata GST Calculator - Simplify Your Tax Calculations'
+      },
+      {
+        type: 'p',
+        text: "In the bustling city of Kolkata, business transactions are a daily affair. Whether you're managing a small shop in Gariahat or running a large enterprise in Salt Lake City, accurately calculating Goods and Services Tax (GST) is crucial. As businesses strive to keep up with the dynamic market, a tool like the GST Calculator becomes indispensable. This tool is especially beneficial for Kolkata's vibrant business community, helping ensure compliance and efficiency in transactions."
+      },
+      {
+        type: 'h2',
+        text: 'Why Kolkata Businesses Use GST Calculator'
+      },
+      {
+        type: 'p',
+        text: 'Kolkata, known for its rich cultural heritage and growing economy, houses a diverse range of businesses. From traditional crafts in Kumartuli to the modern IT hubs in Sector V, understanding and managing GST is essential. The GST Calculator aids businesses by providing quick and accurate calculations, reducing errors and saving time.'
+      },
+      {
+        type: 'p',
+        text: 'For instance, a local restaurant in Park Street can use the GST Calculator to seamlessly compute taxes on daily transactions, ensuring pricing accuracy and customer satisfaction. Similarly, a textile merchant in Burrabazar can efficiently manage bulk orders without the hassle of manual calculations, thus streamlining operations and improving profitability.'
+      },
+      {
+        type: 'h2',
+        text: 'How to Use GST Calculator in Kolkata'
+      },
+      {
+        type: 'p',
+        text: "Using the GST Calculator in Kolkata is straightforward. First, enter the net amount of your transaction. Next, select the applicable GST rate, which varies depending on your industry and products. Click ‘Calculate’ to instantly receive the total tax amount and the gross value. This tool is designed to be user-friendly, ensuring that even those unfamiliar with digital tools can use it effectively, making it perfect for Kolkata's traditional and modern businesses alike."
+      },
+      {
+        type: 'ul',
+        items: [
+          'Instant calculations tailored for Kolkata businesses',
+          'User-friendly interface for all skill levels',
+          'Helps ensure compliance with Indian GST laws',
+          'Saves time on manual calculations',
+          'Accessible anytime, anywhere in Kolkata'
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Kolkata Business Examples'
+      },
+      {
+        type: 'p',
+        text: 'Consider a boutique in South City Mall that specializes in designer garments. During sales, accurately applying GST can be a daunting task. With the GST Calculator, the boutique can quickly determine the tax amount, ensuring transparency and avoiding customer disputes. Similarly, a tech start-up in Rajarhat uses the calculator to manage expenses and revenues effectively, facilitating better financial planning and reporting.'
+      },
+      {
+        type: 'p',
+        text: 'For a grocery store in New Market, where transactions are high in volume but low in individual value, using the GST Calculator allows for quick processing of daily sales, often totaling in lakhs. By ensuring accuracy, it helps maintain trust among suppliers and customers while handling significant amounts like ₹50,000 to ₹1,00,000 daily.'
+      },
+      {
+        type: 'h2',
+        text: 'Features & Benefits for Kolkata Users'
+      },
+      {
+        type: 'table',
+        headers: [
+          'Feature',
+          'Benefit for Kolkata Users'
+        ],
+        rows: [
+          [
+            '100% Free',
+            'No cost for Kolkata SMEs and freelancers'
+          ],
+          [
+            'Works in Browser',
+            'No installation — works on any device in Kolkata'
+          ],
+          [
+            'Instant Results',
+            'Get output in seconds, not hours'
+          ],
+          [
+            'No Signup',
+            'Use immediately without registration'
+          ],
+          [
+            'Indian Context',
+            'Designed for Indian tax, business, and compliance needs'
+          ]
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Conclusion'
+      },
+      {
+        type: 'p',
+        text: "In conclusion, the GST Calculator is an invaluable tool for Kolkata's diverse business landscape. Whether you're a freelancer in Ballygunge or a large corporation in Salt Lake, this tool simplifies GST calculations, ensuring accuracy and compliance. Embrace this free resource to enhance your business operations and stay ahead in the competitive market."
+      }
+    ],
+    faqs: [
+      {
+        q: 'Is GST Calculator free to use in Kolkata?',
+        a: 'Yes, the GST Calculator is completely free for all users in Kolkata. There are no hidden charges or subscription fees, making it accessible for small businesses, freelancers, and large enterprises alike.'
+      },
+      {
+        q: 'Can Kolkata businesses use this tool for compliance?',
+        a: 'Absolutely. The GST Calculator is designed to help businesses in Kolkata comply with the Indian GST regulations. By providing accurate tax calculations, it ensures that businesses can file their returns correctly and on time.'
+      },
+      {
+        q: 'How does GST Calculator help Kolkata freelancers?',
+        a: 'Freelancers in Kolkata can use this tool to quickly calculate the GST applicable on their services. This helps in setting accurate prices and ensures that they remain compliant with tax regulations, making it easier to manage their finances.'
+      },
+      {
+        q: 'Is the tool available in languages used in Kolkata?',
+        a: 'Currently, the GST Calculator is available in English, which is widely used in business transactions in Kolkata. However, we are exploring options to include more regional languages in the future to cater to a wider audience.'
+      }
+    ],
+    wordCount: 692,
+    id: 9,
+    publishedAt: '2026-05-22'
+  },
+  {
     slug: 'gst-calculator/pune',
     title: "Pune's Essential GST Calculator Tool",
     metaTitle: 'GST Calculator for Pune Businesses',
