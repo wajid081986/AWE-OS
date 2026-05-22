@@ -1,5 +1,125 @@
 export const CITY_PAGES = [
   {
+    slug: 'gst-calculator/indore',
+    title: 'Indore GST Calculator: Simplify Your Business Taxes',
+    metaTitle: 'Indore GST Calculator: Quick & Free Tool',
+    metaDescription: 'Use our GST Calculator for Indore to simplify tax calculations. Perfect for local businesses.',
+    content: [
+      {
+        type: 'h1',
+        text: 'Indore GST Calculator: Simplify Your Business Taxes'
+      },
+      {
+        type: 'p',
+        text: "Indore, with its vibrant commercial landscape and bustling economy, is a hub for small and medium enterprises (SMEs), freelancers, and large businesses. As the city continues to thrive, the need for efficient tax management becomes paramount. Our GST Calculator is designed specifically for Indore's dynamic market, helping local businesses and individuals easily calculate Goods and Services Tax (GST). This tool is indispensable for anyone dealing with finances in Indore, ensuring you stay compliant with the latest tax regulations while saving time and reducing errors."
+      },
+      {
+        type: 'h2',
+        text: 'Why Indore Businesses Use GST Calculator'
+      },
+      {
+        type: 'p',
+        text: 'In Indore, businesses range from textile manufacturers to IT startups, all of which require precise financial calculations to thrive. The GST Calculator is vital for these businesses to accurately compute taxes on their goods and services. This tool simplifies the complex tax structure, allowing businesses to focus more on growth and less on paperwork, thus enhancing productivity and ensuring compliance with tax laws.'
+      },
+      {
+        type: 'p',
+        text: 'Industries in Indore, such as the food processing sector and the renowned Pithampur industrial area, rely heavily on accurate tax calculations. By using the GST Calculator, these industries can seamlessly manage their tax liabilities, ensuring that they remain competitive while adhering to all regulatory requirements. This tool is particularly beneficial for businesses dealing with interstate commerce, where tax calculations can become intricate.'
+      },
+      {
+        type: 'h2',
+        text: 'How to Use GST Calculator in Indore'
+      },
+      {
+        type: 'p',
+        text: 'Using the GST Calculator for your business in Indore is straightforward. First, input the net amount of your bill. Next, select the applicable GST rate, which varies depending on the nature of goods or services. Our tool will instantly calculate the total amount including GST. This process eliminates manual calculations, reducing the risk of errors and saving time. Whether you are at your office in Vijay Nagar or operating from a textile shop in Rajwada, our GST Calculator is accessible and user-friendly on any device.'
+      },
+      {
+        type: 'ul',
+        items: [
+          'Instantly calculates GST for Indore businesses',
+          'User-friendly interface for quick access',
+          'No technical expertise needed',
+          'Accurate results tailored for Indian tax rates',
+          'Helps manage both local and interstate transactions'
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Indore Business Examples'
+      },
+      {
+        type: 'p',
+        text: 'Consider the bustling Sarafa Bazaar, where jewelers need to calculate GST on their sales. By using our GST Calculator, they can quickly determine the tax amount on each transaction, ensuring transparency and compliance. Similarly, IT companies in the IT Park need to factor in GST for their services, making our tool indispensable for their billing processes.'
+      },
+      {
+        type: 'p',
+        text: "Local businesses, such as a textile trader in Pithampur, can use the GST Calculator to determine the exact tax on ₹50,000 worth of fabrics. This precision helps in maintaining clear records, which is crucial for audits and financial planning. The tool's accessibility makes it a favorite among Indore's traders and service providers."
+      },
+      {
+        type: 'h2',
+        text: 'Features & Benefits for Indore Users'
+      },
+      {
+        type: 'table',
+        headers: [
+          'Feature',
+          'Benefit for Indore Users'
+        ],
+        rows: [
+          [
+            '100% Free',
+            'No cost for Indore SMEs and freelancers'
+          ],
+          [
+            'Works in Browser',
+            'No installation — works on any device in Indore'
+          ],
+          [
+            'Instant Results',
+            'Get output in seconds, not hours'
+          ],
+          [
+            'No Signup',
+            'Use immediately without registration'
+          ],
+          [
+            'Indian Context',
+            'Designed for Indian tax, business, and compliance needs'
+          ]
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Conclusion'
+      },
+      {
+        type: 'p',
+        text: 'In conclusion, the GST Calculator is an essential tool for anyone in Indore looking to streamline their tax calculations. Its ease of use, combined with its accuracy, makes it a must-have for local businesses and freelancers alike. By incorporating this tool into your financial practices, you can enhance efficiency and ensure compliance with ease, making it an invaluable resource for the vibrant Indore business community.'
+      }
+    ],
+    faqs: [
+      {
+        q: 'Is GST Calculator free to use in Indore?',
+        a: 'Yes, our GST Calculator is completely free for all users in Indore. This allows businesses and individuals to manage their tax calculations without incurring any additional costs, making it an ideal solution for small businesses and freelancers looking to optimize their financial management.'
+      },
+      {
+        q: 'Can Indore businesses use this tool for compliance?',
+        a: 'Absolutely. The GST Calculator is designed to help Indore businesses stay compliant with Indian tax regulations. By providing accurate and instant calculations, it ensures that businesses can easily adhere to tax laws, thereby avoiding penalties and enhancing their financial integrity.'
+      },
+      {
+        q: 'How does GST Calculator help Indore freelancers?',
+        a: 'For freelancers in Indore, managing finances can be challenging. The GST Calculator simplifies this by providing quick and accurate tax computations, allowing freelancers to focus more on their projects and less on paperwork. This efficiency can lead to better project management and financial planning.'
+      },
+      {
+        q: 'Is the tool available in languages used in Indore?',
+        a: 'While the GST Calculator is primarily in English, it is designed with user-friendly terminology that is easily understandable. We are working on adding more language options to cater to the diverse linguistic needs of Indore’s business community, ensuring accessibility for all users.'
+      }
+    ],
+    wordCount: 777,
+    id: 16,
+    publishedAt: '2026-05-22'
+  },
+  {
     slug: 'gst-calculator/nagpur',
     title: 'GST Calculator for Nagpur Businesses',
     metaTitle: 'GST Calculator for Nagpur - AWE-OS',
