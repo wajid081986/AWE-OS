@@ -1,5 +1,125 @@
 export const CITY_PAGES = [
   {
+    slug: 'gst-calculator/coimbatore',
+    title: 'GST Calculator in Coimbatore for Accurate Tax Calculation',
+    metaTitle: 'GST Calculator Coimbatore | AWE-OS',
+    metaDescription: 'Use our GST Calculator in Coimbatore for precise tax calculations. Try it now!',
+    content: [
+      {
+        type: 'h1',
+        text: 'GST Calculator in Coimbatore for Accurate Tax Calculation'
+      },
+      {
+        type: 'p',
+        text: "In Coimbatore, a bustling hub of textile and engineering industries, understanding the intricacies of GST is crucial for both businesses and individuals. The GST Calculator is an indispensable tool that aids in accurate computation, ensuring compliance and financial planning. With the city's rapid economic growth and a myriad of startups emerging, having a reliable means to calculate GST can save significant time and resources. Whether you're a small-scale entrepreneur or managing a larger enterprise, this tool simplifies the complex GST structure, providing clarity and accuracy in your financial dealings."
+      },
+      {
+        type: 'h2',
+        text: 'Why Coimbatore Businesses Use GST Calculator'
+      },
+      {
+        type: 'p',
+        text: "Coimbatore's diverse business landscape, from textiles to IT services, requires precise financial management. The GST Calculator helps businesses streamline their tax processes, ensuring that they remain compliant with the latest tax regulations. By using this tool, businesses in Coimbatore can focus on growth and innovation without the burden of complex tax calculations."
+      },
+      {
+        type: 'p',
+        text: 'Textile industries in Coimbatore, a city renowned for its cotton production, benefit immensely from the GST Calculator. It allows these industries to accurately calculate taxes on raw materials and finished goods, ensuring smooth operations and compliance. Similarly, engineering firms can use the tool to manage their tax liabilities, optimizing their financial strategies for better profitability.'
+      },
+      {
+        type: 'h2',
+        text: 'How to Use GST Calculator in Coimbatore'
+      },
+      {
+        type: 'p',
+        text: "Using the GST Calculator in Coimbatore is straightforward and user-friendly. First, enter the taxable amount in ₹. Next, select the appropriate GST rate applicable to your business or transaction type. The tool instantly computes the total tax amount, displaying both the CGST and SGST components. This step-by-step process ensures that businesses can quickly and accurately determine their tax liabilities, facilitating seamless financial management across Coimbatore's industrial sectors."
+      },
+      {
+        type: 'ul',
+        items: [
+          'Accurate GST calculations tailored for Coimbatore businesses',
+          'User-friendly interface optimized for local users',
+          'Real-time updates reflecting Indian tax policies',
+          'No hidden fees for Coimbatore SMEs',
+          'Supports various devices used by local entrepreneurs'
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Coimbatore Business Examples'
+      },
+      {
+        type: 'p',
+        text: "In Coimbatore, textile giants like Lakshmi Mills use the GST Calculator to ensure precise tax calculations, promoting efficient financial management. Similarly, companies in the booming IT sector leverage this tool to manage their service tax obligations effortlessly. With Coimbatore's strategic location and growing industrial base, tools like these are pivotal in maintaining competitive advantage."
+      },
+      {
+        type: 'p',
+        text: 'Consider a small-scale entrepreneur in Gandhipuram dealing in auto parts. By using the GST Calculator, they can accurately compute taxes on imports and local sales, ensuring they remain competitive. For instance, calculating a 12% GST on a ₹50,000 transaction is made simple, allowing business owners to focus on scaling their operations.'
+      },
+      {
+        type: 'h2',
+        text: 'Features & Benefits for Coimbatore Users'
+      },
+      {
+        type: 'table',
+        headers: [
+          'Feature',
+          'Benefit for Coimbatore Users'
+        ],
+        rows: [
+          [
+            '100% Free',
+            'No cost for Coimbatore SMEs and freelancers'
+          ],
+          [
+            'Works in Browser',
+            'No installation — works on any device in Coimbatore'
+          ],
+          [
+            'Instant Results',
+            'Get output in seconds, not hours'
+          ],
+          [
+            'No Signup',
+            'Use immediately without registration'
+          ],
+          [
+            'Indian Context',
+            'Designed for Indian tax, business, and compliance needs'
+          ]
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Conclusion'
+      },
+      {
+        type: 'p',
+        text: "The GST Calculator is an essential tool for Coimbatore's dynamic business community, offering accuracy and ease of use at no cost. By simplifying tax calculations, it empowers businesses to focus on growth and innovation. Whether you're part of the textile industry or a tech startup, this tool is designed to meet your needs. Try it today to experience the benefits firsthand."
+      }
+    ],
+    faqs: [
+      {
+        q: 'Is GST Calculator free to use in Coimbatore?',
+        a: 'Yes, the GST Calculator is completely free for users in Coimbatore. This ensures that businesses of all sizes, including SMEs and freelancers, can benefit from accurate tax calculations without incurring additional costs.'
+      },
+      {
+        q: 'Can Coimbatore businesses use this tool for compliance?',
+        a: 'Absolutely. The GST Calculator is designed to assist Coimbatore businesses in staying compliant with Indian tax laws. It simplifies the calculation process, ensuring accurate and timely submissions, essential for maintaining good standing with tax authorities.'
+      },
+      {
+        q: 'How does GST Calculator help Coimbatore freelancers?',
+        a: 'For freelancers in Coimbatore, managing finances is crucial. The GST Calculator aids in accurately calculating taxes on services rendered, ensuring compliance and better financial planning. This tool allows freelancers to focus on their work while managing tax obligations efficiently.'
+      },
+      {
+        q: 'Is the tool available in languages used in Coimbatore?',
+        a: "The GST Calculator is primarily available in English, which is widely used in Coimbatore's business community. However, efforts are ongoing to provide support in regional languages to cater to a broader audience and enhance accessibility."
+      }
+    ],
+    wordCount: 715,
+    id: 20,
+    publishedAt: '2026-05-22'
+  },
+  {
     slug: 'gst-calculator/kochi',
     title: 'GST Calculator for Kochi: Simplifying Tax Calculations',
     metaTitle: 'Kochi GST Calculator - AWE-OS.com',
