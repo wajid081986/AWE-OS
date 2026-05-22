@@ -314,46 +314,64 @@ Return ONLY valid JSON:
     if (!tool1Slug || !cityName) {
       return res.status(400).json({ success: false, error: 'tool1Slug and cityName required' })
     }
+    const toolName = tool1Name || tool1Slug
     const citySlug = cityName.toLowerCase().replace(/\s+/g, '-')
-    slug = `${tool1Slug}-${citySlug}`
-    userPrompt = `Generate a 700+ word city-specific tool page for AWE-OS.com.
-
-Tool: ${tool1Name || tool1Slug} — https://awe-os.com/tools/${tool1Slug}
+    slug = `${tool1Slug}/${citySlug}`
+    userPrompt = `Write a 1200+ word city-specific page for:
+Tool: ${toolName}
 City: ${cityName}, India
-Target URL: /${tool1Slug}/${citySlug}
-Audience: ${cityName} businesses and individuals. Use ₹, ${cityName} examples, local business context.
-Requirement: MINIMUM 700 words across content blocks. Each section must have 2-3 full paragraphs.
+Tool URL: https://www.awe-os.com/tools/${tool1Slug}
 
-Return ONLY valid JSON exactly matching this structure:
+REQUIRED SECTIONS (each section minimum 120 words):
+1. Introduction (150 words): Why ${cityName} businesses/people need ${toolName}. Include city-specific context (main industries, economic activity).
+
+2. H2: '${toolName} for ${cityName} — Key Features' (120 words): What makes this tool useful specifically for ${cityName} users. Include a data table with 5 rows.
+
+3. H2: 'How to Use ${toolName} in ${cityName}' (150 words): Step-by-step guide with ${cityName}-specific examples and ₹ amounts.
+
+4. H2: '${cityName} Examples with Real Numbers' (200 words): 3 detailed real-world examples with ₹ amounts. Use ${cityName}'s actual industries (Mumbai=finance/textiles, Delhi=government/trade, Bengaluru=IT/startups, Hyderabad=pharma/IT, Chennai=manufacturing/auto, Pune=IT/auto, Ahmedabad=textiles/pharma, Kolkata=jute/trade, Surat=diamonds/textiles, Jaipur=tourism/gems).
+
+5. H2: 'Who Needs ${toolName} in ${cityName}' (150 words): 5 specific user types relevant to ${cityName}'s economy, each with 30+ word explanation.
+
+6. H2: 'Why AWE-OS ${toolName} is Perfect for ${cityName} Users' (120 words): Benefits specific to ${cityName} with a bullet list of 5 items.
+
+7. Conclusion (100 words): Strong CTA — free, no signup, works in browser.
+
+GENERATE 5 FAQs — each answer minimum 100 words, specific to ${cityName}.
+
+TOTAL MUST BE 1200+ WORDS. Count carefully.
+
+Return ONLY valid JSON:
 {
   "slug": "${slug}",
-  "title": "H1 title including ${cityName} and tool name",
-  "metaTitle": "SEO title max 60 chars with ${cityName} and tool name",
-  "metaDescription": "Max 155 chars — include ${cityName}, tool name, and CTA",
+  "title": "${toolName} for ${cityName} — Free Online Tool for ${cityName} Businesses",
+  "metaTitle": "Free ${toolName} ${cityName} 2026 | AWE-OS",
+  "metaDescription": "Use ${toolName} in ${cityName} — instant results, free, no signup required. Built for ${cityName} businesses.",
   "content": [
-    { "type": "h1", "text": "Title including ${cityName} and ${tool1Name || tool1Slug}" },
-    { "type": "p", "text": "Opening paragraph 100+ words — why ${cityName} users need this tool, local business context" },
-    { "type": "h2", "text": "Why ${cityName} Businesses Use ${tool1Name || tool1Slug}" },
-    { "type": "p", "text": "First paragraph 80+ words about ${cityName}-specific use cases" },
-    { "type": "p", "text": "Second paragraph 80+ words with local industry examples from ${cityName}" },
-    { "type": "h2", "text": "How to Use ${tool1Name || tool1Slug} in ${cityName}" },
-    { "type": "p", "text": "Step-by-step guide paragraph 100+ words, practical ${cityName} context" },
-    { "type": "ul", "items": ["Feature/benefit 1 for ${cityName} users", "Feature/benefit 2", "Feature/benefit 3", "Feature/benefit 4", "Feature/benefit 5"] },
-    { "type": "h2", "text": "${cityName} Business Examples" },
-    { "type": "p", "text": "Real-world examples 100+ words — name specific ${cityName} industries, markets, localities" },
-    { "type": "p", "text": "Additional examples paragraph 80+ words with ₹ amounts and local business scenarios" },
-    { "type": "h2", "text": "Features & Benefits for ${cityName} Users" },
-    { "type": "table", "headers": ["Feature", "Benefit for ${cityName} Users"], "rows": [["100% Free", "No cost for ${cityName} SMEs and freelancers"], ["Works in Browser", "No installation — works on any device in ${cityName}"], ["Instant Results", "Get output in seconds, not hours"], ["No Signup", "Use immediately without registration"], ["Indian Context", "Designed for Indian tax, business, and compliance needs"]] },
+    { "type": "h1", "text": "WRITE COMPELLING H1 WITH ${cityName} AND ${toolName}" },
+    { "type": "p", "text": "WRITE 150-WORD INTRO — WHY ${cityName} NEEDS ${toolName}, LOCAL INDUSTRIES, ECONOMIC CONTEXT" },
+    { "type": "h2", "text": "${toolName} for ${cityName} — Key Features" },
+    { "type": "p", "text": "WRITE 120+ WORDS ABOUT KEY FEATURES FOR ${cityName} USERS WITH LOCAL CONTEXT" },
+    { "type": "table", "headers": ["Feature", "Benefit for ${cityName} Users", "Example"], "rows": [["100% Free", "No cost for ${cityName} SMEs", "${cityName} example"], ["Instant Results", "Real-time calculations", "${cityName} example"], ["No Signup", "Use immediately", "${cityName} example"], ["Indian Tax Compliant", "CGST/SGST breakdown", "${cityName} example"], ["Browser-Based", "Works on any device", "${cityName} example"]] },
+    { "type": "h2", "text": "How to Use ${toolName} in ${cityName}" },
+    { "type": "p", "text": "WRITE 150+ WORD STEP-BY-STEP GUIDE WITH ${cityName}-SPECIFIC ₹ AMOUNTS AND EXAMPLES" },
+    { "type": "h2", "text": "${cityName} Examples with Real Numbers" },
+    { "type": "p", "text": "WRITE 200+ WORDS WITH 3 REAL ${cityName} BUSINESS EXAMPLES. INCLUDE SPECIFIC LOCALITIES, INDUSTRIES, AND ₹ AMOUNTS" },
+    { "type": "h2", "text": "Who Needs ${toolName} in ${cityName}" },
+    { "type": "p", "text": "WRITE 150+ WORDS DESCRIBING 5 SPECIFIC USER TYPES IN ${cityName}'S ECONOMY WITH 30+ WORDS EACH" },
+    { "type": "h2", "text": "Why AWE-OS ${toolName} is Perfect for ${cityName} Users" },
+    { "type": "ul", "items": ["BENEFIT 1 SPECIFIC TO ${cityName}", "BENEFIT 2 WITH LOCAL CONTEXT", "BENEFIT 3", "BENEFIT 4", "BENEFIT 5 — MENTION FREE AND NO SIGNUP"] },
     { "type": "h2", "text": "Conclusion" },
-    { "type": "p", "text": "Closing paragraph 80+ words — summary of benefits for ${cityName} users, encourage using the free tool" }
+    { "type": "p", "text": "WRITE 100+ WORD CONCLUSION WITH STRONG CTA — MENTION FREE, NO SIGNUP, WORKS IN BROWSER, LINK TO TOOL" }
   ],
   "faqs": [
-    { "q": "Is ${tool1Name || tool1Slug} free to use in ${cityName}?", "a": "Answer 60+ words specific to ${cityName} users" },
-    { "q": "Can ${cityName} businesses use this tool for compliance?", "a": "Answer 60+ words with ${cityName} business context" },
-    { "q": "How does ${tool1Name || tool1Slug} help ${cityName} freelancers?", "a": "Answer 60+ words" },
-    { "q": "Is the tool available in languages used in ${cityName}?", "a": "Answer 60+ words" }
+    { "q": "WRITE FAQ Q1 SPECIFIC TO ${cityName}?", "a": "WRITE 100+ WORD ANSWER SPECIFIC TO ${cityName} USERS" },
+    { "q": "WRITE FAQ Q2 SPECIFIC TO ${cityName}?", "a": "WRITE 100+ WORD ANSWER WITH ${cityName} BUSINESS CONTEXT" },
+    { "q": "WRITE FAQ Q3 SPECIFIC TO ${cityName}?", "a": "WRITE 100+ WORD ANSWER" },
+    { "q": "WRITE FAQ Q4 SPECIFIC TO ${cityName}?", "a": "WRITE 100+ WORD ANSWER" },
+    { "q": "WRITE FAQ Q5 SPECIFIC TO ${cityName}?", "a": "WRITE 100+ WORD ANSWER" }
   ],
-  "wordCount": 700
+  "wordCount": 1200
 }`
 
   } else if (pageType === 'faq-category') {
@@ -370,17 +388,20 @@ Minimum: 1000 words + 10 detailed FAQs (100+ words each answer)
 Return ONLY valid JSON with the same structure as a comparison page. slug: "${slug}". Include 10 comprehensive FAQs covering everything Indian users ask about ${categoryName} tools.`
   }
 
+  // Per-type system prompt and token budget
+  const systemPrompt = pageType === 'city'
+    ? `You are a senior SEO content writer for AWE-OS.com. Write a COMPREHENSIVE city-specific tool page for Indian users. MANDATORY: Minimum 1200 words of actual content. Use Indian context: ₹ amounts, local business examples, city-specific industries, local regulations. Return ONLY valid JSON — no markdown, no commentary, just the JSON object.`
+    : 'You are a senior SEO content writer for AWE-OS.com. Generate HIGH-QUALITY programmatic SEO content. Indian context throughout. Return ONLY valid JSON matching the requested page type.'
+  const maxTokens = pageType === 'city' ? 4000 : 3000
+
   try {
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
-        {
-          role: 'system',
-          content: 'You are a senior SEO content writer for AWE-OS.com. Generate HIGH-QUALITY programmatic SEO content. Minimum 600 words. Indian context throughout. Return ONLY valid JSON matching the requested page type.',
-        },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      max_tokens: 3000,
+      max_tokens: maxTokens,
       temperature: 0.7,
     })
     const raw  = completion.choices[0]?.message?.content || ''
@@ -423,23 +444,48 @@ async function publishCityPageToGitHub(newPage, slug) {
     throw new Error(`GitHub GET failed: ${getRes.status}`)
   }
 
-  const idMatches = [...currentContent.matchAll(/\bid:\s*(\d+)/g)]
-  const maxId     = idMatches.length ? Math.max(...idMatches.map(m => parseInt(m[1]))) : 0
-  newPage.id          = maxId + 1
+  // Parse existing pages using vm (same pattern as evalDataFile)
+  let existingPages = []
+  try {
+    const cjs = currentContent.replace(/export\s+const\s+/g, 'var ')
+    const ctx = Object.create(null)
+    vm.runInNewContext(cjs, ctx, { timeout: 5000 })
+    existingPages = Array.isArray(ctx.CITY_PAGES) ? ctx.CITY_PAGES : []
+  } catch (e) {
+    console.warn('[publish-programmatic] Could not parse existing CITY_PAGES:', e.message)
+  }
+
+  // Set metadata on incoming page
   newPage.publishedAt = new Date().toISOString().split('T')[0]
   newPage.slug        = slug
 
-  const MARKER      = 'export const CITY_PAGES = ['
-  const insertPoint = currentContent.indexOf(MARKER) + MARKER.length
-  const postString  = JSON.stringify(newPage, null, 2)
-    .replace(/"([^"]+)":/g, '$1:')
-    .replace(/"((?:[^"\\])*)"/g, (_, s) => s.includes("'") ? `"${s}"` : `'${s}'`)
-  const newContent  = currentContent.slice(0, insertPoint) +
-    '\n  ' + postString.replace(/\n/g, '\n  ') + ',' +
-    currentContent.slice(insertPoint)
+  // Dedup: update in-place if slug exists, otherwise prepend
+  const existingIndex = existingPages.findIndex(p => p.slug === slug)
+  let isUpdate = false
+  if (existingIndex !== -1) {
+    newPage.id                   = existingPages[existingIndex].id  // preserve original ID
+    existingPages[existingIndex] = newPage
+    isUpdate = true
+  } else {
+    const maxId = existingPages.reduce((max, p) => Math.max(max, p.id || 0), 0)
+    newPage.id  = maxId + 1
+    existingPages.unshift(newPage)
+  }
+
+  // Serialize the full array back to a clean JS module
+  const serialize = obj => JSON.stringify(obj, null, 2)
+    .replace(/"([a-zA-Z_][a-zA-Z0-9_]*)"\s*:/g, '$1:')
+    .replace(/"((?:[^"\\]|\\.)*)"/g, (_, s) => s.includes("'") ? `"${s}"` : `'${s}'`)
+
+  const pagesJs    = existingPages
+    .map(p => '  ' + serialize(p).replace(/\n/g, '\n  '))
+    .join(',\n')
+  const newContent = `export const CITY_PAGES = [\n${pagesJs ? pagesJs + ',\n' : ''}]\n`
 
   const pushBody = {
-    message: `seo: add city page "${newPage.title || slug}"`,
+    message: isUpdate
+      ? `seo: update city page "${newPage.title || slug}"`
+      : `seo: add city page "${newPage.title || slug}"`,
     content: Buffer.from(newContent, 'utf8').toString('base64'),
     branch:  BRANCH,
   }
@@ -456,6 +502,7 @@ async function publishCityPageToGitHub(newPage, slug) {
     success:   true,
     slug,
     id:        newPage.id,
+    updated:   isUpdate,
     liveUrl:   `https://www.awe-os.com/${slug}`,
     commitUrl: pushData.commit?.html_url,
   }

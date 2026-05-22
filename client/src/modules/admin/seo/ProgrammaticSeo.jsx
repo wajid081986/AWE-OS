@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { TOOL_REGISTRY } from '../../../data/toolRegistry'
+import { CITY_PAGES } from '../../../data/cityPages'
 import api from '../../../services/api.service'
 
 const INDIAN_CITIES = [
@@ -26,7 +27,7 @@ const PAGE_TYPES = [
     title:    'City-Specific Tool Page',
     desc:     'Generate: /tools/[tool]/[city]',
     example:  'e.g. GST Calculator for Mumbai businesses',
-    minWords: '600 words + local examples',
+    minWords: '1200 words + local examples',
   },
   {
     id:       'faq-category',
@@ -211,9 +212,9 @@ export default function ProgrammaticSeo() {
 
   // ── Bulk generation (city) ──────────────────────────────────────────────────
 
-  async function runBulkForCities(cities) {
-    const toolSlug = form.tool1Slug
-    const toolName = form.tool1Name || ''
+  async function runBulkForCities(cities, overrideToolSlug, overrideToolName) {
+    const toolSlug = overrideToolSlug || form.tool1Slug
+    const toolName = overrideToolName || form.tool1Name || ''
     if (!toolSlug || cities.length === 0) return
 
     pauseRef.current = false
@@ -243,7 +244,7 @@ export default function ProgrammaticSeo() {
         const page = genRes.data.page
         const slug = `${toolSlug}/${toSlug(city)}`
 
-        if ((page.wordCount || 0) >= 600) {
+        if ((page.wordCount || 0) >= 1200) {
           // Attempt GitHub publish (non-fatal on failure)
           try {
             await api.post('/api/admin/seo/publish-programmatic', { page, slug })
@@ -273,7 +274,7 @@ export default function ProgrammaticSeo() {
           setBulkProgress(prev => ({
             ...prev,
             completed: prev.completed + 1,
-            errors: [...prev.errors, { city, reason: `Below 600 words (got ${page.wordCount || 0})` }],
+            errors: [...prev.errors, { city, reason: `Below 1200 words (got ${page.wordCount || 0})` }],
           }))
         }
       } catch (err) {
@@ -301,6 +302,20 @@ export default function ProgrammaticSeo() {
     if (failedCities.length > 0) runBulkForCities(failedCities)
   }
 
+  async function regenerateLowQuality() {
+    const low = CITY_PAGES.filter(p => (p.wordCount || 0) < 1200)
+    if (!low.length) return
+    // Group by toolSlug → run bulk sequentially per tool
+    const byTool = {}
+    for (const p of low) {
+      if (!byTool[p.toolSlug]) byTool[p.toolSlug] = { toolName: p.toolName || p.toolSlug, cities: [] }
+      byTool[p.toolSlug].cities.push(p.cityName)
+    }
+    for (const [ts, { toolName: tn, cities }] of Object.entries(byTool)) {
+      await runBulkForCities(cities, ts, tn)
+    }
+  }
+
   function pauseResume() {
     if (isPaused) {
       pauseRef.current = false
@@ -326,8 +341,12 @@ export default function ProgrammaticSeo() {
     selectedType === 'faq-category'  ? !!(form.categoryName) :
     false
 
-  const wordCount = generatedPage?.wordCount || 0
-  const qualityOk = wordCount >= 600
+  const wordCount     = generatedPage?.wordCount || 0
+  const qualityGreen  = wordCount >= 1200
+  const qualityYellow = wordCount >= 800 && wordCount < 1200
+  const qualityRed    = wordCount > 0 && wordCount < 800
+  const qualityOk     = wordCount >= 800   // can publish at 800+
+  const lowQualityPages = CITY_PAGES.filter(p => (p.wordCount || 0) < 1200)
 
   const cityUrlPreviews = form.tool1Slug
     ? selectedCities.map(city => `/${form.tool1Slug}/${toSlug(city)}`)
@@ -358,7 +377,7 @@ export default function ProgrammaticSeo() {
         <span className="text-yellow-400 text-lg shrink-0">⚡</span>
         <div>
           <p className="text-yellow-300 font-medium text-sm">Quality First</p>
-          <p className="text-yellow-200/80 text-sm">All generated pages must be 600+ words with genuine value. No thin content.</p>
+          <p className="text-yellow-200/80 text-sm">All city pages require 1200+ words for best SEO. 800–1199 words is acceptable. Below 800 is rejected.</p>
         </div>
       </div>
 
@@ -572,6 +591,24 @@ export default function ProgrammaticSeo() {
                 </div>
               )}
 
+              {/* Low-quality pages warning */}
+              {lowQualityPages.length > 0 && (
+                <div className="bg-yellow-900/20 border border-yellow-700 rounded-xl p-4">
+                  <p className="text-yellow-300 text-sm font-medium mb-2">
+                    ⚠️ {lowQualityPages.length} existing {lowQualityPages.length === 1 ? 'page has' : 'pages have'} less than 1200 words.
+                    Regenerate them for better SEO performance.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={regenerateLowQuality}
+                    disabled={bulkProgress.isRunning}
+                    className="text-sm bg-yellow-700 hover:bg-yellow-600 disabled:opacity-40 text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    🔄 Regenerate {lowQualityPages.length} Low-Quality {lowQualityPages.length === 1 ? 'Page' : 'Pages'}
+                  </button>
+                </div>
+              )}
+
               {/* Bulk generate button */}
               <button
                 onClick={generateBulk}
@@ -735,11 +772,13 @@ export default function ProgrammaticSeo() {
               <p className="text-gray-500 text-xs mt-1">/{generatedPage.slug}</p>
             </div>
             <span className={`text-sm font-bold px-3 py-1 rounded-full shrink-0 ${
-              qualityOk
+              qualityGreen
                 ? 'bg-green-900/50 text-green-400 border border-green-700'
+                : qualityYellow
+                ? 'bg-yellow-900/50 text-yellow-400 border border-yellow-700'
                 : 'bg-red-900/50 text-red-400 border border-red-700'
             }`}>
-              {wordCount.toLocaleString()} words
+              {wordCount.toLocaleString()} words {qualityGreen ? '✅' : qualityYellow ? '⚠️' : '❌'}
             </span>
           </div>
 
@@ -758,15 +797,21 @@ export default function ProgrammaticSeo() {
             <ContentPreview content={generatedPage.content} faqs={generatedPage.faqs} />
           </div>
 
-          {!qualityOk && (
-            <div className="mb-4 bg-red-900/30 border border-red-800 rounded-lg p-3 text-red-300 text-sm">
-              ⚠️ Content is below 600-word minimum. Regenerate for higher quality.
+          {wordCount > 0 && !qualityGreen && (
+            <div className={`mb-4 rounded-lg p-3 text-sm ${
+              qualityRed
+                ? 'bg-red-900/30 border border-red-800 text-red-300'
+                : 'bg-yellow-900/30 border border-yellow-800 text-yellow-300'
+            }`}>
+              {qualityRed
+                ? '❌ Content is below 800 words — cannot publish. Regenerate for higher quality.'
+                : '⚠️ Content is 800–1199 words (acceptable). Regenerate for 1200+ words for best SEO performance.'}
             </div>
           )}
 
           <button
             onClick={handlePublish}
-            disabled={!qualityOk}
+            disabled={wordCount < 800}
             className="w-full py-3 rounded-xl font-medium text-white transition-all
               bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed"
           >
@@ -809,7 +854,7 @@ export default function ProgrammaticSeo() {
                     </td>
                     <td className="py-3 pr-4 text-gray-400 whitespace-nowrap">{page.date}</td>
                     <td className="py-3 pr-4">
-                      <span className={(page.wordCount || 0) >= 600 ? 'text-green-400' : 'text-red-400'}>
+                      <span className={(page.wordCount || 0) >= 1200 ? 'text-green-400' : (page.wordCount || 0) >= 800 ? 'text-yellow-400' : 'text-red-400'}>
                         {(page.wordCount || 0).toLocaleString()}
                       </span>
                     </td>
