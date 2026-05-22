@@ -116,7 +116,7 @@ export const CITY_PAGES = [
       }
     ],
     wordCount: 685,
-    id: 22,
+    id: 1,
     publishedAt: '2026-05-22'
   },
   {
@@ -236,7 +236,7 @@ export const CITY_PAGES = [
       }
     ],
     wordCount: 704,
-    id: 21,
+    id: 2,
     publishedAt: '2026-05-22'
   },
   {
@@ -356,7 +356,7 @@ export const CITY_PAGES = [
       }
     ],
     wordCount: 715,
-    id: 20,
+    id: 3,
     publishedAt: '2026-05-22'
   },
   {
@@ -476,7 +476,7 @@ export const CITY_PAGES = [
       }
     ],
     wordCount: 800,
-    id: 19,
+    id: 4,
     publishedAt: '2026-05-22'
   },
   {
@@ -596,7 +596,7 @@ export const CITY_PAGES = [
       }
     ],
     wordCount: 812,
-    id: 18,
+    id: 5,
     publishedAt: '2026-05-22'
   },
   {
@@ -716,7 +716,7 @@ export const CITY_PAGES = [
       }
     ],
     wordCount: 846,
-    id: 17,
+    id: 6,
     publishedAt: '2026-05-22'
   },
   {
@@ -836,7 +836,7 @@ export const CITY_PAGES = [
       }
     ],
     wordCount: 777,
-    id: 16,
+    id: 7,
     publishedAt: '2026-05-22'
   },
   {
@@ -956,7 +956,7 @@ export const CITY_PAGES = [
       }
     ],
     wordCount: 687,
-    id: 15,
+    id: 8,
     publishedAt: '2026-05-22'
   },
   {
@@ -1076,7 +1076,7 @@ export const CITY_PAGES = [
       }
     ],
     wordCount: 776,
-    id: 14,
+    id: 9,
     publishedAt: '2026-05-22'
   },
   {
@@ -1196,7 +1196,7 @@ export const CITY_PAGES = [
       }
     ],
     wordCount: 755,
-    id: 13,
+    id: 10,
     publishedAt: '2026-05-22'
   },
   {
@@ -1316,7 +1316,7 @@ export const CITY_PAGES = [
       }
     ],
     wordCount: 770,
-    id: 12,
+    id: 11,
     publishedAt: '2026-05-22'
   },
   {
@@ -1436,7 +1436,7 @@ export const CITY_PAGES = [
       }
     ],
     wordCount: 713,
-    id: 11,
+    id: 12,
     publishedAt: '2026-05-22'
   },
   {
@@ -1556,7 +1556,7 @@ export const CITY_PAGES = [
       }
     ],
     wordCount: 717,
-    id: 10,
+    id: 13,
     publishedAt: '2026-05-22'
   },
   {
@@ -1676,7 +1676,7 @@ export const CITY_PAGES = [
       }
     ],
     wordCount: 692,
-    id: 9,
+    id: 14,
     publishedAt: '2026-05-22'
   },
   {
@@ -1796,7 +1796,7 @@ export const CITY_PAGES = [
       }
     ],
     wordCount: 695,
-    id: 8,
+    id: 15,
     publishedAt: '2026-05-22'
   },
   {
@@ -1916,487 +1916,7 @@ export const CITY_PAGES = [
       }
     ],
     wordCount: 769,
-    id: 7,
-    publishedAt: '2026-05-22'
-  },
-  {
-    slug: 'gst-calculator/hyderabad',
-    title: 'Hyderabad GST Calculator for Local Businesses',
-    metaTitle: 'GST Calculator in Hyderabad | AWE-OS',
-    metaDescription: 'Calculate GST easily in Hyderabad with our free tool. Perfect for local businesses. Try now!',
-    content: [
-      {
-        type: 'h1',
-        text: 'GST Calculator for Hyderabad Businesses'
-      },
-      {
-        type: 'p',
-        text: "In Hyderabad, a bustling hub for IT, pharmaceuticals, and a burgeoning startup culture, understanding GST is crucial for businesses and freelancers alike. The city's diverse economy, from the tech parks in HITECH City to the traditional bazaars of Charminar, makes accurate GST calculations essential for financial planning and compliance. A reliable GST Calculator tailored to Hyderabad's unique market nuances can help streamline tax processes, ensuring that businesses remain competitive and compliant."
-      },
-      {
-        type: 'h2',
-        text: 'Why Hyderabad Businesses Use GST Calculator'
-      },
-      {
-        type: 'p',
-        text: "Hyderabad's rapid economic growth has seen a surge in new businesses, each needing efficient tax solutions. Whether it's an IT firm in Madhapur or a textile business in Begum Bazaar, precise GST calculations are non-negotiable. A GST Calculator simplifies this task by providing instant results, helping businesses manage their finances better."
-      },
-      {
-        type: 'p',
-        text: "Industries like pharmaceuticals, with giants such as Dr. Reddy's Laboratories, find the GST Calculator indispensable for handling complex tax calculations. Similarly, startups in T-Hub leverage this tool to keep their operations lean and focused on growth, rather than getting bogged down by tax compliance issues."
-      },
-      {
-        type: 'h2',
-        text: 'How to Use GST Calculator in Hyderabad'
-      },
-      {
-        type: 'p',
-        text: 'Using our GST Calculator is straightforward. First, enter the taxable amount. Next, select the applicable GST rate, which is essential for varied sectors from real estate in Gachibowli to retail in Abids. The tool does the rest, computing the CGST, SGST, or IGST as needed. This ease of use allows business owners and freelancers alike to focus on what they do best, leaving the complexities of tax calculation to our tool.'
-      },
-      {
-        type: 'ul',
-        items: [
-          "Instant calculations tailored for Hyderabad's tax structure",
-          'User-friendly interface suitable for tech-savvy and traditional users alike',
-          'No hidden fees or registration required',
-          'Accessible on any device, anytime',
-          'Local support for Hyderabad-specific queries'
-        ]
-      },
-      {
-        type: 'h2',
-        text: 'Hyderabad Business Examples'
-      },
-      {
-        type: 'p',
-        text: 'Consider a tech startup in Kondapur, where keeping track of expenses is crucial for sustaining operations. Our GST Calculator helps them maintain accurate records of tax liabilities, ensuring they can focus on innovation. Similarly, a hospitality business in Jubilee Hills benefits from the tool by managing their GST inputs and outputs efficiently, crucial for maintaining profitability in a competitive market.'
-      },
-      {
-        type: 'p',
-        text: "For instance, a boutique in Banjara Hills selling imported goods can use the calculator to determine the GST on their ₹15,000 invoice, ensuring accurate pricing and compliance. This tool proves invaluable for businesses dealing with both small and large volumes of transactions in Hyderabad's dynamic market."
-      },
-      {
-        type: 'h2',
-        text: 'Features & Benefits for Hyderabad Users'
-      },
-      {
-        type: 'table',
-        headers: [
-          'Feature',
-          'Benefit for Hyderabad Users'
-        ],
-        rows: [
-          [
-            '100% Free',
-            'No cost for Hyderabad SMEs and freelancers'
-          ],
-          [
-            'Works in Browser',
-            'No installation — works on any device in Hyderabad'
-          ],
-          [
-            'Instant Results',
-            'Get output in seconds, not hours'
-          ],
-          [
-            'No Signup',
-            'Use immediately without registration'
-          ],
-          [
-            'Indian Context',
-            'Designed for Indian tax, business, and compliance needs'
-          ]
-        ]
-      },
-      {
-        type: 'h2',
-        text: 'Conclusion'
-      },
-      {
-        type: 'p',
-        text: "The GST Calculator is a vital tool for Hyderabad's diverse business landscape. Its ease of use, coupled with precise calculations, helps businesses and freelancers stay compliant and manage finances efficiently. Whether you're a startup in HITEC City or a traditional enterprise in the old city, this free tool is designed to meet your needs, ensuring you can focus on growth and success."
-      }
-    ],
-    faqs: [
-      {
-        q: 'Is GST Calculator free to use in Hyderabad?',
-        a: 'Yes, the GST Calculator is completely free for users in Hyderabad. It is designed to assist businesses and individuals without any hidden charges, ensuring that financial management is accessible to everyone.'
-      },
-      {
-        q: 'Can Hyderabad businesses use this tool for compliance?',
-        a: 'Absolutely. Hyderabad businesses can use the GST Calculator for accurate tax computations, helping them meet compliance requirements efficiently. This is essential for maintaining smooth operations across various sectors within the city.'
-      },
-      {
-        q: 'How does GST Calculator help Hyderabad freelancers?',
-        a: 'Freelancers in Hyderabad, from tech developers to creative professionals, can use the GST Calculator to manage their finances better. It provides a clear breakdown of their tax liabilities, allowing them to price their services competitively.'
-      },
-      {
-        q: 'Is the tool available in languages used in Hyderabad?',
-        a: 'Currently, the tool is available in English, but we are working to include more languages commonly used in Hyderabad, such as Telugu and Hindi, to make it more accessible for local users.'
-      }
-    ],
-    wordCount: 677,
-    id: 6,
-    publishedAt: '2026-05-22'
-  },
-  {
-    slug: 'gst-calculator/bengaluru',
-    title: 'Bengaluru GST Calculator for Businesses and Individuals',
-    metaTitle: 'Bengaluru GST Calculator - Easy & Free Tool',
-    metaDescription: 'Calculate GST easily in Bengaluru. Use our free GST Calculator for accurate tax calculations.',
-    content: [
-      {
-        type: 'h1',
-        text: 'Bengaluru GST Calculator for Accurate Tax Calculations'
-      },
-      {
-        type: 'p',
-        text: "In the bustling metropolitan city of Bengaluru, where businesses thrive amidst the vibrant IT and startup ecosystem, calculating Goods and Services Tax (GST) efficiently is crucial. Whether you are a small business owner in Whitefield or a freelancer operating from Indiranagar, the need for an accurate GST calculator is undeniable. Our tool simplifies the complexities of GST calculations, allowing you to focus more on your core business operations and less on tax compliance. Bengaluru's dynamic market demands precision and speed, and our GST Calculator provides just that."
-      },
-      {
-        type: 'h2',
-        text: 'Why Bengaluru Businesses Use GST Calculator'
-      },
-      {
-        type: 'p',
-        text: 'Bengaluru, known as the Silicon Valley of India, is home to numerous tech companies, startups, and a thriving service sector. Businesses here operate on tight margins and rapid timelines, making efficient GST calculation a necessity. Our GST Calculator helps these businesses quickly determine the correct tax amounts, ensuring compliance and minimizing errors. For a city that never sleeps, having an instant, reliable tool is indispensable.'
-      },
-      {
-        type: 'p',
-        text: "Local industries such as information technology, biotechnology, and electronics greatly benefit from our GST Calculator. Companies in Electronic City or the IT parks of Bellandur can use the tool to streamline their financial operations. By automating GST calculations, businesses can allocate resources more effectively and focus on innovation and growth, which are the hallmarks of Bengaluru's economic landscape."
-      },
-      {
-        type: 'h2',
-        text: 'How to Use GST Calculator in Bengaluru'
-      },
-      {
-        type: 'p',
-        text: "Using our GST Calculator is straightforward, even for those not well-versed in tax regulations. First, input the net amount of your goods or services. Next, select the applicable GST rate, which is predefined based on Indian standards. Finally, click 'Calculate' to get the GST amount, total amount including GST, and a break-down of CGST and SGST. This process is designed to be intuitive, ensuring that businesses from Koramangala to Jayanagar can easily navigate the tool without any hassle."
-      },
-      {
-        type: 'ul',
-        items: [
-          "Instant calculations for Bengaluru's fast-paced market",
-          'User-friendly interface tailored for both tech and non-tech savvy users',
-          'Accurate tax breakdowns for compliance',
-          'Supports various GST rates applicable in India',
-          'Helps streamline financial planning and reporting'
-        ]
-      },
-      {
-        type: 'h2',
-        text: 'Bengaluru Business Examples'
-      },
-      {
-        type: 'p',
-        text: 'Consider a mid-sized tech company based in Manyata Tech Park. With multiple clients across India, the company needs precise GST calculations to maintain its competitive edge. Our tool helps them quickly compute taxes for services rendered, ensuring they remain compliant with Indian tax laws. Similarly, a boutique coffee shop in MG Road can use the calculator to determine GST on their products, streamlining their billing process and enhancing customer transparency.'
-      },
-      {
-        type: 'p',
-        text: 'In another scenario, a freelance graphic designer in Koramangala charges ₹50,000 for a project. Using the GST calculator, they can instantly find that the additional 18% GST amounts to ₹9,000, making the total invoice ₹59,000. This clarity helps freelancers manage their finances better and provides clients with accurate billing details.'
-      },
-      {
-        type: 'h2',
-        text: 'Features & Benefits for Bengaluru Users'
-      },
-      {
-        type: 'table',
-        headers: [
-          'Feature',
-          'Benefit for Bengaluru Users'
-        ],
-        rows: [
-          [
-            '100% Free',
-            'No cost for Bengaluru SMEs and freelancers'
-          ],
-          [
-            'Works in Browser',
-            'No installation — works on any device in Bengaluru'
-          ],
-          [
-            'Instant Results',
-            'Get output in seconds, not hours'
-          ],
-          [
-            'No Signup',
-            'Use immediately without registration'
-          ],
-          [
-            'Indian Context',
-            'Designed for Indian tax, business, and compliance needs'
-          ]
-        ]
-      },
-      {
-        type: 'h2',
-        text: 'Conclusion'
-      },
-      {
-        type: 'p',
-        text: "For Bengaluru's diverse and fast-paced business environment, our GST Calculator is an essential tool. It brings accuracy, speed, and ease to GST calculations, supporting businesses and freelancers alike. Whether you're a startup in HSR Layout or a seasoned company in JP Nagar, leveraging this free tool can enhance your financial operations. Try the GST Calculator today and experience the difference it can make in simplifying your tax processes."
-      }
-    ],
-    faqs: [
-      {
-        q: 'Is GST Calculator free to use in Bengaluru?',
-        a: "Yes, the GST Calculator is completely free for all users in Bengaluru. Whether you're a startup, a small business owner, or an individual, you can access and use this tool without any charges, helping you save on operational costs."
-      },
-      {
-        q: 'Can Bengaluru businesses use this tool for compliance?',
-        a: 'Absolutely, Bengaluru businesses can use the GST Calculator to ensure compliance with Indian tax regulations. It provides accurate calculations necessary for filing returns and maintaining transparency in financial transactions, which is crucial for compliance.'
-      },
-      {
-        q: 'How does GST Calculator help Bengaluru freelancers?',
-        a: 'For freelancers in Bengaluru, the GST Calculator simplifies the process of billing and tax calculation. It provides an easy way to include GST in invoices, ensuring accurate pricing and helping maintain professional financial records.'
-      },
-      {
-        q: 'Is the tool available in languages used in Bengaluru?',
-        a: "Currently, the GST Calculator is primarily available in English, which is widely used in Bengaluru's business landscape. However, we are working towards incorporating regional languages like Kannada to better serve the diverse user base in Bengaluru."
-      }
-    ],
-    wordCount: 765,
-    id: 5,
-    publishedAt: '2026-05-22'
-  },
-  {
-    slug: 'gst-calculator/delhi',
-    title: 'Delhi GST Calculator: Essential Tool for Accurate Tax Calculations',
-    metaTitle: 'Delhi GST Calculator: Simplify Your Tax Calculations',
-    metaDescription: 'Use our GST Calculator for accurate tax calculations in Delhi. Easy to use, no signup required. Try it now!',
-    content: [
-      {
-        type: 'h1',
-        text: 'Delhi GST Calculator: Your Essential Tax Tool'
-      },
-      {
-        type: 'p',
-        text: "In the bustling economic landscape of Delhi, staying compliant with tax regulations is crucial for businesses and individuals alike. Our GST Calculator is designed to simplify GST calculations, helping you save time and avoid errors. Whether you're a shop owner in Connaught Place or a service provider in South Delhi, understanding your GST obligations is vital. This tool caters to the unique needs of Delhi's diverse business community, ensuring that you can focus on growing your enterprise without the hassle of complex tax computations."
-      },
-      {
-        type: 'h2',
-        text: 'Why Delhi Businesses Use GST Calculator'
-      },
-      {
-        type: 'p',
-        text: 'Delhi, being a commercial hub, hosts a myriad of businesses ranging from small retail shops to large corporations. For these businesses, accurately calculating GST is not just a legal requirement but a necessity for maintaining financial health. A GST calculator helps streamline this process, allowing businesses to focus on their core activities instead of getting bogged down by tax calculations.'
-      },
-      {
-        type: 'p',
-        text: 'Take for instance the tech startups in Hauz Khas Village or the numerous restaurants in Karol Bagh. These businesses operate in fast-paced environments where efficiency is key. A GST calculator aids in ensuring that all financial transactions are compliant with the latest tax laws, thereby reducing the risk of penalties and ensuring smooth operations.'
-      },
-      {
-        type: 'h2',
-        text: 'How to Use GST Calculator in Delhi'
-      },
-      {
-        type: 'p',
-        text: 'Using the GST Calculator is straightforward. Begin by entering the net price of your product or service. Next, select the applicable GST rate, which could be 5%, 12%, 18%, or 28%, depending on the category of goods or services. The calculator will instantly compute the GST amount and provide you with the gross price. This tool is indispensable for Delhi businesses dealing with diverse product lines, ensuring each transaction is accurately recorded and compliant with tax regulations.'
-      },
-      {
-        type: 'ul',
-        items: [
-          'Simplifies complex tax calculations for Delhi users',
-          'Saves time by delivering quick results',
-          'Helps maintain compliance with Indian tax laws',
-          'Reduces errors in manual calculations',
-          'Supports strategic financial planning for Delhi businesses'
-        ]
-      },
-      {
-        type: 'h2',
-        text: 'Delhi Business Examples'
-      },
-      {
-        type: 'p',
-        text: 'Consider a local garment manufacturer in Chandni Chowk who needs to calculate GST on bulk orders. The GST Calculator ensures accurate computation of taxes, helping the business maintain competitive pricing. Similarly, a digital marketing agency in Nehru Place can use the tool to manage GST on services provided, ensuring compliance and streamlined accounting.'
-      },
-      {
-        type: 'p',
-        text: 'For a small cafe in Saket, accurately calculating GST on daily transactions is crucial. By using the GST Calculator, the cafe owner can easily determine how much tax to remit to the government, ensuring transparency and trust with customers. For instance, if the cafe earns ₹10,000 in sales daily, applying an 18% GST rate would be easily computed using our tool, saving time and reducing the likelihood of errors.'
-      },
-      {
-        type: 'h2',
-        text: 'Features & Benefits for Delhi Users'
-      },
-      {
-        type: 'table',
-        headers: [
-          'Feature',
-          'Benefit for Delhi Users'
-        ],
-        rows: [
-          [
-            '100% Free',
-            'No cost for Delhi SMEs and freelancers'
-          ],
-          [
-            'Works in Browser',
-            'No installation — works on any device in Delhi'
-          ],
-          [
-            'Instant Results',
-            'Get output in seconds, not hours'
-          ],
-          [
-            'No Signup',
-            'Use immediately without registration'
-          ],
-          [
-            'Indian Context',
-            'Designed for Indian tax, business, and compliance needs'
-          ]
-        ]
-      },
-      {
-        type: 'h2',
-        text: 'Conclusion'
-      },
-      {
-        type: 'p',
-        text: "The GST Calculator is an invaluable tool for anyone involved in business in Delhi. It simplifies the tax calculation process, ensuring compliance and accuracy. This free, easy-to-use tool is tailored to meet the needs of Delhi's dynamic business environment. Whether you're a freelancer or run a large enterprise, the GST Calculator can help you manage your finances more effectively. Try it today and experience the ease of accurate tax calculations."
-      }
-    ],
-    faqs: [
-      {
-        q: 'Is GST Calculator free to use in Delhi?',
-        a: 'Yes, the GST Calculator is completely free for all users in Delhi. It is designed to assist businesses and individuals in accurately calculating their tax obligations without incurring any additional costs. This makes it an accessible tool for startups, SMEs, and freelancers throughout the city.'
-      },
-      {
-        q: 'Can Delhi businesses use this tool for compliance?',
-        a: 'Absolutely. The GST Calculator is designed to ensure that your business remains compliant with the latest GST regulations in India. By providing accurate calculations, it helps reduce the risk of non-compliance penalties, making it an essential tool for Delhi businesses operating in various sectors.'
-      },
-      {
-        q: 'How does GST Calculator help Delhi freelancers?',
-        a: 'Freelancers in Delhi can benefit greatly from the GST Calculator as it simplifies the process of calculating taxes on their income. This tool provides clarity on how much GST needs to be charged and paid, ensuring freelancers can manage their finances efficiently without needing extensive accounting knowledge.'
-      },
-      {
-        q: 'Is the tool available in languages used in Delhi?',
-        a: 'Yes, the GST Calculator is available in multiple languages, including Hindi and English, which are widely used in Delhi. This ensures that users can easily navigate and use the tool in the language they are most comfortable with, enhancing accessibility and user experience.'
-      }
-    ],
-    wordCount: 790,
-    id: 4,
-    publishedAt: '2026-05-22'
-  },
-  {
-    slug: 'gst-calculator/mumbai',
-    title: 'GST Calculator for Mumbai Businesses and Individuals',
-    metaTitle: 'GST Calculator Mumbai - Easy Tax Calculations',
-    metaDescription: 'Use our GST Calculator for Mumbai to simplify tax calculations. Free and easy to use for local businesses.',
-    content: [
-      {
-        type: 'h1',
-        text: 'GST Calculator for Mumbai: Simplify Your Tax Calculations'
-      },
-      {
-        type: 'p',
-        text: "Mumbai, the bustling financial hub of India, is home to a diverse range of businesses, from small startups in Andheri to large corporations in Nariman Point. With the introduction of the Goods and Services Tax (GST), businesses and individuals in Mumbai need a reliable tool to manage their tax calculations efficiently. Our GST Calculator is designed to cater specifically to Mumbai's dynamic business environment, helping you save time and avoid errors in tax computation."
-      },
-      {
-        type: 'h2',
-        text: 'Why Mumbai Businesses Use GST Calculator'
-      },
-      {
-        type: 'p',
-        text: 'In Mumbai, where the pace of business is ever-accelerating, efficiency is key. Businesses in areas like Lower Parel and Bandra Kurla Complex are constantly seeking ways to streamline their operations. The GST Calculator provides an easy solution to compute taxes accurately, ensuring compliance and freeing up resources for other critical business activities.'
-      },
-      {
-        type: 'p',
-        text: 'Industries such as textiles in Dharavi and entertainment in Film City benefit greatly from the GST Calculator. These sectors often deal with complex supply chains and multiple tax rates, making the calculator an invaluable tool for simplifying their financial processes and ensuring accurate tax reporting.'
-      },
-      {
-        type: 'h2',
-        text: 'How to Use GST Calculator in Mumbai'
-      },
-      {
-        type: 'p',
-        text: 'Using the GST Calculator in Mumbai is straightforward. Start by entering the taxable amount in rupees. Next, select the applicable GST rate, which can vary based on the product or service. The calculator will instantly provide the total GST amount and the gross amount payable. This tool is especially useful for Mumbai businesses dealing with frequent transactions, as it allows for quick and accurate calculations, helping maintain focus on core business activities.'
-      },
-      {
-        type: 'ul',
-        items: [
-          'Easy to use for all Mumbai residents',
-          'Accurate calculations tailored for Indian GST rates',
-          'Saves time for busy Mumbai professionals',
-          'Helps avoid costly errors in tax submissions',
-          "Accessible on any device for Mumbai's on-the-go lifestyle"
-        ]
-      },
-      {
-        type: 'h2',
-        text: 'Mumbai Business Examples'
-      },
-      {
-        type: 'p',
-        text: 'Consider a wholesaler in Crawford Market who deals with a variety of goods. With the GST Calculator, they can quickly determine the tax implications for each product category, ensuring they remain competitive with accurate pricing. Similarly, a tech startup in Powai can use the tool to manage their financial planning, helping them understand their cash flow better.'
-      },
-      {
-        type: 'p',
-        text: 'For instance, if a local café in Colaba generates a monthly revenue of ₹5,00,000, using the GST Calculator can help them accurately calculate their tax liability, allowing them to plan their finances better. This tool is a game-changer for businesses dealing with multiple transactions daily.'
-      },
-      {
-        type: 'h2',
-        text: 'Features & Benefits for Mumbai Users'
-      },
-      {
-        type: 'table',
-        headers: [
-          'Feature',
-          'Benefit for Mumbai Users'
-        ],
-        rows: [
-          [
-            '100% Free',
-            'No cost for Mumbai SMEs and freelancers'
-          ],
-          [
-            'Works in Browser',
-            'No installation — works on any device in Mumbai'
-          ],
-          [
-            'Instant Results',
-            'Get output in seconds, not hours'
-          ],
-          [
-            'No Signup',
-            'Use immediately without registration'
-          ],
-          [
-            'Indian Context',
-            'Designed for Indian tax, business, and compliance needs'
-          ]
-        ]
-      },
-      {
-        type: 'h2',
-        text: 'Conclusion'
-      },
-      {
-        type: 'p',
-        text: 'The GST Calculator is an essential tool for anyone in Mumbai looking to simplify their tax processes. From freelancers to large enterprises, this free tool offers a hassle-free way to ensure accurate tax calculations. Embrace efficiency and accuracy in your financial dealings by using our GST Calculator today.'
-      }
-    ],
-    faqs: [
-      {
-        q: 'Is GST Calculator free to use in Mumbai?',
-        a: 'Yes, the GST Calculator is completely free for all users in Mumbai, whether you are a small business owner or an independent professional. It allows you to make accurate tax calculations without any charges, making it an economical choice for your financial needs.'
-      },
-      {
-        q: 'Can Mumbai businesses use this tool for compliance?',
-        a: 'Absolutely. The GST Calculator is designed to align with the Indian GST framework, making it ideal for businesses in Mumbai to ensure compliance. It helps in accurate tax computation, which is crucial for avoiding penalties and staying compliant with tax regulations.'
-      },
-      {
-        q: 'How does GST Calculator help Mumbai freelancers?',
-        a: 'For freelancers in Mumbai, managing finances is crucial. The GST Calculator aids by providing quick and precise tax calculations, allowing freelancers to focus on their work rather than complex tax computations, thus saving time and reducing stress.'
-      },
-      {
-        q: 'Is the tool available in languages used in Mumbai?',
-        a: "Currently, the GST Calculator is available primarily in English. However, its user-friendly interface ensures that even those who are not fluent in English can use it easily. We are working on adding more language options to cater to Mumbai's diverse population."
-      }
-    ],
-    wordCount: 703,
-    id: 3,
+    id: 16,
     publishedAt: '2026-05-22'
   },
   {
@@ -2516,42 +2036,367 @@ export const CITY_PAGES = [
       }
     ],
     wordCount: 795,
-    id: 2,
+    id: 17,
     publishedAt: '2026-05-22'
   },
   {
-    id: 1,
-    toolSlug: 'gst-calculator',
-    toolName: 'GST Calculator',
-    cityName: 'Mumbai',
-    slug: 'gst-calculator/mumbai',
-    title: 'GST Calculator Mumbai — Free Online Tool for Mumbai Businesses',
-    metaTitle: 'Free GST Calculator Mumbai 2026 | AWE-OS',
-    metaDescription: 'Calculate GST for Mumbai businesses instantly. CGST + SGST breakdown. Free, no signup required.',
+    slug: 'gst-calculator/bengaluru',
+    title: 'Bengaluru GST Calculator for Businesses and Individuals',
+    metaTitle: 'Bengaluru GST Calculator - Easy & Free Tool',
+    metaDescription: 'Calculate GST easily in Bengaluru. Use our free GST Calculator for accurate tax calculations.',
     content: [
-      { type: 'p', text: 'Mumbai businesses handle thousands of GST transactions daily. Whether you run a retail shop in Dharavi, a restaurant in Bandra, or a consulting firm in BKC — accurate GST calculation protects you from compliance errors and audit risks.' },
-      { type: 'h2', text: 'GST Rates for Mumbai Businesses' },
-      { type: 'p', text: 'All Mumbai business sales are intra-state Maharashtra transactions — they attract CGST + SGST, never IGST. IGST applies only when selling to customers in other states.' },
-      { type: 'table',
-        headers: ['GST Rate', 'CGST', 'SGST', 'Common Examples'],
-        rows: [
-          ['5%', '2.5%', '2.5%', 'Restaurant meals, packaged food, textiles'],
-          ['12%', '6%', '6%', 'Processed foods, mobile phones, hotels'],
-          ['18%', '9%', '9%', 'Electronics, AC restaurants, professional services'],
-          ['28%', '14%', '14%', 'Luxury cars, tobacco, aerated drinks'],
-        ],
+      {
+        type: 'h1',
+        text: 'Bengaluru GST Calculator for Accurate Tax Calculations'
       },
-      { type: 'h2', text: 'How to Calculate GST for Mumbai Transactions' },
-      { type: 'p', text: 'For a Mumbai garment retailer selling to a local customer: Product ₹2,000 at 5% GST. GST = ₹100 (CGST ₹50 + SGST ₹50). Total invoice: ₹2,100. For an IT services firm billing ₹50,000 at 18%: GST = ₹9,000 (CGST ₹4,500 + SGST ₹4,500). Total: ₹59,000.' },
-      { type: 'h2', text: 'GST Registration for Mumbai Businesses' },
-      { type: 'p', text: 'Mumbai businesses crossing ₹40 lakh annual turnover (₹20 lakh for services) must register for GST. Most established Mumbai businesses exceed this threshold. E-commerce sellers must register regardless of turnover.' },
+      {
+        type: 'p',
+        text: "In the bustling metropolitan city of Bengaluru, where businesses thrive amidst the vibrant IT and startup ecosystem, calculating Goods and Services Tax (GST) efficiently is crucial. Whether you are a small business owner in Whitefield or a freelancer operating from Indiranagar, the need for an accurate GST calculator is undeniable. Our tool simplifies the complexities of GST calculations, allowing you to focus more on your core business operations and less on tax compliance. Bengaluru's dynamic market demands precision and speed, and our GST Calculator provides just that."
+      },
+      {
+        type: 'h2',
+        text: 'Why Bengaluru Businesses Use GST Calculator'
+      },
+      {
+        type: 'p',
+        text: 'Bengaluru, known as the Silicon Valley of India, is home to numerous tech companies, startups, and a thriving service sector. Businesses here operate on tight margins and rapid timelines, making efficient GST calculation a necessity. Our GST Calculator helps these businesses quickly determine the correct tax amounts, ensuring compliance and minimizing errors. For a city that never sleeps, having an instant, reliable tool is indispensable.'
+      },
+      {
+        type: 'p',
+        text: "Local industries such as information technology, biotechnology, and electronics greatly benefit from our GST Calculator. Companies in Electronic City or the IT parks of Bellandur can use the tool to streamline their financial operations. By automating GST calculations, businesses can allocate resources more effectively and focus on innovation and growth, which are the hallmarks of Bengaluru's economic landscape."
+      },
+      {
+        type: 'h2',
+        text: 'How to Use GST Calculator in Bengaluru'
+      },
+      {
+        type: 'p',
+        text: "Using our GST Calculator is straightforward, even for those not well-versed in tax regulations. First, input the net amount of your goods or services. Next, select the applicable GST rate, which is predefined based on Indian standards. Finally, click 'Calculate' to get the GST amount, total amount including GST, and a break-down of CGST and SGST. This process is designed to be intuitive, ensuring that businesses from Koramangala to Jayanagar can easily navigate the tool without any hassle."
+      },
+      {
+        type: 'ul',
+        items: [
+          "Instant calculations for Bengaluru's fast-paced market",
+          'User-friendly interface tailored for both tech and non-tech savvy users',
+          'Accurate tax breakdowns for compliance',
+          'Supports various GST rates applicable in India',
+          'Helps streamline financial planning and reporting'
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Bengaluru Business Examples'
+      },
+      {
+        type: 'p',
+        text: 'Consider a mid-sized tech company based in Manyata Tech Park. With multiple clients across India, the company needs precise GST calculations to maintain its competitive edge. Our tool helps them quickly compute taxes for services rendered, ensuring they remain compliant with Indian tax laws. Similarly, a boutique coffee shop in MG Road can use the calculator to determine GST on their products, streamlining their billing process and enhancing customer transparency.'
+      },
+      {
+        type: 'p',
+        text: 'In another scenario, a freelance graphic designer in Koramangala charges ₹50,000 for a project. Using the GST calculator, they can instantly find that the additional 18% GST amounts to ₹9,000, making the total invoice ₹59,000. This clarity helps freelancers manage their finances better and provides clients with accurate billing details.'
+      },
+      {
+        type: 'h2',
+        text: 'Features & Benefits for Bengaluru Users'
+      },
+      {
+        type: 'table',
+        headers: [
+          'Feature',
+          'Benefit for Bengaluru Users'
+        ],
+        rows: [
+          [
+            '100% Free',
+            'No cost for Bengaluru SMEs and freelancers'
+          ],
+          [
+            'Works in Browser',
+            'No installation — works on any device in Bengaluru'
+          ],
+          [
+            'Instant Results',
+            'Get output in seconds, not hours'
+          ],
+          [
+            'No Signup',
+            'Use immediately without registration'
+          ],
+          [
+            'Indian Context',
+            'Designed for Indian tax, business, and compliance needs'
+          ]
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Conclusion'
+      },
+      {
+        type: 'p',
+        text: "For Bengaluru's diverse and fast-paced business environment, our GST Calculator is an essential tool. It brings accuracy, speed, and ease to GST calculations, supporting businesses and freelancers alike. Whether you're a startup in HSR Layout or a seasoned company in JP Nagar, leveraging this free tool can enhance your financial operations. Try the GST Calculator today and experience the difference it can make in simplifying your tax processes."
+      }
     ],
     faqs: [
-      { q: 'Is GST calculated differently for Mumbai businesses?', a: 'No — GST rates are uniform across India. However, Mumbai businesses always pay CGST + SGST for local (intra-Maharashtra) transactions. IGST applies only when selling to customers outside Maharashtra. The AWE-OS GST Calculator automatically shows the correct split.' },
-      { q: 'What is the GST registration threshold in Mumbai?', a: 'Mumbai businesses must register for GST if annual turnover exceeds ₹40 lakhs for goods or ₹20 lakhs for services. E-commerce sellers must register regardless of turnover. Failure to register attracts a penalty equal to 10% of tax due or ₹10,000, whichever is higher.' },
-      { q: 'Which GST rate applies to Mumbai restaurants?', a: 'Non-AC Mumbai restaurants charge 5% GST without Input Tax Credit. AC restaurants may charge 5% (without ITC) or 18% (with ITC). For a ₹1,000 meal at a non-AC restaurant: GST = ₹50. For an AC restaurant at 18%: GST = ₹180.' },
+      {
+        q: 'Is GST Calculator free to use in Bengaluru?',
+        a: "Yes, the GST Calculator is completely free for all users in Bengaluru. Whether you're a startup, a small business owner, or an individual, you can access and use this tool without any charges, helping you save on operational costs."
+      },
+      {
+        q: 'Can Bengaluru businesses use this tool for compliance?',
+        a: 'Absolutely, Bengaluru businesses can use the GST Calculator to ensure compliance with Indian tax regulations. It provides accurate calculations necessary for filing returns and maintaining transparency in financial transactions, which is crucial for compliance.'
+      },
+      {
+        q: 'How does GST Calculator help Bengaluru freelancers?',
+        a: 'For freelancers in Bengaluru, the GST Calculator simplifies the process of billing and tax calculation. It provides an easy way to include GST in invoices, ensuring accurate pricing and helping maintain professional financial records.'
+      },
+      {
+        q: 'Is the tool available in languages used in Bengaluru?',
+        a: "Currently, the GST Calculator is primarily available in English, which is widely used in Bengaluru's business landscape. However, we are working towards incorporating regional languages like Kannada to better serve the diverse user base in Bengaluru."
+      }
     ],
-    publishedAt: '2026-05-22',
-    wordCount: 680,
+    wordCount: 765,
+    id: 18,
+    publishedAt: '2026-05-22'
+  },
+  {
+    slug: 'gst-calculator/delhi',
+    title: 'Delhi GST Calculator: Essential Tool for Accurate Tax Calculations',
+    metaTitle: 'Delhi GST Calculator: Simplify Your Tax Calculations',
+    metaDescription: 'Use our GST Calculator for accurate tax calculations in Delhi. Easy to use, no signup required. Try it now!',
+    content: [
+      {
+        type: 'h1',
+        text: 'Delhi GST Calculator: Your Essential Tax Tool'
+      },
+      {
+        type: 'p',
+        text: "In the bustling economic landscape of Delhi, staying compliant with tax regulations is crucial for businesses and individuals alike. Our GST Calculator is designed to simplify GST calculations, helping you save time and avoid errors. Whether you're a shop owner in Connaught Place or a service provider in South Delhi, understanding your GST obligations is vital. This tool caters to the unique needs of Delhi's diverse business community, ensuring that you can focus on growing your enterprise without the hassle of complex tax computations."
+      },
+      {
+        type: 'h2',
+        text: 'Why Delhi Businesses Use GST Calculator'
+      },
+      {
+        type: 'p',
+        text: 'Delhi, being a commercial hub, hosts a myriad of businesses ranging from small retail shops to large corporations. For these businesses, accurately calculating GST is not just a legal requirement but a necessity for maintaining financial health. A GST calculator helps streamline this process, allowing businesses to focus on their core activities instead of getting bogged down by tax calculations.'
+      },
+      {
+        type: 'p',
+        text: 'Take for instance the tech startups in Hauz Khas Village or the numerous restaurants in Karol Bagh. These businesses operate in fast-paced environments where efficiency is key. A GST calculator aids in ensuring that all financial transactions are compliant with the latest tax laws, thereby reducing the risk of penalties and ensuring smooth operations.'
+      },
+      {
+        type: 'h2',
+        text: 'How to Use GST Calculator in Delhi'
+      },
+      {
+        type: 'p',
+        text: 'Using the GST Calculator is straightforward. Begin by entering the net price of your product or service. Next, select the applicable GST rate, which could be 5%, 12%, 18%, or 28%, depending on the category of goods or services. The calculator will instantly compute the GST amount and provide you with the gross price. This tool is indispensable for Delhi businesses dealing with diverse product lines, ensuring each transaction is accurately recorded and compliant with tax regulations.'
+      },
+      {
+        type: 'ul',
+        items: [
+          'Simplifies complex tax calculations for Delhi users',
+          'Saves time by delivering quick results',
+          'Helps maintain compliance with Indian tax laws',
+          'Reduces errors in manual calculations',
+          'Supports strategic financial planning for Delhi businesses'
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Delhi Business Examples'
+      },
+      {
+        type: 'p',
+        text: 'Consider a local garment manufacturer in Chandni Chowk who needs to calculate GST on bulk orders. The GST Calculator ensures accurate computation of taxes, helping the business maintain competitive pricing. Similarly, a digital marketing agency in Nehru Place can use the tool to manage GST on services provided, ensuring compliance and streamlined accounting.'
+      },
+      {
+        type: 'p',
+        text: 'For a small cafe in Saket, accurately calculating GST on daily transactions is crucial. By using the GST Calculator, the cafe owner can easily determine how much tax to remit to the government, ensuring transparency and trust with customers. For instance, if the cafe earns ₹10,000 in sales daily, applying an 18% GST rate would be easily computed using our tool, saving time and reducing the likelihood of errors.'
+      },
+      {
+        type: 'h2',
+        text: 'Features & Benefits for Delhi Users'
+      },
+      {
+        type: 'table',
+        headers: [
+          'Feature',
+          'Benefit for Delhi Users'
+        ],
+        rows: [
+          [
+            '100% Free',
+            'No cost for Delhi SMEs and freelancers'
+          ],
+          [
+            'Works in Browser',
+            'No installation — works on any device in Delhi'
+          ],
+          [
+            'Instant Results',
+            'Get output in seconds, not hours'
+          ],
+          [
+            'No Signup',
+            'Use immediately without registration'
+          ],
+          [
+            'Indian Context',
+            'Designed for Indian tax, business, and compliance needs'
+          ]
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Conclusion'
+      },
+      {
+        type: 'p',
+        text: "The GST Calculator is an invaluable tool for anyone involved in business in Delhi. It simplifies the tax calculation process, ensuring compliance and accuracy. This free, easy-to-use tool is tailored to meet the needs of Delhi's dynamic business environment. Whether you're a freelancer or run a large enterprise, the GST Calculator can help you manage your finances more effectively. Try it today and experience the ease of accurate tax calculations."
+      }
+    ],
+    faqs: [
+      {
+        q: 'Is GST Calculator free to use in Delhi?',
+        a: 'Yes, the GST Calculator is completely free for all users in Delhi. It is designed to assist businesses and individuals in accurately calculating their tax obligations without incurring any additional costs. This makes it an accessible tool for startups, SMEs, and freelancers throughout the city.'
+      },
+      {
+        q: 'Can Delhi businesses use this tool for compliance?',
+        a: 'Absolutely. The GST Calculator is designed to ensure that your business remains compliant with the latest GST regulations in India. By providing accurate calculations, it helps reduce the risk of non-compliance penalties, making it an essential tool for Delhi businesses operating in various sectors.'
+      },
+      {
+        q: 'How does GST Calculator help Delhi freelancers?',
+        a: 'Freelancers in Delhi can benefit greatly from the GST Calculator as it simplifies the process of calculating taxes on their income. This tool provides clarity on how much GST needs to be charged and paid, ensuring freelancers can manage their finances efficiently without needing extensive accounting knowledge.'
+      },
+      {
+        q: 'Is the tool available in languages used in Delhi?',
+        a: 'Yes, the GST Calculator is available in multiple languages, including Hindi and English, which are widely used in Delhi. This ensures that users can easily navigate and use the tool in the language they are most comfortable with, enhancing accessibility and user experience.'
+      }
+    ],
+    wordCount: 790,
+    id: 19,
+    publishedAt: '2026-05-22'
+  },
+  {
+    slug: 'gst-calculator/mumbai',
+    title: 'GST Calculator for Mumbai Businesses and Individuals',
+    metaTitle: 'GST Calculator Mumbai - Easy Tax Calculations',
+    metaDescription: 'Use our GST Calculator for Mumbai to simplify tax calculations. Free and easy to use for local businesses.',
+    content: [
+      {
+        type: 'h1',
+        text: 'GST Calculator for Mumbai: Simplify Your Tax Calculations'
+      },
+      {
+        type: 'p',
+        text: "Mumbai, the bustling financial hub of India, is home to a diverse range of businesses, from small startups in Andheri to large corporations in Nariman Point. With the introduction of the Goods and Services Tax (GST), businesses and individuals in Mumbai need a reliable tool to manage their tax calculations efficiently. Our GST Calculator is designed to cater specifically to Mumbai's dynamic business environment, helping you save time and avoid errors in tax computation."
+      },
+      {
+        type: 'h2',
+        text: 'Why Mumbai Businesses Use GST Calculator'
+      },
+      {
+        type: 'p',
+        text: 'In Mumbai, where the pace of business is ever-accelerating, efficiency is key. Businesses in areas like Lower Parel and Bandra Kurla Complex are constantly seeking ways to streamline their operations. The GST Calculator provides an easy solution to compute taxes accurately, ensuring compliance and freeing up resources for other critical business activities.'
+      },
+      {
+        type: 'p',
+        text: 'Industries such as textiles in Dharavi and entertainment in Film City benefit greatly from the GST Calculator. These sectors often deal with complex supply chains and multiple tax rates, making the calculator an invaluable tool for simplifying their financial processes and ensuring accurate tax reporting.'
+      },
+      {
+        type: 'h2',
+        text: 'How to Use GST Calculator in Mumbai'
+      },
+      {
+        type: 'p',
+        text: 'Using the GST Calculator in Mumbai is straightforward. Start by entering the taxable amount in rupees. Next, select the applicable GST rate, which can vary based on the product or service. The calculator will instantly provide the total GST amount and the gross amount payable. This tool is especially useful for Mumbai businesses dealing with frequent transactions, as it allows for quick and accurate calculations, helping maintain focus on core business activities.'
+      },
+      {
+        type: 'ul',
+        items: [
+          'Easy to use for all Mumbai residents',
+          'Accurate calculations tailored for Indian GST rates',
+          'Saves time for busy Mumbai professionals',
+          'Helps avoid costly errors in tax submissions',
+          "Accessible on any device for Mumbai's on-the-go lifestyle"
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Mumbai Business Examples'
+      },
+      {
+        type: 'p',
+        text: 'Consider a wholesaler in Crawford Market who deals with a variety of goods. With the GST Calculator, they can quickly determine the tax implications for each product category, ensuring they remain competitive with accurate pricing. Similarly, a tech startup in Powai can use the tool to manage their financial planning, helping them understand their cash flow better.'
+      },
+      {
+        type: 'p',
+        text: 'For instance, if a local café in Colaba generates a monthly revenue of ₹5,00,000, using the GST Calculator can help them accurately calculate their tax liability, allowing them to plan their finances better. This tool is a game-changer for businesses dealing with multiple transactions daily.'
+      },
+      {
+        type: 'h2',
+        text: 'Features & Benefits for Mumbai Users'
+      },
+      {
+        type: 'table',
+        headers: [
+          'Feature',
+          'Benefit for Mumbai Users'
+        ],
+        rows: [
+          [
+            '100% Free',
+            'No cost for Mumbai SMEs and freelancers'
+          ],
+          [
+            'Works in Browser',
+            'No installation — works on any device in Mumbai'
+          ],
+          [
+            'Instant Results',
+            'Get output in seconds, not hours'
+          ],
+          [
+            'No Signup',
+            'Use immediately without registration'
+          ],
+          [
+            'Indian Context',
+            'Designed for Indian tax, business, and compliance needs'
+          ]
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Conclusion'
+      },
+      {
+        type: 'p',
+        text: 'The GST Calculator is an essential tool for anyone in Mumbai looking to simplify their tax processes. From freelancers to large enterprises, this free tool offers a hassle-free way to ensure accurate tax calculations. Embrace efficiency and accuracy in your financial dealings by using our GST Calculator today.'
+      }
+    ],
+    faqs: [
+      {
+        q: 'Is GST Calculator free to use in Mumbai?',
+        a: 'Yes, the GST Calculator is completely free for all users in Mumbai, whether you are a small business owner or an independent professional. It allows you to make accurate tax calculations without any charges, making it an economical choice for your financial needs.'
+      },
+      {
+        q: 'Can Mumbai businesses use this tool for compliance?',
+        a: 'Absolutely. The GST Calculator is designed to align with the Indian GST framework, making it ideal for businesses in Mumbai to ensure compliance. It helps in accurate tax computation, which is crucial for avoiding penalties and staying compliant with tax regulations.'
+      },
+      {
+        q: 'How does GST Calculator help Mumbai freelancers?',
+        a: 'For freelancers in Mumbai, managing finances is crucial. The GST Calculator aids by providing quick and precise tax calculations, allowing freelancers to focus on their work rather than complex tax computations, thus saving time and reducing stress.'
+      },
+      {
+        q: 'Is the tool available in languages used in Mumbai?',
+        a: "Currently, the GST Calculator is available primarily in English. However, its user-friendly interface ensures that even those who are not fluent in English can use it easily. We are working on adding more language options to cater to Mumbai's diverse population."
+      }
+    ],
+    wordCount: 703,
+    id: 20,
+    publishedAt: '2026-05-22'
   },
 ]
