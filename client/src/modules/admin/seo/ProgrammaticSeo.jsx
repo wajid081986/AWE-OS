@@ -274,7 +274,14 @@ export default function ProgrammaticSeo() {
           setBulkProgress(prev => ({
             ...prev,
             completed: prev.completed + 1,
-            errors: [...prev.errors, { city, reason: `Below 1200 words (got ${page.wordCount || 0})` }],
+            errors: [...prev.errors, {
+              city,
+              slug:          `${toolSlug}/${toSlug(city)}`,
+              reason:        `Below 1200 words (got ${page.wordCount || 0})`,
+              generatedData: page,
+              wordCount:     page.wordCount || 0,
+              status:        'word_count_fail',
+            }],
           }))
         }
       } catch (err) {
@@ -314,6 +321,44 @@ export default function ProgrammaticSeo() {
     for (const [ts, { toolName: tn, cities }] of Object.entries(byTool)) {
       await runBulkForCities(cities, ts, tn)
     }
+  }
+
+  async function handleManualAccept(err) {
+    const { city, slug: errSlug, generatedData } = err
+    setBulkProgress(prev => ({
+      ...prev,
+      errors: prev.errors.map(e => e.city === city ? { ...e, status: 'publishing' } : e),
+    }))
+    try {
+      await api.post('/api/admin/seo/publish-programmatic', {
+        page: generatedData, slug: errSlug, force: true,
+      })
+      setBulkProgress(prev => ({
+        ...prev,
+        errors:  prev.errors.map(e => e.city === city ? { ...e, status: 'published' } : e),
+        results: [...prev.results, { city, status: 'published', url: `/${errSlug}`, wordCount: err.wordCount }],
+      }))
+      savePublishedRecord({
+        type:      'city',
+        title:     generatedData.title || `Tool for ${city}`,
+        slug:      errSlug,
+        url:       `https://awe-os.com/${errSlug}`,
+        date:      new Date().toISOString().split('T')[0],
+        wordCount: err.wordCount || 0,
+      })
+    } catch (e) {
+      setBulkProgress(prev => ({
+        ...prev,
+        errors: prev.errors.map(er => er.city === city ? { ...er, status: 'force_failed', reason: e.message } : er),
+      }))
+    }
+  }
+
+  function handleManualReject(err) {
+    setBulkProgress(prev => ({
+      ...prev,
+      errors: prev.errors.map(e => e.city === err.city ? { ...e, status: 'skipped' } : e),
+    }))
   }
 
   function pauseResume() {
@@ -359,10 +404,21 @@ export default function ProgrammaticSeo() {
     const result  = bulkProgress.results.find(r => r.city === city)
     const err     = bulkProgress.errors.find(e => e.city === city)
     const current = bulkProgress.current === city
-    if (result)  acc[city] = { icon: '✅', detail: `published → ${result.url}`, cls: 'text-green-400' }
-    else if (err) acc[city] = { icon: '❌', detail: err.reason, cls: 'text-red-400' }
-    else if (current) acc[city] = { icon: '⏳', detail: 'generating...', cls: 'text-yellow-400' }
-    else acc[city] = { icon: isPaused ? '⏸️' : '⬜', detail: 'waiting', cls: 'text-gray-500' }
+    if (result) {
+      acc[city] = { icon: '✅', detail: `published → ${result.url}`, cls: 'text-green-400' }
+    } else if (err) {
+      if (err.status === 'publishing')   acc[city] = { icon: '⏳', detail: 'publishing...', cls: 'text-blue-400' }
+      else if (err.status === 'published')  acc[city] = { icon: '✅', detail: 'force published', cls: 'text-green-400' }
+      else if (err.status === 'skipped')    acc[city] = { icon: '⏭️', detail: 'manually skipped', cls: 'text-gray-400' }
+      else if (err.status === 'force_failed') acc[city] = { icon: '❌', detail: err.reason, cls: 'text-red-400' }
+      else if (err.generatedData && (err.wordCount || 0) >= 1100)
+        acc[city] = { icon: '⚠️', detail: `${err.wordCount} words — decide below`, cls: 'text-yellow-400' }
+      else acc[city] = { icon: '❌', detail: err.reason, cls: 'text-red-400' }
+    } else if (current) {
+      acc[city] = { icon: '⏳', detail: 'generating...', cls: 'text-yellow-400' }
+    } else {
+      acc[city] = { icon: isPaused ? '⏸️' : '⬜', detail: 'waiting', cls: 'text-gray-500' }
+    }
     return acc
   }, {})
 
@@ -727,11 +783,33 @@ export default function ProgrammaticSeo() {
           <div className="space-y-1.5 max-h-64 overflow-y-auto">
             {selectedCities.map(city => {
               const s = cityStatusMap[city] || { icon: '⬜', detail: 'waiting', cls: 'text-gray-500' }
+              const err = bulkProgress.errors.find(e => e.city === city)
+              const showAcceptUI = err?.generatedData && (err?.wordCount || 0) >= 1100
+                && !['publishing', 'published', 'skipped', 'force_failed'].includes(err?.status)
               return (
-                <div key={city} className="flex items-center gap-2 text-sm">
-                  <span className="w-5 shrink-0">{s.icon}</span>
-                  <span className="text-white font-medium w-28 shrink-0">{city}</span>
-                  <span className={`text-xs ${s.cls} truncate`}>{s.detail}</span>
+                <div key={city} className="text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 shrink-0">{s.icon}</span>
+                    <span className="text-white font-medium w-28 shrink-0">{city}</span>
+                    <span className={`text-xs ${s.cls} truncate`}>{s.detail}</span>
+                  </div>
+                  {showAcceptUI && (
+                    <div className="ml-7 mt-1 flex items-center gap-2">
+                      <span className="text-xs text-yellow-300">⚠️ {err.wordCount} words — Accept anyway?</span>
+                      <button
+                        onClick={() => handleManualAccept(err)}
+                        className="text-xs bg-green-700 hover:bg-green-600 text-white px-2 py-0.5 rounded"
+                      >
+                        ✅ Accept
+                      </button>
+                      <button
+                        onClick={() => handleManualReject(err)}
+                        className="text-xs bg-gray-600 hover:bg-gray-500 text-white px-2 py-0.5 rounded"
+                      >
+                        ❌ Skip
+                      </button>
+                    </div>
+                  )}
                 </div>
               )
             })}

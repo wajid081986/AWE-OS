@@ -317,29 +317,34 @@ Return ONLY valid JSON:
     const toolName = tool1Name || tool1Slug
     const citySlug = cityName.toLowerCase().replace(/\s+/g, '-')
     slug = `${tool1Slug}/${citySlug}`
-    userPrompt = `Write a 1200+ word city-specific page for:
+    userPrompt = `Write a 1500+ word city-specific page for:
 Tool: ${toolName}
 City: ${cityName}, India
 Tool URL: https://www.awe-os.com/tools/${tool1Slug}
 
-REQUIRED SECTIONS (each section minimum 120 words):
-1. Introduction (150 words): Why ${cityName} businesses/people need ${toolName}. Include city-specific context (main industries, economic activity).
+Generate MINIMUM 1500 words of actual readable text in the content blocks.
+Count only text values, NOT JSON keys or brackets.
+Include at least 12-15 content blocks total.
+Every section must be detailed and expanded — no summarizing.
 
-2. H2: '${toolName} for ${cityName} — Key Features' (120 words): What makes this tool useful specifically for ${cityName} users. Include a data table with 5 rows.
+REQUIRED SECTIONS (each section minimum 150 words):
+1. Introduction (200 words): Why ${cityName} businesses/people need ${toolName}. Include city-specific context (main industries, economic activity, local challenges facing businesses).
 
-3. H2: 'How to Use ${toolName} in ${cityName}' (150 words): Step-by-step guide with ${cityName}-specific examples and ₹ amounts.
+2. H2: '${toolName} for ${cityName} — Key Features' (150 words): What makes this tool useful specifically for ${cityName} users, with detailed explanation. Include a data table with 5 rows.
 
-4. H2: '${cityName} Examples with Real Numbers' (200 words): 3 detailed real-world examples with ₹ amounts. Use ${cityName}'s actual industries (Mumbai=finance/textiles, Delhi=government/trade, Bengaluru=IT/startups, Hyderabad=pharma/IT, Chennai=manufacturing/auto, Pune=IT/auto, Ahmedabad=textiles/pharma, Kolkata=jute/trade, Surat=diamonds/textiles, Jaipur=tourism/gems).
+3. H2: 'How to Use ${toolName} in ${cityName}' (200 words): Detailed step-by-step guide with ${cityName}-specific examples and ₹ amounts. Include at least 5 steps.
 
-5. H2: 'Who Needs ${toolName} in ${cityName}' (150 words): 5 specific user types relevant to ${cityName}'s economy, each with 30+ word explanation.
+4. H2: '${cityName} Examples with Real Numbers' (250 words): 3 detailed real-world examples with ₹ amounts. Use ${cityName}'s actual industries (Mumbai=finance/textiles, Delhi=government/trade, Bengaluru=IT/startups, Hyderabad=pharma/IT, Chennai=manufacturing/auto, Pune=IT/auto, Ahmedabad=textiles/pharma, Kolkata=jute/trade, Surat=diamonds/textiles, Jaipur=tourism/gems). Each example must be at least 80 words.
 
-6. H2: 'Why AWE-OS ${toolName} is Perfect for ${cityName} Users' (120 words): Benefits specific to ${cityName} with a bullet list of 5 items.
+5. H2: 'Who Needs ${toolName} in ${cityName}' (200 words): 5 specific user types relevant to ${cityName}'s economy. Each user type gets its own paragraph of 40+ words with a detailed explanation.
 
-7. Conclusion (100 words): Strong CTA — free, no signup, works in browser.
+6. H2: 'Why AWE-OS ${toolName} is Perfect for ${cityName} Users' (150 words): Detailed benefits specific to ${cityName} with a bullet list of 5 items, each with a full sentence explanation.
 
-GENERATE 5 FAQs — each answer minimum 100 words, specific to ${cityName}.
+7. Conclusion (150 words): Strong conclusion with specific reference to ${cityName} users. Clear CTA — free, no signup, works in browser, available 24/7.
 
-TOTAL MUST BE 1200+ WORDS. Count carefully.
+GENERATE 5 FAQs — each answer minimum 120 words, specific to ${cityName} context.
+
+TOTAL MUST BE 1500+ WORDS. Count carefully.
 
 Return ONLY valid JSON:
 {
@@ -371,7 +376,7 @@ Return ONLY valid JSON:
     { "q": "WRITE FAQ Q4 SPECIFIC TO ${cityName}?", "a": "WRITE 100+ WORD ANSWER" },
     { "q": "WRITE FAQ Q5 SPECIFIC TO ${cityName}?", "a": "WRITE 100+ WORD ANSWER" }
   ],
-  "wordCount": 1200
+  "wordCount": 1500
 }`
 
   } else if (pageType === 'faq-category') {
@@ -390,26 +395,43 @@ Return ONLY valid JSON with the same structure as a comparison page. slug: "${sl
 
   // Per-type system prompt and token budget
   const systemPrompt = pageType === 'city'
-    ? `You are a senior SEO content writer for AWE-OS.com. Write a COMPREHENSIVE city-specific tool page for Indian users. MANDATORY: Minimum 1200 words of actual content. Use Indian context: ₹ amounts, local business examples, city-specific industries, local regulations. Return ONLY valid JSON — no markdown, no commentary, just the JSON object.`
+    ? `You are a senior SEO content writer for AWE-OS.com. Write a COMPREHENSIVE city-specific tool page for Indian users. MANDATORY: Minimum 1500 words of actual readable text. Count only text content, NOT JSON structure. Use Indian context: ₹ amounts, local business examples, city-specific industries, local regulations. Every paragraph must be fully developed — no one-liners, no summaries. Return ONLY valid JSON — no markdown, no commentary, just the JSON object.`
     : 'You are a senior SEO content writer for AWE-OS.com. Generate HIGH-QUALITY programmatic SEO content. Indian context throughout. Return ONLY valid JSON matching the requested page type.'
   const maxTokens = pageType === 'city' ? 4000 : 3000
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      max_tokens: maxTokens,
-      temperature: 0.7,
-    })
-    const raw  = completion.choices[0]?.message?.content || ''
-    console.log('[admin-seo/generate-programmatic] raw length:', raw.length, 'preview:', raw.slice(0, 200))
-    const page = parseAIJson(raw)
-    // Always compute wordCount server-side — never trust AI's self-reported value
-    page.wordCount = calcWordCount(page.content, page.faqs)
-    console.log('[admin-seo/generate-programmatic] pageType:', pageType, 'wordCount:', page.wordCount, 'contentBlocks:', page.content?.length)
+    const callAI = async (prompt) => {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: maxTokens,
+        temperature: 0.7,
+      })
+      const raw = completion.choices[0]?.message?.content || ''
+      console.log('[admin-seo/generate-programmatic] raw length:', raw.length, 'preview:', raw.slice(0, 200))
+      const p = parseAIJson(raw)
+      p.wordCount = calcWordCount(p.content, p.faqs)
+      console.log('[admin-seo/generate-programmatic] pageType:', pageType, 'wordCount:', p.wordCount, 'contentBlocks:', p.content?.length)
+      return p
+    }
+
+    let page = await callAI(userPrompt)
+
+    // City pages: auto-retry once if below 1200 words
+    if (pageType === 'city' && page.wordCount < 1200) {
+      const retryPrompt = userPrompt +
+        `\n\nCRITICAL: Previous attempt only generated ${page.wordCount} words. This time write MORE. ` +
+        `Add extra paragraphs to every section. Every paragraph must be at least 80 words. ` +
+        `Do not summarize — expand each point fully with specific ${cityName} examples and ₹ amounts.`
+      console.log('[admin-seo/generate-programmatic] Retry attempt 2 — wordCount was:', page.wordCount)
+      const page2 = await callAI(retryPrompt)
+      console.log('[admin-seo/generate-programmatic] After retry wordCount:', page2.wordCount)
+      if (page2.wordCount > page.wordCount) page = page2
+    }
+
     res.json({ success: true, page })
   } catch (err) {
     console.error('[admin-seo/generate-programmatic]', err.message)
@@ -509,8 +531,15 @@ async function publishCityPageToGitHub(newPage, slug) {
 }
 
 router.post('/publish-programmatic', requireAuth, requireAdmin, async (req, res) => {
-  const { page, slug } = req.body
+  const { page, slug, force } = req.body
   if (!page || !slug) return res.status(400).json({ success: false, error: 'page and slug are required' })
+  if (!page.content?.length) return res.status(400).json({ success: false, error: 'page has no content blocks' })
+  if (!force && (page.wordCount || 0) < 1200) {
+    return res.status(422).json({
+      success: false,
+      error:   `Below 1200 words (got ${page.wordCount || 0}) — pass force: true to publish anyway`,
+    })
+  }
   try {
     const result = await publishCityPageToGitHub(page, slug)
     res.json(result)
