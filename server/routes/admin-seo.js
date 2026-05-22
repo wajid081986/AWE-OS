@@ -432,6 +432,13 @@ Return ONLY valid JSON with the same structure as a comparison page. slug: "${sl
       if (page2.wordCount > page.wordCount) page = page2
     }
 
+    // Stamp tool/city metadata so CITY_PAGES entries are self-describing
+    if (pageType === 'city') {
+      page.toolSlug = tool1Slug
+      page.toolName = tool1Name || tool1Slug
+      page.cityName = cityName
+    }
+
     res.json({ success: true, page })
   } catch (err) {
     console.error('[admin-seo/generate-programmatic]', err.message)

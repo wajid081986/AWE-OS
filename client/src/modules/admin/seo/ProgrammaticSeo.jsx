@@ -313,10 +313,18 @@ export default function ProgrammaticSeo() {
     const low = CITY_PAGES.filter(p => (p.wordCount || 0) < 1200)
     if (!low.length) return
     // Group by toolSlug → run bulk sequentially per tool
+    // Derive toolSlug/cityName from slug for existing entries that predate the metadata fields
     const byTool = {}
     for (const p of low) {
-      if (!byTool[p.toolSlug]) byTool[p.toolSlug] = { toolName: p.toolName || p.toolSlug, cities: [] }
-      byTool[p.toolSlug].cities.push(p.cityName)
+      const parts = (p.slug || '').split('/')
+      const ts = p.toolSlug || parts[0] || ''
+      const tn = p.toolName || ts
+      const cn = p.cityName || (parts[1] || '')
+        .replace(/-/g, ' ')
+        .replace(/\b\w/g, c => c.toUpperCase())
+      if (!ts || !cn) continue
+      if (!byTool[ts]) byTool[ts] = { toolName: tn, cities: [] }
+      byTool[ts].cities.push(cn)
     }
     for (const [ts, { toolName: tn, cities }] of Object.entries(byTool)) {
       await runBulkForCities(cities, ts, tn)
