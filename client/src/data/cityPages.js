@@ -1,5 +1,125 @@
 export const CITY_PAGES = [
   {
+    slug: 'gst-calculator/chandigarh',
+    title: 'GST Calculator for Chandigarh: Simplify Your Tax Calculations',
+    metaTitle: 'GST Calculator Chandigarh | Easy Tax Calculation',
+    metaDescription: 'Use our GST Calculator for Chandigarh businesses to simplify tax calculations. Try it now!',
+    content: [
+      {
+        type: 'h1',
+        text: 'GST Calculator for Chandigarh: Simplify Your Tax Calculations'
+      },
+      {
+        type: 'p',
+        text: "For businesses and individuals in Chandigarh, navigating the complexities of the Goods and Services Tax (GST) can be a daunting task. As a rapidly growing city that attracts both traditional industries and modern startups, Chandigarh requires efficient tools for financial management. Our GST Calculator is designed to meet this need, offering a user-friendly and precise way for Chandigarh residents to compute GST on various transactions. Whether you're a shop owner in Sector 17 or a tech freelancer working from a co-working space in IT Park, this tool is essential for ensuring compliance with tax regulations and optimizing your financial planning."
+      },
+      {
+        type: 'h2',
+        text: 'Why Chandigarh Businesses Use GST Calculator'
+      },
+      {
+        type: 'p',
+        text: "Chandigarh's diverse business landscape, which includes retail, technology, and service sectors, demands a reliable method for calculating GST. With increasing transactions and financial activities, local businesses need a tool that simplifies tax calculations to ensure accuracy and compliance. The GST Calculator is an indispensable resource for businesses in Chandigarh looking to streamline their tax processes and focus on growth."
+      },
+      {
+        type: 'p',
+        text: 'Consider the burgeoning IT and service sectors in Chandigarh, where companies frequently deal with complex invoices. For these businesses, accurate GST calculation is crucial to maintain financial health and regulatory compliance. Similarly, retail stores in Elante Mall and local markets can benefit from the quick, error-free tax computations that our GST Calculator provides, allowing them to manage their finances more efficiently.'
+      },
+      {
+        type: 'h2',
+        text: 'How to Use GST Calculator in Chandigarh'
+      },
+      {
+        type: 'p',
+        text: 'Using the GST Calculator is straightforward for anyone in Chandigarh. Simply enter the net amount of the product or service, select the applicable GST rate, and the calculator will instantly provide the GST amount and the gross total. This tool is perfect for traders in the bustling markets of Sector 22, ensuring they can quote accurate prices inclusive of GST to their customers. Whether you are at your office in the Industrial Area or on the go, accessing this tool through any device ensures you can make real-time calculations wherever you are.'
+      },
+      {
+        type: 'ul',
+        items: [
+          'Instant GST calculations for Chandigarh businesses',
+          'User-friendly interface tailored for local needs',
+          'Accessible from any device, anytime',
+          'Helps ensure compliance with Indian tax regulations',
+          'Free of charge for all users in Chandigarh'
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Chandigarh Business Examples'
+      },
+      {
+        type: 'p',
+        text: "In Chandigarh, the hospitality industry, including hotels in the city center, uses the GST Calculator to manage their billing processes effectively. For example, a hotel in Sector 35 can quickly calculate the GST on room tariffs and food services, ensuring transparent pricing for guests. Similarly, educational institutions, which are a significant part of Chandigarh's economy, use the tool to calculate GST on various educational supplies and services."
+      },
+      {
+        type: 'p',
+        text: 'Local startups in the Rajiv Gandhi Technology Park often deal with multiple clients and vendors, requiring precise GST calculations on services rendered. By using the GST Calculator, these tech companies can ensure they apply the correct tax rates, manage their accounts efficiently, and focus on innovation. For instance, a software development firm invoicing ₹50,000 can quickly determine the total amount payable, including GST, thereby maintaining smooth operations.'
+      },
+      {
+        type: 'h2',
+        text: 'Features & Benefits for Chandigarh Users'
+      },
+      {
+        type: 'table',
+        headers: [
+          'Feature',
+          'Benefit for Chandigarh Users'
+        ],
+        rows: [
+          [
+            '100% Free',
+            'No cost for Chandigarh SMEs and freelancers'
+          ],
+          [
+            'Works in Browser',
+            'No installation — works on any device in Chandigarh'
+          ],
+          [
+            'Instant Results',
+            'Get output in seconds, not hours'
+          ],
+          [
+            'No Signup',
+            'Use immediately without registration'
+          ],
+          [
+            'Indian Context',
+            'Designed for Indian tax, business, and compliance needs'
+          ]
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Conclusion'
+      },
+      {
+        type: 'p',
+        text: "For Chandigarh businesses and individuals, our GST Calculator offers a seamless, efficient way to handle tax calculations. Its user-friendly interface and instant results make it an invaluable tool for managing finances accurately. Whether you're a local shop owner or a freelancer managing multiple projects, this free tool simplifies the GST process, allowing you to focus on what truly matters—growing your business. Try our GST Calculator today and experience hassle-free tax management."
+      }
+    ],
+    faqs: [
+      {
+        q: 'Is GST Calculator free to use in Chandigarh?',
+        a: 'Yes, the GST Calculator is completely free for Chandigarh users. It helps businesses and individuals manage their tax calculations without incurring any additional costs, making it an ideal tool for startups and established enterprises alike.'
+      },
+      {
+        q: 'Can Chandigarh businesses use this tool for compliance?',
+        a: 'Absolutely. Chandigarh businesses can use the GST Calculator to ensure they are applying the correct tax rates on their goods and services. This tool helps maintain compliance with Indian tax laws, which is crucial for businesses in sectors like retail, technology, and hospitality.'
+      },
+      {
+        q: 'How does GST Calculator help Chandigarh freelancers?',
+        a: 'Freelancers in Chandigarh, particularly those offering services across India, can benefit from the GST Calculator by quickly determining the tax implications of their invoices. This ensures they quote accurate prices to clients and manage their finances efficiently.'
+      },
+      {
+        q: 'Is the tool available in languages used in Chandigarh?',
+        a: 'Yes, the GST Calculator is designed to be user-friendly and is available in English, which is widely used in Chandigarh. This ensures that users from various linguistic backgrounds can access and utilize the tool effectively.'
+      }
+    ],
+    wordCount: 812,
+    id: 18,
+    publishedAt: '2026-05-22'
+  },
+  {
     slug: 'gst-calculator/bhopal',
     title: 'Bhopal GST Calculator Tool for Accurate Tax Calculations',
     metaTitle: 'Bhopal GST Calculator - AWE-OS.com',
