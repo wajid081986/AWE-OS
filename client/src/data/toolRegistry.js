@@ -492,6 +492,25 @@ export const TOOL_REGISTRY = [
     },
   },
 
+  {
+    slug: 'pdf-editor',
+    name: 'PDF Editor',
+    description: 'Edit PDFs online free — add text, draw, highlight, sign, and annotate PDF files instantly in your browser.',
+    category: 'pdf',
+    subcategory: 'Edit PDF',
+    icon: '✏️',
+    isFeatured: true,
+    isNew: true,
+    isPremium: false,
+    comingSoon: false,
+    tags: ['pdf editor', 'edit pdf', 'annotate pdf', 'pdf annotator', 'sign pdf', 'fill pdf form'],
+    relatedSlugs: ['watermark-pdf', 'protect-pdf', 'merge-pdf'],
+    seo: {
+      title: 'PDF Editor — Edit PDF Online Free | AWE-OS',
+      description: 'Free online PDF editor. Add text, draw, highlight, sign and annotate PDF files in your browser. No upload, no signup.',
+    },
+  },
+
   // PDF Security
   {
     slug: 'protect-pdf',

@@ -28,6 +28,31 @@ export const TOOL_ABOUT = {
     "This tool is designed for financial awareness and preliminary investment planning. It is not registered investment advice. Before starting or modifying a SIP, consult a SEBI-registered investment advisor (RIA) or a certified financial planner (CFP) who can evaluate your complete financial profile including risk tolerance, tax situation, existing investments, insurance coverage, and specific financial goals.",
   ],
 
+  'pdf-editor': {
+    whatIsIt: 'AWE-OS PDF Editor is a free browser-based tool that lets you edit, annotate, and sign PDF files without uploading to any server. Open any PDF, add text boxes, draw freehand, highlight passages, insert rectangles, circles, arrows, sticky notes, images, and hand-drawn or typed signatures — then download the finished file instantly. Everything runs in your browser; your documents never leave your device.',
+    howToUse: [
+      'Click "Open PDF" or drag your PDF file into the editor — all pages are rendered as a scrollable canvas',
+      'Select an annotation tool from the toolbar: Text, Draw, Highlight, Rectangle, Circle, Arrow, Line, Sticky Note, Image, or Signature',
+      'Click or drag on any page to place or draw your annotation; drag to reposition, use corner handles to resize',
+      'Use the page panel on the left to reorder, rotate, or delete individual pages',
+      'Click "Download PDF" to save the fully annotated PDF to your device — no account required',
+    ],
+    whyUseUs: [
+      '100% browser-based — your PDF is never uploaded to any server, keeping sensitive documents fully private',
+      '10 annotation tools including freehand draw, highlight, sticky notes, shapes, arrows, and signature capture',
+      'Drag, resize, and delete any annotation after placing it — full edit control at every step',
+      'Undo/redo up to 20 steps so you can experiment without fear of making permanent mistakes',
+      'Free with no watermarks, no file size limits, and no account registration required',
+    ],
+    faqs: [
+      { q: 'Is the PDF Editor free to use?', a: 'Yes. AWE-OS PDF Editor is completely free — no account, no watermark, and no usage limits.' },
+      { q: 'Is my PDF file safe when editing online?', a: 'Yes. All editing happens locally in your browser using JavaScript (PDF.js and pdf-lib). Your PDF is never uploaded to any server and is permanently discarded when you close the tab. This makes it safe to use with Aadhaar cards, bank statements, salary slips, contracts, and other sensitive documents.' },
+      { q: 'Can I sign a PDF with this tool?', a: 'Yes. Select the Signature tool, then either draw your signature with a mouse or touchscreen, or type your name and choose a script font. Place the signature anywhere on the page, resize it, and download. The signature is embedded as an image in the final PDF.' },
+      { q: 'Does the PDF Editor work on mobile?', a: 'Yes. The editor is responsive and works on Android and iOS in Chrome, Firefox, Safari, and Edge. Touch drawing and tap-to-place annotations are fully supported.' },
+      { q: 'Can I reorder or delete pages?', a: 'Yes. The left sidebar shows thumbnail previews of all pages. Drag thumbnails to reorder pages, or use the rotate and delete icons on each thumbnail. Page changes are reflected in the downloaded PDF.' },
+    ],
+  },
+
   'compress-pdf': {
     whatIsIt: 'AWE-OS Compress PDF is a free, browser-based tool that reduces the file size of PDF documents without uploading them to any server. It is designed for Indian users who regularly hit file size limits on government portals (income tax portal, DigiLocker, university admission systems), email attachments, and WhatsApp document sharing — where limits of 2MB or 25MB are commonly enforced.',
     howToUse: [

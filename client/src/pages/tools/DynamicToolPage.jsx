@@ -52,6 +52,7 @@ const TOOL_COMPONENTS = {
   // PDF — Edit
   'watermark-pdf':       () => import('./pdf/WatermarkPDF'),
   'page-numbers-pdf':    () => import('./pdf/PageNumbersPDF'),
+  'pdf-editor':          () => import('./pdf/PdfEditor'),
 
   // PDF — Security
   'protect-pdf':         () => import('./pdf/ProtectPDF'),
