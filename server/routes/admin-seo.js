@@ -17,6 +17,28 @@ function requireAdmin(req, res, next) {
   next()
 }
 
+// ── Word count from content array ─────────────────────────────────────────────
+
+function calcWordCount(content, faqs) {
+  const blockText = (content || []).map(block => {
+    if (block.type === 'p' || block.type === 'h1' || block.type === 'h2' || block.type === 'h3') {
+      return block.text || ''
+    }
+    if (block.type === 'ul') return (block.items || []).join(' ')
+    if (block.type === 'table') {
+      return [(block.headers || []).join(' '), ...(block.rows || []).map(r => r.join(' '))].join(' ')
+    }
+    return ''
+  }).join(' ')
+
+  const faqText = (faqs || []).map(f => `${f.q || ''} ${f.a || ''}`).join(' ')
+
+  return [blockText, faqText]
+    .join(' ')
+    .split(/\s+/)
+    .filter(w => w.length > 0).length
+}
+
 // ── AI JSON parser (same pattern as admin-blog.js) ────────────────────────────
 
 function parseAIJson(raw) {
@@ -294,15 +316,45 @@ Return ONLY valid JSON:
     }
     const citySlug = cityName.toLowerCase().replace(/\s+/g, '-')
     slug = `${tool1Slug}-${citySlug}`
-    userPrompt = `Generate a 600+ word city-specific tool page for AWE-OS.com.
+    userPrompt = `Generate a 700+ word city-specific tool page for AWE-OS.com.
 
 Tool: ${tool1Name || tool1Slug} — https://awe-os.com/tools/${tool1Slug}
 City: ${cityName}, India
 Target URL: /tools/${tool1Slug}/${citySlug}
-Audience: ${cityName} businesses and individuals. Use ₹, ${cityName} examples, local tax/business context.
-Minimum: 600 words + local examples + 4 FAQs
+Audience: ${cityName} businesses and individuals. Use ₹, ${cityName} examples, local business context.
+Requirement: MINIMUM 700 words across content blocks. Each section must have 2-3 full paragraphs.
 
-Return ONLY valid JSON with the same structure as a comparison page. slug: "${slug}". Focus entirely on how this tool helps ${cityName} users specifically.`
+Return ONLY valid JSON exactly matching this structure:
+{
+  "slug": "${slug}",
+  "title": "H1 title including ${cityName} and tool name",
+  "metaTitle": "SEO title max 60 chars with ${cityName} and tool name",
+  "metaDescription": "Max 155 chars — include ${cityName}, tool name, and CTA",
+  "content": [
+    { "type": "h1", "text": "Title including ${cityName} and ${tool1Name || tool1Slug}" },
+    { "type": "p", "text": "Opening paragraph 100+ words — why ${cityName} users need this tool, local business context" },
+    { "type": "h2", "text": "Why ${cityName} Businesses Use ${tool1Name || tool1Slug}" },
+    { "type": "p", "text": "First paragraph 80+ words about ${cityName}-specific use cases" },
+    { "type": "p", "text": "Second paragraph 80+ words with local industry examples from ${cityName}" },
+    { "type": "h2", "text": "How to Use ${tool1Name || tool1Slug} in ${cityName}" },
+    { "type": "p", "text": "Step-by-step guide paragraph 100+ words, practical ${cityName} context" },
+    { "type": "ul", "items": ["Feature/benefit 1 for ${cityName} users", "Feature/benefit 2", "Feature/benefit 3", "Feature/benefit 4", "Feature/benefit 5"] },
+    { "type": "h2", "text": "${cityName} Business Examples" },
+    { "type": "p", "text": "Real-world examples 100+ words — name specific ${cityName} industries, markets, localities" },
+    { "type": "p", "text": "Additional examples paragraph 80+ words with ₹ amounts and local business scenarios" },
+    { "type": "h2", "text": "Features & Benefits for ${cityName} Users" },
+    { "type": "table", "headers": ["Feature", "Benefit for ${cityName} Users"], "rows": [["100% Free", "No cost for ${cityName} SMEs and freelancers"], ["Works in Browser", "No installation — works on any device in ${cityName}"], ["Instant Results", "Get output in seconds, not hours"], ["No Signup", "Use immediately without registration"], ["Indian Context", "Designed for Indian tax, business, and compliance needs"]] },
+    { "type": "h2", "text": "Conclusion" },
+    { "type": "p", "text": "Closing paragraph 80+ words — summary of benefits for ${cityName} users, encourage using the free tool" }
+  ],
+  "faqs": [
+    { "q": "Is ${tool1Name || tool1Slug} free to use in ${cityName}?", "a": "Answer 60+ words specific to ${cityName} users" },
+    { "q": "Can ${cityName} businesses use this tool for compliance?", "a": "Answer 60+ words with ${cityName} business context" },
+    { "q": "How does ${tool1Name || tool1Slug} help ${cityName} freelancers?", "a": "Answer 60+ words" },
+    { "q": "Is the tool available in languages used in ${cityName}?", "a": "Answer 60+ words" }
+  ],
+  "wordCount": 700
+}`
 
   } else if (pageType === 'faq-category') {
     if (!categoryName) {
@@ -332,7 +384,11 @@ Return ONLY valid JSON with the same structure as a comparison page. slug: "${sl
       temperature: 0.7,
     })
     const raw  = completion.choices[0]?.message?.content || ''
+    console.log('[admin-seo/generate-programmatic] raw length:', raw.length, 'preview:', raw.slice(0, 200))
     const page = parseAIJson(raw)
+    // Always compute wordCount server-side — never trust AI's self-reported value
+    page.wordCount = calcWordCount(page.content, page.faqs)
+    console.log('[admin-seo/generate-programmatic] pageType:', pageType, 'wordCount:', page.wordCount, 'contentBlocks:', page.content?.length)
     res.json({ success: true, page })
   } catch (err) {
     console.error('[admin-seo/generate-programmatic]', err.message)
