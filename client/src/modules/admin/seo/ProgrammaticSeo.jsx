@@ -1,9 +1,15 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { TOOL_REGISTRY } from '../../../data/toolRegistry'
 import api from '../../../services/api.service'
 
-const CITIES        = ['Mumbai', 'Delhi', 'Bengaluru', 'Hyderabad', 'Chennai', 'Pune', 'Kolkata', 'Ahmedabad']
-const FAQ_CATS      = ['PDF', 'Calculators', 'AI Tools', 'Converters', 'Productivity']
+const INDIAN_CITIES = [
+  'Mumbai',       'Delhi',        'Bengaluru',    'Hyderabad',    'Chennai',
+  'Pune',         'Kolkata',      'Ahmedabad',    'Jaipur',       'Surat',
+  'Lucknow',      'Kanpur',       'Nagpur',       'Indore',       'Bhopal',
+  'Chandigarh',   'Kochi',        'Coimbatore',   'Visakhapatnam','Patna',
+]
+
+const FAQ_CATS = ['PDF', 'Calculators', 'AI Tools', 'Converters', 'Productivity']
 
 const PAGE_TYPES = [
   {
@@ -31,6 +37,10 @@ const PAGE_TYPES = [
     minWords: '1000 words + 10 FAQs',
   },
 ]
+
+function toSlug(name) {
+  return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+}
 
 function ContentPreview({ content, faqs }) {
   return (
@@ -85,23 +95,80 @@ function ContentPreview({ content, faqs }) {
 }
 
 export default function ProgrammaticSeo() {
-  const [selectedType,  setSelectedType]  = useState(null)
-  const [form,          setForm]          = useState({})
-  const [generating,    setGenerating]    = useState(false)
-  const [generatedPage, setGeneratedPage] = useState(null)
-  const [error,         setError]         = useState(null)
-  const [publishedPages, setPublishedPages] = useState(() => {
+  const [selectedType,    setSelectedType]    = useState(null)
+  const [form,            setForm]            = useState({})
+  const [selectedCities,  setSelectedCities]  = useState([])
+  const [customCityInput, setCustomCityInput] = useState('')
+  const [showCustom,      setShowCustom]      = useState(false)
+  const [generating,      setGenerating]      = useState(false)
+  const [generatedPage,   setGeneratedPage]   = useState(null)
+  const [error,           setError]           = useState(null)
+  const [bulkProgress,    setBulkProgress]    = useState({
+    isRunning: false, total: 0, completed: 0, current: '', results: [], errors: [],
+  })
+  const [isPaused,        setIsPaused]        = useState(false)
+  const [publishedPages,  setPublishedPages]  = useState(() => {
     try { return JSON.parse(localStorage.getItem('awe_programmatic_pages') || '[]') } catch { return [] }
   })
+  const pauseRef = useRef(false)
 
   const activeTools = TOOL_REGISTRY.filter(t => !t.comingSoon)
+
+  // ── Type selection ──────────────────────────────────────────────────────────
 
   function selectType(id) {
     setSelectedType(id)
     setForm({})
+    setSelectedCities([])
     setGeneratedPage(null)
     setError(null)
+    setBulkProgress({ isRunning: false, total: 0, completed: 0, current: '', results: [], errors: [] })
+    setIsPaused(false)
+    pauseRef.current = false
   }
+
+  // ── City helpers ────────────────────────────────────────────────────────────
+
+  function toggleCity(city) {
+    setSelectedCities(prev =>
+      prev.includes(city) ? prev.filter(c => c !== city) : [...prev, city]
+    )
+  }
+
+  function addCustomCities() {
+    const parsed = customCityInput
+      .split(/[,\n]/)
+      .map(c => c.trim())
+      .filter(Boolean)
+    if (parsed.length === 0) return
+    setSelectedCities(prev => [...new Set([...prev, ...parsed])])
+    setCustomCityInput('')
+    setShowCustom(false)
+  }
+
+  function removeCity(city) {
+    setSelectedCities(prev => prev.filter(c => c !== city))
+  }
+
+  // ── Save published page ─────────────────────────────────────────────────────
+
+  function savePublishedRecord(record) {
+    setPublishedPages(prev => {
+      const updated = [record, ...prev]
+      localStorage.setItem('awe_programmatic_pages', JSON.stringify(updated))
+      return updated
+    })
+  }
+
+  function handleDelete(slug) {
+    setPublishedPages(prev => {
+      const updated = prev.filter(p => p.slug !== slug)
+      localStorage.setItem('awe_programmatic_pages', JSON.stringify(updated))
+      return updated
+    })
+  }
+
+  // ── Single generate (comparison + faq) ─────────────────────────────────────
 
   async function handleGenerate() {
     setGenerating(true)
@@ -114,7 +181,7 @@ export default function ProgrammaticSeo() {
         tool2Slug:    form.tool2Slug    || '',
         tool1Name:    form.tool1Name    || '',
         tool2Name:    form.tool2Name    || '',
-        cityName:     form.cityName     || '',
+        cityName:     '',
         categoryName: form.categoryName || '',
       })
       if (res.data.success) setGeneratedPage(res.data.page)
@@ -128,39 +195,159 @@ export default function ProgrammaticSeo() {
 
   function handlePublish() {
     if (!generatedPage) return
-    const pathPrefix = selectedType === 'comparison' ? 'compare'
-                     : selectedType === 'city'       ? 'tools'
-                     :                                 'faq'
-    const record = {
+    const pathPrefix = selectedType === 'comparison' ? 'compare' : 'faq'
+    savePublishedRecord({
       type:      selectedType,
       title:     generatedPage.title || generatedPage.slug,
       slug:      generatedPage.slug,
       url:       `https://awe-os.com/${pathPrefix}/${generatedPage.slug}`,
       date:      new Date().toISOString().split('T')[0],
       wordCount: generatedPage.wordCount || 0,
-    }
-    const updated = [record, ...publishedPages]
-    setPublishedPages(updated)
-    localStorage.setItem('awe_programmatic_pages', JSON.stringify(updated))
+    })
     setGeneratedPage(null)
     setSelectedType(null)
     setForm({})
   }
 
-  function handleDelete(slug) {
-    const updated = publishedPages.filter(p => p.slug !== slug)
-    setPublishedPages(updated)
-    localStorage.setItem('awe_programmatic_pages', JSON.stringify(updated))
+  // ── Bulk generation (city) ──────────────────────────────────────────────────
+
+  async function runBulkForCities(cities) {
+    const toolSlug = form.tool1Slug
+    const toolName = form.tool1Name || ''
+    if (!toolSlug || cities.length === 0) return
+
+    pauseRef.current = false
+    setIsPaused(false)
+    setBulkProgress({
+      isRunning: true, total: cities.length, completed: 0,
+      current: '', results: [], errors: [],
+    })
+
+    for (let i = 0; i < cities.length; i++) {
+      const city = cities[i]
+
+      // Pause check — waits here until unpaused
+      while (pauseRef.current) {
+        await new Promise(r => setTimeout(r, 500))
+      }
+
+      setBulkProgress(prev => ({ ...prev, current: city }))
+
+      try {
+        const genRes = await api.post('/api/admin/seo/generate-programmatic', {
+          pageType: 'city', tool1Slug: toolSlug, tool1Name: toolName, cityName: city,
+        })
+
+        if (!genRes.data.success) throw new Error(genRes.data.error || 'Generation failed')
+
+        const page = genRes.data.page
+        const slug = `${toolSlug}/${toSlug(city)}`
+
+        if ((page.wordCount || 0) >= 600) {
+          // Attempt GitHub publish (non-fatal on failure)
+          try {
+            await api.post('/api/admin/seo/publish-programmatic', { page, slug })
+          } catch (publishErr) {
+            console.warn('[bulk] GitHub publish error for', city, publishErr.message)
+          }
+
+          savePublishedRecord({
+            type:      'city',
+            title:     page.title || `${toolName || toolSlug} for ${city}`,
+            slug:      page.slug || slug,
+            url:       `https://awe-os.com/tools/${slug}`,
+            date:      new Date().toISOString().split('T')[0],
+            wordCount: page.wordCount || 0,
+          })
+
+          setBulkProgress(prev => ({
+            ...prev,
+            completed: prev.completed + 1,
+            results: [...prev.results, {
+              city, status: 'published',
+              url:      `/tools/${slug}`,
+              wordCount: page.wordCount,
+            }],
+          }))
+        } else {
+          setBulkProgress(prev => ({
+            ...prev,
+            completed: prev.completed + 1,
+            errors: [...prev.errors, { city, reason: `Below 600 words (got ${page.wordCount || 0})` }],
+          }))
+        }
+      } catch (err) {
+        setBulkProgress(prev => ({
+          ...prev,
+          completed: prev.completed + 1,
+          errors: [...prev.errors, { city, reason: err.message || 'Request failed' }],
+        }))
+      }
+
+      if (i < cities.length - 1) {
+        await new Promise(r => setTimeout(r, 2000))
+      }
+    }
+
+    setBulkProgress(prev => ({ ...prev, isRunning: false, current: '' }))
   }
 
+  function generateBulk() {
+    runBulkForCities(selectedCities)
+  }
+
+  function retryFailed() {
+    const failedCities = bulkProgress.errors.map(e => e.city)
+    if (failedCities.length > 0) runBulkForCities(failedCities)
+  }
+
+  function pauseResume() {
+    if (isPaused) {
+      pauseRef.current = false
+      setIsPaused(false)
+    } else {
+      pauseRef.current = true
+      setIsPaused(true)
+    }
+  }
+
+  function copyAllUrls() {
+    const urls = bulkProgress.results
+      .map(r => `https://awe-os.com${r.url}`)
+      .join('\n')
+    navigator.clipboard.writeText(urls).catch(() => {})
+  }
+
+  // ── Derived values ──────────────────────────────────────────────────────────
+
   const canGenerate =
-    selectedType === 'comparison'  ? !!(form.tool1Slug && form.tool2Slug && form.tool1Slug !== form.tool2Slug) :
-    selectedType === 'city'        ? !!(form.tool1Slug && form.cityName) :
-    selectedType === 'faq-category'? !!(form.categoryName) :
+    selectedType === 'comparison'    ? !!(form.tool1Slug && form.tool2Slug && form.tool1Slug !== form.tool2Slug) :
+    selectedType === 'city'          ? !!(form.tool1Slug && selectedCities.length > 0) :
+    selectedType === 'faq-category'  ? !!(form.categoryName) :
     false
 
-  const wordCount     = generatedPage?.wordCount || 0
-  const qualityOk     = wordCount >= 600
+  const wordCount = generatedPage?.wordCount || 0
+  const qualityOk = wordCount >= 600
+
+  const cityUrlPreviews = form.tool1Slug
+    ? selectedCities.map(city => `/tools/${form.tool1Slug}/${toSlug(city)}`)
+    : []
+
+  const customCities = selectedCities.filter(c => !INDIAN_CITIES.includes(c))
+
+  // City status map for progress UI
+  const cityStatusMap = selectedCities.reduce((acc, city) => {
+    const result  = bulkProgress.results.find(r => r.city === city)
+    const err     = bulkProgress.errors.find(e => e.city === city)
+    const current = bulkProgress.current === city
+    if (result)  acc[city] = { icon: '✅', detail: `published → ${result.url}`, cls: 'text-green-400' }
+    else if (err) acc[city] = { icon: '❌', detail: err.reason, cls: 'text-red-400' }
+    else if (current) acc[city] = { icon: '⏳', detail: 'generating...', cls: 'text-yellow-400' }
+    else acc[city] = { icon: isPaused ? '⏸️' : '⬜', detail: 'waiting', cls: 'text-gray-500' }
+    return acc
+  }, {})
+
+  // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-8">
@@ -208,11 +395,12 @@ export default function ProgrammaticSeo() {
       {selectedType && (
         <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-5">
-            {selectedType === 'comparison'   ? 'Configure Comparison Page' :
-             selectedType === 'city'         ? 'Configure City Page' :
-                                              'Configure FAQ Page'}
+            {selectedType === 'comparison'    ? 'Configure Comparison Page' :
+             selectedType === 'city'          ? 'Configure City Pages' :
+                                               'Configure FAQ Page'}
           </h2>
 
+          {/* ── Comparison form ── */}
           {selectedType === 'comparison' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -226,9 +414,7 @@ export default function ProgrammaticSeo() {
                   className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm"
                 >
                   <option value="">Select Tool 1</option>
-                  {activeTools.map(t => (
-                    <option key={t.slug} value={t.slug}>{t.name}</option>
-                  ))}
+                  {activeTools.map(t => <option key={t.slug} value={t.slug}>{t.name}</option>)}
                 </select>
               </div>
               <div>
@@ -242,11 +428,8 @@ export default function ProgrammaticSeo() {
                   className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm"
                 >
                   <option value="">Select Tool 2</option>
-                  {activeTools
-                    .filter(t => t.slug !== form.tool1Slug)
-                    .map(t => (
-                      <option key={t.slug} value={t.slug}>{t.name}</option>
-                    ))}
+                  {activeTools.filter(t => t.slug !== form.tool1Slug)
+                    .map(t => <option key={t.slug} value={t.slug}>{t.name}</option>)}
                 </select>
               </div>
               {form.tool1Slug && form.tool2Slug && form.tool1Slug !== form.tool2Slug && (
@@ -257,8 +440,11 @@ export default function ProgrammaticSeo() {
             </div>
           )}
 
+          {/* ── City form ── */}
           {selectedType === 'city' && (
-            <div className="space-y-4">
+            <div className="space-y-5">
+
+              {/* Tool select */}
               <div>
                 <label className="block text-sm text-gray-400 mb-1">Tool</label>
                 <select
@@ -270,38 +456,142 @@ export default function ProgrammaticSeo() {
                   className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm"
                 >
                   <option value="">Select Tool</option>
-                  {activeTools.map(t => (
-                    <option key={t.slug} value={t.slug}>{t.name}</option>
-                  ))}
+                  {activeTools.map(t => <option key={t.slug} value={t.slug}>{t.name}</option>)}
                 </select>
               </div>
+
+              {/* Multi-select cities */}
               <div>
-                <label className="block text-sm text-gray-400 mb-2">City</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm text-gray-400">
+                    Cities
+                    {selectedCities.length > 0 && (
+                      <span className="ml-2 text-xs bg-indigo-900/60 text-indigo-300 px-2 py-0.5 rounded-full">
+                        {selectedCities.length} selected
+                      </span>
+                    )}
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCities(INDIAN_CITIES)}
+                      className="text-xs text-indigo-400 hover:text-indigo-300 underline"
+                    >
+                      Select All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCities([])}
+                      className="text-xs text-gray-500 hover:text-gray-300 underline"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                </div>
                 <div className="flex flex-wrap gap-2">
-                  {CITIES.map(city => (
+                  {INDIAN_CITIES.map(city => (
                     <button
                       key={city}
                       type="button"
-                      onClick={() => setForm(prev => ({ ...prev, cityName: city }))}
-                      className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                        form.cityName === city
+                      onClick={() => toggleCity(city)}
+                      className={`text-xs px-3 py-1.5 rounded-full border transition-colors flex items-center gap-1 ${
+                        selectedCities.includes(city)
                           ? 'border-indigo-500 bg-indigo-900/50 text-indigo-300'
                           : 'border-gray-600 bg-gray-700 text-gray-300 hover:border-gray-500'
                       }`}
                     >
+                      {selectedCities.includes(city) && <span className="text-indigo-400">✓</span>}
                       {city}
                     </button>
                   ))}
                 </div>
               </div>
-              {form.tool1Slug && form.cityName && (
-                <p className="text-xs text-gray-500">
-                  Preview URL: /tools/{form.tool1Slug}/{form.cityName.toLowerCase().replace(/\s+/g, '-')}
-                </p>
+
+              {/* Custom city chips (from CSV input) */}
+              {customCities.length > 0 && (
+                <div>
+                  <p className="text-xs text-gray-500 mb-2">Custom cities:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {customCities.map(city => (
+                      <span key={city} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-full border border-purple-700 bg-purple-900/30 text-purple-300">
+                        {city}
+                        <button
+                          type="button"
+                          onClick={() => removeCity(city)}
+                          className="text-purple-400 hover:text-purple-200 ml-0.5"
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
               )}
+
+              {/* CSV / paste input (collapsible) */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowCustom(prev => !prev)}
+                  className="text-xs text-gray-400 hover:text-gray-200 flex items-center gap-1"
+                >
+                  <span>{showCustom ? '▾' : '▸'}</span>
+                  + Add custom cities (paste or CSV)
+                </button>
+                {showCustom && (
+                  <div className="mt-3 space-y-2">
+                    <textarea
+                      value={customCityInput}
+                      onChange={e => setCustomCityInput(e.target.value)}
+                      rows={4}
+                      placeholder={`Paste city names separated by comma or newline:\nNoida, Gurgaon, Faridabad\nOR one per line`}
+                      className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 text-sm resize-none placeholder-gray-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={addCustomCities}
+                      className="text-sm bg-purple-700 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors"
+                    >
+                      Add Cities
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* URL preview list */}
+              {form.tool1Slug && selectedCities.length > 0 && (
+                <div className="bg-gray-900/50 rounded-lg p-4">
+                  <p className="text-xs text-gray-400 mb-2">
+                    Pages that will be generated ({selectedCities.length} pages):
+                  </p>
+                  <div className="max-h-40 overflow-y-auto space-y-1">
+                    {cityUrlPreviews.map(url => (
+                      <p key={url} className="text-xs text-indigo-400 font-mono">{url}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Bulk generate button */}
+              <button
+                onClick={generateBulk}
+                disabled={!canGenerate || bulkProgress.isRunning}
+                className="w-full py-3 rounded-xl font-medium text-white transition-all
+                  bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {bulkProgress.isRunning ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Generating...
+                  </span>
+                ) : (
+                  `⚡ Generate All ${selectedCities.length || 0} City Pages`
+                )}
+              </button>
             </div>
           )}
 
+          {/* ── FAQ form ── */}
           {selectedType === 'faq-category' && (
             <div>
               <label className="block text-sm text-gray-400 mb-2">Category</label>
@@ -329,25 +619,24 @@ export default function ProgrammaticSeo() {
             </div>
           )}
 
-          <button
-            onClick={handleGenerate}
-            disabled={!canGenerate || generating}
-            className="mt-6 w-full py-3 rounded-xl font-medium text-white transition-all
-              bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {generating ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Generating... (may take 30s)
-              </span>
-            ) : (
-              `Generate ${
-                selectedType === 'comparison'    ? 'Comparison Page' :
-                selectedType === 'city'          ? 'City Page' :
-                                                  'FAQ Page'
-              }`
-            )}
-          </button>
+          {/* Single generate button (comparison + faq only) */}
+          {selectedType !== 'city' && (
+            <button
+              onClick={handleGenerate}
+              disabled={!canGenerate || generating}
+              className="mt-6 w-full py-3 rounded-xl font-medium text-white transition-all
+                bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {generating ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Generating... (may take 30s)
+                </span>
+              ) : (
+                `Generate ${selectedType === 'comparison' ? 'Comparison Page' : 'FAQ Page'}`
+              )}
+            </button>
+          )}
         </div>
       )}
 
@@ -358,8 +647,87 @@ export default function ProgrammaticSeo() {
         </div>
       )}
 
-      {/* Output section */}
-      {generatedPage && (
+      {/* ── Bulk Progress UI ── */}
+      {selectedType === 'city' && (bulkProgress.isRunning || bulkProgress.completed > 0) && (
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-white">Bulk Generation Progress</h2>
+            <div className="flex gap-2">
+              {bulkProgress.isRunning && (
+                <button
+                  onClick={pauseResume}
+                  className="text-sm bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg"
+                >
+                  {isPaused ? '▶ Resume' : '⏸ Pause'}
+                </button>
+              )}
+              {!bulkProgress.isRunning && bulkProgress.results.length > 0 && (
+                <button
+                  onClick={copyAllUrls}
+                  className="text-sm bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg"
+                >
+                  📋 Copy All URLs
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Progress bar */}
+          <div>
+            <div className="flex justify-between text-xs text-gray-400 mb-1">
+              <span>{bulkProgress.isRunning ? `Generating: ${bulkProgress.current}` : 'Complete'}</span>
+              <span>{bulkProgress.completed} / {bulkProgress.total}</span>
+            </div>
+            <div className="h-3 bg-gray-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+                style={{ width: bulkProgress.total ? `${(bulkProgress.completed / bulkProgress.total) * 100}%` : '0%' }}
+              />
+            </div>
+          </div>
+
+          {/* Per-city status list */}
+          <div className="space-y-1.5 max-h-64 overflow-y-auto">
+            {selectedCities.map(city => {
+              const s = cityStatusMap[city] || { icon: '⬜', detail: 'waiting', cls: 'text-gray-500' }
+              return (
+                <div key={city} className="flex items-center gap-2 text-sm">
+                  <span className="w-5 shrink-0">{s.icon}</span>
+                  <span className="text-white font-medium w-28 shrink-0">{city}</span>
+                  <span className={`text-xs ${s.cls} truncate`}>{s.detail}</span>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Summary after completion */}
+          {!bulkProgress.isRunning && bulkProgress.completed > 0 && (
+            <div className="border-t border-gray-700 pt-4 space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-green-400 text-sm font-medium">
+                  ✅ {bulkProgress.results.length} / {bulkProgress.total} pages published
+                </span>
+                {bulkProgress.errors.length > 0 && (
+                  <span className="text-red-400 text-sm">
+                    · ❌ {bulkProgress.errors.length} failed
+                  </span>
+                )}
+              </div>
+              {bulkProgress.errors.length > 0 && (
+                <button
+                  onClick={retryFailed}
+                  className="text-sm bg-yellow-700 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg"
+                >
+                  🔄 Retry {bulkProgress.errors.length} Failed
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Single page output (comparison + faq) ── */}
+      {generatedPage && selectedType !== 'city' && (
         <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
           <div className="flex items-start justify-between mb-4 gap-4">
             <div className="min-w-0">
@@ -407,7 +775,7 @@ export default function ProgrammaticSeo() {
         </div>
       )}
 
-      {/* Published pages list */}
+      {/* ── Published pages list ── */}
       {publishedPages.length > 0 && (
         <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-4">
@@ -447,20 +815,10 @@ export default function ProgrammaticSeo() {
                     </td>
                     <td className="py-3">
                       <div className="flex gap-3">
-                        <a
-                          href={page.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-blue-400 hover:text-blue-300"
-                        >
-                          View Live
-                        </a>
-                        <button
-                          onClick={() => handleDelete(page.slug)}
-                          className="text-xs text-red-400 hover:text-red-300"
-                        >
-                          Delete
-                        </button>
+                        <a href={page.url} target="_blank" rel="noopener noreferrer"
+                          className="text-xs text-blue-400 hover:text-blue-300">View Live</a>
+                        <button onClick={() => handleDelete(page.slug)}
+                          className="text-xs text-red-400 hover:text-red-300">Delete</button>
                       </div>
                     </td>
                   </tr>

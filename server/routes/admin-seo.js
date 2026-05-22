@@ -340,4 +340,81 @@ Return ONLY valid JSON with the same structure as a comparison page. slug: "${sl
   }
 })
 
+// ── Publish city page to GitHub ───────────────────────────────────────────────
+async function publishCityPageToGitHub(newPage, slug) {
+  const GITHUB_TOKEN = process.env.GITHUB_TOKEN
+  if (!GITHUB_TOKEN) throw new Error('GITHUB_TOKEN not set — add it in Render dashboard')
+  const REPO      = 'wajid081986/AWE-OS'
+  const FILE_PATH = 'client/src/data/cityPages.js'
+  const BRANCH    = 'main'
+  const API_BASE  = 'https://api.github.com'
+  const HEADERS   = {
+    'Authorization': `token ${GITHUB_TOKEN}`,
+    'Accept':        'application/vnd.github.v3+json',
+    'User-Agent':    'AWE-OS-SEO-Assistant',
+  }
+
+  const getRes = await fetch(`${API_BASE}/repos/${REPO}/contents/${FILE_PATH}?ref=${BRANCH}`, { headers: HEADERS })
+  let currentContent, fileSha
+  if (getRes.ok) {
+    const fileData   = await getRes.json()
+    currentContent   = Buffer.from(fileData.content, 'base64').toString('utf8')
+    fileSha          = fileData.sha
+  } else if (getRes.status === 404) {
+    currentContent   = 'export const CITY_PAGES = [\n]\n'
+    fileSha          = null
+  } else {
+    throw new Error(`GitHub GET failed: ${getRes.status}`)
+  }
+
+  const idMatches = [...currentContent.matchAll(/\bid:\s*(\d+)/g)]
+  const maxId     = idMatches.length ? Math.max(...idMatches.map(m => parseInt(m[1]))) : 0
+  newPage.id          = maxId + 1
+  newPage.publishedAt = new Date().toISOString().split('T')[0]
+  newPage.slug        = slug
+
+  const MARKER      = 'export const CITY_PAGES = ['
+  const insertPoint = currentContent.indexOf(MARKER) + MARKER.length
+  const postString  = JSON.stringify(newPage, null, 2)
+    .replace(/"([^"]+)":/g, '$1:')
+    .replace(/"((?:[^"\\])*)"/g, (_, s) => s.includes("'") ? `"${s}"` : `'${s}'`)
+  const newContent  = currentContent.slice(0, insertPoint) +
+    '\n  ' + postString.replace(/\n/g, '\n  ') + ',' +
+    currentContent.slice(insertPoint)
+
+  const pushBody = {
+    message: `seo: add city page "${newPage.title || slug}"`,
+    content: Buffer.from(newContent, 'utf8').toString('base64'),
+    branch:  BRANCH,
+  }
+  if (fileSha) pushBody.sha = fileSha
+
+  const pushRes  = await fetch(`${API_BASE}/repos/${REPO}/contents/${FILE_PATH}`, {
+    method:  'PUT',
+    headers: { ...HEADERS, 'Content-Type': 'application/json' },
+    body:    JSON.stringify(pushBody),
+  })
+  const pushData = await pushRes.json()
+  if (!pushRes.ok) throw new Error(pushData.message || 'GitHub push failed')
+  return {
+    success:   true,
+    slug,
+    id:        newPage.id,
+    liveUrl:   `https://www.awe-os.com/tools/${slug}`,
+    commitUrl: pushData.commit?.html_url,
+  }
+}
+
+router.post('/publish-programmatic', requireAuth, requireAdmin, async (req, res) => {
+  const { page, slug } = req.body
+  if (!page || !slug) return res.status(400).json({ success: false, error: 'page and slug are required' })
+  try {
+    const result = await publishCityPageToGitHub(page, slug)
+    res.json(result)
+  } catch (err) {
+    console.error('[admin-seo/publish-programmatic]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
 module.exports = router

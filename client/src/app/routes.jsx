@@ -95,6 +95,7 @@ const RuntimeResilienceCenter    = lazy(() => import('../modules/admin/selfHeali
 const SeoDashboard               = lazy(() => import('../modules/admin/seo/SeoDashboard'))
 const SeoAgent                   = lazy(() => import('../modules/admin/seo/SeoAgent'))
 const ProgrammaticSeo            = lazy(() => import('../modules/admin/seo/ProgrammaticSeo'))
+const CityToolPage               = lazy(() => import('../pages/CityToolPage'))
 
 // ── Shared suspense wrapper ───────────────────────────────────────────────────
 function PageLoader() {
@@ -138,6 +139,9 @@ export default function AppRoutes() {
         <Route path="/tools/converters"   element={lazy$(<CategoryPage category="converters" />)} />
         <Route path="/tools/ai"           element={lazy$(<CategoryPage category="ai" />)} />
         <Route path="/tools/productivity" element={lazy$(<CategoryPage category="productivity" />)} />
+
+        {/* City-specific tool pages — must be before /tools/:slug */}
+        <Route path="/tools/:toolSlug/:city" element={lazy$(<CityToolPage />)} />
 
         {/* Dynamic tool renderer — handles all /tools/:slug routes.
             Dedicated components are resolved first; unknown slugs fall back
