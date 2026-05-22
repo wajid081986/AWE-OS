@@ -1,5 +1,125 @@
 export const CITY_PAGES = [
   {
+    slug: 'gst-calculator/nagpur',
+    title: 'GST Calculator for Nagpur Businesses',
+    metaTitle: 'GST Calculator for Nagpur - AWE-OS',
+    metaDescription: 'Use our GST Calculator in Nagpur to simplify tax calculations. Try it now!',
+    content: [
+      {
+        type: 'h1',
+        text: 'GST Calculator for Nagpur Businesses'
+      },
+      {
+        type: 'p',
+        text: "Nagpur, fondly known as the Orange City, is a bustling hub of commerce and industry. As businesses in Nagpur continue to thrive, understanding and managing GST calculations becomes pivotal. AWE-OS offers a GST Calculator tailored for Nagpur's diverse business community, from the vibrant cotton industry to the growing IT sector. This tool is indispensable for local entrepreneurs and individuals looking to streamline their tax computations and focus on growth and innovation."
+      },
+      {
+        type: 'h2',
+        text: 'Why Nagpur Businesses Use GST Calculator'
+      },
+      {
+        type: 'p',
+        text: 'In Nagpur, where businesses range from traditional textile markets to modern IT firms, GST compliance is crucial. The GST Calculator simplifies the complex tax structure, allowing businesses to compute their liabilities with ease. This tool is particularly beneficial for small and medium enterprises (SMEs) in Nagpur, which often lack the resources for dedicated tax professionals.'
+      },
+      {
+        type: 'p',
+        text: "Local industries, such as the cotton and textile sectors, rely heavily on accurate GST calculations to maintain their competitive edge. The GST Calculator helps these businesses navigate the intricate tax regimes, ensuring compliance without the need for extensive accounting knowledge. This efficiency is vital for industries that operate on tight margins in Nagpur's competitive market."
+      },
+      {
+        type: 'h2',
+        text: 'How to Use GST Calculator in Nagpur'
+      },
+      {
+        type: 'p',
+        text: 'Using the GST Calculator in Nagpur is straightforward. Simply enter the taxable amount and select the applicable GST rate, which varies from 5% to 28%. The calculator instantly provides the GST amount and the total invoice value. This step-by-step approach is designed for ease of use, ensuring that even individuals with limited tax knowledge can efficiently manage their financial obligations.'
+      },
+      {
+        type: 'ul',
+        items: [
+          "Accurate calculations for Nagpur's diverse tax rates",
+          'Saves time for busy entrepreneurs',
+          'User-friendly interface for easy navigation',
+          'Accessible on any device, perfect for on-the-go calculations',
+          'No hidden charges or fees, ensuring transparency'
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Nagpur Business Examples'
+      },
+      {
+        type: 'p',
+        text: 'Consider the textile firms in Gandhibagh, Nagpur, which often deal with large volumes of transactions. The GST Calculator aids in determining precise tax liabilities, ensuring compliance with minimal effort. Similarly, IT startups in the MIHAN SEZ use the tool to manage their financials, allowing them to focus on technological innovations rather than tax intricacies.'
+      },
+      {
+        type: 'p',
+        text: "For instance, a small-scale food processing unit in Kalamna Market might deal with turnovers crossing ₹50 lakhs annually. Using the GST Calculator, they can easily calculate their GST dues, ensuring timely payments and avoiding penalties. This tool is crucial for maintaining smooth operations and sustaining growth in Nagpur's competitive business environment."
+      },
+      {
+        type: 'h2',
+        text: 'Features & Benefits for Nagpur Users'
+      },
+      {
+        type: 'table',
+        headers: [
+          'Feature',
+          'Benefit for Nagpur Users'
+        ],
+        rows: [
+          [
+            '100% Free',
+            'No cost for Nagpur SMEs and freelancers'
+          ],
+          [
+            'Works in Browser',
+            'No installation — works on any device in Nagpur'
+          ],
+          [
+            'Instant Results',
+            'Get output in seconds, not hours'
+          ],
+          [
+            'No Signup',
+            'Use immediately without registration'
+          ],
+          [
+            'Indian Context',
+            'Designed for Indian tax, business, and compliance needs'
+          ]
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Conclusion'
+      },
+      {
+        type: 'p',
+        text: "For businesses and individuals in Nagpur, the GST Calculator is an invaluable tool. It offers precision, convenience, and efficiency in managing tax obligations. By leveraging this free tool, Nagpur's business community can focus on what they do best—growing their businesses. Try the GST Calculator today and simplify your tax processes effortlessly."
+      }
+    ],
+    faqs: [
+      {
+        q: 'Is GST Calculator free to use in Nagpur?',
+        a: "Yes, the GST Calculator is completely free for all users in Nagpur. Whether you're an SME or a solo entrepreneur, you can access and use the calculator without incurring any costs, helping you save on accounting expenses."
+      },
+      {
+        q: 'Can Nagpur businesses use this tool for compliance?',
+        a: 'Absolutely, the GST Calculator is designed to aid Nagpur businesses in remaining compliant with GST regulations. It provides quick and accurate calculations that align with Indian tax laws, making it a reliable tool for business compliance.'
+      },
+      {
+        q: 'How does GST Calculator help Nagpur freelancers?',
+        a: 'For freelancers in Nagpur, the GST Calculator simplifies the process of determining tax liabilities. It allows them to focus on their core work by reducing the time and effort spent on tax calculations, ensuring they meet their financial obligations seamlessly.'
+      },
+      {
+        q: 'Is the tool available in languages used in Nagpur?',
+        a: 'Yes, the GST Calculator is designed with an understanding of the local context, and while it primarily operates in English, its ease of use transcends language barriers, making it accessible for Marathi-speaking users in Nagpur.'
+      }
+    ],
+    wordCount: 687,
+    id: 15,
+    publishedAt: '2026-05-22'
+  },
+  {
     slug: 'gst-calculator/kanpur',
     title: 'Efficient GST Calculator for Kanpur Businesses',
     metaTitle: 'GST Calculator for Kanpur Businesses',
