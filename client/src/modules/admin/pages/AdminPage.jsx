@@ -5,7 +5,10 @@ import api from '../../../services/api.service'
 const QUICK_ITEMS = [
   { icon: '🤖', label: 'AI Factory',       to: '/admin/factory'        },
   { icon: '📣', label: 'Marketing',        to: '/admin/marketing'      },
-  { icon: '📈', label: 'Traffic Growth',   to: '/admin/traffic'        },
+  { icon: '📈', label: 'Traffic Growth',   to: '/admin/traffic'         },
+  { icon: '📊', label: 'SEO Dashboard',   to: '/admin/seo-dashboard'   },
+  { icon: '🤖', label: 'SEO AI Agent',    to: '/admin/seo-agent'       },
+  { icon: '⚡', label: 'Programmatic SEO',to: '/admin/programmatic-seo' },
   { icon: '✍️', label: 'Blog Writer',      to: '/admin/blog'           },
   { icon: '🧬', label: 'Agents',           to: '/admin/agents'         },
   { icon: '🛠️', label: 'Tool Builder',     to: '/admin/tools/builder'  },

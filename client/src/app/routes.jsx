@@ -92,6 +92,9 @@ const AgentMarketplaceDashboard  = lazy(() => import('../modules/admin/agents/Ag
 const SelfHealingDashboard       = lazy(() => import('../modules/admin/selfHealing/SelfHealingDashboard'))
 const FailureAnalyticsPanel      = lazy(() => import('../modules/admin/selfHealing/FailureAnalyticsPanel'))
 const RuntimeResilienceCenter    = lazy(() => import('../modules/admin/selfHealing/RuntimeResilienceCenter'))
+const SeoDashboard               = lazy(() => import('../modules/admin/seo/SeoDashboard'))
+const SeoAgent                   = lazy(() => import('../modules/admin/seo/SeoAgent'))
+const ProgrammaticSeo            = lazy(() => import('../modules/admin/seo/ProgrammaticSeo'))
 
 // ── Shared suspense wrapper ───────────────────────────────────────────────────
 function PageLoader() {
@@ -207,6 +210,9 @@ export default function AppRoutes() {
           <Route path="/admin/self-healing"           element={lazy$(<SelfHealingDashboard />)} />
           <Route path="/admin/failure-analytics"      element={lazy$(<FailureAnalyticsPanel />)} />
           <Route path="/admin/runtime-resilience"     element={lazy$(<RuntimeResilienceCenter />)} />
+          <Route path="/admin/seo-dashboard"          element={lazy$(<SeoDashboard />)} />
+          <Route path="/admin/seo-agent"              element={lazy$(<SeoAgent />)} />
+          <Route path="/admin/programmatic-seo"       element={lazy$(<ProgrammaticSeo />)} />
         </Route>
       </Route>
 
