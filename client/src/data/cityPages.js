@@ -1,5 +1,125 @@
 export const CITY_PAGES = [
   {
+    slug: 'gst-calculator/delhi',
+    title: 'Delhi GST Calculator: Essential Tool for Accurate Tax Calculations',
+    metaTitle: 'Delhi GST Calculator: Simplify Your Tax Calculations',
+    metaDescription: 'Use our GST Calculator for accurate tax calculations in Delhi. Easy to use, no signup required. Try it now!',
+    content: [
+      {
+        type: 'h1',
+        text: 'Delhi GST Calculator: Your Essential Tax Tool'
+      },
+      {
+        type: 'p',
+        text: "In the bustling economic landscape of Delhi, staying compliant with tax regulations is crucial for businesses and individuals alike. Our GST Calculator is designed to simplify GST calculations, helping you save time and avoid errors. Whether you're a shop owner in Connaught Place or a service provider in South Delhi, understanding your GST obligations is vital. This tool caters to the unique needs of Delhi's diverse business community, ensuring that you can focus on growing your enterprise without the hassle of complex tax computations."
+      },
+      {
+        type: 'h2',
+        text: 'Why Delhi Businesses Use GST Calculator'
+      },
+      {
+        type: 'p',
+        text: 'Delhi, being a commercial hub, hosts a myriad of businesses ranging from small retail shops to large corporations. For these businesses, accurately calculating GST is not just a legal requirement but a necessity for maintaining financial health. A GST calculator helps streamline this process, allowing businesses to focus on their core activities instead of getting bogged down by tax calculations.'
+      },
+      {
+        type: 'p',
+        text: 'Take for instance the tech startups in Hauz Khas Village or the numerous restaurants in Karol Bagh. These businesses operate in fast-paced environments where efficiency is key. A GST calculator aids in ensuring that all financial transactions are compliant with the latest tax laws, thereby reducing the risk of penalties and ensuring smooth operations.'
+      },
+      {
+        type: 'h2',
+        text: 'How to Use GST Calculator in Delhi'
+      },
+      {
+        type: 'p',
+        text: 'Using the GST Calculator is straightforward. Begin by entering the net price of your product or service. Next, select the applicable GST rate, which could be 5%, 12%, 18%, or 28%, depending on the category of goods or services. The calculator will instantly compute the GST amount and provide you with the gross price. This tool is indispensable for Delhi businesses dealing with diverse product lines, ensuring each transaction is accurately recorded and compliant with tax regulations.'
+      },
+      {
+        type: 'ul',
+        items: [
+          'Simplifies complex tax calculations for Delhi users',
+          'Saves time by delivering quick results',
+          'Helps maintain compliance with Indian tax laws',
+          'Reduces errors in manual calculations',
+          'Supports strategic financial planning for Delhi businesses'
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Delhi Business Examples'
+      },
+      {
+        type: 'p',
+        text: 'Consider a local garment manufacturer in Chandni Chowk who needs to calculate GST on bulk orders. The GST Calculator ensures accurate computation of taxes, helping the business maintain competitive pricing. Similarly, a digital marketing agency in Nehru Place can use the tool to manage GST on services provided, ensuring compliance and streamlined accounting.'
+      },
+      {
+        type: 'p',
+        text: 'For a small cafe in Saket, accurately calculating GST on daily transactions is crucial. By using the GST Calculator, the cafe owner can easily determine how much tax to remit to the government, ensuring transparency and trust with customers. For instance, if the cafe earns ₹10,000 in sales daily, applying an 18% GST rate would be easily computed using our tool, saving time and reducing the likelihood of errors.'
+      },
+      {
+        type: 'h2',
+        text: 'Features & Benefits for Delhi Users'
+      },
+      {
+        type: 'table',
+        headers: [
+          'Feature',
+          'Benefit for Delhi Users'
+        ],
+        rows: [
+          [
+            '100% Free',
+            'No cost for Delhi SMEs and freelancers'
+          ],
+          [
+            'Works in Browser',
+            'No installation — works on any device in Delhi'
+          ],
+          [
+            'Instant Results',
+            'Get output in seconds, not hours'
+          ],
+          [
+            'No Signup',
+            'Use immediately without registration'
+          ],
+          [
+            'Indian Context',
+            'Designed for Indian tax, business, and compliance needs'
+          ]
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Conclusion'
+      },
+      {
+        type: 'p',
+        text: "The GST Calculator is an invaluable tool for anyone involved in business in Delhi. It simplifies the tax calculation process, ensuring compliance and accuracy. This free, easy-to-use tool is tailored to meet the needs of Delhi's dynamic business environment. Whether you're a freelancer or run a large enterprise, the GST Calculator can help you manage your finances more effectively. Try it today and experience the ease of accurate tax calculations."
+      }
+    ],
+    faqs: [
+      {
+        q: 'Is GST Calculator free to use in Delhi?',
+        a: 'Yes, the GST Calculator is completely free for all users in Delhi. It is designed to assist businesses and individuals in accurately calculating their tax obligations without incurring any additional costs. This makes it an accessible tool for startups, SMEs, and freelancers throughout the city.'
+      },
+      {
+        q: 'Can Delhi businesses use this tool for compliance?',
+        a: 'Absolutely. The GST Calculator is designed to ensure that your business remains compliant with the latest GST regulations in India. By providing accurate calculations, it helps reduce the risk of non-compliance penalties, making it an essential tool for Delhi businesses operating in various sectors.'
+      },
+      {
+        q: 'How does GST Calculator help Delhi freelancers?',
+        a: 'Freelancers in Delhi can benefit greatly from the GST Calculator as it simplifies the process of calculating taxes on their income. This tool provides clarity on how much GST needs to be charged and paid, ensuring freelancers can manage their finances efficiently without needing extensive accounting knowledge.'
+      },
+      {
+        q: 'Is the tool available in languages used in Delhi?',
+        a: 'Yes, the GST Calculator is available in multiple languages, including Hindi and English, which are widely used in Delhi. This ensures that users can easily navigate and use the tool in the language they are most comfortable with, enhancing accessibility and user experience.'
+      }
+    ],
+    wordCount: 790,
+    id: 4,
+    publishedAt: '2026-05-22'
+  },
+  {
     slug: 'gst-calculator/mumbai',
     title: 'GST Calculator for Mumbai Businesses and Individuals',
     metaTitle: 'GST Calculator Mumbai - Easy Tax Calculations',
