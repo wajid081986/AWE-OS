@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import * as pdfjsLib from 'pdfjs-dist'
+import pdfjsWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import JSZip from 'jszip'
 import ToolPageShell from '../ToolPageShell'
 import PDFDropZone from '../../../components/tools/PDFDropZone'
 import { downloadBlob } from './pdfUtils'
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerSrc
 
 const QUALITY_MAP = { low: { scale: 1.0, jpeg: 0.6 }, medium: { scale: 1.5, jpeg: 0.85 }, high: { scale: 2.0, jpeg: 0.95 } }
 

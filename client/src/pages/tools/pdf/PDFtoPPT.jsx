@@ -1,10 +1,10 @@
 import { useState, useRef } from 'react'
 import * as pdfjsLib from 'pdfjs-dist'
+import pdfjsWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import JSZip from 'jszip'
 import ToolPageShell from '../ToolPageShell'
 
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerSrc
 
 // PPTX EMU dimensions for 10" × 7.5" (standard 4:3)
 const CX = 9144000

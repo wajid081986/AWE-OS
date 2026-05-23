@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react'
 import * as pdfjsLib from 'pdfjs-dist'
+import pdfjsWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import ToolPageShell from '../ToolPageShell'
 
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerSrc
 
 const STEPS = [
   "Upload a PDF file by clicking the upload area or dragging and dropping a file onto it. The tool accepts standard PDF files up to 50 MB. Files that consist entirely of scanned images — pages photographed or photocopied into a PDF without optical character recognition applied — will produce empty or near-empty text output. Text extraction only works on PDFs that have embedded text, which includes most digitally created documents such as Word exports, government e-documents, financial statements, and typeset publications.",

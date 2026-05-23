@@ -1,12 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import * as pdfjsLib from 'pdfjs-dist'
+import pdfjsWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib'
 import ToolPageShell from '../ToolPageShell'
 import { downloadFile } from './pdfUtils'
 import { TOOL_ABOUT } from '../../../data/toolPageContent'
-
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerSrc
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -386,7 +385,8 @@ function PdfEditorTool() {
       setPast([]); setFuture([])
       setPdfFile(file)
       setPhase('ready')
-    } catch {
+    } catch (err) {
+      console.error('[pdf-editor] load error', err)
       setPhase('idle')
     }
   }

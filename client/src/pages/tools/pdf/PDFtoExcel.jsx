@@ -1,10 +1,10 @@
 import { useState, useRef } from 'react'
 import * as pdfjsLib from 'pdfjs-dist'
+import pdfjsWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import * as XLSX from 'xlsx'
 import ToolPageShell from '../ToolPageShell'
 
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerSrc
 
 const STEPS = [
   'Upload the PDF containing the data you want to extract by clicking the drop zone or dragging your file in. Text-based digital PDFs extract well; scanned PDFs (images) cannot be processed without OCR.',

@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react'
 import * as pdfjsLib from 'pdfjs-dist'
+import pdfjsWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import ToolPageShell from '../ToolPageShell'
 
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerSrc
 
 const STEPS = [
   'Upload your PDF by clicking the upload area or dragging the file in. Text-based digital PDFs — reports, contracts, academic papers — extract well. Scanned image PDFs require OCR which is not available in browser-based tools.',
