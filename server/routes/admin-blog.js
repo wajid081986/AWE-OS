@@ -1,14 +1,10 @@
 const express          = require('express')
-const OpenAI           = require('openai')
-const fs               = require('fs')
-const path             = require('path')
+const supabase         = require('../db/supabase')
 const requireAuth      = require('../middleware/auth')
+const { getOpenAI }    = require('../core/ai-engine')
+const parseAIJson      = require('../services/parseAIJson')
 
 const router = express.Router()
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-
-const DATA_DIR      = path.resolve(__dirname, '../data')
-const CALENDAR_PATH = path.join(DATA_DIR, 'blog-calendar.json')
 
 // ── Admin guard ───────────────────────────────────────────────────────────────
 
@@ -17,19 +13,6 @@ function requireAdmin(req, res, next) {
     return res.status(403).json({ success: false, error: 'Admin access required' })
   }
   next()
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function parseAIJson(raw) {
-  const cleaned = (raw || '').trim()
-  try { return JSON.parse(cleaned) } catch {}
-  const block = cleaned.match(/```(?:json)?\n?([\s\S]+?)\n?```/)
-  if (block) { try { return JSON.parse(block[1].trim()) } catch {} }
-  const start = cleaned.search(/[\[{]/)
-  const end   = Math.max(cleaned.lastIndexOf('}'), cleaned.lastIndexOf(']'))
-  if (start !== -1 && end > start) return JSON.parse(cleaned.slice(start, end + 1))
-  throw new Error('Cannot parse AI response as JSON')
 }
 
 // ── System prompt ─────────────────────────────────────────────────────────────
@@ -186,7 +169,7 @@ Indian Context: ${indianCtx}
   ]
 }`
 
-    const call1 = await openai.chat.completions.create({
+    const call1 = await getOpenAI().chat.completions.create({
       model: 'gpt-4o', messages: [{ role: 'user', content: metaPrompt }],
       max_tokens: 500, temperature: 0.7,
     })
@@ -224,7 +207,7 @@ Indian Context: ${indianCtx} | Tone: ${toneGuide}
 Rules: bold key numbers (**₹5,000**), short paragraphs (max 3 lines), Indian number format.
 Return as a raw JSON array of content blocks (no wrapping object).`
 
-    const call2 = await openai.chat.completions.create({
+    const call2 = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [{ role: 'system', content: half1System }, { role: 'user', content: half1Prompt }],
       max_tokens: call2MaxTokens, temperature: 0.7,
@@ -277,7 +260,7 @@ Indian Context: ${indianCtx} | Tone: ${toneGuide}
 
 Return the JSON object with "blocks" and "faqs" keys as specified in the system prompt.`
 
-    const call3 = await openai.chat.completions.create({
+    const call3 = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [{ role: 'system', content: half2System }, { role: 'user', content: half2Prompt }],
       max_tokens: call3MaxTokens, temperature: 0.7,
@@ -463,7 +446,7 @@ For each idea return exactly:
 Return ONLY a valid JSON array of ${count} objects. No other text.`
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini', messages: [{ role: 'user', content: prompt }], max_tokens: 3000, temperature: 0.8,
     })
     const raw   = completion.choices[0]?.message?.content || ''
@@ -496,14 +479,26 @@ Rules:
 Return ONLY a valid JSON array of 30 objects. No other text.`
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini', messages: [{ role: 'user', content: prompt }], max_tokens: 3000, temperature: 0.7,
     })
     const raw      = completion.choices[0]?.message?.content || ''
     const calendar = parseAIJson(raw)
-    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true })
-    fs.writeFileSync(CALENDAR_PATH, JSON.stringify(Array.isArray(calendar) ? calendar : [], null, 2), 'utf8')
-    res.json({ success: true, calendar: Array.isArray(calendar) ? calendar : [] })
+    const entries  = (Array.isArray(calendar) ? calendar : []).map(e => ({
+      day:       e.day,
+      date:      e.date      || null,
+      title:     e.title     || null,
+      keyword:   e.keyword   || null,
+      category:  e.category  || null,
+      tool_slug: e.toolSlug  || null,
+      status:    e.status    || 'planned',
+    }))
+    await supabase.from('blog_calendar').delete().gte('day', 1)
+    if (entries.length > 0) {
+      const { error: insertErr } = await supabase.from('blog_calendar').insert(entries)
+      if (insertErr) throw new Error(`Failed to save calendar: ${insertErr.message}`)
+    }
+    res.json({ success: true, calendar: entries.map(e => ({ ...e, toolSlug: e.tool_slug })) })
   } catch (err) {
     console.error('[admin-blog/calendar POST]', err.message)
     res.status(500).json({ success: false, error: err.message })
@@ -512,11 +507,15 @@ Return ONLY a valid JSON array of 30 objects. No other text.`
 
 // ── GET /calendar — load saved plan ──────────────────────────────────────────
 
-router.get('/calendar', requireAuth, requireAdmin, (req, res) => {
+router.get('/calendar', requireAuth, requireAdmin, async (req, res) => {
   try {
-    if (!fs.existsSync(CALENDAR_PATH)) return res.json({ success: true, calendar: [] })
-    const cal = JSON.parse(fs.readFileSync(CALENDAR_PATH, 'utf8'))
-    res.json({ success: true, calendar: Array.isArray(cal) ? cal : [] })
+    const { data, error } = await supabase
+      .from('blog_calendar')
+      .select('*')
+      .order('day', { ascending: true })
+    if (error) throw error
+    const calendar = (data || []).map(e => ({ ...e, toolSlug: e.tool_slug }))
+    res.json({ success: true, calendar })
   } catch {
     res.json({ success: true, calendar: [] })
   }
@@ -524,16 +523,21 @@ router.get('/calendar', requireAuth, requireAdmin, (req, res) => {
 
 // ── PATCH /calendar/:day — update single entry status ────────────────────────
 
-router.patch('/calendar/:day', requireAuth, requireAdmin, (req, res) => {
+router.patch('/calendar/:day', requireAuth, requireAdmin, async (req, res) => {
   const day    = parseInt(req.params.day)
   const status = req.body.status
   try {
-    if (!fs.existsSync(CALENDAR_PATH)) return res.status(404).json({ success: false, error: 'No calendar saved' })
-    const cal   = JSON.parse(fs.readFileSync(CALENDAR_PATH, 'utf8'))
-    const entry = cal.find(e => e.day === day)
-    if (entry) entry.status = status
-    fs.writeFileSync(CALENDAR_PATH, JSON.stringify(cal, null, 2), 'utf8')
-    res.json({ success: true, calendar: cal })
+    const { error: updErr } = await supabase
+      .from('blog_calendar')
+      .update({ status })
+      .eq('day', day)
+    if (updErr) throw updErr
+    const { data: rows } = await supabase
+      .from('blog_calendar')
+      .select('*')
+      .order('day', { ascending: true })
+    const calendar = (rows || []).map(e => ({ ...e, toolSlug: e.tool_slug }))
+    res.json({ success: true, calendar })
   } catch (err) {
     res.status(500).json({ success: false, error: err.message })
   }
@@ -568,7 +572,7 @@ Article (first 3000 chars):
 ${(text || '').slice(0, 3000)}`
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini', messages: [{ role: 'user', content: prompt }], max_tokens: 1000, temperature: 0.4,
     })
     const raw    = completion.choices[0]?.message?.content || ''
@@ -719,7 +723,7 @@ Return ONLY valid JSON:
 
   try {
     const [call1, call2] = await Promise.all([
-      openai.chat.completions.create({
+      getOpenAI().chat.completions.create({
         model: 'gpt-4o',
         messages: [
           { role: 'system', content: 'You are a world-class SEO strategist specializing in Indian digital market. Provide brutally honest, data-driven keyword analysis. Return ONLY valid JSON.' },
@@ -727,7 +731,7 @@ Return ONLY valid JSON:
         ],
         max_tokens: 2500, temperature: 0.3,
       }),
-      openai.chat.completions.create({
+      getOpenAI().chat.completions.create({
         model: 'gpt-4o',
         messages: [
           { role: 'system', content: 'You are an expert content strategist for Indian SEO. Create detailed actionable content plans. Return ONLY valid JSON.' },
@@ -762,7 +766,7 @@ intent values: Informational | Commercial | Transactional
 difficulty values: Easy | Medium | Hard`
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini', messages: [{ role: 'user', content: prompt }], max_tokens: 1000, temperature: 0.6,
     })
     const raw  = completion.choices[0]?.message?.content || ''
@@ -812,7 +816,7 @@ Return ONLY valid JSON with this structure:
 }`
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 1200,
@@ -872,7 +876,7 @@ ${(formData.items || []).map((item, i) => `Position ${i + 1}: name="${item.name}
 Return ONLY the complete <script type="application/ld+json">...</script> block with properly formatted, valid JSON-LD. No explanation, no markdown fences.`
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 800,
@@ -993,7 +997,7 @@ Rules:
 - contentGaps: max 3 items, only genuine missing content`
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 1500,
@@ -1017,7 +1021,7 @@ router.post('/optimize-content', requireAuth, requireAdmin, async (req, res) => 
   }
   try {
     // Call 1 — Analysis
-    const analysisCompletion = await openai.chat.completions.create({
+    const analysisCompletion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       max_tokens: 600,
       temperature: 0.3,
@@ -1042,7 +1046,7 @@ router.post('/optimize-content', requireAuth, requireAdmin, async (req, res) => 
     const analysis    = parseAIJson(analysisRaw)
 
     // Call 2 — Optimization
-    const optCompletion = await openai.chat.completions.create({
+    const optCompletion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       max_tokens: 3000,
       temperature: 0.7,
@@ -1119,7 +1123,7 @@ router.post('/keyword-clusters', requireAuth, requireAdmin, async (req, res) => 
   }
   try {
     // Call 1 — Cluster Analysis
-    const clusterCompletion = await openai.chat.completions.create({
+    const clusterCompletion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       max_tokens: 2000,
       temperature: 0.5,
@@ -1152,7 +1156,7 @@ Include at least 3 clusters with 5-8 keywords each. Focus on Indian users.`,
     const clusterData = parseAIJson(clusterRaw)
 
     // Call 2 — Content Strategy
-    const stratCompletion = await openai.chat.completions.create({
+    const stratCompletion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       max_tokens: 2000,
       temperature: 0.5,
@@ -1221,7 +1225,7 @@ router.post('/eeat-analyze', requireAuth, requireAdmin, async (req, res) => {
     return res.status(400).json({ success: false, error: 'articleText is required' })
   }
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       max_tokens: 1000,
       temperature: 0.3,
@@ -1275,7 +1279,7 @@ router.post('/eeat-boost', requireAuth, requireAdmin, async (req, res) => {
       .flatMap(([, items]) => items)
       .join(', ')
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       max_tokens: 3000,
       temperature: 0.7,

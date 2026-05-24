@@ -60,10 +60,8 @@ const { startAutonomousCron } = require('./jobs/autonomous.cron');
 const { startIdeaCron }       = require('./jobs/idea.cron');
 const { startMarketingCrons } = require('./jobs/marketing.cron');
 const { startTestingCron }    = require('./jobs/testing.cron');
-require('./jobs/decision.cron');   // auto-starts on require (side-effect)
-require('./jobs/health.cron');     // auto-starts on require (side-effect)
-require('./jobs/revenue.cron');    // auto-starts on require (side-effect)
-require('./jobs/support.cron');    // auto-starts on require (side-effect)
+// decision, health, revenue, support crons are started explicitly inside
+// app.listen() with a 30-minute delay — see bottom of this file.
 
 const app  = express();
 app.set('trust proxy', 1);
@@ -291,51 +289,36 @@ app.use((err, req, res, next) => {
   });
 });
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, async () => {
   console.info(`[SERVER] Running on port ${PORT}`);
+
+  // Fast crons — start immediately (no DB dependency at startup)
   startAnalyticsCron();
   startAutonomousCron();
   startIdeaCron();
   startMarketingCrons();
   startTestingCron();
-  // Phase 4: Initialize runtime infrastructure
-  initializeRuntime().catch(err => console.error('[SERVER] Runtime init error:', err?.message));
 
-  // Phase 5A: Initialize AI Memory Layer
-  initializeMemory().catch(err => console.error('[SERVER] Memory init error:', err?.message));
+  // Sequential subsystem initialization — each awaited before the next starts
+  try { await initializeRuntime();         console.info('[SERVER] Runtime ready');          } catch (e) { console.error('[SERVER] Runtime init error:',          e?.message); }
+  try { await initializeMemory();          console.info('[SERVER] Memory ready');           } catch (e) { console.error('[SERVER] Memory init error:',           e?.message); }
 
-  // Phase 5B: Initialize Autonomous Learning Engine (requires runtime bus)
-  // Deferred 2s to ensure runtime EventBus is fully wired first
-  setTimeout(() => {
-    const { bus } = require('./runtime');
-    initializeLearning(bus).catch(err => console.error('[SERVER] Learning init error:', err?.message));
-  }, 2_000);
-
-  // Phase 5C: Initialize Multi-Agent Intelligence Engine
-  // Deferred 3s to ensure learning engine + memory are fully up
-  setTimeout(() => {
-    const { bus } = require('./runtime');
-    initializeMultiAgent(bus).catch(err => console.error('[SERVER] MultiAgent init error:', err?.message));
-  }, 3_000);
-
-  // Phase 5D: Initialize Self-Optimization Engine
-  // Deferred 4s to ensure multi-agent layer is initialized first
-  setTimeout(() => {
-    const { bus } = require('./runtime');
-    initializeSelfOptimization(bus).catch(err => console.error('[SERVER] SelfOptimization init error:', err?.message));
-  }, 4_000);
-
-  // Phase 6E: Start Self-Healing Engine
-  // Deferred 5s to ensure all runtime systems are up
-  setTimeout(() => {
-    try {
-      require('./selfHealing').start();
-    } catch (err) {
-      console.error('[SERVER] SelfHealing start error:', err?.message);
-    }
-  }, 5_000);
+  const { bus } = require('./runtime');
+  try { await initializeLearning(bus);     console.info('[SERVER] Learning ready');         } catch (e) { console.error('[SERVER] Learning init error:',         e?.message); }
+  try { await initializeMultiAgent(bus);   console.info('[SERVER] MultiAgent ready');       } catch (e) { console.error('[SERVER] MultiAgent init error:',       e?.message); }
+  try { await initializeSelfOptimization(bus); console.info('[SERVER] SelfOptimization ready'); } catch (e) { console.error('[SERVER] SelfOptimization init error:', e?.message); }
+  try { require('./selfHealing').start();  console.info('[SERVER] SelfHealing ready');      } catch (e) { console.error('[SERVER] SelfHealing start error:',      e?.message); }
 
   console.info('[SERVER] All systems GO');
+
+  // ── Deferred crons: start 30 min after port opens so the server is
+  // fully stable before any DB-polling crons fire. ──────────────────
+  setTimeout(() => {
+    try { require('./jobs/decision.cron').startDecisionCron(); console.info('[SERVER] decision-cron started'); } catch (e) { console.error('[SERVER] decision-cron start error:', e?.message); }
+    try { require('./jobs/revenue.cron').startRevenueCron();   console.info('[SERVER] revenue-cron started');  } catch (e) { console.error('[SERVER] revenue-cron start error:', e?.message);  }
+    try { require('./jobs/support.cron').startSupportCrons();  console.info('[SERVER] support-crons started'); } catch (e) { console.error('[SERVER] support-crons start error:', e?.message); }
+    try { require('./jobs/health.cron').startHealthCron();     console.info('[SERVER] health-cron started');   } catch (e) { console.error('[SERVER] health-cron start error:', e?.message);   }
+  }, 30 * 60 * 1_000);
 });
 
 process.on('SIGTERM', () => {

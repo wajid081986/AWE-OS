@@ -324,10 +324,7 @@ function stopSupportCrons() {
   log('info', 'shutdown', 'All support cron tasks stopped');
 }
 
-const scheduledJobs = startSupportCrons();
-
 module.exports = {
-  scheduledJobs,
   startSupportCrons,
   stopSupportCrons,
   executeSLAMonitor,

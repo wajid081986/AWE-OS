@@ -1,12 +1,12 @@
-const express     = require('express')
-const OpenAI      = require('openai')
-const fs          = require('fs')
-const path        = require('path')
-const vm          = require('vm')
-const requireAuth = require('../middleware/auth')
+const express          = require('express')
+const fs               = require('fs')
+const path             = require('path')
+const vm               = require('vm')
+const requireAuth      = require('../middleware/auth')
+const { getOpenAI }    = require('../core/ai-engine')
+const parseAIJson      = require('../services/parseAIJson')
 
 const router = express.Router()
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 // ── Admin guard ───────────────────────────────────────────────────────────────
 
@@ -37,19 +37,6 @@ function calcWordCount(content, faqs) {
     .join(' ')
     .split(/\s+/)
     .filter(w => w.length > 0).length
-}
-
-// ── AI JSON parser (same pattern as admin-blog.js) ────────────────────────────
-
-function parseAIJson(raw) {
-  const cleaned = (raw || '').trim()
-  try { return JSON.parse(cleaned) } catch {}
-  const block = cleaned.match(/```(?:json)?\n?([\s\S]+?)\n?```/)
-  if (block) { try { return JSON.parse(block[1].trim()) } catch {} }
-  const start = cleaned.search(/[\[{]/)
-  const end   = Math.max(cleaned.lastIndexOf('}'), cleaned.lastIndexOf(']'))
-  if (start !== -1 && end > start) return JSON.parse(cleaned.slice(start, end + 1))
-  throw new Error('Cannot parse AI response as JSON')
 }
 
 // ── ES module data file loader (both data files have zero imports) ────────────
@@ -232,7 +219,7 @@ Return this exact JSON — no extra text:
 }`
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         {
@@ -401,7 +388,7 @@ Return ONLY valid JSON with the same structure as a comparison page. slug: "${sl
 
   try {
     const callAI = async (prompt) => {
-      const completion = await openai.chat.completions.create({
+      const completion = await getOpenAI().chat.completions.create({
         model: 'gpt-4o',
         messages: [
           { role: 'system', content: systemPrompt },

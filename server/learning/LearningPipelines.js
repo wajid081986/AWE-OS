@@ -56,6 +56,11 @@ class LearningPipelines {
   // ── Lifecycle ───────────────────────────────────────────────────────────────
 
   start() {
+    if (process.env.ENABLE_LEARNING_PIPELINES !== 'true') {
+      log.info('Learning pipelines disabled (set ENABLE_LEARNING_PIPELINES=true to enable)');
+      return;
+    }
+
     this._timerA = setInterval(() => this.runA(), PIPELINE_A_INTERVAL_MS);
     this._timerB = setInterval(() => this.runB(), PIPELINE_B_INTERVAL_MS);
     this._timerC = setInterval(() => this.runC(), PIPELINE_C_INTERVAL_MS);

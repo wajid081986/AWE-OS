@@ -218,6 +218,4 @@ function startRevenueCron() {
   return task;
 }
 
-const scheduledJob = startRevenueCron();
-
-module.exports = { scheduledJob, startRevenueCron, executeDailyRevenue };
+module.exports = { startRevenueCron, executeDailyRevenue };

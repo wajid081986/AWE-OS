@@ -158,6 +158,4 @@ function startDecisionCron() {
   return task;
 }
 
-const scheduledJob = startDecisionCron();
-
-module.exports = { scheduledJob, startDecisionCron, executeDecisionRun };
+module.exports = { startDecisionCron, executeDecisionRun };

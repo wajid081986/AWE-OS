@@ -1,9 +1,9 @@
-const express    = require('express')
-const OpenAI     = require('openai')
-const requireAuth = require('../middleware/auth')
+const express          = require('express')
+const requireAuth      = require('../middleware/auth')
+const { getOpenAI }    = require('../core/ai-engine')
+const parseAIJson      = require('../services/parseAIJson')
 
 const router = express.Router()
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 // ── Admin guard ───────────────────────────────────────────────────────────────
 
@@ -14,28 +14,13 @@ function requireAdmin(req, res, next) {
   next()
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function parseAIJson(raw) {
-  const cleaned = (raw || '').trim()
-  try { return JSON.parse(cleaned) } catch {}
-  const block = cleaned.match(/```(?:json)?\n?([\s\S]+?)\n?```/)
-  if (block) { try { return JSON.parse(block[1].trim()) } catch {} }
-  const start = cleaned.search(/[\[{]/)
-  const end   = Math.max(cleaned.lastIndexOf('}'), cleaned.lastIndexOf(']'))
-  if (start !== -1 && end > start) {
-    try { return JSON.parse(cleaned.slice(start, end + 1)) } catch {}
-  }
-  return null
-}
-
 // ── POST /api/admin/traffic/reddit-subreddits ─────────────────────────────────
 
 router.post('/reddit-subreddits', requireAuth, requireAdmin, async (req, res) => {
   const { topic, toolName, toolSlug, targetAudience } = req.body
   if (!topic) return res.status(400).json({ success: false, error: 'topic is required' })
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       max_tokens: 1200,
       temperature: 0.4,
@@ -86,7 +71,7 @@ router.post('/reddit-posts', requireAuth, requireAdmin, async (req, res) => {
     return res.status(400).json({ success: false, error: 'topic and subreddit are required' })
   }
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       max_tokens: 1500,
       temperature: 0.7,
@@ -149,7 +134,7 @@ router.post('/quora-questions', requireAuth, requireAdmin, async (req, res) => {
   const { topic, toolName, niche } = req.body
   if (!topic) return res.status(400).json({ success: false, error: 'topic is required' })
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       max_tokens: 1000,
       temperature: 0.4,
@@ -194,7 +179,7 @@ router.post('/quora-answer', requireAuth, requireAdmin, async (req, res) => {
   const { question, toolName, toolSlug, toolUrl, niche } = req.body
   if (!question) return res.status(400).json({ success: false, error: 'question is required' })
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       max_tokens: 2000,
       temperature: 0.7,
@@ -246,7 +231,7 @@ router.post('/pinterest-strategy', requireAuth, requireAdmin, async (req, res) =
   const { toolName, toolSlug, niche, targetAudience } = req.body
   if (!toolName) return res.status(400).json({ success: false, error: 'toolName is required' })
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       max_tokens: 1000,
       temperature: 0.4,
@@ -290,7 +275,7 @@ router.post('/pinterest-pins', requireAuth, requireAdmin, async (req, res) => {
   const { toolName, toolSlug, toolUrl, niche, board } = req.body
   if (!toolName) return res.status(400).json({ success: false, error: 'toolName is required' })
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       max_tokens: 1200,
       temperature: 0.6,

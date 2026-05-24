@@ -102,9 +102,9 @@ async function initializeRuntime() {
     // 5. Phase 4C — start stall detector watchdog
     stallDetector.start();
 
-    // 6. Phase 4E — register this worker, start rebalancer
-    await workerRegistry.register();
-    rebalancer.start();
+    // 6. Phase 4E — single-server deploy: distributed registry not applicable
+    // await workerRegistry.register();
+    // rebalancer.start();
 
     // 7. Phase 4F — start memory profiler, wire execution profiler
     memoryProfiler.start();
@@ -113,7 +113,6 @@ async function initializeRuntime() {
     log.info('Runtime initialized', {
       pipelines: listPipelines().map(p => p.id),
       recovery:  recoveryResult,
-      workerId:  workerRegistry.workerId,
     });
 
   } catch (err) {

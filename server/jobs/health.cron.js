@@ -173,6 +173,4 @@ function startHealthCron() {
   return task;
 }
 
-const scheduledJob = startHealthCron();
-
-module.exports = { scheduledJob, startHealthCron, executeHealthCheck };
+module.exports = { startHealthCron, executeHealthCheck };
