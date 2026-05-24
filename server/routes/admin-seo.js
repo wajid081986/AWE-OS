@@ -6,6 +6,7 @@ const requireAuth           = require('../middleware/auth')
 const { getOpenAI }         = require('../core/ai-engine')
 const parseAIJson           = require('../services/parseAIJson')
 const { pushCityPage, pushComparisonPage, pushFaqPage } = require('../core/github-service')
+const { crawlEngine } = require('../core/crawl-engine')
 
 const router = express.Router()
 
@@ -498,6 +499,59 @@ router.post('/audit', requireAuth, requireAdmin, async (req, res) => {
     res.json({ success: true, audit: result })
   } catch (err) {
     console.error('[admin-seo/audit]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /crawl — full site crawl ─────────────────────────────────────────────
+router.post('/crawl', requireAuth, requireAdmin, async (req, res) => {
+  const { url, maxPages = 30, maxDepth = 3, followSitemap = true } = req.body
+  if (!url) return res.status(400).json({ success: false, error: 'URL required' })
+  try { new URL(url) } catch { return res.status(400).json({ success: false, error: 'Invalid URL' }) }
+
+  req.setTimeout(120_000)
+  res.setTimeout(120_000)
+
+  try {
+    const report = await crawlEngine.crawl(url, {
+      maxPages:      Math.min(Number(maxPages) || 30, 100),
+      maxDepth:      Math.min(Number(maxDepth)  || 3,   5),
+      followSitemap: Boolean(followSitemap),
+      respectRobots: true,
+      delayMs:       300,
+    })
+    res.json({ success: true, report })
+  } catch (err) {
+    console.error('[admin-seo/crawl]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /crawl-page — single page audit ──────────────────────────────────────
+router.post('/crawl-page', requireAuth, requireAdmin, async (req, res) => {
+  const { url } = req.body
+  if (!url) return res.status(400).json({ success: false, error: 'URL required' })
+  try {
+    const { crawlPage } = require('../core/crawl-engine/crawler')
+    const parsed = new URL(url)
+    const result = await crawlPage(url, parsed.hostname)
+    res.json({ success: true, result })
+  } catch (err) {
+    console.error('[admin-seo/crawl-page]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /parse-sitemap — sitemap inspection ──────────────────────────────────
+router.post('/parse-sitemap', requireAuth, requireAdmin, async (req, res) => {
+  const { url, maxUrls = 200 } = req.body
+  if (!url) return res.status(400).json({ success: false, error: 'URL required' })
+  try {
+    const { parseSitemap } = require('../core/crawl-engine/sitemap')
+    const urls = await parseSitemap(url, Math.min(Number(maxUrls) || 200, 1000))
+    res.json({ success: true, urls, count: urls.length })
+  } catch (err) {
+    console.error('[admin-seo/parse-sitemap]', err.message)
     res.status(500).json({ success: false, error: err.message })
   }
 })

@@ -96,6 +96,7 @@ const SeoDashboard               = lazy(() => import('../modules/admin/seo/SeoDa
 const SeoAgent                   = lazy(() => import('../modules/admin/seo/SeoAgent'))
 const ProgrammaticSeo            = lazy(() => import('../modules/admin/seo/ProgrammaticSeo'))
 const SeoAuditEngine             = lazy(() => import('../modules/admin/seo/SeoAuditEngine'))
+const CrawlEnginePage            = lazy(() => import('../modules/admin/seo/CrawlEngine'))
 const CityToolPage               = lazy(() => import('../pages/CityToolPage'))
 const CompareToolPage            = lazy(() => import('../pages/CompareToolPage'))
 const FaqCategoryPage            = lazy(() => import('../pages/FaqCategoryPage'))
@@ -231,6 +232,7 @@ export default function AppRoutes() {
           <Route path="/admin/seo-agent"              element={lazy$(<SeoAgent />)} />
           <Route path="/admin/programmatic-seo"       element={lazy$(<ProgrammaticSeo />)} />
           <Route path="/admin/seo-audit"              element={lazy$(<SeoAuditEngine />)} />
+          <Route path="/admin/crawl-engine"           element={lazy$(<CrawlEnginePage />)} />
         </Route>
       </Route>
 
