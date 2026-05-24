@@ -6,7 +6,8 @@ const requireAuth           = require('../middleware/auth')
 const { getOpenAI }         = require('../core/ai-engine')
 const parseAIJson           = require('../services/parseAIJson')
 const { pushCityPage, pushComparisonPage, pushFaqPage } = require('../core/github-service')
-const { crawlEngine } = require('../core/crawl-engine')
+const { crawlEngine }    = require('../core/crawl-engine')
+const { seoIntelligence } = require('../core/seo-intelligence')
 
 const router = express.Router()
 
@@ -552,6 +553,114 @@ router.post('/parse-sitemap', requireAuth, requireAdmin, async (req, res) => {
     res.json({ success: true, urls, count: urls.length })
   } catch (err) {
     console.error('[admin-seo/parse-sitemap]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── Intelligence Engine Routes ────────────────────────────────────────────────
+
+// POST /api/admin/seo/keyword-research
+router.post('/keyword-research', requireAuth, requireAdmin, async (req, res) => {
+  const { keyword, country, toolSlug, maxKeywords } = req.body
+  if (!keyword) return res.status(400).json({ success: false, error: 'keyword required' })
+  try {
+    const result = await seoIntelligence.keywordResearch(keyword, { country, toolSlug, maxKeywords })
+    res.json({ success: true, result })
+  } catch (err) {
+    console.error('[admin-seo/keyword-research]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// POST /api/admin/seo/keyword-difficulty
+router.post('/keyword-difficulty', requireAuth, requireAdmin, async (req, res) => {
+  const { keyword } = req.body
+  if (!keyword) return res.status(400).json({ success: false, error: 'keyword required' })
+  try {
+    const result = await seoIntelligence.keywordDifficulty(keyword)
+    res.json({ success: true, result })
+  } catch (err) {
+    console.error('[admin-seo/keyword-difficulty]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// POST /api/admin/seo/competitor-gap
+router.post('/competitor-gap', requireAuth, requireAdmin, async (req, res) => {
+  const { ourUrl, competitorUrls, topic } = req.body
+  if (!ourUrl || !competitorUrls?.length)
+    return res.status(400).json({ success: false, error: 'ourUrl and competitorUrls required' })
+  try {
+    const result = await seoIntelligence.competitorGap(ourUrl, competitorUrls, topic)
+    res.json({ success: true, result })
+  } catch (err) {
+    console.error('[admin-seo/competitor-gap]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// POST /api/admin/seo/find-competitors
+router.post('/find-competitors', requireAuth, requireAdmin, async (req, res) => {
+  const { keyword, domain } = req.body
+  if (!keyword) return res.status(400).json({ success: false, error: 'keyword required' })
+  try {
+    const result = await seoIntelligence.findCompetitors(keyword, domain || 'awe-os.com')
+    res.json({ success: true, result })
+  } catch (err) {
+    console.error('[admin-seo/find-competitors]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// POST /api/admin/seo/content-opportunities
+router.post('/content-opportunities', requireAuth, requireAdmin, async (req, res) => {
+  const { existingPages, targetKeywords, niche, toolCategories } = req.body
+  try {
+    const result = await seoIntelligence.contentOpportunities({
+      existingPages, targetKeywords, niche, toolCategories,
+    })
+    res.json({ success: true, result })
+  } catch (err) {
+    console.error('[admin-seo/content-opportunities]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// POST /api/admin/seo/content-brief
+router.post('/content-brief', requireAuth, requireAdmin, async (req, res) => {
+  const { opportunity } = req.body
+  if (!opportunity) return res.status(400).json({ success: false, error: 'opportunity object required' })
+  try {
+    const result = await seoIntelligence.contentBrief(opportunity)
+    res.json({ success: true, result })
+  } catch (err) {
+    console.error('[admin-seo/content-brief]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// POST /api/admin/seo/serp-analysis
+router.post('/serp-analysis', requireAuth, requireAdmin, async (req, res) => {
+  const { keyword, country } = req.body
+  if (!keyword) return res.status(400).json({ success: false, error: 'keyword required' })
+  try {
+    const result = await seoIntelligence.serpAnalysis(keyword, { country })
+    res.json({ success: true, result })
+  } catch (err) {
+    console.error('[admin-seo/serp-analysis]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// POST /api/admin/seo/fix-orphans
+router.post('/fix-orphans', requireAuth, requireAdmin, async (req, res) => {
+  const { orphanUrls, allPages } = req.body
+  if (!orphanUrls?.length) return res.status(400).json({ success: false, error: 'orphanUrls required' })
+  try {
+    const result = await seoIntelligence.fixOrphans(orphanUrls, allPages || [])
+    res.json({ success: true, result })
+  } catch (err) {
+    console.error('[admin-seo/fix-orphans]', err.message)
     res.status(500).json({ success: false, error: err.message })
   }
 })
