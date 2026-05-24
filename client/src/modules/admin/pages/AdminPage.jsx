@@ -14,6 +14,7 @@ const QUICK_ITEMS = [
   { icon: '🧠', label: 'SEO Intelligence', to: '/admin/seo-intelligence' },
   { icon: '✍️', label: 'Blog Writer',      to: '/admin/blog'           },
   { icon: '✨', label: 'Content Studio',  to: '/admin/content-studio' },
+  { icon: '⚙️', label: 'Automation Hub', to: '/admin/automation'     },
   { icon: '🧬', label: 'Agents',           to: '/admin/agents'         },
   { icon: '🛠️', label: 'Tool Builder',     to: '/admin/tools/builder'  },
   { icon: '🔄', label: 'Pipeline Control', to: '/admin/pipeline'       },
