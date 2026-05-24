@@ -143,16 +143,10 @@ const CATEGORY_SLUGS = ['pdf', 'calculators', 'converters', 'ai'];
 
 const STATIC_COMPARISON_SLUGS = [
   'merge-pdf-vs-compress-pdf',
-  'pdf-to-word-vs-pdf-editor',
-  'gst-calculator-vs-income-tax-calculator',
-  'sip-calculator-vs-fd-calculator',
 ];
 
 const STATIC_FAQ_SLUGS = [
   'pdf-tools',
-  'calculators',
-  'ai-tools',
-  'converters',
 ];
 
 const STATIC_PAGES = [

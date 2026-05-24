@@ -826,36 +826,67 @@ Return ONLY the complete <script type="application/ld+json">...</script> block w
 // ── POST /internal-links ──────────────────────────────────────────────────────
 
 const AWE_TOOLS_LIST = [
-  { name: 'Merge PDF',          slug: 'merge-pdf',           url: 'https://awe-os.com/tools/merge-pdf',           category: 'PDF Tools' },
-  { name: 'Compress PDF',       slug: 'compress-pdf',        url: 'https://awe-os.com/tools/compress-pdf',        category: 'PDF Tools' },
-  { name: 'Split PDF',          slug: 'split-pdf',           url: 'https://awe-os.com/tools/split-pdf',           category: 'PDF Tools' },
-  { name: 'JPG to PDF',         slug: 'jpg-to-pdf',          url: 'https://awe-os.com/tools/jpg-to-pdf',          category: 'PDF Tools' },
-  { name: 'PDF to JPG',         slug: 'pdf-to-jpg',          url: 'https://awe-os.com/tools/pdf-to-jpg',          category: 'PDF Tools' },
-  { name: 'Word to PDF',        slug: 'word-to-pdf',         url: 'https://awe-os.com/tools/word-to-pdf',         category: 'PDF Tools' },
-  { name: 'Rotate PDF',         slug: 'rotate-pdf',          url: 'https://awe-os.com/tools/rotate-pdf',          category: 'PDF Tools' },
-  { name: 'Watermark PDF',      slug: 'watermark-pdf',       url: 'https://awe-os.com/tools/watermark-pdf',       category: 'PDF Tools' },
-  { name: 'Protect PDF',        slug: 'protect-pdf',         url: 'https://awe-os.com/tools/protect-pdf',         category: 'PDF Tools' },
-  { name: 'Unlock PDF',         slug: 'unlock-pdf',          url: 'https://awe-os.com/tools/unlock-pdf',          category: 'PDF Tools' },
-  { name: 'Image Compressor',   slug: 'image-compressor',    url: 'https://awe-os.com/tools/image-compressor',    category: 'Image Tools' },
-  { name: 'QR Code Generator',  slug: 'qr-code-generator',   url: 'https://awe-os.com/tools/qr-code-generator',   category: 'Image Tools' },
-  { name: 'BMI Calculator',     slug: 'bmi-calculator',      url: 'https://awe-os.com/tools/bmi-calculator',      category: 'Calculators' },
-  { name: 'SIP Calculator',     slug: 'sip-calculator',      url: 'https://awe-os.com/tools/sip-calculator',      category: 'Calculators' },
-  { name: 'GST Calculator',     slug: 'gst-calculator',      url: 'https://awe-os.com/tools/gst-calculator',      category: 'Calculators' },
-  { name: 'EMI Calculator',     slug: 'emi-calculator',      url: 'https://awe-os.com/tools/emi-calculator',      category: 'Calculators' },
-  { name: 'Percentage Calculator', slug: 'percentage-calculator', url: 'https://awe-os.com/tools/percentage-calculator', category: 'Calculators' },
-  { name: 'Age Calculator',     slug: 'age-calculator',      url: 'https://awe-os.com/tools/age-calculator',      category: 'Calculators' },
-  { name: 'FD Calculator',      slug: 'fd-calculator',       url: 'https://awe-os.com/tools/fd-calculator',       category: 'Calculators' },
-  { name: 'PPF Calculator',     slug: 'ppf-calculator',      url: 'https://awe-os.com/tools/ppf-calculator',      category: 'Calculators' },
-  { name: 'Word Counter',       slug: 'word-counter',        url: 'https://awe-os.com/tools/word-counter',        category: 'Text Tools' },
-  { name: 'Character Counter',  slug: 'character-counter',   url: 'https://awe-os.com/tools/character-counter',   category: 'Text Tools' },
-  { name: 'Case Converter',     slug: 'case-converter',      url: 'https://awe-os.com/tools/case-converter',      category: 'Text Tools' },
-  { name: 'Password Generator', slug: 'password-generator',  url: 'https://awe-os.com/tools/password-generator',  category: 'Text Tools' },
-  { name: 'Unit Converter',     slug: 'unit-converter',      url: 'https://awe-os.com/tools/unit-converter',      category: 'Converters' },
-  { name: 'Currency Converter', slug: 'currency-converter',  url: 'https://awe-os.com/tools/currency-converter',  category: 'Converters' },
-  { name: 'AI Resume Builder',  slug: 'ai-resume-builder',   url: 'https://awe-os.com/tools/ai-resume-builder',   category: 'AI Tools' },
-  { name: 'AI Content Writer',  slug: 'ai-content-writer',   url: 'https://awe-os.com/tools/ai-content-writer',   category: 'AI Tools' },
-  { name: 'AI Grammar Checker', slug: 'ai-grammar-checker',  url: 'https://awe-os.com/tools/ai-grammar-checker',  category: 'AI Tools' },
-  { name: 'Invoice Generator',  slug: 'invoice-generator',   url: 'https://awe-os.com/tools/invoice-generator',   category: 'Productivity' },
+  // PDF Tools — Organize
+  { name: 'Merge PDF',                  slug: 'merge-pdf',            url: 'https://awe-os.com/tools/merge-pdf',            category: 'PDF Tools' },
+  { name: 'Split PDF',                  slug: 'split-pdf',            url: 'https://awe-os.com/tools/split-pdf',            category: 'PDF Tools' },
+  { name: 'Remove PDF Pages',           slug: 'remove-pages-pdf',     url: 'https://awe-os.com/tools/remove-pages-pdf',     category: 'PDF Tools' },
+  { name: 'Extract PDF Pages',          slug: 'extract-pages-pdf',    url: 'https://awe-os.com/tools/extract-pages-pdf',    category: 'PDF Tools' },
+  { name: 'Organize PDF',               slug: 'organize-pdf',         url: 'https://awe-os.com/tools/organize-pdf',         category: 'PDF Tools' },
+  // PDF Tools — Optimize
+  { name: 'Compress PDF',               slug: 'compress-pdf',         url: 'https://awe-os.com/tools/compress-pdf',         category: 'PDF Tools' },
+  // PDF Tools — Convert to PDF
+  { name: 'JPG to PDF',                 slug: 'jpg-to-pdf',           url: 'https://awe-os.com/tools/jpg-to-pdf',           category: 'PDF Tools' },
+  { name: 'Word to PDF',                slug: 'word-to-pdf',          url: 'https://awe-os.com/tools/word-to-pdf',          category: 'PDF Tools' },
+  { name: 'Excel to PDF',               slug: 'excel-to-pdf',         url: 'https://awe-os.com/tools/excel-to-pdf',         category: 'PDF Tools' },
+  { name: 'PowerPoint to PDF',          slug: 'powerpoint-to-pdf',    url: 'https://awe-os.com/tools/powerpoint-to-pdf',    category: 'PDF Tools' },
+  // PDF Tools — Convert from PDF
+  { name: 'PDF to JPG',                 slug: 'pdf-to-jpg',           url: 'https://awe-os.com/tools/pdf-to-jpg',           category: 'PDF Tools' },
+  { name: 'PDF to Word',                slug: 'pdf-to-word',          url: 'https://awe-os.com/tools/pdf-to-word',          category: 'PDF Tools' },
+  { name: 'PDF to Text',                slug: 'pdf-to-text',          url: 'https://awe-os.com/tools/pdf-to-text',          category: 'PDF Tools' },
+  { name: 'PDF to PowerPoint',          slug: 'pdf-to-ppt',           url: 'https://awe-os.com/tools/pdf-to-ppt',           category: 'PDF Tools' },
+  { name: 'PDF to Excel',               slug: 'pdf-to-excel',         url: 'https://awe-os.com/tools/pdf-to-excel',         category: 'PDF Tools' },
+  // PDF Tools — Edit
+  { name: 'Rotate PDF',                 slug: 'rotate-pdf',           url: 'https://awe-os.com/tools/rotate-pdf',           category: 'PDF Tools' },
+  { name: 'Add Watermark to PDF',       slug: 'watermark-pdf',        url: 'https://awe-os.com/tools/watermark-pdf',        category: 'PDF Tools' },
+  { name: 'Add Page Numbers to PDF',    slug: 'page-numbers-pdf',     url: 'https://awe-os.com/tools/page-numbers-pdf',     category: 'PDF Tools' },
+  { name: 'PDF Editor',                 slug: 'pdf-editor',           url: 'https://awe-os.com/tools/pdf-editor',           category: 'PDF Tools' },
+  // PDF Tools — Security
+  { name: 'Protect PDF',                slug: 'protect-pdf',          url: 'https://awe-os.com/tools/protect-pdf',          category: 'PDF Tools' },
+  { name: 'Unlock PDF',                 slug: 'unlock-pdf',           url: 'https://awe-os.com/tools/unlock-pdf',           category: 'PDF Tools' },
+  // Calculators — Finance
+  { name: 'FD Calculator',              slug: 'fd-calculator',        url: 'https://awe-os.com/tools/fd-calculator',        category: 'Calculators' },
+  { name: 'PPF Calculator',             slug: 'ppf-calculator',       url: 'https://awe-os.com/tools/ppf-calculator',       category: 'Calculators' },
+  { name: 'SIP Calculator',             slug: 'sip-calculator',       url: 'https://awe-os.com/tools/sip-calculator',       category: 'Calculators' },
+  { name: 'ROI Calculator',             slug: 'roi-calculator',       url: 'https://awe-os.com/tools/roi-calculator',       category: 'Calculators' },
+  { name: 'Tax Calculator',             slug: 'tax-calculator',       url: 'https://awe-os.com/tools/tax-calculator',       category: 'Calculators' },
+  { name: 'Loan EMI Calculator',        slug: 'loan-calculator',      url: 'https://awe-os.com/tools/loan-calculator',      category: 'Calculators' },
+  { name: 'Percentage Calculator',      slug: 'percentage-calculator',url: 'https://awe-os.com/tools/percentage-calculator',category: 'Calculators' },
+  { name: 'GST Calculator',             slug: 'gst-calculator',       url: 'https://awe-os.com/tools/gst-calculator',       category: 'Calculators' },
+  { name: 'Tip Calculator',             slug: 'tip-calculator',       url: 'https://awe-os.com/tools/tip-calculator',       category: 'Calculators' },
+  { name: 'Discount Calculator',        slug: 'discount-calculator',  url: 'https://awe-os.com/tools/discount-calculator',  category: 'Calculators' },
+  // Calculators — Health
+  { name: 'BMI Calculator',             slug: 'bmi-calculator',       url: 'https://awe-os.com/tools/bmi-calculator',       category: 'Calculators' },
+  { name: 'Age Calculator',             slug: 'age-calculator',       url: 'https://awe-os.com/tools/age-calculator',       category: 'Calculators' },
+  // Calculators — Education
+  { name: 'GPA Calculator',             slug: 'gpa-calculator',       url: 'https://awe-os.com/tools/gpa-calculator',       category: 'Calculators' },
+  // Converters — Unit / Text / Data / File
+  { name: 'Unit Converter',             slug: 'unit-converter',       url: 'https://awe-os.com/tools/unit-converter',       category: 'Converters' },
+  { name: 'Word Counter',               slug: 'word-counter',         url: 'https://awe-os.com/tools/word-counter',         category: 'Converters' },
+  { name: 'Password Generator',         slug: 'password-generator',   url: 'https://awe-os.com/tools/password-generator',   category: 'Converters' },
+  { name: 'Color Picker',               slug: 'color-picker',         url: 'https://awe-os.com/tools/color-picker',         category: 'Converters' },
+  { name: 'QR Code Generator',          slug: 'qr-code-generator',    url: 'https://awe-os.com/tools/qr-code-generator',    category: 'Converters' },
+  { name: 'Image Compressor',           slug: 'image-compressor',     url: 'https://awe-os.com/tools/image-compressor',     category: 'Converters' },
+  { name: 'Currency Converter',         slug: 'currency-converter',   url: 'https://awe-os.com/tools/currency-converter',   category: 'Converters' },
+  { name: 'Number Base Converter',      slug: 'base-converter',       url: 'https://awe-os.com/tools/base-converter',       category: 'Converters' },
+  { name: 'JSON Formatter',             slug: 'json-formatter',       url: 'https://awe-os.com/tools/json-formatter',       category: 'Converters' },
+  { name: 'CSV to JSON',                slug: 'csv-to-json',          url: 'https://awe-os.com/tools/csv-to-json',          category: 'Converters' },
+  // Productivity
+  { name: 'Invoice Generator',          slug: 'invoice',              url: 'https://awe-os.com/tools/invoice',              category: 'Productivity' },
+  { name: 'Invoice Generator (Quick)',  slug: 'invoice-generator',    url: 'https://awe-os.com/tools/invoice-generator',    category: 'Productivity' },
+  { name: 'Contract Generator',         slug: 'contract-generator',   url: 'https://awe-os.com/tools/contract-generator',   category: 'Productivity' },
+  // AI Tools
+  { name: 'AI Resume Builder',          slug: 'resume-builder',       url: 'https://awe-os.com/tools/resume-builder',       category: 'AI Tools' },
+  { name: 'AI Content Writer',          slug: 'ai-content-writer',    url: 'https://awe-os.com/tools/ai-content-writer',    category: 'AI Tools' },
 ]
 
 const AWE_BLOGS_LIST = [

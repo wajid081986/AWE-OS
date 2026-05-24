@@ -1,4 +1,5 @@
 import { useParams, Link, Navigate } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { COMPARISON_PAGES } from '../data/comparisonPages'
 
 function renderBlock(block, i) {
@@ -57,8 +58,33 @@ export default function CompareToolPage() {
 
   if (!page) return <Navigate to="/404" replace />
 
+  const schema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home',  item: 'https://www.awe-os.com' },
+          { '@type': 'ListItem', position: 2, name: 'Tools', item: 'https://www.awe-os.com/tools' },
+          { '@type': 'ListItem', position: 3, name: page.title, item: `https://www.awe-os.com/compare/${page.slug}` },
+        ],
+      },
+      {
+        '@type': 'Article',
+        headline:    page.title,
+        description: page.metaDescription || '',
+        datePublished: page.publishedAt || '',
+        author:    { '@type': 'Organization', name: 'AWE-OS' },
+        publisher: { '@type': 'Organization', name: 'AWE-OS', url: 'https://www.awe-os.com' },
+      },
+    ],
+  }
+
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify(schema)}</script>
+      </Helmet>
       {/* Breadcrumb */}
       <nav className="text-sm text-gray-500 mb-8 flex items-center gap-1 flex-wrap">
         <Link to="/" className="hover:text-indigo-600">Home</Link>

@@ -60,12 +60,30 @@ async function pushFileToGitHub(filePath, { message, content, sha }) {
   return data;
 }
 
-// ── JS serializer (unquoted keys, single-quoted strings) ──────────────────────
+// ── Safe array serializer — pure JSON inside ES module export ─────────────────
+// Replaces the old regex-based serializeJs which corrupted strings with apostrophes.
 
-function serializeJs(obj) {
-  return JSON.stringify(obj, null, 2)
-    .replace(/"([a-zA-Z_][a-zA-Z0-9_]*)"\s*:/g, '$1:')
-    .replace(/"((?:[^"\\]|\\.)*)"/g, (_, s) => s.includes("'") ? `"${s}"` : `'${s}'`);
+function serializeJsArray(arr, exportName) {
+  return `export const ${exportName} = ${JSON.stringify(arr, null, 2)};\n`;
+}
+
+// ── Safe array parser — handles both old JS format and new JSON format ─────────
+
+function parseJsArray(content, exportName) {
+  // Strategy 1: vm.runInNewContext (handles both JS-with-unquoted-keys and JSON)
+  try {
+    const cjs = content.replace(/export\s+const\s+/g, 'var ');
+    const ctx = Object.create(null);
+    vm.runInNewContext(cjs, ctx, { timeout: 5000 });
+    if (Array.isArray(ctx[exportName])) return ctx[exportName];
+  } catch (_e1) {
+    // Strategy 2: extract JSON array directly (works when content is JSON-format)
+    try {
+      const match = content.match(/export\s+const\s+\w+\s*=\s*(\[[\s\S]*?\]);?\s*$/);
+      if (match) return JSON.parse(match[1]);
+    } catch (_e2) {}
+  }
+  return [];
 }
 
 // ── Blog post publisher ────────────────────────────────────────────────────────
@@ -125,16 +143,7 @@ async function pushCityPage(newPage, slug) {
     fileSha        = null;
   }
 
-  // Parse existing pages via vm (ES module → CJS swap)
-  let existingPages = [];
-  try {
-    const cjs = currentContent.replace(/export\s+const\s+/g, 'var ');
-    const ctx = Object.create(null);
-    vm.runInNewContext(cjs, ctx, { timeout: 5000 });
-    existingPages = Array.isArray(ctx.CITY_PAGES) ? ctx.CITY_PAGES : [];
-  } catch (e) {
-    console.warn('[github-service] Could not parse existing CITY_PAGES:', e.message);
-  }
+  let existingPages = parseJsArray(currentContent, 'CITY_PAGES');
 
   newPage.publishedAt = new Date().toISOString().split('T')[0];
   newPage.slug        = slug;
@@ -152,8 +161,7 @@ async function pushCityPage(newPage, slug) {
     existingPages.unshift(newPage);
   }
 
-  const pagesJs    = existingPages.map(p => '  ' + serializeJs(p).replace(/\n/g, '\n  ')).join(',\n');
-  const newContent = `export const CITY_PAGES = [\n${pagesJs ? pagesJs + ',\n' : ''}]\n`;
+  const newContent = serializeJsArray(existingPages, 'CITY_PAGES');
 
   const pushData = await pushFileToGitHub(FILE_PATH, {
     message: isUpdate
@@ -183,15 +191,7 @@ async function pushGenericArrayPage(newPage, slug, { filePath, arrayName, urlPre
     fileSha        = null;
   }
 
-  let existingPages = [];
-  try {
-    const cjs = currentContent.replace(/export\s+const\s+/g, 'var ');
-    const ctx = Object.create(null);
-    vm.runInNewContext(cjs, ctx, { timeout: 5000 });
-    existingPages = Array.isArray(ctx[arrayName]) ? ctx[arrayName] : [];
-  } catch (e) {
-    console.warn(`[github-service] Could not parse existing ${arrayName}:`, e.message);
-  }
+  let existingPages = parseJsArray(currentContent, arrayName);
 
   newPage.publishedAt = new Date().toISOString().split('T')[0];
   newPage.slug        = slug;
@@ -208,8 +208,7 @@ async function pushGenericArrayPage(newPage, slug, { filePath, arrayName, urlPre
     existingPages.unshift(newPage);
   }
 
-  const pagesJs    = existingPages.map(p => '  ' + serializeJs(p).replace(/\n/g, '\n  ')).join(',\n');
-  const newContent = `export const ${arrayName} = [\n${pagesJs ? pagesJs + ',\n' : ''}]\n`;
+  const newContent = serializeJsArray(existingPages, arrayName);
 
   const pushData = await pushFileToGitHub(filePath, {
     message: isUpdate
