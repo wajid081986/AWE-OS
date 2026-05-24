@@ -5,7 +5,7 @@ const vm                    = require('vm')
 const requireAuth           = require('../middleware/auth')
 const { getOpenAI }         = require('../core/ai-engine')
 const parseAIJson           = require('../services/parseAIJson')
-const { pushCityPage }      = require('../core/github-service')
+const { pushCityPage, pushComparisonPage, pushFaqPage } = require('../core/github-service')
 
 const router = express.Router()
 
@@ -453,6 +453,34 @@ router.post('/publish-programmatic', requireAuth, requireAdmin, async (req, res)
     res.json(result)
   } catch (err) {
     console.error('[admin-seo/publish-programmatic]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /publish-comparison ──────────────────────────────────────────────────
+
+router.post('/publish-comparison', requireAuth, requireAdmin, async (req, res) => {
+  const { page, slug } = req.body
+  if (!page || !slug) return res.status(400).json({ success: false, error: 'page and slug are required' })
+  try {
+    const result = await pushComparisonPage(page, slug)
+    res.json(result)
+  } catch (err) {
+    console.error('[admin-seo/publish-comparison]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /publish-faq ─────────────────────────────────────────────────────────
+
+router.post('/publish-faq', requireAuth, requireAdmin, async (req, res) => {
+  const { page, slug } = req.body
+  if (!page || !slug) return res.status(400).json({ success: false, error: 'page and slug are required' })
+  try {
+    const result = await pushFaqPage(page, slug)
+    res.json(result)
+  } catch (err) {
+    console.error('[admin-seo/publish-faq]', err.message)
     res.status(500).json({ success: false, error: err.message })
   }
 })

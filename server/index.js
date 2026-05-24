@@ -141,6 +141,20 @@ const STATIC_TOOL_SLUGS = [
 
 const CATEGORY_SLUGS = ['pdf', 'calculators', 'converters', 'ai'];
 
+const STATIC_COMPARISON_SLUGS = [
+  'merge-pdf-vs-compress-pdf',
+  'pdf-to-word-vs-pdf-editor',
+  'gst-calculator-vs-income-tax-calculator',
+  'sip-calculator-vs-fd-calculator',
+];
+
+const STATIC_FAQ_SLUGS = [
+  'pdf-tools',
+  'calculators',
+  'ai-tools',
+  'converters',
+];
+
 const STATIC_PAGES = [
   { path: '/',               priority: '1.0', changefreq: 'weekly'  },
   { path: '/tools',          priority: '0.9', changefreq: 'daily'   },
@@ -201,11 +215,14 @@ app.get('/sitemap.xml', async (req, res) => {
       // calculators table may not exist yet — skip silently
     }
 
+    const comparisonUrls = STATIC_COMPARISON_SLUGS.map(slug => url(`/compare/${slug}`, '0.6', 'monthly')).join('');
+    const faqUrls        = STATIC_FAQ_SLUGS.map(slug => url(`/faq/${slug}`, '0.6', 'monthly')).join('');
+
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-          http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">${staticUrls}${categoryUrls}${toolUrls}${dynamicToolUrls}${calcUrls}
+          http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">${staticUrls}${categoryUrls}${toolUrls}${dynamicToolUrls}${calcUrls}${comparisonUrls}${faqUrls}
 </urlset>`;
 
     res.header('Content-Type', 'application/xml; charset=utf-8');

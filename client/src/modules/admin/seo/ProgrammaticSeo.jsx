@@ -102,6 +102,7 @@ export default function ProgrammaticSeo() {
   const [customCityInput, setCustomCityInput] = useState('')
   const [showCustom,      setShowCustom]      = useState(false)
   const [generating,      setGenerating]      = useState(false)
+  const [publishing,      setPublishing]      = useState(false)
   const [generatedPage,   setGeneratedPage]   = useState(null)
   const [error,           setError]           = useState(null)
   const [bulkProgress,    setBulkProgress]    = useState({
@@ -194,20 +195,34 @@ export default function ProgrammaticSeo() {
     }
   }
 
-  function handlePublish() {
+  async function handlePublish() {
     if (!generatedPage) return
-    const pathPrefix = selectedType === 'comparison' ? 'compare' : 'faq'
-    savePublishedRecord({
-      type:      selectedType,
-      title:     generatedPage.title || generatedPage.slug,
-      slug:      generatedPage.slug,
-      url:       `https://awe-os.com/${pathPrefix}/${generatedPage.slug}`,
-      date:      new Date().toISOString().split('T')[0],
-      wordCount: generatedPage.wordCount || 0,
-    })
-    setGeneratedPage(null)
-    setSelectedType(null)
-    setForm({})
+    setPublishing(true)
+    setError(null)
+    try {
+      const endpoint = selectedType === 'comparison'
+        ? '/api/admin/seo/publish-comparison'
+        : '/api/admin/seo/publish-faq'
+      const res = await api.post(endpoint, { page: generatedPage, slug: generatedPage.slug })
+      if (!res.data.success) throw new Error(res.data.error || 'Publish failed')
+
+      const pathPrefix = selectedType === 'comparison' ? 'compare' : 'faq'
+      savePublishedRecord({
+        type:      selectedType,
+        title:     generatedPage.title || generatedPage.slug,
+        slug:      generatedPage.slug,
+        url:       `https://awe-os.com/${pathPrefix}/${generatedPage.slug}`,
+        date:      new Date().toISOString().split('T')[0],
+        wordCount: generatedPage.wordCount || 0,
+      })
+      setGeneratedPage(null)
+      setSelectedType(null)
+      setForm({})
+    } catch (e) {
+      setError(e.response?.data?.error || e.message || 'Publish failed')
+    } finally {
+      setPublishing(false)
+    }
   }
 
   // ── Bulk generation (city) ──────────────────────────────────────────────────
@@ -897,11 +912,16 @@ export default function ProgrammaticSeo() {
 
           <button
             onClick={handlePublish}
-            disabled={wordCount < 800}
+            disabled={wordCount < 800 || publishing}
             className="w-full py-3 rounded-xl font-medium text-white transition-all
               bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            🚀 Publish Page
+            {publishing ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Publishing to GitHub…
+              </span>
+            ) : '🚀 Publish Page'}
           </button>
         </div>
       )}

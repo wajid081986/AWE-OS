@@ -97,6 +97,8 @@ const SeoAgent                   = lazy(() => import('../modules/admin/seo/SeoAg
 const ProgrammaticSeo            = lazy(() => import('../modules/admin/seo/ProgrammaticSeo'))
 const SeoAuditEngine             = lazy(() => import('../modules/admin/seo/SeoAuditEngine'))
 const CityToolPage               = lazy(() => import('../pages/CityToolPage'))
+const CompareToolPage            = lazy(() => import('../pages/CompareToolPage'))
+const FaqCategoryPage            = lazy(() => import('../pages/FaqCategoryPage'))
 
 // ── Shared suspense wrapper ───────────────────────────────────────────────────
 function PageLoader() {
@@ -161,6 +163,14 @@ export default function AppRoutes() {
 
         {/* Legacy redirect shim: /privacy → /privacy-policy (same component) */}
         <Route path="/privacy" element={lazy$(<PrivacyPolicy />)} />
+
+        {/* Comparison pages — /compare/:slug
+            MUST be before /:toolSlug/:city to prevent wildcard capture. */}
+        <Route path="/compare/:slug" element={lazy$(<CompareToolPage />)} />
+
+        {/* FAQ category pages — /faq/:slug
+            MUST be before /:toolSlug/:city to prevent wildcard capture. */}
+        <Route path="/faq/:slug" element={lazy$(<FaqCategoryPage />)} />
 
         {/* City-specific tool pages — /:toolSlug/:city (e.g. /gst-calculator/mumbai).
             RR6 ranks static segments higher, so /blog/:slug, /tools/:slug etc. all

@@ -173,4 +173,82 @@ async function pushCityPage(newPage, slug) {
   };
 }
 
-module.exports = { pushBlogPost, pushCityPage, getFileFromGitHub, pushFileToGitHub };
+// ── Generic array-page publisher (reused by comparison + faq) ─────────────────
+
+async function pushGenericArrayPage(newPage, slug, { filePath, arrayName, urlPrefix, commitPrefix }) {
+  let { content: currentContent, sha: fileSha } = await getFileFromGitHub(filePath);
+
+  if (!currentContent) {
+    currentContent = `export const ${arrayName} = [\n]\n`;
+    fileSha        = null;
+  }
+
+  let existingPages = [];
+  try {
+    const cjs = currentContent.replace(/export\s+const\s+/g, 'var ');
+    const ctx = Object.create(null);
+    vm.runInNewContext(cjs, ctx, { timeout: 5000 });
+    existingPages = Array.isArray(ctx[arrayName]) ? ctx[arrayName] : [];
+  } catch (e) {
+    console.warn(`[github-service] Could not parse existing ${arrayName}:`, e.message);
+  }
+
+  newPage.publishedAt = new Date().toISOString().split('T')[0];
+  newPage.slug        = slug;
+
+  const existingIndex = existingPages.findIndex(p => p.slug === slug);
+  let isUpdate = false;
+  if (existingIndex !== -1) {
+    newPage.id                   = existingPages[existingIndex].id;
+    existingPages[existingIndex] = newPage;
+    isUpdate = true;
+  } else {
+    const maxId = existingPages.reduce((max, p) => Math.max(max, p.id || 0), 0);
+    newPage.id  = maxId + 1;
+    existingPages.unshift(newPage);
+  }
+
+  const pagesJs    = existingPages.map(p => '  ' + serializeJs(p).replace(/\n/g, '\n  ')).join(',\n');
+  const newContent = `export const ${arrayName} = [\n${pagesJs ? pagesJs + ',\n' : ''}]\n`;
+
+  const pushData = await pushFileToGitHub(filePath, {
+    message: isUpdate
+      ? `${commitPrefix}: update "${newPage.title || slug}"`
+      : `${commitPrefix}: add "${newPage.title || slug}"`,
+    content: newContent,
+    sha:     fileSha,
+  });
+
+  return {
+    success:   true,
+    slug,
+    id:        newPage.id,
+    updated:   isUpdate,
+    liveUrl:   `https://www.awe-os.com/${urlPrefix}/${slug}`,
+    commitUrl: pushData.commit?.html_url,
+  };
+}
+
+// ── Comparison page publisher ──────────────────────────────────────────────────
+
+async function pushComparisonPage(page, slug) {
+  return pushGenericArrayPage(page, slug, {
+    filePath:      'client/src/data/comparisonPages.js',
+    arrayName:     'COMPARISON_PAGES',
+    urlPrefix:     'compare',
+    commitPrefix:  'seo',
+  });
+}
+
+// ── FAQ page publisher ─────────────────────────────────────────────────────────
+
+async function pushFaqPage(page, slug) {
+  return pushGenericArrayPage(page, slug, {
+    filePath:      'client/src/data/faqPages.js',
+    arrayName:     'FAQ_PAGES',
+    urlPrefix:     'faq',
+    commitPrefix:  'seo',
+  });
+}
+
+module.exports = { pushBlogPost, pushCityPage, pushComparisonPage, pushFaqPage, getFileFromGitHub, pushFileToGitHub };
