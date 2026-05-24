@@ -1,10 +1,11 @@
-const express          = require('express')
-const fs               = require('fs')
-const path             = require('path')
-const vm               = require('vm')
-const requireAuth      = require('../middleware/auth')
-const { getOpenAI }    = require('../core/ai-engine')
-const parseAIJson      = require('../services/parseAIJson')
+const express               = require('express')
+const fs                    = require('fs')
+const path                  = require('path')
+const vm                    = require('vm')
+const requireAuth           = require('../middleware/auth')
+const { getOpenAI }         = require('../core/ai-engine')
+const parseAIJson           = require('../services/parseAIJson')
+const { pushCityPage }      = require('../core/github-service')
 
 const router = express.Router()
 
@@ -433,96 +434,9 @@ Return ONLY valid JSON with the same structure as a comparison page. slug: "${sl
   }
 })
 
-// ── Publish city page to GitHub ───────────────────────────────────────────────
-async function publishCityPageToGitHub(newPage, slug) {
-  const GITHUB_TOKEN = process.env.GITHUB_TOKEN
-  if (!GITHUB_TOKEN) throw new Error('GITHUB_TOKEN not set — add it in Render dashboard')
-  const REPO      = 'wajid081986/AWE-OS'
-  const FILE_PATH = 'client/src/data/cityPages.js'
-  const BRANCH    = 'main'
-  const API_BASE  = 'https://api.github.com'
-  const HEADERS   = {
-    'Authorization': `token ${GITHUB_TOKEN}`,
-    'Accept':        'application/vnd.github.v3+json',
-    'User-Agent':    'AWE-OS-SEO-Assistant',
-  }
+// ── Publish city page to GitHub — delegates to shared github-service ──────────
 
-  const getRes = await fetch(`${API_BASE}/repos/${REPO}/contents/${FILE_PATH}?ref=${BRANCH}`, { headers: HEADERS })
-  let currentContent, fileSha
-  if (getRes.ok) {
-    const fileData   = await getRes.json()
-    currentContent   = Buffer.from(fileData.content, 'base64').toString('utf8')
-    fileSha          = fileData.sha
-  } else if (getRes.status === 404) {
-    currentContent   = 'export const CITY_PAGES = [\n]\n'
-    fileSha          = null
-  } else {
-    throw new Error(`GitHub GET failed: ${getRes.status}`)
-  }
-
-  // Parse existing pages using vm (same pattern as evalDataFile)
-  let existingPages = []
-  try {
-    const cjs = currentContent.replace(/export\s+const\s+/g, 'var ')
-    const ctx = Object.create(null)
-    vm.runInNewContext(cjs, ctx, { timeout: 5000 })
-    existingPages = Array.isArray(ctx.CITY_PAGES) ? ctx.CITY_PAGES : []
-  } catch (e) {
-    console.warn('[publish-programmatic] Could not parse existing CITY_PAGES:', e.message)
-  }
-
-  // Set metadata on incoming page
-  newPage.publishedAt = new Date().toISOString().split('T')[0]
-  newPage.slug        = slug
-
-  // Dedup: update in-place if slug exists, otherwise prepend
-  const existingIndex = existingPages.findIndex(p => p.slug === slug)
-  let isUpdate = false
-  if (existingIndex !== -1) {
-    newPage.id                   = existingPages[existingIndex].id  // preserve original ID
-    existingPages[existingIndex] = newPage
-    isUpdate = true
-  } else {
-    const maxId = existingPages.reduce((max, p) => Math.max(max, p.id || 0), 0)
-    newPage.id  = maxId + 1
-    existingPages.unshift(newPage)
-  }
-
-  // Serialize the full array back to a clean JS module
-  const serialize = obj => JSON.stringify(obj, null, 2)
-    .replace(/"([a-zA-Z_][a-zA-Z0-9_]*)"\s*:/g, '$1:')
-    .replace(/"((?:[^"\\]|\\.)*)"/g, (_, s) => s.includes("'") ? `"${s}"` : `'${s}'`)
-
-  const pagesJs    = existingPages
-    .map(p => '  ' + serialize(p).replace(/\n/g, '\n  '))
-    .join(',\n')
-  const newContent = `export const CITY_PAGES = [\n${pagesJs ? pagesJs + ',\n' : ''}]\n`
-
-  const pushBody = {
-    message: isUpdate
-      ? `seo: update city page "${newPage.title || slug}"`
-      : `seo: add city page "${newPage.title || slug}"`,
-    content: Buffer.from(newContent, 'utf8').toString('base64'),
-    branch:  BRANCH,
-  }
-  if (fileSha) pushBody.sha = fileSha
-
-  const pushRes  = await fetch(`${API_BASE}/repos/${REPO}/contents/${FILE_PATH}`, {
-    method:  'PUT',
-    headers: { ...HEADERS, 'Content-Type': 'application/json' },
-    body:    JSON.stringify(pushBody),
-  })
-  const pushData = await pushRes.json()
-  if (!pushRes.ok) throw new Error(pushData.message || 'GitHub push failed')
-  return {
-    success:   true,
-    slug,
-    id:        newPage.id,
-    updated:   isUpdate,
-    liveUrl:   `https://www.awe-os.com/${slug}`,
-    commitUrl: pushData.commit?.html_url,
-  }
-}
+const publishCityPageToGitHub = pushCityPage
 
 router.post('/publish-programmatic', requireAuth, requireAdmin, async (req, res) => {
   const { page, slug, force } = req.body
@@ -539,6 +453,23 @@ router.post('/publish-programmatic', requireAuth, requireAdmin, async (req, res)
     res.json(result)
   } catch (err) {
     console.error('[admin-seo/publish-programmatic]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /audit — SEO audit engine ───────────────────────────────────────────
+
+router.post('/audit', requireAuth, requireAdmin, async (req, res) => {
+  const { url } = req.body
+  if (!url || typeof url !== 'string') {
+    return res.status(400).json({ success: false, error: 'url is required' })
+  }
+  try {
+    const { analyzeUrl } = require('../core/seo-engine/analyzer')
+    const result = await analyzeUrl(url.trim())
+    res.json({ success: true, audit: result })
+  } catch (err) {
+    console.error('[admin-seo/audit]', err.message)
     res.status(500).json({ success: false, error: err.message })
   }
 })

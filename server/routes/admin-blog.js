@@ -1,8 +1,9 @@
-const express          = require('express')
-const supabase         = require('../db/supabase')
-const requireAuth      = require('../middleware/auth')
-const { getOpenAI }    = require('../core/ai-engine')
-const parseAIJson      = require('../services/parseAIJson')
+const express               = require('express')
+const supabase              = require('../db/supabase')
+const requireAuth           = require('../middleware/auth')
+const { getOpenAI }         = require('../core/ai-engine')
+const parseAIJson           = require('../services/parseAIJson')
+const { pushBlogPost }      = require('../core/github-service')
 
 const router = express.Router()
 
@@ -317,77 +318,9 @@ Return the JSON object with "blocks" and "faqs" keys as specified in the system 
   }
 })
 
-// ── POST /publish — GitHub API (works on Render.com ephemeral FS) ─────────────
+// ── POST /publish — delegates to shared github-service ────────────────────────
 
-async function publishToGitHub(newPost) {
-  const GITHUB_TOKEN = process.env.GITHUB_TOKEN
-  if (!GITHUB_TOKEN) throw new Error('GITHUB_TOKEN env variable not set — add it in Render dashboard')
-
-  const REPO      = 'wajid081986/AWE-OS'
-  const FILE_PATH = 'client/src/data/blogPosts.js'
-  const BRANCH    = 'main'
-  const API_BASE  = 'https://api.github.com'
-  const HEADERS   = {
-    'Authorization': `token ${GITHUB_TOKEN}`,
-    'Accept':        'application/vnd.github.v3+json',
-    'User-Agent':    'AWE-OS-Blog-Assistant',
-  }
-
-  // Step 1: Get current file + SHA from GitHub
-  const getRes = await fetch(`${API_BASE}/repos/${REPO}/contents/${FILE_PATH}?ref=${BRANCH}`, { headers: HEADERS })
-  if (!getRes.ok) throw new Error(`GitHub GET failed: ${getRes.status} ${getRes.statusText}`)
-  const fileData       = await getRes.json()
-  const currentContent = Buffer.from(fileData.content, 'base64').toString('utf8')
-  const fileSha        = fileData.sha
-
-  // Step 2: Assign next id
-  const idMatches = [...currentContent.matchAll(/\bid:\s*(\d+)/g)]
-  const maxId     = idMatches.length ? Math.max(...idMatches.map(m => parseInt(m[1]))) : 0
-  newPost.id      = maxId + 1
-
-  // Step 3: Insert new post at top of BLOG_POSTS array
-  const MARKER      = 'export const BLOG_POSTS = ['
-  const insertPoint = currentContent.indexOf(MARKER) + MARKER.length
-  if (insertPoint === MARKER.length - 1) throw new Error('BLOG_POSTS array marker not found in blogPosts.js')
-
-  const divider     = '─'.repeat(77)
-  const commentLine = `\n  // ${divider}\n  // ${newPost.id}. ${newPost.title}\n  // ${divider}\n`
-
-  // JS-style object: unquoted keys, single-quoted strings
-  // Escape any apostrophes in content before converting quotes
-  const postString = JSON.stringify(newPost, null, 2)
-    .replace(/"([^"]+)":/g, '$1:')
-    .replace(/"((?:[^"\\])*)"/g, (_, s) => s.includes("'") ? `"${s}"` : `'${s}'`)
-
-  const newContent  =
-    currentContent.slice(0, insertPoint) +
-    commentLine +
-    '  ' + postString.replace(/\n/g, '\n  ') +
-    ',' +
-    currentContent.slice(insertPoint)
-
-  // Step 4: Push to GitHub via Contents API
-  const pushRes = await fetch(`${API_BASE}/repos/${REPO}/contents/${FILE_PATH}`, {
-    method: 'PUT',
-    headers: { ...HEADERS, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      message: `blog: add "${newPost.title}"`,
-      content: Buffer.from(newContent, 'utf8').toString('base64'),
-      sha:     fileSha,
-      branch:  BRANCH,
-    })
-  })
-  const pushData = await pushRes.json()
-  if (!pushRes.ok) throw new Error(pushData.message || 'GitHub push failed')
-
-  return {
-    success:   true,
-    slug:      newPost.slug,
-    id:        newPost.id,
-    liveUrl:   `https://www.awe-os.com/blog/${newPost.slug}`,
-    commitUrl: pushData.commit?.html_url,
-  }
-}
+const publishToGitHub = pushBlogPost
 
 router.post('/publish', requireAuth, requireAdmin, async (req, res) => {
   const { post } = req.body

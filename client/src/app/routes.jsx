@@ -95,6 +95,7 @@ const RuntimeResilienceCenter    = lazy(() => import('../modules/admin/selfHeali
 const SeoDashboard               = lazy(() => import('../modules/admin/seo/SeoDashboard'))
 const SeoAgent                   = lazy(() => import('../modules/admin/seo/SeoAgent'))
 const ProgrammaticSeo            = lazy(() => import('../modules/admin/seo/ProgrammaticSeo'))
+const SeoAuditEngine             = lazy(() => import('../modules/admin/seo/SeoAuditEngine'))
 const CityToolPage               = lazy(() => import('../pages/CityToolPage'))
 
 // ── Shared suspense wrapper ───────────────────────────────────────────────────
@@ -219,6 +220,7 @@ export default function AppRoutes() {
           <Route path="/admin/seo-dashboard"          element={lazy$(<SeoDashboard />)} />
           <Route path="/admin/seo-agent"              element={lazy$(<SeoAgent />)} />
           <Route path="/admin/programmatic-seo"       element={lazy$(<ProgrammaticSeo />)} />
+          <Route path="/admin/seo-audit"              element={lazy$(<SeoAuditEngine />)} />
         </Route>
       </Route>
 
