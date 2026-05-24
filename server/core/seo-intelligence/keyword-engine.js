@@ -1,6 +1,28 @@
 'use strict';
 const { getOpenAI } = require('../ai-engine');
-const parseAIJson   = require('../../services/parseAIJson');
+
+// Robust JSON extractor — handles markdown fences, leading text, trailing text
+function extractJson(text) {
+  const s = (text || '').trim();
+  try { return JSON.parse(s); } catch {}
+
+  const arrMatch = s.match(/\[[\s\S]*\]/);
+  if (arrMatch) { try { return JSON.parse(arrMatch[0]); } catch {} }
+
+  const objMatch = s.match(/\{[\s\S]*\}/);
+  if (objMatch) { try { return JSON.parse(objMatch[0]); } catch {} }
+
+  const stripped = s.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+  try { return JSON.parse(stripped); } catch {}
+
+  return null;
+}
+
+const STRICT_JSON_SYSTEM =
+  'You must respond with ONLY a valid JSON value. ' +
+  'No markdown, no backticks, no explanation, no trailing text. ' +
+  'If returning an array start with [ and end with ]. ' +
+  'If returning an object start with { and end with }.';
 
 async function researchKeywords(seedKeyword, opts = {}) {
   const {
@@ -43,15 +65,21 @@ Return ONLY the JSON array. No explanation.
 `.trim();
 
   const kwRes = await openai.chat.completions.create({
-    model:      'gpt-4o-mini',
-    max_tokens: 3000,
+    model:       'gpt-4o-mini',
+    max_tokens:  3000,
+    temperature: 0,
     messages: [
-      { role: 'system', content: 'You are an SEO keyword research expert. Return only valid JSON.' },
+      { role: 'system', content: STRICT_JSON_SYSTEM },
       { role: 'user',   content: keywordPrompt },
     ],
   });
 
-  const keywords = parseAIJson(kwRes.choices[0].message.content) || [];
+  const kwRaw    = kwRes.choices[0].message.content;
+  const keywords = extractJson(kwRaw);
+  if (!Array.isArray(keywords) || keywords.length === 0) {
+    console.error('[keyword-engine] keyword parse failed. Raw:', kwRaw.slice(0, 200));
+    throw new Error('Keyword research failed: could not parse AI response as JSON array');
+  }
 
   const clusterPrompt = `
 Cluster these ${keywords.length} keywords into topic groups for content planning.
@@ -76,15 +104,21 @@ Return ONLY JSON. No explanation.
 `.trim();
 
   const clusterRes = await openai.chat.completions.create({
-    model:      'gpt-4o-mini',
-    max_tokens: 2000,
+    model:       'gpt-4o-mini',
+    max_tokens:  2000,
+    temperature: 0,
     messages: [
-      { role: 'system', content: 'You are an SEO content strategist. Return only valid JSON.' },
+      { role: 'system', content: STRICT_JSON_SYSTEM },
       { role: 'user',   content: clusterPrompt },
     ],
   });
 
-  const clusters = parseAIJson(clusterRes.choices[0].message.content) || { clusters: [] };
+  const clusterRaw = clusterRes.choices[0].message.content;
+  const clusters   = extractJson(clusterRaw) || { clusters: [] };
+  if (!clusters.clusters) {
+    console.error('[keyword-engine] cluster parse failed. Raw:', clusterRaw.slice(0, 200));
+    clusters.clusters = [];
+  }
 
   const keywordMap = {};
   keywords.forEach(k => { keywordMap[k.keyword] = k; });
@@ -113,14 +147,16 @@ async function checkKeywordDifficulty(keyword) {
   const openai = getOpenAI();
 
   const res = await openai.chat.completions.create({
-    model:      'gpt-4o-mini',
-    max_tokens: 500,
-    messages: [{
-      role: 'user',
-      content: `
-Analyze SEO difficulty for keyword: "${keyword}" in India.
+    model:       'gpt-4o-mini',
+    max_tokens:  500,
+    temperature: 0,
+    messages: [
+      { role: 'system', content: STRICT_JSON_SYSTEM },
+      {
+        role: 'user',
+        content: `Analyze SEO difficulty for keyword: "${keyword}" in India.
 
-Return JSON:
+Return JSON object:
 {
   "keyword": "${keyword}",
   "difficulty": "low|medium|high|very_high",
@@ -131,12 +167,18 @@ Return JSON:
   "rankingOpportunity": "high|medium|low",
   "recommendation": "one sentence advice",
   "contentType": "article|tool|calculator|comparison|faq"
-}
-Return ONLY JSON.`,
-    }],
+}`,
+      },
+    ],
   });
 
-  return parseAIJson(res.choices[0].message.content) || {};
+  const raw    = res.choices[0].message.content;
+  const result = extractJson(raw);
+  if (!result) {
+    console.error('[keyword-engine] difficulty parse failed. Raw:', raw.slice(0, 200));
+    throw new Error('Keyword difficulty check failed: could not parse AI response');
+  }
+  return result;
 }
 
 module.exports = { researchKeywords, checkKeywordDifficulty };
