@@ -4,6 +4,7 @@ const requireAuth           = require('../middleware/auth')
 const { getOpenAI }         = require('../core/ai-engine')
 const parseAIJson           = require('../services/parseAIJson')
 const { pushBlogPost }      = require('../core/github-service')
+const { contentStudio }     = require('../core/content-studio')
 
 const router = express.Router()
 
@@ -1270,6 +1271,99 @@ Return ONLY the improved article text. No JSON, no extra text.`,
     res.json({ success: true, boostedArticle })
   } catch (err) {
     console.error('[admin-blog/eeat-boost]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── Content Studio routes ─────────────────────────────────────────────────────
+
+// POST /api/admin/blog/humanize
+router.post('/humanize', requireAuth, requireAdmin, async (req, res) => {
+  const { content, tone, targetAudience, preserveKeywords } = req.body
+  if (!content) return res.status(400).json({ success: false, error: 'content required' })
+  try {
+    const result = await contentStudio.humanize(content, { tone, targetAudience, preserveKeywords })
+    res.json({ success: true, result })
+  } catch (err) {
+    console.error('[blog/humanize]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// POST /api/admin/blog/snippet-optimize
+router.post('/snippet-optimize', requireAuth, requireAdmin, async (req, res) => {
+  const { content, keyword, snippetType, targetCountry } = req.body
+  if (!content || !keyword) return res.status(400).json({ success: false, error: 'content and keyword required' })
+  try {
+    const result = await contentStudio.snippetOptimize(content, keyword, { snippetType, targetCountry })
+    res.json({ success: true, result })
+  } catch (err) {
+    console.error('[blog/snippet-optimize]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// POST /api/admin/blog/generate-brief
+router.post('/generate-brief', requireAuth, requireAdmin, async (req, res) => {
+  const { topic, targetKeyword, secondaryKeywords, contentType, wordCount, competitors } = req.body
+  if (!topic || !targetKeyword) return res.status(400).json({ success: false, error: 'topic and targetKeyword required' })
+  try {
+    const result = await contentStudio.brief({ topic, targetKeyword, secondaryKeywords, contentType, wordCount, competitors })
+    res.json({ success: true, result })
+  } catch (err) {
+    console.error('[blog/generate-brief]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// POST /api/admin/blog/translate
+router.post('/translate', requireAuth, requireAdmin, async (req, res) => {
+  const { content, from, to, style } = req.body
+  if (!content) return res.status(400).json({ success: false, error: 'content required' })
+  try {
+    const result = await contentStudio.translate(content, { from, to, style })
+    res.json({ success: true, result })
+  } catch (err) {
+    console.error('[blog/translate]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// POST /api/admin/blog/hindi-content
+router.post('/hindi-content', requireAuth, requireAdmin, async (req, res) => {
+  const { topic, keyword, wordCount, toolName, style } = req.body
+  if (!topic) return res.status(400).json({ success: false, error: 'topic required' })
+  try {
+    const result = await contentStudio.hindiContent(topic, { keyword, wordCount, toolName, style })
+    res.json({ success: true, result })
+  } catch (err) {
+    console.error('[blog/hindi-content]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// POST /api/admin/blog/bilingual
+router.post('/bilingual', requireAuth, requireAdmin, async (req, res) => {
+  const { topic, keyword, wordCount, toolName } = req.body
+  if (!topic) return res.status(400).json({ success: false, error: 'topic required' })
+  try {
+    const result = await contentStudio.bilingual(topic, { keyword, wordCount, toolName })
+    res.json({ success: true, result })
+  } catch (err) {
+    console.error('[blog/bilingual]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// POST /api/admin/blog/score-content
+router.post('/score-content', requireAuth, requireAdmin, async (req, res) => {
+  const { content, targetKeyword, contentType, targetAudience } = req.body
+  if (!content) return res.status(400).json({ success: false, error: 'content required' })
+  try {
+    const result = await contentStudio.score(content, { targetKeyword, contentType, targetAudience })
+    res.json({ success: true, result })
+  } catch (err) {
+    console.error('[blog/score-content]', err.message)
     res.status(500).json({ success: false, error: err.message })
   }
 })

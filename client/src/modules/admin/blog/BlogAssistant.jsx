@@ -7,6 +7,7 @@ import InternalLinkAI from './InternalLinkAI'
 import ContentOptimizer from './ContentOptimizer'
 import KeywordClusters from './KeywordClusters'
 import EeatBooster from './EeatBooster'
+import ContentStudio from './ContentStudio'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -53,6 +54,7 @@ const TABS = [
   { id: 'seo',                 label: '🔍 SEO Booster'          },
   { id: 'research',            label: '🔬 Keyword Research'     },
   { id: 'content-intelligence', label: '🧠 Content Intelligence' },
+  { id: 'content-studio',      label: '✨ Content Studio'       },
 ]
 
 const CI_SUB_TABS = [
@@ -800,6 +802,7 @@ export default function BlogAssistant() {
         {activeTab === 'seo'                  && <SEOBoosterTab onWriteIdea={handleWriteIdea} />}
         {activeTab === 'research'             && <KeywordResearchTab onWriteIdea={handleWriteIdea} />}
         {activeTab === 'content-intelligence' && <ContentIntelligenceTab onWriteArticle={handleWriteIdea} />}
+        {activeTab === 'content-studio'       && <ContentStudio />}
       </div>
     </div>
   )
