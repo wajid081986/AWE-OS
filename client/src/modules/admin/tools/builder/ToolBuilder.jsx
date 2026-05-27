@@ -39,7 +39,7 @@ export default function ToolBuilder() {
   // Internal state uses camelCase for clean React code
   const [basic, setBasic] = useState({
     name: '', slug: '', description: '', category: 'General',
-    price: 0, isFree: false, isPublished: false,
+    price: 0, isFree: false, isPublished: false, approved: false,
   })
   const [fields, setFields]         = useState([{ ...BLANK_FIELD }])
   const [aiPrompt, setAiPrompt]     = useState('')
@@ -61,6 +61,7 @@ export default function ToolBuilder() {
           price:       t.price       ?? 0,
           isFree:      t.is_free     ?? t.isFree     ?? false,
           isPublished: t.is_published ?? t.isPublished ?? false,
+          approved:    t.approved    || false,
         })
         const rawFields = t.input_fields ?? t.inputFields ?? []
         setFields(
@@ -113,6 +114,8 @@ export default function ToolBuilder() {
     price:        basic.price,
     is_free:      basic.isFree,
     is_published: publish,
+    isPublished:  publish,
+    approved:     basic.approved || publish,
     input_fields: fields
       .filter(f => f.name?.trim() && f.label?.trim() && f.type)
       .map(f => ({
@@ -146,6 +149,12 @@ export default function ToolBuilder() {
     } finally {
       setSaving(false)
     }
+  }
+
+  const handleTestTool = () => {
+    const currentSlug = basic.slug
+    if (!currentSlug) return
+    window.open(`/tools/${currentSlug}`, '_blank')
   }
 
   return (
@@ -204,9 +213,22 @@ export default function ToolBuilder() {
                 onChange={e => setBasic(b => ({ ...b, price: Number(e.target.value) }))}
               />
             </div>
-            <div className="flex gap-8 items-center pt-1">
+            <div className="flex gap-8 items-center pt-1 flex-wrap">
               <Toggle checked={basic.isFree} onChange={v => setBasic(b => ({ ...b, isFree: v }))} label="Free" />
               <Toggle checked={basic.isPublished} onChange={v => setBasic(b => ({ ...b, isPublished: v }))} label="Published" />
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-400">Approved</span>
+                <button
+                  type="button"
+                  onClick={() => setBasic(b => ({ ...b, approved: !b.approved }))}
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${basic.approved ? 'bg-green-500' : 'bg-gray-600'}`}
+                >
+                  <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${basic.approved ? 'translate-x-5' : 'translate-x-1'}`} />
+                </button>
+                <span className="text-xs text-gray-500">
+                  {basic.approved ? 'Live' : 'Draft'}
+                </span>
+              </div>
             </div>
           </div>
         </section>
@@ -332,6 +354,14 @@ export default function ToolBuilder() {
             className="px-6 py-2.5 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Save Draft'}
+          </button>
+          <button
+            type="button"
+            onClick={handleTestTool}
+            disabled={!editId}
+            className="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            🧪 Test Tool
           </button>
           <button
             type="button"
