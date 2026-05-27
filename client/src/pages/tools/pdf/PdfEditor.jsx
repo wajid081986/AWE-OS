@@ -42,6 +42,7 @@ const C = {
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
+const MAX_PDF_SIZE_MB = 25
 const PALETTE       = ['#111827','#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6','#ec4899','#1e3a8a','#065f46','#fef08a','#ffffff']
 const FONT_SIZES    = [8,10,12,14,16,18,20,24,28,32,36,48,60,72]
 const FONT_FAMILIES = ['Helvetica','Times New Roman','Courier New','Georgia','Verdana','Arial']
@@ -975,6 +976,12 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   const [sigOpen, setSigOpen]       = useState(false)
   const [pendingSig, setPendingSig] = useState(null)
 
+  // Upload state — new-tab flow
+  const [uploadError,  setUploadError]  = useState(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [popupBlocked, setPopupBlocked] = useState(false)
+  const [pendingUrl,   setPendingUrl]   = useState(null)
+
   // Refs
   const canvasRefs    = useRef({})
   const thumbRefs     = useRef({})
@@ -1034,8 +1041,67 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   }
 
   async function handleFile(file) {
-    const ab = await file.arrayBuffer()
-    await loadPdfFromBytes(new Uint8Array(ab), file.name)
+    setUploadError(null); setPopupBlocked(false); setPendingUrl(null)
+
+    if (!file || file.type !== 'application/pdf') {
+      setUploadError('Please upload a valid PDF file.')
+      return
+    }
+    const sizeMB = file.size / (1024 * 1024)
+    if (sizeMB > MAX_PDF_SIZE_MB) {
+      setUploadError(`File too large (${sizeMB.toFixed(1)} MB). Maximum is ${MAX_PDF_SIZE_MB} MB. Try compressing your PDF first.`)
+      return
+    }
+
+    // In standalone (fullScreen) mode — load in same tab, no new-tab flow
+    if (fullScreen) {
+      const ab = await file.arrayBuffer()
+      await loadPdfFromBytes(new Uint8Array(ab), file.name)
+      return
+    }
+
+    // Main page — encode + store + open new tab
+    setIsProcessing(true)
+    try {
+      // Chunk-based base64 (prevents stack overflow on large files)
+      const arrayBuffer = await file.arrayBuffer()
+      const uint8Array  = new Uint8Array(arrayBuffer)
+      let binary = ''
+      const CHUNK = 8192
+      for (let i = 0; i < uint8Array.length; i += CHUNK) {
+        binary += String.fromCharCode(...uint8Array.subarray(i, i + CHUNK))
+      }
+      const base64 = btoa(binary)
+
+      // Unique session key
+      const sessionKey = `awe_pdf_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+      const payload    = JSON.stringify({ name: file.name, size: file.size, data: base64, createdAt: Date.now() })
+
+      // Store in localStorage — shared across tabs (sessionStorage is tab-local and severed by noopener)
+      try {
+        localStorage.setItem(sessionKey, payload)
+      } catch (quotaErr) {
+        // Evict stale awe_pdf_ entries if storage quota exceeded
+        Object.keys(localStorage)
+          .filter(k => k.startsWith('awe_pdf_'))
+          .forEach(k => localStorage.removeItem(k))
+        localStorage.setItem(sessionKey, payload)
+      }
+
+      const editorUrl = `/tools/pdf-editor/editor?session=${sessionKey}`
+      const newTab    = window.open(editorUrl, '_blank')
+
+      if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+        // Popup blocked — surface a manual link the user can click
+        setPendingUrl(editorUrl)
+        setPopupBlocked(true)
+      }
+    } catch (err) {
+      console.error('[AWE PDF] Upload error:', err)
+      setUploadError('Failed to process PDF. Try a smaller file or a different browser.')
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   // ── Insert from File ────────────────────────────────────────────────────────
@@ -1540,20 +1606,39 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
     <div className="border-2 border-dashed border-gray-300 rounded-2xl p-12 text-center bg-gray-50 hover:border-blue-400 transition-colors"
       onDragOver={e=>e.preventDefault()}
       onDrop={e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f?.type==='application/pdf')handleFile(f)}}>
-      {phase==='loading' ? (
+      {(phase==='loading' || isProcessing) ? (
         <div className="space-y-3">
           <div className="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-gray-500 text-sm">Loading PDF…</p>
+          <p className="text-gray-500 text-sm">{phase==='loading' ? 'Loading PDF…' : 'Processing PDF…'}</p>
         </div>
       ) : (
         <div className="space-y-4">
           <div className="text-5xl">✏️</div>
-          <div><p className="text-lg font-semibold text-gray-800">Upload PDF to Edit</p>
-            <p className="text-sm text-gray-500 mt-1">Drag & drop or click to browse — your file never leaves your browser.</p></div>
+          <div>
+            <p className="text-lg font-semibold text-gray-800">Upload PDF to Edit</p>
+            <p className="text-sm text-gray-500 mt-1">Drag & drop or click to browse — your file never leaves your browser.</p>
+            <p className="text-xs text-gray-400 mt-0.5">Max {MAX_PDF_SIZE_MB} MB · PDF only</p>
+          </div>
           <label className="inline-block cursor-pointer">
             <input type="file" accept=".pdf,application/pdf" className="hidden" onChange={e=>{const f=e.target.files[0];if(f)handleFile(f)}} />
             <span className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium text-sm transition-colors">Choose PDF File</span>
           </label>
+          {uploadError && (
+            <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 text-left">
+              ⚠️ {uploadError}
+            </div>
+          )}
+          {popupBlocked && pendingUrl && (
+            <div className="mt-2 p-4 bg-amber-50 border border-amber-200 rounded-xl text-left">
+              <p className="text-sm font-semibold text-amber-800">⚠️ Popup blocked by your browser</p>
+              <p className="text-xs text-amber-600 mt-1">Allow popups for this site, or open the editor manually:</p>
+              <a href={pendingUrl} target="_blank" rel="noreferrer"
+                className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline underline-offset-2"
+                onClick={()=>setPopupBlocked(false)}>
+                Open PDF Editor →
+              </a>
+            </div>
+          )}
         </div>
       )}
     </div>
