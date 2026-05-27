@@ -816,7 +816,7 @@ export default function LandingBuilderPage() {
           </button>
           {generatedPage?.status === 'published' && generatedPage?.slug && (
             <a
-              href={`/p/${generatedPage.slug}`}
+              href={`${import.meta.env.VITE_API_URL}/p/${generatedPage.slug}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex flex-col items-center gap-1.5 px-3 py-3 bg-indigo-700 hover:bg-indigo-600 text-white rounded-xl transition-colors text-xs font-medium text-center"
@@ -906,7 +906,7 @@ export default function LandingBuilderPage() {
                       <div className="flex items-center gap-1.5 justify-end">
                         {page.status === 'published' && (
                           <a
-                            href={`/p/${page.slug}`}
+                            href={`${import.meta.env.VITE_API_URL}/p/${page.slug}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="px-2.5 py-1 bg-indigo-700 hover:bg-indigo-600 text-white rounded text-xs font-medium transition-colors"
