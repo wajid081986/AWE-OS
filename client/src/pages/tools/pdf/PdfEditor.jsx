@@ -1029,25 +1029,11 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       setDlTo(doc.numPages)
       setPhase('ready')
     } catch (err) {
-      console.error('[pdf-editor] load error', err); setPhase('idle')
+      console.error('[pdf-editor] load error:', err); setPhase('idle')
     }
   }
 
   async function handleFile(file) {
-    if (openNewTabOnUpload) {
-      // Open new tab immediately (while user-gesture is still active — before any await)
-      const key = 'pdf_edit_' + Date.now()
-      window.open(`/tools/pdf-editor/editor?session=${key}`, '_blank')
-      try {
-        const ab  = await file.arrayBuffer()
-        const buf = new Uint8Array(ab)
-        // Store in localStorage so the new tab can read it (localStorage is cross-tab)
-        localStorage.setItem(key, JSON.stringify({ name: file.name, data: uint8ToBase64(buf), ts: Date.now() }))
-      } catch (err) {
-        console.error('[pdf-editor] failed to cache PDF for new tab', err)
-      }
-      return  // Keep current tab at idle — editor opens in new tab
-    }
     const ab = await file.arrayBuffer()
     await loadPdfFromBytes(new Uint8Array(ab), file.name)
   }
@@ -2171,7 +2157,7 @@ export default function PdfEditor() {
     <ToolPageShell slug="pdf-editor" name="PDF Editor" icon="✏️"
       description="Edit PDFs online free — annotate, highlight, draw, sign, add stamps, watermarks, and more. 100% browser-based."
       steps={STEPS} faqs={FAQS} about={ABOUT}>
-      <PdfEditorTool openNewTabOnUpload />
+      <PdfEditorTool />
     </ToolPageShell>
   )
 }
