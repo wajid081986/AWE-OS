@@ -4,8 +4,11 @@ const supabase = require('../db/supabase');
 const { requireAuth, requireAdmin } = require('../middleware/admin.middleware');
 const { getPublicTools, getPublicTool } = require('../controllers/tools.controller');
 
-const router = express.Router();
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const Anthropic = require('@anthropic-ai/sdk');
+
+const router   = express.Router();
+const openai   = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -108,18 +111,36 @@ router.post('/', requireAuth, requireAdmin, async (req, res) => {
 router.get('/public',      getPublicTools);
 router.get('/public/:slug', getPublicTool);
 
-// ── POST /api/tools/:slug/run — execute a tool (public) ──────────────────
+// ── POST /api/tools/:slug/run — execute a tool (public + admin preview) ──
 // MUST be before /:slugOrId wildcard
 router.post('/:slug/run', async (req, res) => {
   try {
     const { slug } = req.params;
 
-    const { data: tool, error: fetchError } = await supabase
+    // Check optional admin auth — admins can run unapproved tools for preview
+    let isAdmin = false;
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        const decoded = require('jsonwebtoken').verify(
+          authHeader.split(' ')[1],
+          process.env.JWT_SECRET
+        );
+        isAdmin = decoded.role === 'admin';
+      } catch (_) {}
+    }
+
+    console.log('[/run]', slug, 'isAdmin:', isAdmin, 'body:', JSON.stringify(req.body));
+
+    let toolQuery = supabase
       .from('tools')
       .select('id, name, slug, ai_prompt, input_fields, approved, usage_count')
-      .eq('slug', slug)
-      .eq('approved', true)
-      .maybeSingle();
+      .eq('slug', slug);
+
+    if (!isAdmin) {
+      toolQuery = toolQuery.eq('approved', true);
+    }
+    const { data: tool, error: fetchError } = await toolQuery.maybeSingle();
 
     if (fetchError) throw fetchError;
     if (!tool) return res.status(404).json({ success: false, error: 'Tool not found' });
@@ -140,13 +161,12 @@ router.post('/:slug/run', async (req, res) => {
       }
     }
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
+    const message = await anthropic.messages.create({
+      model:      'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      messages:   [{ role: 'user', content: prompt }],
     });
-
-    const result = completion.choices[0]?.message?.content?.trim();
-    if (!result) throw new Error('Empty response from AI');
+    const result = message.content[0]?.text || 'No response generated.';
 
     supabase
       .from('tools')
@@ -156,6 +176,7 @@ router.post('/:slug/run', async (req, res) => {
 
     res.json({ success: true, result, tool: { id: tool.id, name: tool.name, slug: tool.slug } });
   } catch (err) {
+    console.error('[/run] error:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
