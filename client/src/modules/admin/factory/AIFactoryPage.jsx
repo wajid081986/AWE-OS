@@ -276,9 +276,20 @@ export default function AIFactoryPage() {
       })
       setGeneratingStep(1)
       if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || `Error ${res.status}`) }
-      const { tool } = await res.json()
+      const responseData = await res.json()
+      console.log('[GENERATE] Raw response:', responseData)
+
+      // Handle both { tool: {...} } and direct object shapes
+      const tool = responseData.tool || responseData
+      console.log('[GENERATE] Tool object:', tool)
+
+      if (!tool || !tool.name) {
+        setGenError('Generation failed — invalid response from server')
+        return
+      }
       setGeneratingStep(2)
       setGeneratedTool(tool)
+      console.log('[GENERATE] generatedTool state set:', tool.name)
       addToJobs(tool)
     } catch (err) {
       setGenError(err.message || 'Tool generation failed')
@@ -342,7 +353,14 @@ export default function AIFactoryPage() {
   }, [category, analyze, saveIdea, resetIntelligence])
 
   const handlePublish = useCallback(async () => {
-    if (!generatedTool) return
+    console.log('[PUBLISH] generatedTool value:', generatedTool)
+    console.log('[PUBLISH] generatedTool?.name:', generatedTool?.name)
+
+    if (!generatedTool) {
+      console.error('[PUBLISH] BLOCKED — generatedTool is null/undefined')
+      setGenError('No tool to publish. Please generate first.')
+      return
+    }
     console.log('[PUBLISH CLICKED] tool.approved:', generatedTool?.approved, 'tool.savedId:', generatedTool?.savedId)
     console.log('[PUBLISH CLICKED] API URL:', api.defaults?.baseURL)
     try {
