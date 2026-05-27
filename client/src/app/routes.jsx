@@ -94,6 +94,7 @@ const FailureAnalyticsPanel      = lazy(() => import('../modules/admin/selfHeali
 const RuntimeResilienceCenter    = lazy(() => import('../modules/admin/selfHealing/RuntimeResilienceCenter'))
 const ContentStudioPage          = lazy(() => import('../modules/admin/blog/ContentStudio'))
 const AutomationHubPage          = lazy(() => import('../modules/admin/AutomationHub'))
+const LandingBuilderPage         = lazy(() => import('../modules/admin/landing/LandingBuilderPage'))
 const SeoDashboard               = lazy(() => import('../modules/admin/seo/SeoDashboard'))
 const SeoAgent                   = lazy(() => import('../modules/admin/seo/SeoAgent'))
 const ProgrammaticSeo            = lazy(() => import('../modules/admin/seo/ProgrammaticSeo'))
@@ -239,6 +240,7 @@ export default function AppRoutes() {
           <Route path="/admin/seo-intelligence"       element={lazy$(<SeoIntelligence />)} />
           <Route path="/admin/content-studio"        element={lazy$(<ContentStudioPage />)} />
           <Route path="/admin/automation"            element={lazy$(<AutomationHubPage />)} />
+          <Route path="/admin/landing-builder"       element={lazy$(<LandingBuilderPage />)} />
         </Route>
       </Route>
 
