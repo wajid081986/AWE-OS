@@ -19,7 +19,8 @@ function toRow(body) {
   if (body.is_free     !== undefined) row.is_free      = Boolean(body.is_free);
   if (body.isFree      !== undefined) row.is_free      = Boolean(body.isFree);
   if (body.approved !== undefined) row.approved = Boolean(body.approved);
-  if (body.isPublished  !== undefined) row.approved = Boolean(body.isPublished);
+  const publishedVal = body.isPublished ?? body.is_published;
+  if (publishedVal !== undefined) row.approved = Boolean(publishedVal);
   if (body.input_fields !== undefined) row.input_fields = body.input_fields;
   if (body.inputFields  !== undefined) row.input_fields = body.inputFields;
   if (body.ai_prompt    !== undefined) row.ai_prompt    = body.ai_prompt;
@@ -184,6 +185,7 @@ router.get('/:slugOrId', async (req, res) => {
 router.put('/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
     const row = toRow(req.body);
+    console.log('[PUT /tools] row being saved:', JSON.stringify(row));
     row.updated_at = new Date().toISOString();
 
     const { data: tool, error } = await supabase

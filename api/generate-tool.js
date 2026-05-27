@@ -29,25 +29,39 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1500,
-        messages: [{ role: 'user', content: `${prompt}
+        messages: [{ role: 'user', content: `You are an AI tool configuration expert. Return ONLY valid JSON, no markdown.
 
-Return ONLY valid JSON (no markdown, no explanation):
+Generate a complete tool configuration for: "${idea || category} tool"
+
+Return exactly this JSON shape:
 {
-  "name": "Human Readable Tool Name",
-  "slug": "url-slug-lowercase-hyphenated",
-  "description": "One sentence describing what this tool does.",
+  "name": "Tool Name Here",
+  "slug": "tool-name-here",
+  "description": "One sentence describing what this tool does for users.",
   "category": "${category}",
   "is_free": true,
   "price": 0,
   "tags": ["tag1", "tag2", "tag3"],
-  "metaTitle": "SEO title under 60 chars",
-  "metaDescription": "SEO meta description 120-155 chars",
-  "primaryKeyword": "main seo keyword",
-  "targetAudience": "Who this is for",
-  "problemSolved": "What problem this solves",
-  "coreFeatures": ["Feature 1", "Feature 2", "Feature 3"],
-  "estimatedBuildHours": 8
-}` }],
+  "input_fields": [
+    {
+      "name": "field_name",
+      "label": "Field Label",
+      "type": "text",
+      "placeholder": "Enter value...",
+      "required": true
+    }
+  ],
+  "ai_prompt": "You are a [Tool Name] expert. The user wants help with: {{field_name}}. Provide detailed, actionable output.",
+  "metaTitle": "Tool Name - Free Online Tool",
+  "metaDescription": "Brief SEO description under 160 chars."
+}
+
+Rules:
+- input_fields: 2-4 fields that make sense for this tool type
+- field types allowed: text, textarea, select, number
+- ai_prompt MUST contain {{field_name}} placeholders matching input_fields names
+- slug: lowercase, hyphens only, no spaces
+- Return ONLY the JSON object, nothing else` }],
       }),
     })
     if (!response.ok) throw new Error(`Claude API ${response.status}`)
