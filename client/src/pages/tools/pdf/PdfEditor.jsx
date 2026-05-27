@@ -25,6 +25,16 @@ function starPts(cx, cy, r1, r2, n = 5) {
   return pts.join(' ')
 }
 
+// Encode Uint8Array → base64 in chunks (avoids call-stack overflow on large files)
+function uint8ToBase64(arr) {
+  let str = ''
+  const chunk = 8192
+  for (let i = 0; i < arr.length; i += chunk) {
+    str += String.fromCharCode(...arr.subarray(i, i + chunk))
+  }
+  return btoa(str)
+}
+
 // ── Design Tokens ─────────────────────────────────────────────────────────────
 const C = {
   topBar:'#1f2937', sidebar:'#111827', canvas:'#e5e7eb',
@@ -112,8 +122,8 @@ const RIBBON_TABS = [
     { id:'_from-file',  icon:'📂', label:'From File',  act:'from-file',      cls:'text-lg' },
   ]},
   { id:'edit', label:'Edit PDF', tools:[
-    { id:'_edit-text',  icon:'📝', label:'Edit Text',  act:'edit-text-hint',  cls:'text-lg' },
-    { id:'_edit-img',   icon:'🖼', label:'Edit Image', act:'edit-image-hint', cls:'text-lg' },
+    { id:'_edit-text',  icon:'📝', label:'Edit Text',  act:'edit-text-hint',  cls:'text-lg', disabled:true, disabledTip:'Direct PDF text editing coming soon. Use Text Box tool instead.' },
+    { id:'_edit-img',   icon:'🖼', label:'Edit Image', act:'edit-image-hint', cls:'text-lg', disabled:true, disabledTip:'Image replacement coming soon.' },
     'sep',
     { id:'whiteout',    icon:'□',  label:'Whiteout',   key:'W', cls:'text-xl' },
     { id:'redact',      icon:'■',  label:'Redact',     key:'',  cls:'text-xl' },
@@ -874,7 +884,7 @@ async function applyGlobalSettings(doc, font, wm, hf, pgNum) {
 }
 
 // ── Main Editor Component ─────────────────────────────────────────────────────
-function PdfEditorTool() {
+function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOnUpload = false, fullScreen = false }) {
   // File
   const [pdfFile, setPdfFile]             = useState(null)
   const [pdfBytes, setPdfBytes]           = useState(null)
@@ -977,6 +987,7 @@ function PdfEditorTool() {
   const pendingImg    = useRef(null)
   const centerRef     = useRef(null)
   const downloadRef   = useRef(null)
+  const initLoadDone  = useRef(false)
 
   // Close menus on outside click
   useEffect(() => {
@@ -989,12 +1000,19 @@ function PdfEditorTool() {
     return () => document.removeEventListener('mousedown', h)
   }, [downloadOpen, ctxMenu])
 
+  // Auto-load bytes when mounted as standalone (new-tab) editor
+  useEffect(() => {
+    if (initialBytes?.length && !initLoadDone.current) {
+      initLoadDone.current = true
+      loadPdfFromBytes(initialBytes, initialFileName)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // ── Load PDF ────────────────────────────────────────────────────────────────
-  async function handleFile(file) {
+  async function loadPdfFromBytes(buf, fileName) {
     setPhase('loading')
     try {
-      const ab  = await file.arrayBuffer()
-      const buf = new Uint8Array(ab)
       const doc = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise
       const dims = {}
       for (let i = 0; i < doc.numPages; i++) {
@@ -1006,13 +1024,32 @@ function PdfEditorTool() {
       setPageOrder(Array.from({ length: doc.numPages }, (_, i) => i))
       setPageRotations({}); setAnnotations({})
       setPast([]); setFuture([])
-      setPdfFile(file); setCurrentPage(0)
-      setDownloadName(file.name.replace(/\.pdf$/i, '') + '-edited')
+      setCurrentPage(0)
+      setDownloadName((fileName || 'document').replace(/\.pdf$/i, '') + '-edited')
       setDlTo(doc.numPages)
       setPhase('ready')
     } catch (err) {
       console.error('[pdf-editor] load error', err); setPhase('idle')
     }
+  }
+
+  async function handleFile(file) {
+    if (openNewTabOnUpload) {
+      // Open new tab immediately (while user-gesture is still active — before any await)
+      const key = 'pdf_edit_' + Date.now()
+      window.open(`/tools/pdf-editor/editor?session=${key}`, '_blank')
+      try {
+        const ab  = await file.arrayBuffer()
+        const buf = new Uint8Array(ab)
+        // Store in localStorage so the new tab can read it (localStorage is cross-tab)
+        localStorage.setItem(key, JSON.stringify({ name: file.name, data: uint8ToBase64(buf), ts: Date.now() }))
+      } catch (err) {
+        console.error('[pdf-editor] failed to cache PDF for new tab', err)
+      }
+      return  // Keep current tab at idle — editor opens in new tab
+    }
+    const ab = await file.arrayBuffer()
+    await loadPdfFromBytes(new Uint8Array(ab), file.name)
   }
 
   // ── Insert from File ────────────────────────────────────────────────────────
@@ -1204,8 +1241,8 @@ function PdfEditorTool() {
       case 'view-two':      setViewMode('two-page'); break
       case 'dark-mode':     setDarkCanvas(v=>!v); break
       case 'toggle-meta':   setStripMeta(v=>!v); break
-      case 'edit-text-hint': alert('Coming Soon: Direct PDF text editing. Workaround: use Whiteout + Text Box to replace existing text.'); break
-      case 'edit-image-hint':alert('Coming Soon: Click on existing PDF images to resize or replace them.'); break
+      case 'edit-text-hint':  break  // disabled — button shows tooltip instead
+      case 'edit-image-hint': break  // disabled — button shows tooltip instead
       default: break
     }
   }, [pageOrder, currentPage])
@@ -1537,7 +1574,7 @@ function PdfEditorTool() {
   )
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 shadow-2xl flex flex-col" style={{ minWidth:900, background:'#fff' }}>
+    <div className={fullScreen ? 'flex flex-col w-full h-screen overflow-hidden' : 'overflow-hidden rounded-xl border border-gray-200 shadow-2xl flex flex-col'} style={{ background:'#fff', ...(fullScreen ? {} : { minWidth:900 }) }}>
       <input ref={imageInputRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={onImageSelect} />
       <input ref={fromFileRef} type="file" accept=".pdf,application/pdf" className="hidden" onChange={onFromFile} />
 
@@ -1655,7 +1692,7 @@ function PdfEditorTool() {
       </div>
 
       {/* ══ MAIN CONTENT ══════════════════════════════════════════════════════ */}
-      <div className="flex flex-1 min-h-0" style={{height:600}}>
+      <div className="flex flex-1 min-h-0" style={fullScreen ? {} : {height:600}}>
 
         {/* LEFT SIDEBAR */}
         <div className="w-[200px] flex-shrink-0 flex flex-col" style={{background:C.sidebar}}>
@@ -2041,6 +2078,16 @@ function PdfEditorTool() {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 function ToolBtn({ tool, activeTool, viewMode, darkCanvas, stripMeta, onSelect, onAction }) {
+  // Buttons marked disabled show a tooltip but are not clickable (no alert popup)
+  if (tool.disabled) return (
+    <button
+      disabled
+      title={tool.disabledTip || tool.label}
+      className="flex flex-col items-center justify-center gap-0.5 rounded-xl min-w-[52px] px-2 py-1.5 select-none flex-shrink-0 border border-transparent opacity-40 cursor-not-allowed text-gray-400">
+      <span className={`leading-none ${tool.cls||'text-lg'}`}>{tool.icon}</span>
+      <span className="text-[10px] font-medium leading-none whitespace-nowrap">{tool.label}</span>
+    </button>
+  )
   const targetId  = tool.toolId || tool.id
   const isAction  = !!tool.act
   const isActive  = isAction
@@ -2124,7 +2171,10 @@ export default function PdfEditor() {
     <ToolPageShell slug="pdf-editor" name="PDF Editor" icon="✏️"
       description="Edit PDFs online free — annotate, highlight, draw, sign, add stamps, watermarks, and more. 100% browser-based."
       steps={STEPS} faqs={FAQS} about={ABOUT}>
-      <PdfEditorTool />
+      <PdfEditorTool openNewTabOnUpload />
     </ToolPageShell>
   )
 }
+
+// Named export so the standalone (new-tab) page can import the tool directly
+export { PdfEditorTool }

@@ -95,6 +95,7 @@ const RuntimeResilienceCenter    = lazy(() => import('../modules/admin/selfHeali
 const ContentStudioPage          = lazy(() => import('../modules/admin/blog/ContentStudio'))
 const AutomationHubPage          = lazy(() => import('../modules/admin/AutomationHub'))
 const LandingBuilderPage         = lazy(() => import('../modules/admin/landing/LandingBuilderPage'))
+const PdfEditorStandalone        = lazy(() => import('../pages/tools/pdf/PdfEditorStandalone'))
 const SeoDashboard               = lazy(() => import('../modules/admin/seo/SeoDashboard'))
 const SeoAgent                   = lazy(() => import('../modules/admin/seo/SeoAgent'))
 const ProgrammaticSeo            = lazy(() => import('../modules/admin/seo/ProgrammaticSeo'))
@@ -187,6 +188,8 @@ export default function AppRoutes() {
       {/* ── Standalone (no shared shell) ─────────────────────────────────── */}
       <Route path="/login"              element={lazy$(<LoginPage />)} />
       <Route path="/tools/resume"       element={lazy$(<ResumePage />)} />
+      {/* PDF editor — full-screen tab opened by the main editor after upload */}
+      <Route path="/tools/pdf-editor/editor" element={lazy$(<PdfEditorStandalone />)} />
       <Route path="/calculators"        element={lazy$(<CalculatorsListPage />)} />
       <Route path="/calculators/:slug"  element={lazy$(<CalculatorPage />)} />
 
