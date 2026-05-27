@@ -109,7 +109,7 @@ function ToolInterface({ tool }) {
     }
   }
 
-  const fieldClass = "w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+  const fieldClass = "w-full px-3 py-2.5 border border-gray-600 rounded-lg text-sm bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
 
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 space-y-4">
