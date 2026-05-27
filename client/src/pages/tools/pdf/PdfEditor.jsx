@@ -5,6 +5,7 @@ import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib'
 import ToolPageShell from '../ToolPageShell'
 import { downloadFile } from './pdfUtils'
 import { TOOL_ABOUT } from '../../../data/toolPageContent'
+import DisabledToolButton from '../../../components/pdf-editor/DisabledToolButton'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerSrc
 
@@ -1317,7 +1318,9 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
     const {xf,yf} = posFrac(e,pi)
 
     if (activeTool==='text'||activeTool==='typewriter') {
-      addAnn(pi,{id:uid(),type:activeTool,page:pi,x:xf,y:yf,w:0.25,h:0.05,text:'',fontSize,fontFamily,fontColor,bold,italic,underlineText,textAlign}); return
+      addAnn(pi,{id:uid(),type:activeTool,page:pi,x:xf,y:yf,w:0.25,h:0.05,text:'',fontSize,fontFamily,fontColor,bold,italic,underlineText,textAlign})
+      setActiveTool(null)   // one-shot: auto-return to Select after placing
+      return
     }
     if (activeTool==='note') {
       addAnn(pi,{id:uid(),type:'note',page:pi,x:xf,y:yf,w:0.2,h:0.15,text:'Click to edit note…',fontSize:11,fontColor:'#78350f',fillColor:'#fef9c3'}); return
@@ -1758,7 +1761,9 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
         {activeTools.map((item,i)=>
           item==='sep'
             ? <div key={`s${i}`} className="h-8 w-px bg-gray-300 mx-1.5 flex-shrink-0" />
-            : <ToolBtn key={item.id} tool={item} activeTool={activeTool} viewMode={viewMode} darkCanvas={darkCanvas} stripMeta={stripMeta} onSelect={handleToolSelect} onAction={handleAction} />
+            : item.disabled
+              ? <DisabledToolButton key={item.id} icon={item.icon} label={item.label} tooltip={item.disabledTip || item.label} />
+              : <ToolBtn key={item.id} tool={item} activeTool={activeTool} viewMode={viewMode} darkCanvas={darkCanvas} stripMeta={stripMeta} onSelect={handleToolSelect} onAction={handleAction} />
         )}
       </div>
 
