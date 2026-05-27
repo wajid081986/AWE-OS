@@ -290,13 +290,15 @@ export default function LandingBuilderPage() {
 
   // ── Download HTML ────────────────────────────────────────────────────────────
   const handleDownload = () => {
-    if (!previewHtml) return
-    const blob = new Blob([previewHtml], { type: 'text/html' })
+    if (!generatedPage?.html_content) return
+    const blob = new Blob([generatedPage.html_content], { type: 'text/html;charset=utf-8' })
     const url  = URL.createObjectURL(blob)
     const a    = document.createElement('a')
     a.href     = url
-    a.download = `${brief.productName.toLowerCase().replace(/\s+/g, '-') || 'landing-page'}.html`
+    a.download = `${generatedPage.slug || 'landing-page'}.html`
+    document.body.appendChild(a)
     a.click()
+    document.body.removeChild(a)
     URL.revokeObjectURL(url)
   }
 
