@@ -48,6 +48,7 @@ const marketplaceRoutes              = require('./routes/marketplace.routes');
 const revenueIntelRoutes             = require('./routes/revenue.intelligence.routes');
 const agentEconomyRoutes             = require('./routes/agent.economy.routes');
 const selfHealingRoutes              = require('./routes/selfHealing.routes');
+const landingPagesRoutes             = require('./routes/landing-pages.routes');
 const { initializeRuntime, shutdownRuntime } = require('./runtime');
 const { initializeMemory, shutdownMemory }   = require('./memory');
 const { initializeLearning, shutdownLearning } = require('./learning');
@@ -275,10 +276,41 @@ app.use('/api/revenue-intel',  adminLimiter, revenueIntelRoutes);
 app.use('/api/agent-economy',  adminLimiter, agentEconomyRoutes);
 app.use('/api/self-healing',   adminLimiter, selfHealingRoutes);
 app.use('/api/resume-versions', resumeVersionsRoutes);
+app.use('/api/landing-pages',  adminLimiter, landingPagesRoutes);
 app.use('/api',                resumeRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'healthy', service: 'AWE-OS Backend', version: '2.0.0', time: new Date().toISOString(), checks: { database: 'ok' } }));
 app.get('/', (req, res) => res.send('AWE-OS Backend Running'));
+
+// ── Public landing page renderer ─────────────────────────────
+// Serves AI-generated landing pages at /p/:slug
+app.get('/p/:slug', async (req, res) => {
+  try {
+    const { data } = await supabase
+      .from('landing_pages')
+      .select('html_content, views')
+      .eq('slug', req.params.slug)
+      .eq('status', 'published')
+      .single();
+
+    if (!data) {
+      return res.status(404).send('<h1 style="font-family:sans-serif;text-align:center;padding:4rem">Page not found</h1>');
+    }
+
+    // Fire-and-forget view increment
+    supabase
+      .from('landing_pages')
+      .update({ views: (data.views || 0) + 1 })
+      .eq('slug', req.params.slug)
+      .then(() => {});
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(data.html_content);
+  } catch (err) {
+    console.error('[/p/:slug]', err.message);
+    res.status(500).send('<h1>Server Error</h1>');
+  }
+});
 
 // ── 404 + error handlers (must be last) ─────────────────────
 app.use((req, res) => {
