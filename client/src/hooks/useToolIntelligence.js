@@ -80,7 +80,10 @@ export function useToolIntelligence() {
     try {
       const res = await fetch('/api/analyze-tool', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-secret': import.meta.env.VITE_ADMIN_SECRET || '',
+        },
         body: JSON.stringify({ toolIdea: prompt, category }),
       })
       if (!res.ok) throw new Error(`Analysis error ${res.status}`)
@@ -106,7 +109,10 @@ export function useToolIntelligence() {
     try {
       const res = await fetch('/api/generate-blueprint', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-secret': import.meta.env.VITE_ADMIN_SECRET || '',
+        },
         body: JSON.stringify({ toolIdea, category, analysis: analysis || null }),
       })
       if (!res.ok) throw new Error(`Blueprint error ${res.status}`)
@@ -127,7 +133,10 @@ export function useToolIntelligence() {
     try {
       const res = await fetch('/api/generate-prompt', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-secret': import.meta.env.VITE_ADMIN_SECRET || '',
+        },
         body: JSON.stringify({ blueprint, analysis: analysis || null, toolIdea }),
       })
       if (!res.ok) throw new Error(`Prompt error ${res.status}`)
@@ -148,7 +157,10 @@ export function useToolIntelligence() {
     try {
       const res = await fetch('/api/generate-ideas', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-secret': import.meta.env.VITE_ADMIN_SECRET || '',
+        },
         body: JSON.stringify({ category, count }),
       })
       if (!res.ok) throw new Error(`Ideas error ${res.status}`)

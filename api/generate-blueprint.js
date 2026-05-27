@@ -1,5 +1,16 @@
+// Required env var: ADMIN_API_SECRET (set in Vercel dashboard + client .env as VITE_ADMIN_SECRET)
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // ── Auth guard ────────────────────────────────────────────────
+  const ADMIN_SECRET = process.env.ADMIN_API_SECRET;
+  const authHeader   = req.headers['x-admin-secret'] || req.headers['authorization'];
+  const token        = authHeader?.replace('Bearer ', '');
+  if (!ADMIN_SECRET || token !== ADMIN_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  // ─────────────────────────────────────────────────────────────
 
   const { toolIdea, category, analysis } = req.body;
   if (!toolIdea) return res.status(400).json({ error: 'toolIdea is required' });

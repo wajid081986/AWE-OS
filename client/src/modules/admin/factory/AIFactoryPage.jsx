@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import api from '../../../services/api.service'
 import { useToolIntelligence } from '../../../hooks/useToolIntelligence'
 import { useIdeaTracker }      from '../../../hooks/useIdeaTracker'
 import IntelligencePanel from './IntelligencePanel'
@@ -125,10 +126,10 @@ function ToolPreviewCard({ tool, onPublish, onEdit, onReset, publishing }) {
       <div className="flex flex-col gap-2">
         <button
           onClick={onPublish}
-          disabled={publishing || tool.approved}
+          disabled={publishing || !!tool.savedId}
           className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm"
         >
-          {publishing ? 'Publishing…' : tool.approved ? 'Already Published' : 'Publish Tool →'}
+          {publishing ? 'Publishing…' : tool.savedId ? 'Saved to DB ✓' : 'Publish Tool →'}
         </button>
         <button onClick={onEdit} className="w-full bg-gray-700 hover:bg-gray-600 text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
           Edit in Builder
@@ -237,6 +238,28 @@ export default function AIFactoryPage() {
     setJobs(prev => [{ id: tool.id, category: tool.category, status: 'completed', created_at: tool.generatedAt, tool }, ...prev].slice(0, 20))
   }, [])
 
+  // Load real factory_jobs history from DB on mount
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const response = await api.get('/api/factory/jobs')
+        const rows = Array.isArray(response.data)
+          ? response.data
+          : (response.data?.jobs || [])
+        setJobs(rows.slice(0, 20).map(j => ({
+          id:         j.id,
+          category:   j.category,
+          status:     j.status,
+          created_at: j.created_at,
+          tool:       j.tools ? { name: j.tools.name, slug: j.tools.slug } : null,
+        })))
+      } catch {
+        // silent fail — history is non-critical, no console noise
+      }
+    }
+    loadHistory()
+  }, [])
+
   // ── Handlers ─────────────────────────────────────────────────────────────
 
   const handleGenerate = useCallback(async () => {
@@ -245,7 +268,10 @@ export default function AIFactoryPage() {
       setGeneratingStep(0)
       const res = await fetch('/api/generate-tool', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-secret': import.meta.env.VITE_ADMIN_SECRET || '',
+        },
         body: JSON.stringify({ category, idea }),
       })
       setGeneratingStep(1)
@@ -315,10 +341,50 @@ export default function AIFactoryPage() {
     }
   }, [category, analyze, saveIdea, resetIntelligence])
 
-  const handlePublish = useCallback(() => {
+  const handlePublish = useCallback(async () => {
     if (!generatedTool) return
-    setGeneratedTool(t => ({ ...t, approved: true }))
-  }, [generatedTool])
+    console.log('[PUBLISH CLICKED] tool.approved:', generatedTool?.approved, 'tool.savedId:', generatedTool?.savedId)
+    console.log('[PUBLISH CLICKED] API URL:', api.defaults?.baseURL)
+    try {
+      setPublishing(true)
+      setGenError(null)
+
+      // Build the payload the tools table expects
+      // status 'idea' satisfies the DB CHECK constraint (idea|building|live|scaling|killed)
+      const payload = {
+        name:         generatedTool.name,
+        slug:         generatedTool.slug,
+        description:  generatedTool.description,
+        category:     generatedTool.category || category,
+        is_free:      generatedTool.is_free  ?? true,
+        price:        generatedTool.price    ?? 0,
+        input_fields: generatedTool.input_fields || generatedTool.inputFields || [],
+        ai_prompt:    generatedTool.corePrompt || generatedTool.ai_prompt ||
+                      `You are a helpful ${generatedTool.name} assistant.`,
+        approved:     false,   // goes to review queue, not live immediately
+        status:       'idea',
+      }
+
+      // api.service.js Axios instance points to VITE_API_URL (Express on Render/local)
+      const response = await api.post('/api/tools', payload)
+      const savedTool = response.data?.tool || response.data
+
+      // Mark saved with the real Supabase UUID (savedId drives button disabled state)
+      setGeneratedTool(t => ({ ...t, savedId: savedTool.id }))
+
+      // Refresh session history with the newly saved entry
+      addToJobs({ ...savedTool, generatedAt: savedTool.created_at })
+
+      // Navigate to Tool Builder so admin can finish editing before publishing
+      navigate(`/admin/tools/builder?id=${savedTool.id}`)
+    } catch (err) {
+      console.error('[PUBLISH FAILED]', err?.response?.status, err?.response?.data, err?.message)
+      setGenError(err?.response?.data?.message || err?.response?.data?.error || err?.message || 'Publish failed')
+      setGeneratedTool(t => ({ ...t, savedId: null }))
+    } finally {
+      setPublishing(false)
+    }
+  }, [generatedTool, category, navigate, addToJobs])
 
   const handleReset = useCallback(() => {
     setGeneratedTool(null)
