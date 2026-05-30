@@ -22,7 +22,7 @@ function getGoogleAuth() {
     return new google.auth.JWT({
       email,
       key:    key.replace(/\\n/g, '\n'),
-      scopes: ['https://www.googleapis.com/auth/indexing']
+      scopes: ['https://www.googleapis.com/auth/webmasters']
     });
   } catch {
     return null;
@@ -42,11 +42,14 @@ async function requestIndexing(url, type = 'URL_UPDATED') {
   }
 
   try {
-    const { google } = require('googleapis');
-    const indexing   = google.indexing({ version: 'v3', auth });
+    const { google }   = require('googleapis');
+    const searchconsole = google.searchconsole({ version: 'v1', auth });
 
-    await indexing.urlNotifications.publish({
-      requestBody: { url, type }
+    await searchconsole.urlInspection.index.inspect({
+      requestBody: {
+        inspectionUrl: url,
+        siteUrl:       process.env.GOOGLE_SITE_URL
+      }
     });
 
     await logIndexingRequest(url, type, 'submitted');
@@ -55,7 +58,7 @@ async function requestIndexing(url, type = 'URL_UPDATED') {
       success: true,
       url,
       status:  'submitted',
-      message: 'URL submitted to Google Indexing API'
+      message: 'URL submitted via Search Console URL Inspection API'
     };
   } catch (err) {
     const errMsg = err.message || 'Unknown error';
@@ -95,14 +98,18 @@ async function getUrlStatus(url) {
   if (!auth) return { configured: false };
 
   try {
-    const { google } = require('googleapis');
-    const indexing   = google.indexing({ version: 'v3', auth });
-    const res        = await indexing.urlNotifications.getMetadata({ url });
+    const { google }    = require('googleapis');
+    const searchconsole = google.searchconsole({ version: 'v1', auth });
+    const res           = await searchconsole.urlInspection.index.inspect({
+      requestBody: {
+        inspectionUrl: url,
+        siteUrl:       process.env.GOOGLE_SITE_URL
+      }
+    });
     return {
-      configured:   true,
+      configured:      true,
       url,
-      latestUpdate: res.data.latestUpdate,
-      notifyTime:   res.data.latestUpdate?.notifyTime
+      inspectionResult: res.data.inspectionResult
     };
   } catch (err) {
     return { configured: true, url, error: err.message };
