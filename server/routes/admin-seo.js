@@ -520,6 +520,7 @@ router.post('/publish-programmatic', requireAuth, requireAdmin, async (req, res)
   }
   try {
     const result = await publishCityPageToGitHub(page, slug)
+    if (result.success && result.liveUrl) gscLog(result.liveUrl).catch(() => {})
     res.json(result)
   } catch (err) {
     console.error('[admin-seo/publish-programmatic]', err.message)
@@ -534,6 +535,7 @@ router.post('/publish-comparison', requireAuth, requireAdmin, async (req, res) =
   if (!page || !slug) return res.status(400).json({ success: false, error: 'page and slug are required' })
   try {
     const result = await pushComparisonPage(page, slug)
+    if (result.success && result.liveUrl) gscLog(result.liveUrl).catch(() => {})
     res.json(result)
   } catch (err) {
     console.error('[admin-seo/publish-comparison]', err.message)
@@ -548,6 +550,7 @@ router.post('/publish-faq', requireAuth, requireAdmin, async (req, res) => {
   if (!page || !slug) return res.status(400).json({ success: false, error: 'page and slug are required' })
   try {
     const result = await pushFaqPage(page, slug)
+    if (result.success && result.liveUrl) gscLog(result.liveUrl).catch(() => {})
     res.json(result)
   } catch (err) {
     console.error('[admin-seo/publish-faq]', err.message)
