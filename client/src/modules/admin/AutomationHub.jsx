@@ -45,9 +45,10 @@ function ErrBox({ msg, onRetry }) {
 
 function StatusBadge({ status }) {
   const map = {
-    submitted:  'bg-green-900 text-green-300',
-    pending:    'bg-blue-900 text-blue-300',
-    failed:     'bg-red-900 text-red-300',
+    submitted:       'bg-green-900 text-green-300',
+    pending:         'bg-yellow-900 text-yellow-300',
+    manual_required: 'bg-yellow-900 text-yellow-300',
+    failed:          'bg-red-900 text-red-300',
     skipped:    'bg-gray-700 text-gray-400',
     scheduled:  'bg-blue-900 text-blue-300',
     published:  'bg-green-900 text-green-300',
@@ -212,14 +213,18 @@ function GSCTab() {
               <p className="text-xs text-gray-500">Click 'Request Indexing' in Search Console for each URL</p>
             </>
           ) : (
-            <>
-              <p className="text-sm font-medium text-green-400">URL saved to log</p>
-              <a href={result.manualUrl} target="_blank" rel="noreferrer"
-                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition">
-                Open in Search Console →
+            <div className="bg-green-900/20 border border-green-700/40 rounded-lg p-4 space-y-3">
+              <p className="text-sm font-medium text-green-400">
+                ✅ URL logged! Now open Search Console to request indexing.
+              </p>
+              <a href={result.manualUrl || result.inspectLink} target="_blank" rel="noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition">
+                🔍 Open in Search Console →
               </a>
-              <p className="text-xs text-gray-500">Click 'Request Indexing' in Search Console</p>
-            </>
+              <p className="text-xs text-gray-400">
+                In Search Console, click "REQUEST INDEXING" button.
+              </p>
+            </div>
           )}
         </div>
       )}
@@ -245,14 +250,29 @@ function GSCTab() {
                 {history.length === 0 && (
                   <tr><td colSpan={4} className="py-4 text-gray-500 text-center">No submissions yet</td></tr>
                 )}
-                {history.map(h => (
-                  <tr key={h.id} className="border-b border-gray-800 hover:bg-gray-800/50">
-                    <td className="py-2 pr-4 text-gray-300 max-w-xs truncate">{h.url}</td>
-                    <td className="py-2 pr-4"><StatusBadge status={h.status} /></td>
-                    <td className="py-2 pr-4 text-gray-400">{h.type}</td>
-                    <td className="py-2 text-gray-500">{h.submitted_at ? new Date(h.submitted_at).toLocaleString() : '—'}</td>
-                  </tr>
-                ))}
+                {history.map(h => {
+                  const needsAction = h.status === 'pending' || h.status === 'manual_required'
+                  const gscLink = `https://search.google.com/search-console/inspect?resource_id=https%3A%2F%2Fwww.awe-os.com%2F&id=${encodeURIComponent(h.url)}`
+                  return (
+                    <tr key={h.id} className="border-b border-gray-800 hover:bg-gray-800/50">
+                      <td className="py-2 pr-4 text-gray-300 max-w-xs truncate">{h.url}</td>
+                      <td className="py-2 pr-4">
+                        <div className="flex items-center gap-1.5">
+                          <StatusBadge status={h.status} />
+                          {needsAction && (
+                            <a href={gscLink} target="_blank" rel="noreferrer"
+                              title="Open in Search Console"
+                              className="text-blue-400 hover:text-blue-300 transition text-sm leading-none">
+                              🔍
+                            </a>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-2 pr-4 text-gray-400">{h.type}</td>
+                      <td className="py-2 text-gray-500">{h.submitted_at ? new Date(h.submitted_at).toLocaleString() : '—'}</td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
