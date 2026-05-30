@@ -20,6 +20,60 @@ function requireAdmin(req, res, next) {
   next()
 }
 
+// ── Tool-specific content templates ──────────────────────────────────────────
+
+const TOOL_TEMPLATES = {
+  'sip-calculator': {
+    focus:      'mutual fund investment, SIP returns, wealth creation',
+    audience:   'young professionals, investors, salaried employees',
+    keywords:   ['SIP calculator', 'mutual fund SIP', 'monthly investment'],
+    sections:   ['What is SIP', 'How to use SIP Calculator', 'SIP Benefits in {city}', 'Top Mutual Funds', 'SIP vs FD', 'Tax Benefits', 'FAQs'],
+    localAngle: 'investment opportunities and financial planning in {city}',
+  },
+  'bmi-calculator': {
+    focus:      'health, fitness, Indian body standards',
+    audience:   'health-conscious Indians, fitness enthusiasts',
+    keywords:   ['BMI calculator', 'healthy weight India', 'obesity India'],
+    sections:   ['What is BMI', 'BMI Chart for Indians', 'Health Statistics in {city}', 'Healthy Weight Tips', 'Diet and Exercise', 'FAQs'],
+    localAngle: 'health and fitness culture in {city}',
+  },
+  'loan-calculator': {
+    focus:      'home loan, personal loan, EMI planning India',
+    audience:   'home buyers, loan seekers, financial planners',
+    keywords:   ['loan EMI calculator', 'home loan {city}', 'bank loan rates'],
+    sections:   ['What is EMI', 'How to Calculate EMI', 'Top Banks in {city}', 'Loan Tips', 'Home Loan vs Personal Loan', 'FAQs'],
+    localAngle: 'real estate and loan market in {city}',
+  },
+  'tax-calculator': {
+    focus:      'income tax India, tax saving, ITR filing',
+    audience:   'salaried professionals, business owners, freelancers',
+    keywords:   ['income tax calculator India', 'tax slab 2026', 'tax saving'],
+    sections:   ['Tax Slabs 2026', 'How to Calculate Tax', 'Tax Saving Tips', 'ITR Filing Guide', 'Old vs New Tax Regime', 'FAQs'],
+    localAngle: 'tax planning for professionals in {city}',
+  },
+  'gst-calculator': {
+    focus:      'GST rates India, business tax, invoice GST',
+    audience:   'business owners, accountants, freelancers',
+    keywords:   ['GST calculator', 'CGST SGST IGST', 'GST invoice'],
+    sections:   ['What is GST', 'GST Rates 2026', 'GSTIN Registration in {city}', 'GST Filing', 'GST for Small Business', 'FAQs'],
+    localAngle: 'business and GST compliance in {city}',
+  },
+}
+
+// ── GSC auto-log helper ───────────────────────────────────────────────────────
+
+async function gscLog(liveUrl) {
+  try {
+    const supabase = require('../db/supabase')
+    await supabase.from('gsc_index_log').insert({
+      url:          liveUrl,
+      type:         'URL_UPDATED',
+      status:       'pending',
+      submitted_at: new Date().toISOString(),
+    })
+  } catch {}
+}
+
 // ── Word count from content array ─────────────────────────────────────────────
 
 function calcWordCount(content, faqs) {
@@ -307,10 +361,15 @@ Return ONLY valid JSON:
     const toolName = tool1Name || tool1Slug
     const citySlug = cityName.toLowerCase().replace(/\s+/g, '-')
     slug = `${tool1Slug}/${citySlug}`
+    const tmpl     = TOOL_TEMPLATES[tool1Slug]
     userPrompt = `Write a 1500+ word city-specific page for:
 Tool: ${toolName}
 City: ${cityName}, India
 Tool URL: https://www.awe-os.com/tools/${tool1Slug}
+${tmpl ? `SEO focus: ${tmpl.focus}
+Target audience: ${tmpl.audience}
+Local angle: ${tmpl.localAngle.replace('{city}', cityName)}
+Key terms to weave in naturally: ${tmpl.keywords.map(k => k.replace('{city}', cityName)).join(', ')}` : ''}
 
 Generate MINIMUM 1500 words of actual readable text in the content blocks.
 Count only text values, NOT JSON keys or brackets.
@@ -335,6 +394,8 @@ REQUIRED SECTIONS (each section minimum 150 words):
 GENERATE 5 FAQs — each answer minimum 120 words, specific to ${cityName} context.
 
 TOTAL MUST BE 1500+ WORDS. Count carefully.
+
+In the content paragraphs, naturally link to 2-3 related AWE-OS tools using markdown: [Tool Name](https://www.awe-os.com/tools/slug). Example tools: SIP Calculator (/tools/sip-calculator), GST Calculator (/tools/gst-calculator), Loan Calculator (/tools/loan-calculator), Tax Calculator (/tools/tax-calculator).
 
 Return ONLY valid JSON:
 {
@@ -427,6 +488,13 @@ Return ONLY valid JSON with the same structure as a comparison page. slug: "${sl
       page.toolSlug = tool1Slug
       page.toolName = tool1Name || tool1Slug
       page.cityName = cityName
+      if (Array.isArray(page.content)) {
+        page.content.push({
+          type:  'callout',
+          text:  `Try our free ${tool1Name || tool1Slug} — instant results, no signup needed.`,
+          links: [{ href: `https://www.awe-os.com/tools/${tool1Slug}`, label: `Use ${tool1Name || tool1Slug} Free →` }],
+        })
+      }
     }
 
     res.json({ success: true, page })
