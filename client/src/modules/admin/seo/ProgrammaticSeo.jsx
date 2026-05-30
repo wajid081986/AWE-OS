@@ -12,6 +12,17 @@ const INDIAN_CITIES = [
 
 const FAQ_CATS = ['PDF', 'Calculators', 'AI Tools', 'Converters', 'Productivity']
 
+const BULK_TOOLS = [
+  { slug: 'sip-calculator',  name: 'SIP Calculator'  },
+  { slug: 'bmi-calculator',  name: 'BMI Calculator'  },
+  { slug: 'loan-calculator', name: 'Loan Calculator'  },
+  { slug: 'tax-calculator',  name: 'Tax Calculator'   },
+  { slug: 'gst-calculator',  name: 'GST Calculator'   },
+  { slug: 'fd-calculator',   name: 'FD Calculator'    },
+  { slug: 'ppf-calculator',  name: 'PPF Calculator'   },
+  { slug: 'roi-calculator',  name: 'ROI Calculator'   },
+]
+
 const PAGE_TYPES = [
   {
     id:       'comparison',
@@ -109,6 +120,8 @@ export default function ProgrammaticSeo() {
     isRunning: false, total: 0, completed: 0, current: '', results: [], errors: [],
   })
   const [isPaused,        setIsPaused]        = useState(false)
+  const [bulkMode,        setBulkMode]        = useState(false)
+  const [selectedBulkTools, setSelectedBulkTools] = useState([])
   const [publishedPages,  setPublishedPages]  = useState(() => {
     try { return JSON.parse(localStorage.getItem('awe_programmatic_pages') || '[]') } catch { return [] }
   })
@@ -324,6 +337,64 @@ export default function ProgrammaticSeo() {
     if (failedCities.length > 0) runBulkForCities(failedCities)
   }
 
+  async function runMultiToolBulk() {
+    const tools = selectedBulkTools
+    if (!tools.length || !selectedCities.length) return
+    const total = tools.length * selectedCities.length
+    pauseRef.current = false
+    setIsPaused(false)
+    setBulkProgress({
+      isRunning: true, total, completed: 0, current: '',
+      results: [], errors: [],
+      toolIndex: 1, toolTotal: tools.length, currentTool: tools[0].name,
+    })
+    let done = 0
+    for (let ti = 0; ti < tools.length; ti++) {
+      const { slug: toolSlug, name: toolName } = tools[ti]
+      setBulkProgress(prev => ({ ...prev, toolIndex: ti + 1, currentTool: toolName }))
+      for (let ci = 0; ci < selectedCities.length; ci++) {
+        const city = selectedCities[ci]
+        while (pauseRef.current) await new Promise(r => setTimeout(r, 500))
+        setBulkProgress(prev => ({ ...prev, current: `${toolName} — ${city}` }))
+        try {
+          const genRes = await api.post('/api/admin/seo/generate-programmatic', {
+            pageType: 'city', tool1Slug: toolSlug, tool1Name: toolName, cityName: city,
+          })
+          if (!genRes.data.success) throw new Error(genRes.data.error || 'Generation failed')
+          const page = genRes.data.page
+          const slug = `${toolSlug}/${toSlug(city)}`
+          if ((page.wordCount || 0) >= 1200) {
+            try { await api.post('/api/admin/seo/publish-programmatic', { page, slug }) } catch {}
+            savePublishedRecord({
+              type: 'city', title: page.title || `${toolName} for ${city}`,
+              slug: page.slug || slug, url: `https://awe-os.com/${slug}`,
+              date: new Date().toISOString().split('T')[0], wordCount: page.wordCount || 0,
+            })
+            done++
+            setBulkProgress(prev => ({
+              ...prev, completed: done,
+              results: [...prev.results, { city, tool: toolName, status: 'published', url: `/${slug}`, wordCount: page.wordCount }],
+            }))
+          } else {
+            done++
+            setBulkProgress(prev => ({
+              ...prev, completed: done,
+              errors: [...prev.errors, { city, tool: toolName, slug, reason: `Below 1200 words (got ${page.wordCount || 0})`, wordCount: page.wordCount || 0 }],
+            }))
+          }
+        } catch (err) {
+          done++
+          setBulkProgress(prev => ({
+            ...prev, completed: done,
+            errors: [...prev.errors, { city, tool: toolName, reason: err.message || 'Request failed' }],
+          }))
+        }
+        await new Promise(r => setTimeout(r, 500))
+      }
+    }
+    setBulkProgress(prev => ({ ...prev, isRunning: false, current: '', currentTool: '' }))
+  }
+
   async function regenerateLowQuality() {
     const low = CITY_PAGES.filter(p => (p.wordCount || 0) < 1200)
     if (!low.length) return
@@ -405,7 +476,7 @@ export default function ProgrammaticSeo() {
 
   const canGenerate =
     selectedType === 'comparison'    ? !!(form.tool1Slug && form.tool2Slug && form.tool1Slug !== form.tool2Slug) :
-    selectedType === 'city'          ? !!(form.tool1Slug && selectedCities.length > 0) :
+    selectedType === 'city'          ? (bulkMode ? !!(selectedBulkTools.length && selectedCities.length) : !!(form.tool1Slug && selectedCities.length > 0)) :
     selectedType === 'faq-category'  ? !!(form.categoryName) :
     false
 
@@ -542,7 +613,22 @@ export default function ProgrammaticSeo() {
           {selectedType === 'city' && (
             <div className="space-y-5">
 
-              {/* Tool select */}
+              {/* Bulk Mode toggle */}
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => { setBulkMode(prev => !prev); setSelectedBulkTools([]) }}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${bulkMode ? 'bg-indigo-600' : 'bg-gray-600'}`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${bulkMode ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
+                <span className="text-sm text-gray-300">
+                  Bulk Mode {bulkMode ? <span className="text-indigo-400 font-medium">ON — Multi-Tool</span> : <span className="text-gray-500">OFF — Single Tool</span>}
+                </span>
+              </div>
+
+              {/* Tool select (single mode) */}
+              {!bulkMode && (
               <div>
                 <label className="block text-sm text-gray-400 mb-1">Tool</label>
                 <select
@@ -557,6 +643,48 @@ export default function ProgrammaticSeo() {
                   {activeTools.map(t => <option key={t.slug} value={t.slug}>{t.name}</option>)}
                 </select>
               </div>
+              )}
+
+              {/* Tool checkboxes (bulk mode) */}
+              {bulkMode && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm text-gray-400">
+                    Select Tools
+                    {selectedBulkTools.length > 0 && (
+                      <span className="ml-2 text-xs bg-indigo-900/60 text-indigo-300 px-2 py-0.5 rounded-full">
+                        {selectedBulkTools.length} selected
+                      </span>
+                    )}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBulkTools(BULK_TOOLS)}
+                    className="text-xs text-indigo-400 hover:text-indigo-300 underline"
+                  >
+                    Select All Calculators
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {BULK_TOOLS.map(t => {
+                    const checked = selectedBulkTools.some(s => s.slug === t.slug)
+                    return (
+                      <label key={t.slug} className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors ${checked ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300' : 'border-gray-600 bg-gray-700 text-gray-300 hover:border-gray-500'}`}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => setSelectedBulkTools(prev =>
+                            checked ? prev.filter(s => s.slug !== t.slug) : [...prev, t]
+                          )}
+                          className="accent-indigo-500"
+                        />
+                        <span className="text-sm">{t.name}</span>
+                      </label>
+                    )
+                  })}
+                </div>
+              </div>
+              )}
 
               {/* Multi-select cities */}
               <div>
@@ -690,16 +818,18 @@ export default function ProgrammaticSeo() {
 
               {/* Bulk generate button */}
               <button
-                onClick={generateBulk}
-                disabled={!canGenerate || bulkProgress.isRunning}
+                onClick={bulkMode ? runMultiToolBulk : generateBulk}
+                disabled={bulkMode ? (!selectedBulkTools.length || !selectedCities.length || bulkProgress.isRunning) : (!canGenerate || bulkProgress.isRunning)}
                 className="w-full py-3 rounded-xl font-medium text-white transition-all
                   bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {bulkProgress.isRunning ? (
                   <span className="flex items-center justify-center gap-2">
                     <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Generating...
+                    {bulkProgress.currentTool ? `🔄 Tool ${bulkProgress.toolIndex}/${bulkProgress.toolTotal}: ${bulkProgress.currentTool} — ${bulkProgress.current}` : 'Generating...'}
                   </span>
+                ) : bulkMode ? (
+                  `⚡ Generate [${selectedBulkTools.length} tools × ${selectedCities.length} cities = ${selectedBulkTools.length * selectedCities.length} pages]`
                 ) : (
                   `⚡ Generate All ${selectedCities.length || 0} City Pages`
                 )}
@@ -791,7 +921,13 @@ export default function ProgrammaticSeo() {
           {/* Progress bar */}
           <div>
             <div className="flex justify-between text-xs text-gray-400 mb-1">
-              <span>{bulkProgress.isRunning ? `Generating: ${bulkProgress.current}` : 'Complete'}</span>
+              <span>
+                {bulkProgress.isRunning
+                  ? (bulkProgress.toolTotal > 1
+                    ? `🔄 Tool ${bulkProgress.toolIndex}/${bulkProgress.toolTotal}: ${bulkProgress.currentTool || ''} — ${bulkProgress.current}`
+                    : `Generating: ${bulkProgress.current}`)
+                  : 'Complete'}
+              </span>
               <span>{bulkProgress.completed} / {bulkProgress.total}</span>
             </div>
             <div className="h-3 bg-gray-700 rounded-full overflow-hidden">
