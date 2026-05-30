@@ -1,40 +1,30 @@
 'use strict';
 
-/**
- * Google Search Console Indexing Helper
- * Logs URLs that need indexing and provides a direct GSC inspection link.
- * Manual step required: open the inspection link and click "Request Indexing".
- */
+const INSPECT_BASE = 'https://search.google.com/search-console/inspect?resource_id=https%3A%2F%2Fwww.awe-os.com%2F&id=';
 
-function gscInspectLink(url) {
-  return `https://search.google.com/search-console/inspect?resource_id=${encodeURIComponent(process.env.GOOGLE_SITE_URL || '')}&id=${encodeURIComponent(url)}`;
+function manualUrl(url) {
+  return INSPECT_BASE + encodeURIComponent(url);
 }
 
 async function requestIndexing(url, type = 'URL_UPDATED') {
-  await logIndexingRequest(url, type, 'manual_required');
-
+  await logIndexingRequest(url, type, 'pending');
   return {
-    success:     true,
+    success:   true,
     url,
-    status:      'manual_required',
-    message:     'URL logged. Open the inspection link in Search Console and click "Request Indexing".',
-    inspectLink: gscInspectLink(url)
+    status:    'pending',
+    manualUrl: manualUrl(url)
   };
 }
 
 async function batchRequestIndexing(urls, type = 'URL_UPDATED') {
   const results = [];
-
   for (const url of urls) {
     results.push(await requestIndexing(url, type));
   }
-
   return {
-    submitted:   0,
+    submitted:   results.length,
     failed:      0,
     skipped:     0,
-    quotaUsed:   0,
-    quotaLimit:  200,
     results,
     skippedUrls: []
   };
@@ -42,10 +32,10 @@ async function batchRequestIndexing(urls, type = 'URL_UPDATED') {
 
 async function getUrlStatus(url) {
   return {
-    configured:  true,
+    configured: true,
     url,
-    status:      'manual_required',
-    inspectLink: gscInspectLink(url)
+    status:     'pending',
+    manualUrl:  manualUrl(url)
   };
 }
 
@@ -69,7 +59,7 @@ async function getDailyQuotaUsed() {
     const { count } = await supabase
       .from('gsc_index_log')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'submitted')
+      .eq('status', 'pending')
       .gte('submitted_at', `${today}T00:00:00`);
     return count || 0;
   } catch {

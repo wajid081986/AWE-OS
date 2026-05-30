@@ -46,6 +46,7 @@ function ErrBox({ msg, onRetry }) {
 function StatusBadge({ status }) {
   const map = {
     submitted:  'bg-green-900 text-green-300',
+    pending:    'bg-blue-900 text-blue-300',
     failed:     'bg-red-900 text-red-300',
     skipped:    'bg-gray-700 text-gray-400',
     scheduled:  'bg-blue-900 text-blue-300',
@@ -74,17 +75,13 @@ function GSCTab() {
   const [result, setResult] = useState(null)
   const [err, setErr] = useState('')
   const [history, setHistory] = useState([])
-  const [quota, setQuota] = useState(0)
   const [histLoading, setHistLoading] = useState(false)
 
   const loadHistory = useCallback(async () => {
     setHistLoading(true)
     try {
       const { data } = await api.get('/api/admin/automation/index-history')
-      if (data.success) {
-        setHistory(data.history || [])
-        setQuota(data.quotaUsed || 0)
-      }
+      if (data.success) setHistory(data.history || [])
     } catch {}
     setHistLoading(false)
   }, [])
@@ -141,19 +138,6 @@ function GSCTab() {
 
   return (
     <div className="space-y-6">
-      {/* Quota bar */}
-      <div className="bg-gray-900 rounded-xl p-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-400">Daily Google Indexing Quota</span>
-          <span className="text-sm font-bold text-white">{quota} / 200 used</span>
-        </div>
-        <div className="w-full bg-gray-700 rounded-full h-2">
-          <div className={`h-2 rounded-full transition-all ${quota > 160 ? 'bg-red-500' : quota > 100 ? 'bg-yellow-500' : 'bg-green-500'}`}
-            style={{ width: `${Math.min(100, (quota / 200) * 100)}%` }} />
-        </div>
-        <p className="text-xs text-gray-500 mt-1">{200 - quota} submissions remaining today</p>
-      </div>
-
       {/* Mode toggle */}
       <div className="flex gap-2">
         {['single', 'batch', 'quick'].map(m => (
@@ -206,32 +190,36 @@ function GSCTab() {
         </div>
       )}
 
-      {loading && <Spinner text="Submitting URLs to Google Indexing API…" />}
+      {loading && <Spinner text="Saving URL…" />}
       {err && <ErrBox msg={err} />}
 
       {result && (
         <div className="bg-gray-900 rounded-xl p-4 space-y-3">
           {result.submitted !== undefined ? (
             <>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { label: 'Submitted', val: result.submitted, color: 'text-green-400' },
-                  { label: 'Failed',    val: result.failed,    color: 'text-red-400'   },
-                  { label: 'Skipped',   val: result.skipped,   color: 'text-gray-400'  },
-                ].map(({ label, val, color }) => (
-                  <div key={label} className="bg-gray-800 rounded-lg p-3 text-center">
-                    <p className={`text-2xl font-bold ${color}`}>{val}</p>
-                    <p className="text-xs text-gray-500">{label}</p>
+              <p className="text-sm font-medium text-green-400">{result.results.length} URLs saved to log</p>
+              <div className="space-y-2">
+                {result.results.map((r, i) => (
+                  <div key={i} className="flex items-center justify-between gap-3">
+                    <span className="text-xs text-gray-400 truncate max-w-xs">{r.url}</span>
+                    <a href={r.manualUrl} target="_blank" rel="noreferrer"
+                      className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-500 text-white rounded transition shrink-0">
+                      Open in Search Console →
+                    </a>
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-gray-500">Quota: {result.quotaUsed}/{result.quotaLimit}</p>
+              <p className="text-xs text-gray-500">Click 'Request Indexing' in Search Console for each URL</p>
             </>
           ) : (
-            <div className="flex items-center gap-3">
-              <StatusBadge status={result.status} />
-              <span className="text-sm text-gray-300">{result.message}</span>
-            </div>
+            <>
+              <p className="text-sm font-medium text-green-400">URL saved to log</p>
+              <a href={result.manualUrl} target="_blank" rel="noreferrer"
+                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition">
+                Open in Search Console →
+              </a>
+              <p className="text-xs text-gray-500">Click 'Request Indexing' in Search Console</p>
+            </>
           )}
         </div>
       )}
