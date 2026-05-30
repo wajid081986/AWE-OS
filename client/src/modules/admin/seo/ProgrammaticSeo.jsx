@@ -1062,6 +1062,74 @@ export default function ProgrammaticSeo() {
         </div>
       )}
 
+      {/* ── Content Statistics ── */}
+      {(() => {
+        const byTool = {}
+        CITY_PAGES.forEach(p => {
+          const slug = (p.slug || '').split('/')[0]
+          const key  = p.toolSlug || slug
+          byTool[key] = (byTool[key] || 0) + 1
+        })
+        const good   = CITY_PAGES.filter(p => (p.wordCount || 0) >= 1200).length
+        const medium = CITY_PAGES.filter(p => (p.wordCount || 0) >= 800 && (p.wordCount || 0) < 1200).length
+        const poor   = CITY_PAGES.filter(p => (p.wordCount || 0) > 0 && (p.wordCount || 0) < 800).length
+        const noWc   = CITY_PAGES.filter(p => !p.wordCount).length
+        const comparisons = publishedPages.filter(p => p.type === 'comparison').length
+        const faqs        = publishedPages.filter(p => p.type === 'faq-category').length
+        return (
+          <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 space-y-4">
+            <h2 className="text-lg font-semibold text-white flex items-center gap-2">📊 Content Statistics</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { label: 'City Pages',   val: CITY_PAGES.length,  color: 'text-indigo-400' },
+                { label: 'Comparisons',  val: comparisons,         color: 'text-blue-400'   },
+                { label: 'FAQ Pages',    val: faqs,                color: 'text-purple-400' },
+                { label: 'Total',        val: CITY_PAGES.length + comparisons + faqs, color: 'text-white' },
+              ].map(({ label, val, color }) => (
+                <div key={label} className="bg-gray-900 rounded-xl p-3 text-center">
+                  <p className={`text-2xl font-bold ${color}`}>{val}</p>
+                  <p className="text-xs text-gray-500 mt-1">{label}</p>
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">By Tool</p>
+                <div className="space-y-1">
+                  {BULK_TOOLS.map(t => {
+                    const count = byTool[t.slug] || 0
+                    return (
+                      <div key={t.slug} className="flex items-center justify-between text-xs">
+                        <span className="text-gray-300">{t.name}</span>
+                        <span className={count > 0 ? 'text-green-400' : 'text-red-400'}>
+                          {count > 0 ? `${count} cities ✅` : '0 cities ❌'}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Content Quality</p>
+                <div className="space-y-1.5">
+                  {[
+                    { label: '1200+ words (Good)',        val: good,   pct: CITY_PAGES.length, color: 'text-green-400'  },
+                    { label: '800–1199 words (Needs work)', val: medium, pct: CITY_PAGES.length, color: 'text-yellow-400' },
+                    { label: '<800 words (Poor)',          val: poor,   pct: CITY_PAGES.length, color: 'text-red-400'    },
+                    { label: 'No word count (old format)', val: noWc,   pct: CITY_PAGES.length, color: 'text-gray-500'   },
+                  ].map(({ label, val, pct, color }) => (
+                    <div key={label} className="flex items-center justify-between text-xs">
+                      <span className="text-gray-400">{label}</span>
+                      <span className={color}>{val} ({pct > 0 ? Math.round((val / pct) * 100) : 0}%)</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* ── Published pages list ── */}
       {publishedPages.length > 0 && (
         <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
