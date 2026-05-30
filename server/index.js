@@ -363,6 +363,14 @@ const server = app.listen(PORT, async () => {
     try { require('./jobs/revenue.cron').startRevenueCron();   console.info('[SERVER] revenue-cron started');  } catch (e) { console.error('[SERVER] revenue-cron start error:', e?.message);  }
     try { require('./jobs/support.cron').startSupportCrons();  console.info('[SERVER] support-crons started'); } catch (e) { console.error('[SERVER] support-crons start error:', e?.message); }
     try { require('./jobs/health.cron').startHealthCron();     console.info('[SERVER] health-cron started');   } catch (e) { console.error('[SERVER] health-cron start error:', e?.message);   }
+
+    // Auto-generation cron — DISABLED by default. Set ENABLE_AUTO_GENERATION=true to activate.
+    if (process.env.ENABLE_AUTO_GENERATION === 'true') {
+      try {
+        require('./jobs/auto-generation.cron').startAutoGenerationCron()
+        console.info('[SERVER] auto-generation-cron started')
+      } catch (e) { console.error('[SERVER] auto-generation-cron start error:', e?.message) }
+    }
   }, 30 * 60 * 1_000);
 });
 
