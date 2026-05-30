@@ -1,119 +1,52 @@
 'use strict';
 
 /**
- * Google Search Console Auto-Indexing
- * Uses Google Indexing API to request URL indexing
- *
- * Requires env vars:
- *   GOOGLE_SERVICE_ACCOUNT_EMAIL
- *   GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
- *
- * If env vars missing → graceful degradation (log warning, skip)
+ * Google Search Console Indexing Helper
+ * Logs URLs that need indexing and provides a direct GSC inspection link.
+ * Manual step required: open the inspection link and click "Request Indexing".
  */
 
-function getGoogleAuth() {
-  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const key   = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;
-
-  if (!email || !key) return null;
-
-  try {
-    const { google } = require('googleapis');
-    return new google.auth.JWT({
-      email,
-      key:    key.replace(/\\n/g, '\n'),
-      scopes: ['https://www.googleapis.com/auth/webmasters']
-    });
-  } catch {
-    return null;
-  }
+function gscInspectLink(url) {
+  return `https://search.google.com/search-console/inspect?resource_id=${encodeURIComponent(process.env.GOOGLE_SITE_URL || '')}&id=${encodeURIComponent(url)}`;
 }
 
 async function requestIndexing(url, type = 'URL_UPDATED') {
-  const auth = getGoogleAuth();
+  await logIndexingRequest(url, type, 'manual_required');
 
-  if (!auth) {
-    return {
-      success: false,
-      url,
-      status:  'skipped',
-      message: 'Google service account not configured. Set GOOGLE_SERVICE_ACCOUNT_EMAIL and GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY.'
-    };
-  }
-
-  try {
-    const { google }   = require('googleapis');
-    const searchconsole = google.searchconsole({ version: 'v1', auth });
-
-    await searchconsole.urlInspection.index.inspect({
-      requestBody: {
-        inspectionUrl: url,
-        siteUrl:       process.env.GOOGLE_SITE_URL
-      }
-    });
-
-    await logIndexingRequest(url, type, 'submitted');
-
-    return {
-      success: true,
-      url,
-      status:  'submitted',
-      message: 'URL submitted via Search Console URL Inspection API'
-    };
-  } catch (err) {
-    const errMsg = err.message || 'Unknown error';
-    await logIndexingRequest(url, type, 'failed', errMsg);
-    return { success: false, url, status: 'failed', message: errMsg };
-  }
+  return {
+    success:     true,
+    url,
+    status:      'manual_required',
+    message:     'URL logged. Open the inspection link in Search Console and click "Request Indexing".',
+    inspectLink: gscInspectLink(url)
+  };
 }
 
 async function batchRequestIndexing(urls, type = 'URL_UPDATED') {
-  const results   = [];
-  const daily     = await getDailyQuotaUsed();
-  const quota     = 200;
-  const available = Math.max(0, quota - daily);
+  const results = [];
 
-  const toProcess = urls.slice(0, available);
-  const skipped   = urls.slice(available);
-
-  for (const url of toProcess) {
-    const result = await requestIndexing(url, type);
-    results.push(result);
-    await sleep(150);
+  for (const url of urls) {
+    results.push(await requestIndexing(url, type));
   }
 
   return {
-    submitted:   results.filter(r => r.success).length,
-    failed:      results.filter(r => !r.success && r.status !== 'skipped').length,
-    skipped:     skipped.length,
-    quotaUsed:   daily + results.filter(r => r.success).length,
-    quotaLimit:  quota,
+    submitted:   0,
+    failed:      0,
+    skipped:     0,
+    quotaUsed:   0,
+    quotaLimit:  200,
     results,
-    skippedUrls: skipped
+    skippedUrls: []
   };
 }
 
 async function getUrlStatus(url) {
-  const auth = getGoogleAuth();
-  if (!auth) return { configured: false };
-
-  try {
-    const { google }    = require('googleapis');
-    const searchconsole = google.searchconsole({ version: 'v1', auth });
-    const res           = await searchconsole.urlInspection.index.inspect({
-      requestBody: {
-        inspectionUrl: url,
-        siteUrl:       process.env.GOOGLE_SITE_URL
-      }
-    });
-    return {
-      configured:      true,
-      url,
-      inspectionResult: res.data.inspectionResult
-    };
-  } catch (err) {
-    return { configured: true, url, error: err.message };
-  }
+  return {
+    configured:  true,
+    url,
+    status:      'manual_required',
+    inspectLink: gscInspectLink(url)
+  };
 }
 
 async function logIndexingRequest(url, type, status, error = null) {
@@ -156,10 +89,6 @@ async function getIndexingHistory(limit = 50) {
   } catch {
     return [];
   }
-}
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 module.exports = {
