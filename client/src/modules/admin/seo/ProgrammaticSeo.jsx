@@ -107,6 +107,7 @@ function ContentPreview({ content, faqs }) {
 }
 
 export default function ProgrammaticSeo() {
+  const [mainTab,         setMainTab]         = useState('generate')
   const [selectedType,    setSelectedType]    = useState(null)
   const [form,            setForm]            = useState({})
   const [selectedCities,  setSelectedCities]  = useState([])
@@ -518,9 +519,111 @@ export default function ProgrammaticSeo() {
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
+  const gscLinkFor = (url) =>
+    `https://search.google.com/search-console/inspect?resource_id=https%3A%2F%2Fwww.awe-os.com%2F&id=${encodeURIComponent(url)}`
+
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-8">
-      <h1 className="text-2xl font-bold text-white">Programmatic SEO</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-white">Programmatic SEO</h1>
+        <div className="flex gap-1 bg-gray-800 p-1 rounded-xl">
+          {[{ id: 'generate', label: '⚡ Generate' }, { id: 'audit', label: '🔍 Quality Audit' }].map(t => (
+            <button key={t.id} onClick={() => setMainTab(t.id)}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${mainTab === t.id ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Quality Audit Tab ── */}
+      {mainTab === 'audit' && (
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {}}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition"
+            >
+              Scan All Published Pages
+            </button>
+            {lowQualityPages.length > 0 && (
+              <button
+                onClick={regenerateLowQuality}
+                disabled={bulkProgress.isRunning}
+                className="px-4 py-2 bg-yellow-700 hover:bg-yellow-600 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition"
+              >
+                🔄 Regenerate All Poor Pages ({lowQualityPages.length})
+              </button>
+            )}
+          </div>
+
+          {CITY_PAGES.length === 0 && (
+            <p className="text-gray-500 text-sm py-4">No city pages published yet.</p>
+          )}
+
+          {CITY_PAGES.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-700 text-left text-gray-400 text-xs">
+                    <th className="pb-3 pr-4 font-medium">URL</th>
+                    <th className="pb-3 pr-4 font-medium">Words</th>
+                    <th className="pb-3 pr-4 font-medium">Status</th>
+                    <th className="pb-3 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {CITY_PAGES.map(p => {
+                    const wc    = p.wordCount || 0
+                    const color = wc >= 1200 ? 'text-green-400' : wc >= 800 ? 'text-yellow-400' : 'text-red-400'
+                    const label = wc >= 1200 ? '🟢 Good' : wc >= 800 ? '🟡 Needs Improvement' : wc > 0 ? '🔴 Poor — Regenerate' : '⚪ Unknown'
+                    const liveUrl = `https://www.awe-os.com/${p.slug}`
+                    return (
+                      <tr key={p.slug} className="border-b border-gray-700/50 hover:bg-gray-800/30">
+                        <td className="py-2 pr-4 text-gray-300 text-xs max-w-[220px] truncate font-mono">/{p.slug}</td>
+                        <td className={`py-2 pr-4 font-medium ${color}`}>{wc > 0 ? wc.toLocaleString() : '—'}</td>
+                        <td className="py-2 pr-4 text-xs">{label}</td>
+                        <td className="py-2">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                const parts = (p.slug || '').split('/')
+                                const toolSlug = p.toolSlug || parts[0] || ''
+                                const toolName = p.toolName || toolSlug
+                                const cityName = p.cityName || (parts[1] || '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+                                setForm({ tool1Slug: toolSlug, tool1Name: toolName })
+                                setSelectedCities([cityName])
+                                setMainTab('generate')
+                                setSelectedType('city')
+                              }}
+                              className="text-xs text-yellow-400 hover:text-yellow-300"
+                            >Regenerate</button>
+                            <a href={liveUrl} target="_blank" rel="noreferrer" className="text-xs text-blue-400 hover:text-blue-300">View</a>
+                            <a href={gscLinkFor(liveUrl)} target="_blank" rel="noreferrer" className="text-xs text-indigo-400 hover:text-indigo-300">GSC</a>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {bulkProgress.isRunning && (
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 space-y-2">
+              <p className="text-sm text-white font-medium">Regenerating pages…</p>
+              <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                <div className="h-full bg-yellow-500 rounded-full transition-all"
+                  style={{ width: bulkProgress.total ? `${(bulkProgress.completed / bulkProgress.total) * 100}%` : '0%' }} />
+              </div>
+              <p className="text-xs text-gray-400">{bulkProgress.completed}/{bulkProgress.total} — {bulkProgress.current}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {mainTab === 'generate' && <>
 
       {/* Quality warning */}
       <div className="flex items-start gap-3 bg-yellow-900/30 border border-yellow-700 rounded-xl p-4">
@@ -1062,7 +1165,9 @@ export default function ProgrammaticSeo() {
         </div>
       )}
 
-      {/* ── Content Statistics ── */}
+      </> /* end generate tab */}
+
+      {/* ── Content Statistics — always visible ── */}
       {(() => {
         const byTool = {}
         CITY_PAGES.forEach(p => {
