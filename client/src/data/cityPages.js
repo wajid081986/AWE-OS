@@ -1,5 +1,148 @@
 export const CITY_PAGES = [
   {
+    "slug": "bmi-calculator/indore",
+    "title": "BMI Calculator for Indore — Free Online Tool for Indore Businesses",
+    "metaTitle": "Free BMI Calculator Indore 2026 | AWE-OS",
+    "metaDescription": "Use BMI Calculator in Indore — instant results, free, no signup required. Built for Indore businesses.",
+    "content": [
+      {
+        "type": "h1",
+        "text": "Discover Your Healthy Weight: BMI Calculator for Indore"
+      },
+      {
+        "type": "p",
+        "text": "Indore, known as the commercial capital of Madhya Pradesh, is a bustling hub of trade, education, and industry. The city has a vibrant economy driven by manufacturing, IT services, and its flourishing textile industry. As the city's economy grows, so does the importance of maintaining a healthy workforce. With the increasing awareness of health and fitness, many Indore residents and businesses are turning to tools like the BMI Calculator to ensure that they maintain a healthy weight. This tool is essential not only for individual health enthusiasts but also for businesses that aim to keep their employees healthy and productive. Given the rising concerns about obesity in India, particularly in urban areas like Indore, the BMI Calculator provides a simple, effective way to monitor weight-related health risks, helping both individuals and businesses in Indore to thrive."
+      },
+      {
+        "type": "h2",
+        "text": "BMI Calculator for Indore — Key Features"
+      },
+      {
+        "type": "p",
+        "text": "Our BMI Calculator is specifically designed to cater to the needs of Indore's dynamic populace. It offers features that are particularly beneficial for the city's residents, such as instant calculation results that fit the fast-paced lifestyle of Indore's professionals. The tool is 100% free, making it accessible to small and medium enterprises (SMEs) and individuals alike. Moreover, it is fully compliant with Indian health standards, providing reliable insights into healthy weight thresholds specific to Indian body types. This tool does not require any signup, thus offering immediate access, which is ideal for quick assessments during busy schedules. Finally, being browser-based, it ensures compatibility with any device, allowing users to check their BMI on-the-go, whether they are at the office or in an educational institution."
+      },
+      {
+        "type": "table",
+        "headers": [
+          "Feature",
+          "Benefit for Indore Users",
+          "Example"
+        ],
+        "rows": [
+          [
+            "100% Free",
+            "No cost for Indore SMEs",
+            "A small textile business using it for employee health checks"
+          ],
+          [
+            "Instant Results",
+            "Real-time calculations",
+            "A fitness trainer checking BMI of clients"
+          ],
+          [
+            "No Signup",
+            "Use immediately",
+            "A student checking BMI during a health class"
+          ],
+          [
+            "Indian Tax Compliant",
+            "CGST/SGST breakdown",
+            "A health startup analyzing regional data"
+          ],
+          [
+            "Browser-Based",
+            "Works on any device",
+            "A corporate employee using it on a phone"
+          ]
+        ]
+      },
+      {
+        "type": "h2",
+        "text": "How to Use BMI Calculator in Indore"
+      },
+      {
+        "type": "p",
+        "text": "Using the BMI Calculator in Indore is straightforward and efficient. Here’s a step-by-step guide to help you get started:\n1. **Visit the Tool**: Go to the BMI Calculator page on AWE-OS [here](https://www.awe-os.com/tools/bmi-calculator).\n2. **Enter Your Details**: Input your height in centimeters and weight in kilograms. For instance, if you’re a software engineer in Indore weighing 70 kg with a height of 170 cm, these are the figures you will enter.\n3. **Calculate BMI**: Click on the 'Calculate' button to get your BMI instantly.\n4. **Interpret the Results**: Understand your BMI value. A BMI between 18.5 and 24.9 is considered healthy for Indian adults. If your BMI falls outside this range, consider consulting a healthcare professional.\n5. **Plan Accordingly**: Use your BMI information to set health goals. For example, if you’re above the healthy range, plan a fitness regime or diet suitable for Indore’s climate and lifestyle."
+      },
+      {
+        "type": "h2",
+        "text": "Indore Examples with Real Numbers"
+      },
+      {
+        "type": "p",
+        "text": "Consider the case of a textile worker in Pithampur, Indore's industrial area, who weighs 60 kg and is 162 cm tall. After using the BMI Calculator, the worker finds a BMI of 22.9, indicating a healthy weight. This knowledge helps them maintain their current lifestyle while managing demanding work hours.\n\nAnother example is an IT professional working in one of Indore's tech parks, who weighs 85 kg and is 175 cm tall. Their BMI reads 27.8, suggesting overweight. This insight prompts them to join a local gym and adopt a healthier diet, balancing their sedentary job with physical activity.\n\nA third example involves a homemaker in the affluent Vijaynagar area, weighing 75 kg with a height of 160 cm. With a BMI of 29.3, categorized as overweight, they decide to join a community yoga class, which not only aids in weight management but also offers social engagement within the neighborhood."
+      },
+      {
+        "type": "h2",
+        "text": "Who Needs BMI Calculator in Indore"
+      },
+      {
+        "type": "p",
+        "text": "1. **Fitness Enthusiasts**: Indore’s growing number of gyms and yoga studios attract many fitness-conscious individuals who regularly use BMI calculators to track their progress and ensure they are within a healthy weight range.\n\n2. **Corporate Employees**: With numerous IT companies in Indore, employees leading a sedentary lifestyle benefit from BMI calculators to manage their health and prevent lifestyle-related diseases.\n\n3. **Healthcare Professionals**: Doctors and nutritionists in Indore use BMI calculators to provide accurate health assessments for their patients, offering tailored advice based on individual BMI results.\n\n4. **Educational Institutions**: Schools and colleges incorporate BMI calculators to educate students on health and fitness, encouraging them to develop healthy habits early on.\n\n5. **Small Business Owners**: Entrepreneurs in Indore use BMI calculators to promote employee wellness programs, understanding that a healthy workforce is more productive and engaged."
+      },
+      {
+        "type": "h2",
+        "text": "Why AWE-OS BMI Calculator is Perfect for Indore Users"
+      },
+      {
+        "type": "ul",
+        "items": [
+          "Tailored for Indian standards, ensuring accuracy for local users.",
+          "Free access makes it ideal for startups and small businesses in Indore.",
+          "User-friendly interface allows quick and easy calculations.",
+          "No signup required, facilitating immediate use for busy professionals.",
+          "Accessible from any device, perfect for on-the-go Indore residents."
+        ]
+      },
+      {
+        "type": "h2",
+        "text": "Conclusion"
+      },
+      {
+        "type": "p",
+        "text": "For Indore residents looking to maintain a healthy lifestyle, the AWE-OS BMI Calculator is a perfect tool. Whether you're an individual aiming to track your fitness journey or a business promoting employee wellness, this tool offers a free, no-signup-required, and browser-based solution that fits seamlessly into your daily routine. Start using the BMI Calculator today to ensure you and your team stay healthy and productive. Visit [AWE-OS BMI Calculator](https://www.awe-os.com/tools/bmi-calculator) now!"
+      },
+      {
+        "type": "callout",
+        "text": "Try our free BMI Calculator — instant results, no signup needed.",
+        "links": [
+          {
+            "href": "https://www.awe-os.com/tools/bmi-calculator",
+            "label": "Use BMI Calculator Free →"
+          }
+        ]
+      }
+    ],
+    "faqs": [
+      {
+        "q": "How accurate is the BMI Calculator for Indore users?",
+        "a": "The BMI Calculator provided by AWE-OS is highly accurate for Indore users, as it is tailored to Indian body standards. It considers the average height and weight norms prevalent in India, making it a reliable tool for assessing whether an individual falls within a healthy weight range. The tool's simplicity ensures that even those without a health or medical background can easily interpret the results. Indore's diverse population, from tech professionals to textile workers, can benefit from this tool to manage weight-related health risks effectively."
+      },
+      {
+        "q": "Can businesses in Indore use the BMI Calculator for employee wellness programs?",
+        "a": "Absolutely! The BMI Calculator is an excellent addition to any employee wellness program in Indore. Businesses, especially SMEs, can use this tool to monitor the health of their workforce without incurring additional costs. By integrating regular BMI checks, companies can promote a culture of health and wellness, potentially reducing absenteeism and boosting productivity. Indore's competitive business environment makes employee well-being a priority, and tools like the BMI Calculator provide valuable data to inform health initiatives."
+      },
+      {
+        "q": "Is the BMI Calculator accessible for all individuals in Indore?",
+        "a": "Yes, the BMI Calculator is designed to be accessible to everyone in Indore, regardless of their tech savviness or device capabilities. It is a browser-based tool, meaning it can be used on any device with internet access, from desktops in offices to mobile phones on the go. This flexibility ensures that anyone, from young students to busy professionals, can easily check their BMI and make informed health decisions. The tool's ease of use and no-cost access further enhance its accessibility for all demographics in Indore."
+      },
+      {
+        "q": "How does the BMI Calculator support fitness goals in Indore?",
+        "a": "The BMI Calculator is a valuable asset for fitness enthusiasts in Indore, aiding them in tracking and achieving their fitness goals. By providing an immediate BMI reading, the tool helps users understand their current health status and set realistic targets. Fitness trainers and gyms in Indore can incorporate this tool into their client assessments, offering personalized fitness plans that align with BMI results. Whether you are aiming to lose weight, build muscle, or maintain your current fitness level, the BMI Calculator offers the insights needed to stay on track."
+      },
+      {
+        "q": "Does the BMI Calculator consider regional dietary habits in Indore?",
+        "a": "While the BMI Calculator itself focuses on weight and height measurements to provide a BMI score, the results can be interpreted alongside regional dietary habits common in Indore. Users are encouraged to consider local eating patterns and nutritional guidelines when planning diet changes based on their BMI. Indore, known for its rich culinary culture, offers a variety of healthy food options that can be incorporated into a balanced diet to support a healthy BMI. Consulting a local nutritionist can further enhance the effectiveness of BMI-related health plans."
+      }
+    ],
+    "wordCount": 1392,
+    "toolSlug": "bmi-calculator",
+    "toolName": "BMI Calculator",
+    "cityName": "Indore",
+    "publishedAt": "2026-05-30",
+    "id": 54
+  },
+  {
     "slug": "bmi-calculator/nagpur",
     "title": "BMI Calculator for Nagpur — Free Online Tool for Nagpur Businesses",
     "metaTitle": "Free BMI Calculator Nagpur 2026 | AWE-OS",
