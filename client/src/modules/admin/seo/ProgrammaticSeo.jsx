@@ -107,8 +107,11 @@ function ContentPreview({ content, faqs }) {
 }
 
 export default function ProgrammaticSeo() {
-  const [mainTab,         setMainTab]         = useState('generate')
-  const [selectedType,    setSelectedType]    = useState(null)
+  const [mainTab,        setMainTab]        = useState('generate')
+  const [suggestions,    setSuggestions]    = useState([])
+  const [suggestLoading, setSuggestLoading] = useState(false)
+  const [suggestErr,     setSuggestErr]     = useState('')
+  const [selectedType,   setSelectedType]   = useState(null)
   const [form,            setForm]            = useState({})
   const [selectedCities,  setSelectedCities]  = useState([])
   const [customCityInput, setCustomCityInput] = useState('')
@@ -473,6 +476,17 @@ export default function ProgrammaticSeo() {
     navigator.clipboard.writeText(urls).catch(() => {})
   }
 
+  async function fetchSuggestions() {
+    setSuggestLoading(true)
+    setSuggestErr('')
+    try {
+      const { data } = await api.post('/api/admin/seo/suggest-comparisons')
+      if (!data.success) throw new Error(data.error)
+      setSuggestions(data.suggestions || [])
+    } catch (e) { setSuggestErr(e.message) }
+    finally { setSuggestLoading(false) }
+  }
+
   // ── Derived values ──────────────────────────────────────────────────────────
 
   const canGenerate =
@@ -707,6 +721,38 @@ export default function ProgrammaticSeo() {
               {form.tool1Slug && form.tool2Slug && form.tool1Slug !== form.tool2Slug && (
                 <div className="md:col-span-2 text-xs text-gray-500">
                   Preview URL: /compare/{form.tool1Slug}-vs-{form.tool2Slug}
+                </div>
+              )}
+              <div className="md:col-span-2">
+                <button
+                  type="button"
+                  onClick={fetchSuggestions}
+                  disabled={suggestLoading}
+                  className="px-4 py-2 bg-purple-700 hover:bg-purple-600 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition"
+                >
+                  {suggestLoading ? '🤖 Thinking…' : '🤖 AI Suggest 10 Pairs'}
+                </button>
+                {suggestErr && <p className="mt-2 text-xs text-red-400">{suggestErr}</p>}
+              </div>
+              {suggestions.length > 0 && (
+                <div className="md:col-span-2 space-y-2">
+                  <p className="text-xs text-gray-500">Click a pair to auto-fill the form:</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {suggestions.map((s, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setForm({ tool1Slug: s.toolASlug, tool1Name: s.toolAName, tool2Slug: s.toolBSlug, tool2Name: s.toolBName })}
+                        className="text-left bg-gray-700 hover:bg-gray-600 border border-gray-600 hover:border-purple-500 rounded-lg p-3 transition"
+                      >
+                        <p className="text-sm font-medium text-white">{s.toolAName} vs {s.toolBName}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-purple-400">{s.searchVolume} volume</span>
+                          <span className="text-xs text-gray-400 truncate">{s.reason}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

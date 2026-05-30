@@ -853,4 +853,50 @@ router.post('/fix-orphans', requireAuth, requireAdmin, async (req, res) => {
   }
 })
 
+// ── POST /suggest-comparisons — AI-suggested tool pairs ──────────────────────
+
+router.post('/suggest-comparisons', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const toolCtx    = evalDataFile(path.resolve(__dirname, '../../client/src/data/toolRegistry.js'))
+    const tools      = (Array.isArray(toolCtx.TOOL_REGISTRY) ? toolCtx.TOOL_REGISTRY : [])
+      .filter(t => !t.comingSoon)
+      .map(t => ({ slug: t.slug, name: t.name, category: t.category }))
+
+    const prompt = `You are an SEO expert for AWE-OS.com — a free tools site for Indian users.
+
+Available tools: ${JSON.stringify(tools.map(t => `${t.name} (${t.slug})`).slice(0, 30))}
+
+Suggest 10 best tool comparison pairs for programmatic SEO pages.
+Choose pairs that Indian users commonly compare (high search intent).
+Focus on tools in the same category or complementary use cases.
+
+Return ONLY valid JSON array:
+[
+  {
+    "toolASlug": "merge-pdf",
+    "toolAName": "Merge PDF",
+    "toolBSlug": "compress-pdf",
+    "toolBName": "Compress PDF",
+    "slug": "merge-pdf-vs-compress-pdf",
+    "searchVolume": "medium",
+    "reason": "Why Indians commonly compare these tools"
+  }
+]`
+
+    const completion = await getOpenAI().chat.completions.create({
+      model:       'gpt-4o-mini',
+      messages:    [{ role: 'user', content: prompt }],
+      max_tokens:  1500,
+      temperature: 0.7,
+    })
+    const raw         = completion.choices[0]?.message?.content || ''
+    const suggestions = parseAIJson(raw)
+    if (!Array.isArray(suggestions)) throw new Error('AI did not return a valid array')
+    res.json({ success: true, suggestions: suggestions.slice(0, 10) })
+  } catch (err) {
+    console.error('[admin-seo/suggest-comparisons]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
 module.exports = router
