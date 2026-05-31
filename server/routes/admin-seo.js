@@ -899,6 +899,81 @@ Return ONLY valid JSON array:
   }
 })
 
+// ── GET /health-score ─────────────────────────────────────────────────────────
+
+router.get('/health-score', requireAuth, requireAdmin, (req, res) => {
+  try {
+    const toolCtx  = evalDataFile(path.resolve(__dirname, '../../client/src/data/toolPageContent.js'))
+    const blogCtx  = evalDataFile(path.resolve(__dirname, '../../client/src/data/blogPosts.js'))
+    const cityCtx  = evalDataFile(path.resolve(__dirname, '../../client/src/data/cityPages.js'))
+
+    const toolAbout = toolCtx.TOOL_ABOUT || {}
+    const posts     = Array.isArray(blogCtx.BLOG_POSTS) ? blogCtx.BLOG_POSTS    : []
+    const cityPages = Array.isArray(cityCtx.CITY_PAGES) ? cityCtx.CITY_PAGES    : []
+
+    const toolWords = Object.entries(toolAbout).map(([slug, entry]) => ({
+      slug, words: countToolWords(entry),
+    }))
+
+    const avgWords     = toolWords.length
+      ? Math.round(toolWords.reduce((s, e) => s + e.words, 0) / toolWords.length)
+      : 0
+    const criticalCt   = toolWords.filter(e => e.words < 300).length
+    const blogCount    = posts.length
+    const cityCount    = cityPages.length
+
+    // Sub-scores 0-100 per category
+    // Content Quality (30%): linear 0-100 across 0→600 words, capped at 100
+    const contentQuality = Math.min(100, Math.round(avgWords / 600 * 100))
+
+    // Blog Coverage (20%): 10+ = 100, <10 = proportional with 50% at 5
+    const blogCoverage = blogCount >= 10 ? 100
+      : blogCount >= 5 ? Math.round(50 + (blogCount - 5) * 10)
+      : Math.round(blogCount / 5 * 50)
+
+    // City Pages (20%): 80+ = 100, <80 = proportional
+    const cityPagesScore = cityCount >= 80 ? 100
+      : cityCount >= 40 ? Math.round(50 + (cityCount - 40) / 40 * 50)
+      : Math.round(cityCount / 40 * 50)
+
+    // Thin Content (15%): 0 critical = 100, each critical page loses 10 pts
+    const thinContent = Math.max(0, 100 - criticalCt * 10)
+
+    // Internal Links (15%): no crawl data available → baseline 50
+    const internalLinks = 50
+
+    const overall = Math.round(
+      contentQuality   * 0.30 +
+      blogCoverage     * 0.20 +
+      cityPagesScore   * 0.20 +
+      thinContent      * 0.15 +
+      internalLinks    * 0.15
+    )
+
+    const grade = overall >= 90 ? 'A' : overall >= 80 ? 'B' : overall >= 70 ? 'C' : overall >= 60 ? 'D' : 'F'
+
+    res.json({
+      success: true,
+      score: {
+        overall,
+        grade,
+        breakdown: {
+          contentQuality: { score: contentQuality,   weight: 30, label: 'Content Quality', detail: `Avg ${avgWords} words/page (target 600+)` },
+          blogCoverage:   { score: blogCoverage,     weight: 20, label: 'Blog Coverage',   detail: `${blogCount} articles (target 10+)` },
+          cityPages:      { score: cityPagesScore,   weight: 20, label: 'City Pages',      detail: `${cityCount} city pages (target 80+)` },
+          thinContent:    { score: thinContent,      weight: 15, label: 'Thin Content',    detail: `${criticalCt} critical pages (<300 words)` },
+          internalLinks:  { score: internalLinks,    weight: 15, label: 'Internal Links',  detail: 'Run site crawl to get real data' },
+        },
+        stats: { avgWords, criticalCount: criticalCt, blogCount, cityCount, toolCount: toolWords.length },
+        computedAt: new Date().toISOString(),
+      },
+    })
+  } catch (err) {
+    console.error('[admin-seo/health-score]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
 // ── Thin-content helpers ──────────────────────────────────────────────────────
 
 function countToolWords(entry) {
@@ -973,7 +1048,7 @@ router.get('/scan-tool-content', requireAuth, requireAdmin, (req, res) => {
     const toolAbout = toolCtx.TOOL_ABOUT || {}
     const results = Object.entries(toolAbout).map(([slug, entry]) => {
       const words  = countToolWords(entry)
-      const status = words >= 600 ? 'good' : words >= 400 ? 'low' : 'thin'
+      const status = words >= 600 ? 'good' : words >= 300 ? 'low' : 'critical'
       return { slug, words, status }
     }).sort((a, b) => a.words - b.words)
     res.json({ success: true, results })
