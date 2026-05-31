@@ -191,26 +191,48 @@ export const TOOL_ABOUT = {
   },
 
   'pdf-to-jpg': {
-    whatIsIt: 'AWE-OS PDF to JPG converts every page of a PDF into separate JPEG image files directly in your browser. It is commonly used to extract images from product catalogues, convert scanned PDF documents into shareable image format for WhatsApp, and prepare PDF slides as images for social media posts or presentations.',
-    howToUse: [
-      'Click "Select PDF" or drag your PDF file into the tool',
-      'Choose the output image quality — High produces larger, clearer images; Medium is sufficient for most uses',
-      'Click "Convert to JPG" — each PDF page is converted to a separate image',
-      'Download individual page images or click "Download All" to get a ZIP file with all pages',
-    ],
-    whyUseUs: [
-      '100% free — no watermarks, unlimited pages, no hidden charges',
-      'Private — PDF pages are rendered locally using PDF.js, never uploaded to any server',
-      'No signup required — open and convert instantly',
-      'Download all pages as a ZIP file in one click',
-    ],
-    faqs: [
-      { q: 'Is PDF to JPG free?', a: 'Yes. Completely free with no page limit and no watermarks on output images.' },
-      { q: 'Is my PDF safe?', a: 'All conversion happens locally in your browser using PDF.js. Your file is never sent to any server.' },
-      { q: 'Does it work on mobile?', a: 'Yes. Works on Android and iOS browsers. Large PDFs may be slower on older mobile devices.' },
-      { q: 'What image quality does the output have?', a: 'The tool offers three quality settings. High quality renders at 200 DPI — sharp enough for printing and detailed review. Medium (150 DPI) is suitable for screen viewing and document sharing. Low quality produces smaller file sizes suitable for quick previews and WhatsApp sharing where file size matters more than sharpness.' },
-    ],
-  },
+  "description": "AWE-OS PDF to JPG is a powerful online tool designed specifically for Indian users, enabling them to effortlessly convert PDF files into high-quality JPEG images. Whether you're a student needing to share lecture notes, a small business owner looking to convert product brochures, or a professional aiming to create engaging presentations, this tool is tailored for you. With no installation required and instant conversion directly in your browser, it’s perfect for those who value convenience. Plus, with the rising use of digital communication in India, converting PDFs to JPGs makes sharing content via WhatsApp or social media platforms more accessible and visually appealing, all free of charge.",
+  "features": [
+    "Instant conversion without any software installation, saving time and effort for Indian users.",
+    "Browser-based tool that works on any device, allowing users to convert PDFs on-the-go.",
+    "High-quality output options to ensure clarity and detail for images used in business presentations.",
+    "Simple drag-and-drop interface, making it user-friendly for individuals of all tech levels.",
+    "No registration or hidden fees, ensuring a completely free experience, aligning with the needs of small businesses and freelancers in India.",
+    "Supports a wide range of PDF file sizes, accommodating everything from simple documents to complex catalogs."
+  ],
+  "useCases": [
+    "A small business owner in Mumbai can convert their product catalog PDF into JPG images to share on social media, enhancing visibility without the hassle of complex software.",
+    "Students preparing for online submissions can convert their lecture slides into JPEGs for easier sharing with classmates via messaging apps like WhatsApp, making collaboration seamless.",
+    "A graphic designer in Bangalore can use the tool to extract images from a PDF portfolio, allowing for quick adjustments and easy sharing with potential clients.",
+    "Event organizers can convert event flyers from PDF to JPG to distribute visually appealing images via email and social media, ensuring maximum outreach and engagement."
+  ],
+  "howToUse": [
+    "Step 1: Click on the 'Select PDF' button or simply drag and drop your PDF file into the designated area on the tool's webpage.",
+    "Step 2: Once the file is uploaded, choose your preferred output image quality. Select 'High' for the best clarity, ideal for print or presentation use, or 'Medium' for everyday sharing.",
+    "Step 3: After setting the quality, click on the 'Convert to JPG' button to start the conversion process.",
+    "Step 4: Wait a few moments as the tool processes your PDF, converting each page into a separate JPG image file.",
+    "Step 5: Once the conversion is complete, download the JPEG files directly to your device, ready for use in your projects or sharing."
+  ],
+  "whyUseUs": [
+    "Our tool is designed with the Indian user in mind, offering a straightforward and efficient solution for converting PDFs to images without the need for advanced technical skills.",
+    "By providing services at no cost, we empower small business owners and freelancers in India to enhance their digital content without incurring additional expenses.",
+    "With a mobile-friendly interface, you can convert PDF files into JPGs anytime and anywhere, making it ideal for users in fast-paced environments like urban India."
+  ],
+  "faqs": [
+    {
+      "q": "Is there a limit on the file size I can upload?",
+      "a": "Yes, while our tool supports a wide range of PDF sizes, for optimal performance, we recommend keeping your files under 10 MB. If your PDF is larger, consider splitting it into smaller parts before conversion."
+    },
+    {
+      "q": "Can I convert multiple PDF files at once?",
+      "a": "Currently, our tool allows one PDF file conversion at a time. However, you can easily repeat the process for multiple files. This ensures each PDF is converted accurately and maintains high quality."
+    },
+    {
+      "q": "What should I do if the conversion fails?",
+      "a": "If your conversion doesn't succeed, please check the file format and size. Ensure your PDF is not password-protected, as this may hinder the conversion. If issues persist, try using a different browser or clear your cache before attempting again."
+    }
+  ]
+},
 
   'word-to-pdf': {
     whatIsIt: 'AWE-OS Word to PDF converts .docx Microsoft Word documents into PDF format directly in your browser — no Microsoft Office installation required. It is essential for Indian job applications (most companies require PDF resumes), government form submissions (which mandate PDF uploads), university assignments, and client-facing documents that must retain their formatting across different devices and operating systems.',
