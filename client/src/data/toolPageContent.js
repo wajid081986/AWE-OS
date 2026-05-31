@@ -641,26 +641,48 @@ export const TOOL_ABOUT = {
   },
 
   'unit-converter': {
-    whatIsIt: 'AWE-OS Unit Converter converts between measurement units across length, weight, temperature, speed, area, and volume — including Indian-specific units like bigha, marla, gunta, and cent for land area, and tola for gold weight. It is used for cooking recipes, school physics assignments, property research (square feet to bigha, acres to square metres), and international product specifications.',
-    howToUse: [
-      'Select the measurement category: length, weight, temperature, area, speed, or volume',
-      'Choose the source unit and the target unit from the dropdown menus',
-      'Enter the value to convert — the result updates instantly as you type',
-      'Use the swap button to reverse the conversion direction',
-    ],
-    whyUseUs: [
-      '100% free — no limits, no account required',
-      'Includes Indian units: bigha, marla, gunta, cent, tola, and more',
-      'Instant conversion — results update as you type with no delay',
-      'Works offline once the page has loaded — no continuous internet required',
-    ],
-    faqs: [
-      { q: 'Is Unit Converter free?', a: 'Yes. Completely free with no account required and no limits on conversions.' },
-      { q: 'Is my data safe?', a: 'All conversions happen locally in your browser. No data is sent to any server.' },
-      { q: 'Does it work on mobile?', a: 'Yes. Works on Android and iOS in Chrome, Firefox, Safari, and Edge. Results are optimised for mobile screens.' },
-      { q: 'What Indian-specific units are supported?', a: 'For land area: the tool supports bigha (using the standard definition of 2529 sq metres common in UP, Bihar, and Rajasthan), marla (272.25 sq ft, used in Punjab and Haryana), gunta (1089 sq ft, used in Karnataka and Andhra Pradesh), and cent (435.6 sq ft, used in Tamil Nadu, Kerala, and Andhra Pradesh). For gold weight: tola (11.664 grams, the traditional Indian unit used by jewellers). Note that bigha varies significantly by state — always verify with local property registration records for legal transactions.' },
-    ],
-  },
+  "description": "The AWE-OS Unit Converter is an essential tool for Indian users, allowing seamless conversion between various measurement units such as length, weight, temperature, speed, area, and volume. With the inclusion of Indian-specific units like bigha for land area and tola for gold weight, this tool caters specifically to local needs. Whether you are planning a home renovation, calculating property values in your state, or adjusting recipes that require precise measurements, our unit converter is designed to make your tasks easier, saving time and reducing the risk of errors.",
+  "features": [
+    "Covers a wide range of measurement categories including length, weight, temperature, and area to cater to diverse needs.",
+    "Includes Indian-specific units like bigha, marla, and tola, ensuring relevance for local users.",
+    "User-friendly interface allowing quick and easy conversions without technical knowledge.",
+    "Real-time conversion results that help in immediate decision-making for buying or selling properties.",
+    "Supports both metric and imperial systems, providing flexibility for various applications.",
+    "Free to use with no hidden charges, making it accessible for all Indian users."
+  ],
+  "useCases": [
+    "When researching property prices in India, you may need to convert square feet to bigha or acres to square meters. Our unit converter simplifies this process, allowing you to quickly assess property values in your area and make informed decisions.",
+    "For students working on physics assignments, converting units such as grams to kilograms or Celsius to Fahrenheit is often necessary. Our tool provides accurate conversions to help students complete their projects seamlessly.",
+    "In cooking, many Indian recipes use traditional measurements like tola for weight. Our unit converter allows home cooks to easily switch between standard and traditional measurements, ensuring that every dish is prepared perfectly.",
+    "When shopping for products online, understanding dimensions and weights in both metric and imperial systems can be challenging. Our unit converter helps users quickly convert these measurements, facilitating better purchasing decisions."
+  ],
+  "howToUse": [
+    "Step 1: Visit the AWE-OS Unit Converter webpage at https://www.awe-os.com/tools/unit-converter.",
+    "Step 2: Select the measurement category you wish to convert, such as length, weight, or area from the provided options.",
+    "Step 3: Choose the source unit from the dropdown menu. For example, if you are converting land area, select 'bigha' or 'square feet'.",
+    "Step 4: Next, choose the target unit you want to convert to from the second dropdown menu.",
+    "Step 5: Click on the 'Convert' button to view the results instantly, allowing you to make quick decisions based on the conversion."
+  ],
+  "whyUseUs": [
+    "Our unit converter is specifically designed for Indian users, providing units and measurements that are commonly used in the country, making it more relevant and user-friendly.",
+    "The tool is completely free, making it accessible for everyone, whether you are a student, a professional, or a homemaker looking to simplify your tasks.",
+    "With real-time conversions and a straightforward interface, users can trust the accuracy of the results, ensuring better decision-making across various everyday scenarios."
+  ],
+  "faqs": [
+    {
+      "q": "What units can I convert using the AWE-OS Unit Converter?",
+      "a": "The AWE-OS Unit Converter allows you to convert a wide range of units across various categories including length (meters, kilometers), weight (grams, kilograms, tolas), temperature (Celsius, Fahrenheit), area (square feet, bigha, acres), and volume (liters, milliliters). This diverse offering ensures that users from different sectors can find the measurements they need easily."
+    },
+    {
+      "q": "Is the AWE-OS Unit Converter suitable for professional use?",
+      "a": "Absolutely! The AWE-OS Unit Converter is designed to meet the needs of both casual users and professionals. Whether you are in real estate needing to convert land measurements or a chef converting recipe ingredients, the tool provides accurate results that can assist in various professional contexts, making it a reliable resource for all."
+    },
+    {
+      "q": "Can I rely on the conversions provided by the AWE-OS Unit Converter?",
+      "a": "Yes, you can trust the conversions provided by the AWE-OS Unit Converter. The tool is built to ensure accuracy and reliability, catering specifically to the needs of Indian users. However, it is always advisable to double-check critical conversions, especially in professional or legal contexts, to ensure compliance with local regulations and standards."
+    }
+  ]
+},
 
   // ── NEW TOOLS ──────────────────────────────────────────────────────────────
 
