@@ -499,26 +499,48 @@ export const TOOL_ABOUT = {
 },
 
   'unlock-pdf': {
-    whatIsIt: 'AWE-OS Unlock PDF removes password protection from a PDF document you already own, allowing it to be opened freely without entering a password each time. It is designed for users who have the password to their own document but want to remove the restriction — common with bank-issued statements, salary slips, and credit card PDFs that are automatically password-protected with your date of birth or account number.',
-    howToUse: [
-      'Upload your password-protected PDF by clicking "Select PDF" or dragging the file',
-      'Enter the current password that unlocks the document',
-      'Click "Unlock PDF" — the tool removes the password restriction from the file',
-      'Download the unlocked PDF, which can now be opened without entering a password',
-    ],
-    whyUseUs: [
-      '100% free — no limits on file size or number of PDFs unlocked',
-      'Private — unlocking happens locally in your browser, PDF and password never uploaded',
-      'No signup required — remove password protection instantly',
-      'Works on PDFs issued by Indian banks including HDFC, ICICI, SBI, and Axis',
-    ],
-    faqs: [
-      { q: 'Is Unlock PDF free?', a: 'Yes. Completely free with no limits and no watermarks on the unlocked PDF.' },
-      { q: 'Is this legal?', a: 'Removing password protection from PDFs you own and have the password for is legal. This tool is designed for users who have legitimate access to the document. It should not be used to access documents you are not authorised to view.' },
-      { q: 'Does it work on mobile?', a: 'Yes. Works on Android and iOS in Chrome, Firefox, Safari, and Edge.' },
-      { q: 'Why do Indian banks send password-protected PDFs?', a: 'Indian banks such as HDFC, ICICI, SBI, Axis, and Kotak typically protect emailed account statements and credit card PDFs with the account holder\'s date of birth (in DDMMYYYY format) or a combination of PAN and date of birth. This is a basic security measure so that if the email is intercepted, the statement cannot be read without the account holder\'s personal details. Once you have verified the content, removing the password using a browser-based tool is safe and convenient for long-term document storage.' },
-    ],
-  },
+  "description": "AWE-OS Unlock PDF is a user-friendly tool specifically designed for Indian users to easily remove password protection from their PDF documents. Whether you have bank statements, salary slips, or any other important documents secured with a password, our free tool enables you to unlock them without hassle. This is particularly useful for individuals who frequently deal with financial documents where passwords often hinder accessibility. By unlocking your PDFs, you can ensure smoother access and management of your essential documents, saving you time and effort.",
+  "features": [
+    "User-friendly interface that simplifies the unlocking process for everyone, regardless of technical skills.",
+    "No installation required; access the tool directly from your browser for instant unlocking.",
+    "Supports various types of PDF files, allowing you to unlock a wide range of documents including bank statements and invoices.",
+    "Secure processing that ensures your files are not stored or shared after unlocking, maintaining your privacy.",
+    "Fast processing time, allowing you to unlock documents in seconds, ideal for busy professionals.",
+    "Free to use with no hidden charges, making it accessible for all users in India."
+  ],
+  "useCases": [
+    "If you're a salaried professional in India, you often receive your salary slip in a password-protected PDF. Unlocking it allows you to easily share it with banks or loan providers without the hassle of entering passwords repeatedly.",
+    "Small business owners frequently receive invoices in PDF format from vendors. Using our tool, they can unlock these documents for easy accounting and record-keeping without any password issues, facilitating smoother business operations.",
+    "Students may receive their academic documents or certificates as password-protected PDFs. Unlocking these files allows them to submit necessary documents for applications without the inconvenience of password entry.",
+    "Freelancers in India often sign contracts that come as secured PDFs. By using our tool, they can unlock these contracts for easy printing and sharing with clients or for personal records."
+  ],
+  "howToUse": [
+    "Step 1: Click on 'Select PDF' or drag your password-protected PDF file into the designated area on the AWE-OS Unlock PDF website.",
+    "Step 2: Enter the current password that unlocks the document. Make sure to input it accurately to avoid errors.",
+    "Step 3: Click on the 'Unlock' button to initiate the unlocking process.",
+    "Step 4: Wait for a few moments as our tool processes your request. You will be notified once the process is complete.",
+    "Step 5: Download the unlocked PDF to your device and enjoy unrestricted access."
+  ],
+  "whyUseUs": [
+    "Our tool is specifically designed for Indian users, addressing common issues faced with password-protected PDFs in the local context, such as financial documents and government forms.",
+    "We prioritize user privacy and security; your documents are not stored on our servers, ensuring no unauthorized access to your sensitive information.",
+    "AWE-OS Unlock PDF is completely free, providing an essential service without any charges, making it a cost-effective solution for individuals and businesses alike."
+  ],
+  "faqs": [
+    {
+      "q": "Is it safe to use AWE-OS Unlock PDF?",
+      "a": "Yes, AWE-OS Unlock PDF is completely safe to use. We do not store any of your files after processing, ensuring your documents remain confidential. Additionally, our service uses secure connections to protect your data during the unlocking process."
+    },
+    {
+      "q": "What types of PDF files can I unlock?",
+      "a": "You can unlock various types of PDF files, including those containing financial documents like bank statements, salary slips, and invoices. As long as you know the password, our tool can help you unlock these documents for easier access."
+    },
+    {
+      "q": "Do I need to download any software to use the tool?",
+      "a": "No, there is no need to download any software. AWE-OS Unlock PDF is a web-based tool that you can access directly from your browser. This makes it convenient and accessible from any device, whether you are using a computer or a smartphone."
+    }
+  ]
+},
 
   'image-compressor': {
     description: 'AWE-OS Image Compressor reduces the file size of JPEG, PNG, and WebP images directly in your browser without uploading them to any server. It is essential for Indian users who need to compress profile photos for government portals (passport applications, college admissions, UPSC exam registrations), product images for e-commerce listings on Amazon India and Flipkart, and images shared on WhatsApp where large files load slowly on mobile data connections. The tool provides a real-time side-by-side preview showing the original and compressed image quality alongside exact file sizes, so you can fine-tune the quality slider before downloading. With a recommended starting point of 80% quality, most images reduce by 60–80% in size with minimal perceptible quality loss. The compressor works entirely within your browser using the HTML5 Canvas API — no files are ever sent to a remote server, making it completely private and safe for sensitive personal photographs and identity documents.',
