@@ -168,19 +168,36 @@ function buildToolBody(tool) {
   const aboutData = TOOL_ABOUT[tool.slug]
   let aboutSection = ''
   if (Array.isArray(aboutData) && aboutData.length) {
+    // Legacy format: array of plain-text paragraphs
     aboutSection = `<section aria-label="About ${esc(tool.name)}">${aboutData.map(p => `<p>${esc(p)}</p>`).join('\n')}</section>`
   } else if (aboutData && typeof aboutData === 'object') {
+    // Current structured format: { description, features, useCases, howToUse, whyUseUs, faqs }
     const parts = []
-    if (aboutData.whatIsIt) parts.push(`<p>${esc(aboutData.whatIsIt)}</p>`)
+
+    // description (was incorrectly checked as 'whatIsIt' — field name is 'description')
+    const desc = aboutData.description || aboutData.whatIsIt
+    if (desc) parts.push(`<p>${esc(desc)}</p>`)
+
+    if (aboutData.features?.length) {
+      parts.push(`<h2>Key Features</h2><ul>${aboutData.features.map(f => `<li>${esc(f)}</li>`).join('')}</ul>`)
+    }
+
+    if (aboutData.useCases?.length) {
+      parts.push(`<h2>Who Should Use This Tool</h2><ul>${aboutData.useCases.map(u => `<li>${esc(u)}</li>`).join('')}</ul>`)
+    }
+
     if (aboutData.howToUse?.length) {
-      parts.push(`<h2>How to Use</h2><ol>${aboutData.howToUse.map(s => `<li>${esc(s)}</li>`).join('')}</ol>`)
+      parts.push(`<h2>How to Use ${esc(tool.name)}</h2><ol>${aboutData.howToUse.map(s => `<li>${esc(s)}</li>`).join('')}</ol>`)
     }
+
     if (aboutData.whyUseUs?.length) {
-      parts.push(`<h2>Why Choose AWE-OS</h2><ul>${aboutData.whyUseUs.map(s => `<li>${esc(s)}</li>`).join('')}</ul>`)
+      parts.push(`<h2>Why Choose AWE-OS ${esc(tool.name)}</h2><ul>${aboutData.whyUseUs.map(s => `<li>${esc(s)}</li>`).join('')}</ul>`)
     }
+
     if (aboutData.faqs?.length) {
       parts.push(`<h2>Frequently Asked Questions</h2>${aboutData.faqs.map(f => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join('')}`)
     }
+
     if (parts.length) {
       aboutSection = `<section aria-label="About ${esc(tool.name)}">${parts.join('\n')}</section>`
     }
