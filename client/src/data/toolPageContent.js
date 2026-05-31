@@ -433,26 +433,48 @@ export const TOOL_ABOUT = {
 },
 
   'protect-pdf': {
-    whatIsIt: 'AWE-OS Protect PDF adds password protection to PDF documents directly in your browser, requiring anyone who opens the file to enter the password you set. It is used by Indian professionals to secure salary slips before WhatsApp sharing, protect bank statements shared with landlords or loan applications, and restrict access to confidential business documents and client agreements sent over email.',
-    howToUse: [
-      'Upload your PDF by clicking "Select PDF" or dragging the file into the tool',
-      'Enter the password you want to set — use a strong password of at least 8 characters',
-      'Optionally restrict permissions such as printing or copying of the PDF content',
-      'Click "Protect PDF" and download the password-protected file immediately',
-    ],
-    whyUseUs: [
-      '100% free — no limits on document size or number of files protected',
-      'Private — password encryption happens locally in your browser, PDF never uploaded',
-      'No signup required — protect documents instantly without registration',
-      'Uses AES-128 encryption — the standard recognised by PDF viewers worldwide',
-    ],
-    faqs: [
-      { q: 'Is Protect PDF free?', a: 'Yes. Completely free with no watermarks and no limits on file size or number of documents you protect.' },
-      { q: 'Is my PDF safe when adding password protection online?', a: 'All encryption happens locally in your browser. The PDF and your chosen password are never transmitted to any server. This is critical for sensitive documents — no external party ever sees your file or password.' },
-      { q: 'Does it work on mobile?', a: 'Yes. Works on Android and iOS in Chrome, Firefox, Safari, and Edge without any app download.' },
-      { q: 'What happens if I forget the password?', a: 'Password-protected PDFs cannot be opened without the correct password. There is no master password or recovery option built into the PDF standard. If you forget the password, the document is permanently inaccessible. Always store passwords for important documents in a password manager. We recommend using a memorable but strong password for documents you will need to access again in the future.' },
-    ],
-  },
+  "description": "AWE-OS Protect PDF is a user-friendly online tool designed specifically for Indian users to secure their PDF documents with password protection. In a digital age where sensitive information is frequently shared via email or messaging apps, this tool is essential for safeguarding important documents such as salary slips, bank statements, and business contracts. By adding a password to your PDFs, you ensure that only authorized individuals can access confidential information, helping to prevent data breaches and maintain privacy. With no need for software downloads, AWE-OS Protect PDF offers a seamless experience for users across India, allowing them to protect their documents in just a few clicks.",
+  "features": [
+    "Instant PDF password protection - Quickly secure your files without downloads or installations.",
+    "User-friendly interface - Intuitive design makes it easy for anyone, regardless of technical skill, to protect their documents.",
+    "Strong encryption - Utilizes robust encryption methods to ensure that your PDFs are secure and inaccessible to unauthorized users.",
+    "No file size limits - Protect any size of PDF files without worrying about restrictions.",
+    "Free to use - Enjoy all features without any cost, making it accessible for professionals and students alike.",
+    "Browser-based convenience - Access the tool from any device with internet connectivity, eliminating the need for specific software."
+  ],
+  "useCases": [
+    "Indian freelancers often send invoices and contracts via email. By using AWE-OS Protect PDF, they can add a password to their PDFs, ensuring that only their clients can view sensitive financial information, thus maintaining confidentiality and trust.",
+    "Small business owners in India frequently share salary slips and financial statements with employees over WhatsApp. By securing these documents with a password, they can prevent unauthorized access and protect their employees' personal information.",
+    "Students and educators alike can use AWE-OS Protect PDF to secure important academic documents, such as research papers and project reports, before sharing them with classmates or professors, ensuring only intended recipients can view them.",
+    "Real estate agents often share property documents with potential buyers. By protecting these PDFs with a password, they can safeguard sensitive information, such as financial details and personal agreements, ensuring that only serious buyers have access."
+  ],
+  "howToUse": [
+    "Step 1: Visit the AWE-OS Protect PDF tool page and click on 'Select PDF' or simply drag and drop your PDF file into the designated area.",
+    "Step 2: Once your PDF is uploaded, enter a strong password that is at least 8 characters long, including a mix of letters, numbers, and symbols for enhanced security.",
+    "Step 3: Review the details to ensure that the correct PDF is uploaded and the password meets security standards.",
+    "Step 4: Click 'Protect PDF' to initiate the password protection process.",
+    "Step 5: After the process is complete, download your secured PDF and share it with recipients, ensuring they know the password to access the document."
+  ],
+  "whyUseUs": [
+    "AWE-OS Protect PDF is specifically tailored for Indian users, making it easier for professionals and students to secure sensitive documents in a culturally relevant context, such as protecting salary slips and financial statements.",
+    "Our online tool is completely free, providing a cost-effective solution for individuals and businesses looking to maintain privacy without incurring expenses on software purchases.",
+    "The tool is designed with user convenience in mind, allowing users to protect their PDFs from any device, making it ideal for the on-the-go lifestyle of many Indian professionals and students."
+  ],
+  "faqs": [
+    {
+      "q": "How secure is the password protection on AWE-OS Protect PDF?",
+      "a": "The password protection provided by AWE-OS Protect PDF utilizes strong encryption algorithms to ensure that your documents are secure. This means that even if someone gains access to your PDF file, they will not be able to open it without the correct password. We recommend using a combination of letters, numbers, and symbols to create a strong password that is difficult to guess, ensuring maximum security for your sensitive information."
+    },
+    {
+      "q": "Can I protect multiple PDF files at once?",
+      "a": "Currently, AWE-OS Protect PDF allows users to protect one PDF file at a time. However, the process is quick and efficient, so you can easily repeat the steps for each document you wish to secure. This ensures that all your sensitive files, whether they are salary slips, bank statements, or business agreements, can be protected individually with unique passwords."
+    },
+    {
+      "q": "What if I forget the password I set for my PDF?",
+      "a": "If you forget the password you set for your PDF file, unfortunately, there is no way to recover it through AWE-OS Protect PDF. It is crucial to keep a record of your passwords in a secure location. To avoid this issue, consider using a password manager or writing it down in a safe place until you are confident you will remember it. Always choose a password that balances security and memorability."
+    }
+  ]
+},
 
   'unlock-pdf': {
     whatIsIt: 'AWE-OS Unlock PDF removes password protection from a PDF document you already own, allowing it to be opened freely without entering a password each time. It is designed for users who have the password to their own document but want to remove the restriction — common with bank-issued statements, salary slips, and credit card PDFs that are automatically password-protected with your date of birth or account number.',
