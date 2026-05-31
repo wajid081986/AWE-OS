@@ -242,26 +242,48 @@ export const TOOL_ABOUT = {
   },
 
   'watermark-pdf': {
-    whatIsIt: 'AWE-OS Watermark PDF adds text watermarks to PDF documents directly in your browser. Text watermarks are commonly used to mark documents as CONFIDENTIAL, DRAFT, SAMPLE, or DO NOT COPY — protecting shared documents in corporate, legal, and academic contexts. Indian businesses frequently watermark client proposals, rate cards, and contract drafts before sharing them over email or WhatsApp.',
-    howToUse: [
-      'Upload your PDF by clicking "Select PDF" or dragging the file into the tool',
-      'Enter the watermark text (e.g., "CONFIDENTIAL" or "DRAFT") and choose font size, colour, and opacity',
-      'Set the watermark position — diagonal across the page is standard for most professional uses',
-      'Click "Add Watermark" and download the watermarked PDF immediately',
-    ],
-    whyUseUs: [
-      '100% free — no limits on pages or documents watermarked',
-      'Private — watermarking happens locally in your browser, PDF never uploaded',
-      'No signup required — use immediately without registration',
-      'Customisable text, opacity, colour, and position',
-    ],
-    faqs: [
-      { q: 'Is Watermark PDF free?', a: 'Yes. Completely free with no page limits and no secondary watermark added by AWE-OS.' },
-      { q: 'Is my PDF safe?', a: 'All watermarking happens locally in your browser. Your confidential documents are never uploaded to any external server.' },
-      { q: 'Does it work on mobile?', a: 'Yes. Works on Android and iOS in Chrome, Firefox, Safari, and Edge.' },
-      { q: 'Can I remove a watermark I added?', a: 'A watermark added by this tool is embedded into the PDF page content and cannot be easily removed without specialist PDF editing software. Always keep the original un-watermarked file and watermark only the copies you share with clients or external parties.' },
-    ],
-  },
+  "description": "The AWE-OS Watermark PDF tool is designed to help Indian users add essential text watermarks to their PDF documents effortlessly. In a business landscape where confidentiality and professionalism are paramount, this tool allows you to watermark documents with phrases like 'CONFIDENTIAL', 'DRAFT', or 'SAMPLE' directly from your browser. Whether you are in the corporate sector, legal field, or academic environment, this tool is particularly useful for safeguarding client proposals, rate cards, and contract drafts before sharing them via email or messaging apps like WhatsApp. Protect your intellectual property and maintain your brand’s integrity with our easy-to-use solution, all for free.",
+  "features": [
+    "User-friendly interface that requires no downloads, allowing for quick and easy watermarking of PDFs.",
+    "Customizable text options where you can choose font size, style, and position to match your document's layout.",
+    "Ability to apply multiple watermarks to a single PDF, enhancing security for sensitive documents.",
+    "Fast processing time, ensuring that you can watermark documents without unnecessary delays.",
+    "No watermarks added by the tool itself, ensuring your document remains clean and professional.",
+    "Compatible with various devices, allowing you to watermark on-the-go from your smartphone or tablet."
+  ],
+  "useCases": [
+    "Indian startups often need to share proposals and business plans with potential investors. Using AWE-OS Watermark PDF, they can secure their documents with a watermark like 'CONFIDENTIAL' to prevent unauthorized distribution.",
+    "Freelancers in India can use this tool to add watermarks to their creative drafts, ensuring that their designs and content are protected from being copied before final approval by clients.",
+    "Legal professionals frequently draft contracts that require confidentiality. By watermarking these documents, they can communicate the sensitive nature of the content to clients and partners.",
+    "Academic institutions often share research papers and thesis drafts. Watermarking these documents helps in protecting intellectual property while still allowing for collaborative feedback."
+  ],
+  "howToUse": [
+    "Step 1: Click on 'Select PDF' or simply drag and drop your PDF file into the designated area on the tool's webpage.",
+    "Step 2: In the provided text box, enter the watermark message you wish to apply, such as 'CONFIDENTIAL', and select the desired font size and style.",
+    "Step 3: Choose the position of the watermark on the page, whether you want it centered, diagonal, or at a specific corner.",
+    "Step 4: Click on the 'Add Watermark' button, and the tool will process your request to apply the watermark to your document.",
+    "Step 5: Once processed, download your newly watermarked PDF to your device to use it as needed."
+  ],
+  "whyUseUs": [
+    "AWE-OS Watermark PDF is completely free to use, making it an accessible option for Indian users ranging from startups to established businesses without the need for costly software.",
+    "Our tool operates entirely online, eliminating the need for downloads or installations, which is particularly beneficial for users with limited bandwidth or storage.",
+    "With a focus on Indian business practices, we ensure that the features and functionalities cater specifically to the needs of professionals in various industries across the country."
+  ],
+  "faqs": [
+    {
+      "q": "Is my document safe while using AWE-OS Watermark PDF?",
+      "a": "Absolutely! We prioritize your privacy and security. All documents processed through our tool are not stored on our servers after processing, ensuring that your sensitive information remains confidential. You can watermark your PDFs without the fear of data breaches or unauthorized access."
+    },
+    {
+      "q": "What types of watermarks can I add to my PDF?",
+      "a": "You can add a variety of text watermarks to your PDFs, such as 'DRAFT', 'CONFIDENTIAL', 'SAMPLE', or even customized text that suits your needs. The tool allows you to select font styles and sizes, making it easy to integrate the watermark into your document's existing design."
+    },
+    {
+      "q": "Can I use this tool on my mobile device?",
+      "a": "Yes, the AWE-OS Watermark PDF tool is fully responsive and can be accessed from any device with a web browser, including smartphones and tablets. This flexibility enables you to watermark documents while on the move, ensuring that you can protect your work anytime, anywhere."
+    }
+  ]
+},
 
   'protect-pdf': {
     whatIsIt: 'AWE-OS Protect PDF adds password protection to PDF documents directly in your browser, requiring anyone who opens the file to enter the password you set. It is used by Indian professionals to secure salary slips before WhatsApp sharing, protect bank statements shared with landlords or loan applications, and restrict access to confidential business documents and client agreements sent over email.',
