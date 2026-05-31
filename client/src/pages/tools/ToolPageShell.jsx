@@ -306,7 +306,7 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
             )}
 
             {/* About section — handles legacy string[] and new structured object */}
-            {about && (Array.isArray(about) ? about.length > 0 : (about.whatIsIt || about.howToUse?.length)) && (
+            {about && (Array.isArray(about) ? about.length > 0 : (about.whatIsIt || about.description || about.howToUse?.length)) && (
               Array.isArray(about) ? (
                 <section className="mb-10 p-5 bg-gray-50 rounded-xl border border-gray-200">
                   <h2 className="text-xl font-semibold text-gray-900 mb-3">About {name}</h2>
@@ -318,15 +318,41 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
                 </section>
               ) : (
                 <section className="mb-10 space-y-4">
-                  {about.whatIsIt && (
+                  {(about.description || about.whatIsIt) && (
                     <div className="p-5 bg-gray-50 rounded-xl border border-gray-200">
                       <h2 className="text-xl font-semibold text-gray-900 mb-2">About {name}</h2>
-                      <p className="text-gray-600 text-sm leading-relaxed">{about.whatIsIt}</p>
+                      <p className="text-gray-600 text-sm leading-relaxed">{about.description || about.whatIsIt}</p>
+                    </div>
+                  )}
+                  {about.features?.length > 0 && (
+                    <div className="p-5 bg-gray-50 rounded-xl border border-gray-200">
+                      <h2 className="text-base font-semibold text-gray-900 mb-3">Key Features</h2>
+                      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {about.features.map((f, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                            <span className="text-blue-500 font-bold shrink-0 mt-0.5">✦</span>
+                            {f}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {about.useCases?.length > 0 && (
+                    <div className="p-5 bg-purple-50 rounded-xl border border-purple-200">
+                      <h2 className="text-base font-semibold text-gray-900 mb-3">Who Should Use This Tool</h2>
+                      <ul className="space-y-2">
+                        {about.useCases.map((u, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                            <span className="text-purple-500 font-bold shrink-0 mt-0.5">→</span>
+                            {u}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   )}
                   {about.howToUse?.length > 0 && (
                     <div className="p-5 bg-gray-50 rounded-xl border border-gray-200">
-                      <h2 className="text-base font-semibold text-gray-900 mb-3">How to Use</h2>
+                      <h2 className="text-base font-semibold text-gray-900 mb-3">How to Use {name}</h2>
                       <ol className="space-y-2 list-decimal list-inside">
                         {about.howToUse.map((step, i) => (
                           <li key={i} className="text-gray-600 text-sm leading-relaxed">{step}</li>
@@ -336,7 +362,7 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
                   )}
                   {about.whyUseUs?.length > 0 && (
                     <div className="p-5 bg-blue-50 rounded-xl border border-blue-200">
-                      <h2 className="text-base font-semibold text-gray-900 mb-3">Why Choose AWE-OS</h2>
+                      <h2 className="text-base font-semibold text-gray-900 mb-3">Why Choose AWE-OS {name}</h2>
                       <ul className="space-y-2">
                         {about.whyUseUs.map((point, i) => (
                           <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
