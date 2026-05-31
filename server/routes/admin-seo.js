@@ -5,7 +5,7 @@ const vm                    = require('vm')
 const requireAuth           = require('../middleware/auth')
 const { getOpenAI }         = require('../core/ai-engine')
 const parseAIJson           = require('../services/parseAIJson')
-const { pushCityPage, pushComparisonPage, pushFaqPage } = require('../core/github-service')
+const { pushCityPage, pushComparisonPage, pushFaqPage, getFileFromGitHub, pushFileToGitHub } = require('../core/github-service')
 const { crawlEngine }    = require('../core/crawl-engine')
 const { seoIntelligence } = require('../core/seo-intelligence')
 
@@ -896,6 +896,216 @@ Return ONLY valid JSON array:
   } catch (err) {
     console.error('[admin-seo/suggest-comparisons]', err.message)
     res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── Thin-content helpers ──────────────────────────────────────────────────────
+
+function countToolWords(entry) {
+  if (Array.isArray(entry)) {
+    return entry.join(' ').split(/\s+/).filter(Boolean).length
+  }
+  if (entry && typeof entry === 'object') {
+    const texts = []
+    if (entry.description) texts.push(entry.description)
+    ;['features', 'useCases', 'howToUse', 'whyUseUs'].forEach(k => {
+      if (Array.isArray(entry[k])) texts.push(...entry[k])
+    })
+    if (Array.isArray(entry.faqs)) {
+      entry.faqs.forEach(f => { if (f.q) texts.push(f.q); if (f.a) texts.push(f.a) })
+    }
+    return texts.join(' ').split(/\s+/).filter(Boolean).length
+  }
+  return 0
+}
+
+function findEntryBounds(content, slug) {
+  const esc = slug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const m = new RegExp(`(['"\`])${esc}\\1\\s*:`).exec(content)
+  if (!m) return null
+  const keyStart = m.index
+  let i = m.index + m[0].length
+  while (i < content.length && /\s/.test(content[i])) i++
+  const opener = content[i]
+  if (opener !== '{' && opener !== '[') return null
+  const closer = opener === '{' ? '}' : ']'
+  let depth = 0, inStr = false, strChar = '', esc2 = false
+  while (i < content.length) {
+    const ch = content[i]
+    if (esc2)        { esc2 = false }
+    else if (inStr)  { if (ch === '\\') esc2 = true; else if (ch === strChar) inStr = false }
+    else if (ch === '"' || ch === "'" || ch === '`') { inStr = true; strChar = ch }
+    else if (ch === opener) depth++
+    else if (ch === closer) { depth--; if (depth === 0) return { keyStart, valueEnd: i + 1 } }
+    i++
+  }
+  return null
+}
+
+function replaceToolEntry(content, slug, newValueJs) {
+  const bounds = findEntryBounds(content, slug)
+  if (!bounds) return null
+  const { keyStart, valueEnd } = bounds
+  let afterEnd = valueEnd
+  while (afterEnd < content.length && /[ \t]/.test(content[afterEnd])) afterEnd++
+  if (content[afterEnd] === ',') afterEnd++
+  return content.slice(0, keyStart) + `'${slug}': ${newValueJs},` + content.slice(afterEnd)
+}
+
+const TARGET_TOOLS = ['bmi-calculator', 'sip-calculator', 'gst-calculator', 'loan-calculator', 'tax-calculator']
+const TOOL_DISPLAY = {
+  'bmi-calculator': 'BMI Calculator', 'sip-calculator': 'SIP Calculator',
+  'gst-calculator': 'GST Calculator', 'loan-calculator': 'Loan Calculator',
+  'tax-calculator': 'Tax Calculator',
+}
+const TARGET_CITIES = [
+  'Mumbai', 'Delhi', 'Bengaluru', 'Hyderabad', 'Chennai',
+  'Kolkata', 'Pune', 'Ahmedabad', 'Jaipur', 'Surat',
+  'Lucknow', 'Kanpur', 'Nagpur', 'Indore', 'Bhopal',
+  'Patna', 'Visakhapatnam', 'Coimbatore', 'Kochi', 'Chandigarh',
+]
+
+// ── GET /scan-tool-content ────────────────────────────────────────────────────
+
+router.get('/scan-tool-content', requireAuth, requireAdmin, (req, res) => {
+  try {
+    const toolCtx  = evalDataFile(path.resolve(__dirname, '../../client/src/data/toolPageContent.js'))
+    const toolAbout = toolCtx.TOOL_ABOUT || {}
+    const results = Object.entries(toolAbout).map(([slug, entry]) => {
+      const words  = countToolWords(entry)
+      const status = words >= 600 ? 'good' : words >= 400 ? 'low' : 'thin'
+      return { slug, words, status }
+    }).sort((a, b) => a.words - b.words)
+    res.json({ success: true, results })
+  } catch (err) {
+    console.error('[admin-seo/scan-tool-content]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /fix-thin-content ────────────────────────────────────────────────────
+
+router.post('/fix-thin-content', requireAuth, requireAdmin, async (req, res) => {
+  const { slug, targetWords = 700 } = req.body
+  if (!slug) return res.status(400).json({ success: false, error: 'slug required' })
+
+  try {
+    const toolContentPath = path.resolve(__dirname, '../../client/src/data/toolPageContent.js')
+    const fileContent     = fs.readFileSync(toolContentPath, 'utf8')
+    const toolCtx         = evalDataFile(toolContentPath)
+    const toolAbout       = toolCtx.TOOL_ABOUT || {}
+    const currentEntry    = toolAbout[slug]
+    if (currentEntry === undefined) return res.status(404).json({ success: false, error: `Tool '${slug}' not found` })
+
+    const wordsBefore = countToolWords(currentEntry)
+    const existingText = Array.isArray(currentEntry)
+      ? currentEntry.join('\n')
+      : JSON.stringify(currentEntry, null, 2)
+
+    const toolName = slug.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ')
+
+    const prompt = `You are an SEO content writer for AWE-OS.com — a free tools website for Indian users.
+
+Tool: ${toolName} (slug: ${slug})
+URL: https://www.awe-os.com/tools/${slug}
+
+EXISTING CONTENT (may be thin):
+${existingText.slice(0, 600)}
+
+Expand and improve to ${targetWords}+ words. Use Indian context: ₹ amounts, GST/tax references, Indian business examples.
+
+Return ONLY valid JSON — no markdown, no commentary:
+{
+  "description": "100-150 word tool description with India-specific context",
+  "features": ["Feature 1 with clear benefit", "Feature 2", "Feature 3", "Feature 4", "Feature 5", "Feature 6"],
+  "useCases": ["40+ word use case for Indian users 1", "40+ word use case 2", "40+ word use case 3", "40+ word use case 4"],
+  "howToUse": ["Step 1: detailed instruction", "Step 2", "Step 3", "Step 4", "Step 5"],
+  "whyUseUs": ["40+ word benefit 1 for Indian users", "40+ word benefit 2", "40+ word benefit 3"],
+  "faqs": [
+    { "q": "Question 1?", "a": "80+ word answer specific to Indian users" },
+    { "q": "Question 2?", "a": "80+ word answer" },
+    { "q": "Question 3?", "a": "80+ word answer" }
+  ]
+}`
+
+    const completion = await getOpenAI().chat.completions.create({
+      model:       'gpt-4o-mini',
+      messages:    [
+        { role: 'system', content: 'You are an SEO content writer for AWE-OS.com. Return ONLY valid JSON. No markdown.' },
+        { role: 'user',   content: prompt },
+      ],
+      max_tokens:  2000,
+      temperature: 0.7,
+    })
+    const raw      = completion.choices[0]?.message?.content || ''
+    const newEntry = parseAIJson(raw)
+    if (!newEntry.description) throw new Error('AI did not return valid content structure')
+
+    const wordsAfter = countToolWords(newEntry)
+    const newEntryJs = JSON.stringify(newEntry, null, 2)
+    const updated    = replaceToolEntry(fileContent, slug, newEntryJs)
+
+    if (updated) {
+      fs.writeFileSync(toolContentPath, updated, 'utf8')
+      // Best-effort GitHub push
+      try {
+        const { sha } = await getFileFromGitHub('client/src/data/toolPageContent.js')
+        await pushFileToGitHub('client/src/data/toolPageContent.js', {
+          message: `seo: fix thin content for ${slug} (${wordsBefore} → ${wordsAfter} words)`,
+          content: updated,
+          sha,
+        })
+      } catch (ghErr) {
+        console.warn('[fix-thin-content] GitHub push skipped:', ghErr.message)
+      }
+    }
+
+    res.json({ success: true, slug, wordsBefore, wordsAfter, updated: !!updated })
+  } catch (err) {
+    console.error('[admin-seo/fix-thin-content]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── GET /city-pages-status ────────────────────────────────────────────────────
+
+router.get('/city-pages-status', requireAuth, requireAdmin, (req, res) => {
+  try {
+    const cityCtx   = evalDataFile(path.resolve(__dirname, '../../client/src/data/cityPages.js'))
+    const cityPages = Array.isArray(cityCtx.CITY_PAGES) ? cityCtx.CITY_PAGES : []
+
+    const status = TARGET_TOOLS.map(toolSlug => {
+      const done    = TARGET_CITIES.filter(city => {
+        const citySlug = city.toLowerCase().replace(/\s+/g, '-')
+        return cityPages.some(p => p.slug === `${toolSlug}/${citySlug}`)
+      })
+      const missing = TARGET_CITIES.filter(city => !done.includes(city))
+      return { toolSlug, toolName: TOOL_DISPLAY[toolSlug] || toolSlug, total: TARGET_CITIES.length, done: done.length, missing }
+    })
+
+    res.json({ success: true, status })
+  } catch (err) {
+    console.error('[admin-seo/city-pages-status]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── GET /gsc-pending ─────────────────────────────────────────────────────────
+
+router.get('/gsc-pending', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const supabase = require('../db/supabase')
+    const { data, error } = await supabase
+      .from('gsc_index_log')
+      .select('*')
+      .eq('status', 'pending')
+      .order('submitted_at', { ascending: false })
+      .limit(20)
+    if (error) throw error
+    res.json({ success: true, pending: data || [] })
+  } catch (err) {
+    console.error('[admin-seo/gsc-pending]', err.message)
+    res.json({ success: false, pending: [], error: err.message })
   }
 })
 
