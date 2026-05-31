@@ -257,26 +257,48 @@ export const TOOL_ABOUT = {
   },
 
   'split-pdf': {
-    whatIsIt: 'AWE-OS Split PDF extracts specific pages or page ranges from a PDF document and saves them as a new, smaller PDF — entirely in your browser without uploading to any server. It is commonly used to extract a single chapter from an academic textbook, separate individual invoices from a combined monthly statement, extract a specific form from a multi-page government document, or share only the relevant section of a large report.',
-    howToUse: [
-      'Upload your PDF by clicking "Select PDF" or dragging the file into the tool',
-      'Enter the page range you want to extract — for example, "1-5" for the first 5 pages or "3,7,12" for individual pages',
-      'Click "Split PDF" to generate the new document with only your selected pages',
-      'Download the resulting PDF immediately — no account or signup required',
-    ],
-    whyUseUs: [
-      '100% free — no limits on page count or number of splits',
-      'Private — PDF processing happens locally in your browser, files never uploaded',
-      'No signup required — use immediately without registration',
-      'Supports both page range extraction and individual page selection',
-    ],
-    faqs: [
-      { q: 'Is Split PDF free?', a: 'Yes. Completely free with no limits on the size of the PDF or the number of times you split.' },
-      { q: 'Is my PDF safe when splitting online?', a: 'All splitting happens locally in your browser. Your PDF, which may contain confidential content, is never uploaded to any server.' },
-      { q: 'Does it work on mobile?', a: 'Yes. Works on Android and iOS in modern browsers without any app download.' },
-      { q: 'Can I extract non-consecutive pages?', a: 'Yes. You can enter individual page numbers separated by commas (e.g., "1,5,9") to extract non-consecutive pages into a single PDF. You can also combine ranges and individual pages: "1-3,7,10-12" extracts pages 1 through 3, page 7, and pages 10 through 12 into one document.' },
-    ],
-  },
+  "description": "AWE-OS Split PDF is an innovative online tool specifically designed for Indian users looking to manage their PDF documents efficiently. This tool allows you to extract specific pages or ranges from a PDF file and save them as a new, smaller PDF document directly in your browser. Whether you're a student needing to share a single chapter of a textbook, a small business owner separating individual invoices for GST filing, or a professional extracting relevant sections from lengthy reports, this tool simplifies your document management tasks without the hassle of uploading files to a server, ensuring privacy and speed.",
+  "features": [
+    "Browser-based operation: No need to upload files, ensuring your documents remain secure.",
+    "Customizable page extraction: Select specific pages or ranges to create focused documents.",
+    "User-friendly interface: Intuitive design makes it easy for anyone to navigate and use.",
+    "Quick processing: Efficiently splits PDFs in a matter of seconds, saving you time.",
+    "No file size limits: Handle large documents without worrying about size restrictions.",
+    "Free to use: Access all features without any hidden costs, making it ideal for students and professionals."
+  ],
+  "useCases": [
+    "Students preparing for exams can extract chapters from their textbooks to create concise study materials, ensuring they focus only on the relevant content without sifting through entire books.",
+    "Freelancers and small business owners can split invoices from monthly statements to streamline their accounting processes, making it easier to manage GST filings and track payments.",
+    "Legal professionals can extract specific clauses or sections from lengthy contracts, enabling them to share only the necessary parts with clients or colleagues.",
+    "Government employees can separate specific forms from multi-page official documents, simplifying the process of sharing required information with the public."
+  ],
+  "howToUse": [
+    "Step 1: Open the AWE-OS Split PDF tool at https://www.awe-os.com/tools/split-pdf and click \"Select PDF\" to upload your document or drag and drop it into the designated area.",
+    "Step 2: Once the PDF is uploaded, specify the page range you wish to extract by entering the start and end pages in the provided fields.",
+    "Step 3: Review your selections to ensure you are extracting the correct pages from the PDF.",
+    "Step 4: Click the \"Split PDF\" button to initiate the extraction process, which will be completed in a matter of seconds.",
+    "Step 5: Once the process is complete, download your new PDF file containing only the selected pages directly to your device."
+  ],
+  "whyUseUs": [
+    "AWE-OS Split PDF is tailored for Indian users, providing a quick, efficient, and secure way to manage PDF documents without the need for software installations or uploads.",
+    "With our tool, you can save valuable time and effort by extracting only the necessary information from large documents, making it easier to focus on what matters, whether for academic, professional, or personal use.",
+    "Our platform is completely free, ensuring that students, freelancers, and businesses can access high-quality document management tools without incurring any costs or hidden fees."
+  ],
+  "faqs": [
+    {
+      "q": "Is my document safe when I use AWE-OS Split PDF?",
+      "a": "Yes, your document is completely safe! AWE-OS Split PDF operates directly in your browser, meaning no files are uploaded to a server. This ensures your documents remain private and secure throughout the entire process, making it ideal for sensitive or confidential information."
+    },
+    {
+      "q": "Can I use this tool on my smartphone or tablet?",
+      "a": "Absolutely! AWE-OS Split PDF is designed to be fully responsive and works seamlessly on smartphones, tablets, and desktops. You can easily split PDFs from any device, making it convenient for users on the go or those who prefer mobile access."
+    },
+    {
+      "q": "Are there any limitations on the number of pages I can extract?",
+      "a": "No, there are no limitations on the number of pages you can extract using AWE-OS Split PDF. You can select any range of pages, regardless of the total number of pages in your PDF document. This flexibility allows you to tailor your output to your specific needs, whether you are working with short reports or lengthy academic texts."
+    }
+  ]
+},
 
   'rotate-pdf': {
   "description": "AWE-OS Rotate PDF is an invaluable online tool for Indian users looking to adjust the orientation of their PDF documents effortlessly. Whether you’re a student preparing assignments, a business professional finalizing reports, or someone digitizing old records, this tool ensures your PDF pages are aligned correctly without the hassle of uploading sensitive documents to external servers. This service is free, efficient, and designed to help you manage your documents effectively. With the rise of digital transactions and documentation, having a reliable PDF rotation tool can save time and improve presentation quality, making it essential for both personal and professional use.",
