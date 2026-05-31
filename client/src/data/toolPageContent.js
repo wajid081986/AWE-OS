@@ -257,26 +257,48 @@ export const TOOL_ABOUT = {
 },
 
   'word-to-pdf': {
-    whatIsIt: 'AWE-OS Word to PDF converts .docx Microsoft Word documents into PDF format directly in your browser — no Microsoft Office installation required. It is essential for Indian job applications (most companies require PDF resumes), government form submissions (which mandate PDF uploads), university assignments, and client-facing documents that must retain their formatting across different devices and operating systems.',
-    howToUse: [
-      'Click "Select Word File" or drag your .docx file into the tool',
-      'The tool automatically processes the document — no settings required for standard conversions',
-      'Review the PDF preview to verify that formatting and layout are correct',
-      'Click "Download PDF" to save the converted file to your device',
-    ],
-    whyUseUs: [
-      '100% free — no Microsoft Office required, no account needed',
-      'Private — document conversion happens in your browser, file never uploaded to external servers',
-      'No signup required — convert instantly without registration',
-      'Preserves formatting including fonts, tables, headers, and embedded images',
-    ],
-    faqs: [
-      { q: 'Is Word to PDF conversion free?', a: 'Yes. Completely free with no conversion limits and no watermarks on the output PDF.' },
-      { q: 'Is my document safe?', a: 'All conversion happens locally in your browser. Your Word document, which may contain sensitive business or personal information, is never uploaded to any external server.' },
-      { q: 'Does it work on mobile?', a: 'Yes. Works on Android and iOS browsers without any app install. You can upload .docx files from your phone storage or cloud drives like Google Drive.' },
-      { q: 'Will the formatting be preserved exactly?', a: 'The converter preserves standard Word formatting including fonts, paragraph styles, tables, headings, and images. Documents using standard fonts (Calibri, Arial, Times New Roman) and basic formatting convert reliably. Very complex layouts with custom fonts, advanced text effects, or intricate table structures may have minor differences. Always review the PDF preview before downloading.' },
-    ],
-  },
+  "description": "The AWE-OS Word to PDF tool is a free and user-friendly solution for converting .docx Microsoft Word documents into PDF format directly from your browser. In India, where job applications often necessitate PDF resumes and government forms require PDF submissions, this tool is invaluable. It enables students to submit university assignments in the required format and professionals to create client-facing documents that maintain their original formatting. With no need for Microsoft Office installation, users can conveniently convert their documents online, ensuring compatibility across different devices and operating systems. This is especially beneficial for Indian users looking to streamline their document management processes while saving time and effort.",
+  "features": [
+    "No installation required: Convert files directly in your browser without needing Microsoft Office, saving on software costs.",
+    "Fast processing: Enjoy quick conversions with minimal wait time, helping you meet deadlines without stress.",
+    "High-quality output: The tool preserves the formatting of your original document, ensuring that all fonts, images, and layouts remain intact.",
+    "User-friendly interface: Designed for Indian users, the tool is intuitive and easy to navigate, making document conversion accessible to everyone.",
+    "Mobile-friendly: Use the tool on any device, whether you're at home or on the go, making it perfect for busy professionals and students.",
+    "Free to use: No hidden charges or subscription fees, allowing users to convert as many documents as needed without worrying about costs."
+  ],
+  "useCases": [
+    "When applying for jobs in India, having a professional PDF resume is essential. Many employers specifically request resumes in PDF format to ensure that the formatting remains consistent across different devices. Our tool allows applicants to convert their Word documents easily, making a strong first impression.",
+    "Students often face strict submission guidelines for university assignments. Many institutions require documents to be submitted in PDF format. With the AWE-OS Word to PDF tool, students can quickly convert their assignments to meet these requirements, ensuring their hard work is presented correctly.",
+    "Businesses in India frequently need to send client-facing documents, such as proposals and reports, in PDF format to maintain a professional appearance. By using our tool, companies can convert Microsoft Word documents to PDF seamlessly, preserving the original formatting and enhancing communication with clients.",
+    "Government forms in India often require PDF uploads for compliance. Whether you are submitting tax forms, applications for licenses, or other official documents, our tool simplifies the process by allowing you to convert Word files to PDF easily, ensuring compliance with regulations."
+  ],
+  "howToUse": [
+    "Step 1: Click on the 'Select Word File' button or simply drag and drop your .docx file into the designated area on the tool's page.",
+    "Step 2: The tool will automatically begin processing your document without requiring any further input or settings from you.",
+    "Step 3: Wait a few moments while the conversion takes place. The speed of conversion may vary based on your internet connection and file size.",
+    "Step 4: Once the conversion is complete, a download link for your new PDF file will appear on the screen.",
+    "Step 5: Click the download link to save the PDF file to your device and begin using it for your intended purpose."
+  ],
+  "whyUseUs": [
+    "Our tool is specifically designed for Indian users, understanding the unique needs of job seekers, students, and professionals who require reliable document conversions without the hassle of software installations.",
+    "With a focus on maintaining quality and formatting, our service ensures that your documents look professional and polished when converted to PDF format, meeting the standards expected in Indian business and educational environments.",
+    "As a completely free tool, we offer unlimited conversions, making it the perfect solution for individuals and businesses alike who may need to convert multiple documents regularly without incurring additional costs."
+  ],
+  "faqs": [
+    {
+      "q": "Is the AWE-OS Word to PDF tool really free?",
+      "a": "Yes, the AWE-OS Word to PDF tool is completely free to use. There are no hidden charges or subscription fees, allowing you to convert as many documents as you need without worrying about costs. This is especially beneficial for Indian students and professionals who may require frequent conversions for job applications or assignments."
+    },
+    {
+      "q": "What file formats can I convert using this tool?",
+      "a": "Currently, the AWE-OS Word to PDF tool allows you to convert .docx Microsoft Word files into PDF format. This is the most common format used in job applications and educational submissions in India, ensuring compatibility with most systems and devices."
+    },
+    {
+      "q": "How long does the conversion process take?",
+      "a": "The conversion process is typically very fast, usually taking just a few seconds to a couple of minutes, depending on the size of your document and your internet connection speed. This quick turnaround is ideal for Indian users who are often working under tight deadlines, such as students submitting assignments or job seekers preparing applications."
+    }
+  ]
+},
 
   'split-pdf': {
   "description": "AWE-OS Split PDF is an innovative online tool specifically designed for Indian users looking to manage their PDF documents efficiently. This tool allows you to extract specific pages or ranges from a PDF file and save them as a new, smaller PDF document directly in your browser. Whether you're a student needing to share a single chapter of a textbook, a small business owner separating individual invoices for GST filing, or a professional extracting relevant sections from lengthy reports, this tool simplifies your document management tasks without the hassle of uploading files to a server, ensuring privacy and speed.",
