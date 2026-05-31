@@ -650,26 +650,48 @@ export const TOOL_ABOUT = {
   },
 
   'word-counter': {
-    whatIsIt: 'AWE-OS Word Counter tracks word count, character count, sentence count, paragraph count, and estimated reading time in real time as you type or paste text. It is used by students writing essays with strict word limits, UPSC and competitive exam candidates checking answer length, content writers billing by word count, and LinkedIn and Twitter users formatting posts within platform character limits.',
-    howToUse: [
-      'Type or paste your text into the text area — all counts update in real time instantly',
-      'Check the word count, character count (with and without spaces), sentence count, and paragraph count',
-      'Use the reading time estimate for blog posts and articles to verify expected reader engagement time',
-      'Clear the text box and paste new content to count different documents',
-    ],
-    whyUseUs: [
-      '100% free — no limits on text length, no account required',
-      'Private — text is processed locally in your browser, never sent to any server',
-      'Real-time counting — all metrics update instantly as you type or paste',
-      'Multiple metrics: words, characters, sentences, paragraphs, and reading time',
-    ],
-    faqs: [
-      { q: 'Is Word Counter free?', a: 'Yes. Completely free with no character limits and no account required.' },
-      { q: 'Is my text stored anywhere?', a: 'No. All counting happens locally in your browser. Your text is never sent to any server and is discarded when you close the tab. This makes it safe for confidential documents, legal drafts, and business reports.' },
-      { q: 'Does it work on mobile?', a: 'Yes. Works on Android and iOS in Chrome, Firefox, Safari, and Edge.' },
-      { q: 'How does the reading time estimate work?', a: 'Reading time is calculated at 200 words per minute — the average adult reading speed for comprehension of standard prose. Academic and technical texts are typically read at 150–180 wpm, so the estimate may be slightly optimistic for complex content. For a blog post targeting a "5-minute read" label, aim for 900–1000 words. For UPSC Mains, the guideline of approximately 150–200 words per 10-mark answer translates to about 1–1.5 minutes of reading time for the examiner.' },
-    ],
-  },
+  "description": "The AWE-OS Word Counter is an invaluable tool for Indian users, helping them track word count, character count, sentence count, paragraph count, and estimated reading time in real time. This tool is particularly useful for students preparing for exams such as the UPSC or state-level competitive tests, where adhering to strict word limits is essential. Content creators in India, whether blogging or crafting social media posts for platforms like LinkedIn and Twitter, can benefit greatly from the precise counting features that ensure compliance with character restrictions. Additionally, freelancers and content writers can use this tool to streamline their billing processes, accurately charging clients based on word count, with the convenience of calculating GST on their invoices.",
+  "features": [
+    "Real-time word and character count updates to help you stay within limits while writing.",
+    "Detailed analytics including sentence and paragraph counts for thorough text analysis.",
+    "Estimated reading time feature allows for better planning of content delivery.",
+    "Character count with and without spaces to meet varying platform requirements.",
+    "User-friendly interface designed for quick access and easy navigation.",
+    "No registration required, ensuring complete privacy and ease of use."
+  ],
+  "useCases": [
+    "Students preparing for UPSC exams can use the word counter to ensure their answers are within the specified word limit, thereby maximizing their chances of scoring well.",
+    "Content writers in India can accurately track word counts to bill clients fairly, ensuring that GST is appropriately added to their invoices based on the total word count.",
+    "Social media managers can utilize the tool to craft posts for platforms like Twitter and LinkedIn, ensuring they stay within character limits while effectively communicating their messages.",
+    "Bloggers and freelance writers can analyze their text for readability, ensuring that their content is engaging and meets the expectations of their target audience."
+  ],
+  "howToUse": [
+    "Step 1: Visit the AWE-OS Word Counter tool page at https://www.awe-os.com/tools/word-counter.",
+    "Step 2: Type or paste your text into the designated text area; all counts will update in real time.",
+    "Step 3: Review the displayed word count, character count (with and without spaces), and other metrics.",
+    "Step 4: Use the analytics provided to refine your text and ensure it meets any necessary requirements.",
+    "Step 5: Copy the final text for use in your documents, posts, or assignments."
+  ],
+  "whyUseUs": [
+    "Our tool is completely free to use, making it accessible for all Indian users, including students and professionals who may not want to invest in paid software.",
+    "The AWE-OS Word Counter is designed specifically with Indian users in mind, providing relevant metrics and real-time updates to enhance productivity in a fast-paced environment.",
+    "Our commitment to user privacy means that you can utilize the tool without needing to create an account, ensuring that your data remains confidential."
+  ],
+  "faqs": [
+    {
+      "q": "How accurate is the word count in the AWE-OS Word Counter?",
+      "a": "The AWE-OS Word Counter provides highly accurate word and character counts. It takes into account all types of characters and punctuations, ensuring that the count is precise. This is especially crucial for students preparing for competitive exams like UPSC, where every word counts towards the final evaluation. Additionally, the tool is responsive and updates counts in real-time as you type, which is beneficial for maintaining control over your writing."
+    },
+    {
+      "q": "Can I use the Word Counter for different languages?",
+      "a": "Yes, the AWE-OS Word Counter can handle text in various languages, including Hindi and other regional languages spoken in India. This feature makes it a versatile tool for writers and students across the country, allowing them to track word counts regardless of the language they are using. However, the accuracy of counts may vary depending on language-specific characters and formatting."
+    },
+    {
+      "q": "Is there a limit to the amount of text I can input?",
+      "a": "No, there is no fixed limit to the amount of text you can input into the AWE-OS Word Counter. You can paste lengthy essays, articles, or social media posts without worry. This flexibility is particularly useful for students and content creators who need to analyze extensive texts for their projects or submissions. Just keep in mind that very large texts may take a moment to process and update all counts."
+    }
+  ]
+},
 
   'currency-converter': {
     description: 'AWE-OS Currency Converter is a free online tool that provides live exchange rates between the Indian Rupee (INR) and 14 major world currencies: US Dollar (USD), Euro (EUR), British Pound (GBP), UAE Dirham (AED), Singapore Dollar (SGD), Canadian Dollar (CAD), Australian Dollar (AUD), Japanese Yen (JPY), Swiss Franc (CHF), Hong Kong Dollar (HKD), Swedish Krona (SEK), Norwegian Krone (NOK), New Zealand Dollar (NZD), and Chinese Yuan (CNY). The tool is essential for Indian IT freelancers invoicing US clients in USD on Upwork or Fiverr, consultants billing UK or UAE firms in GBP or AED, and content creators on YouTube and other platforms monetising in dollars. NRIs transferring money to India from the USA, UK, UAE, Singapore, and Canada use it to check whether the current rate is favourable before initiating a transfer via SWIFT, Wise, Remitly, or Western Union. Exchange rates track the RBI Reference Rate — the official mid-market rate published daily by the Reserve Bank of India for the USD-INR pair — which is the benchmark for interbank settlements. Retail conversion rates from banks include a markup of 2–4% above this mid-market rate, while online money-transfer services like Wise, Remitly, and Instarem are typically closer to the mid-market rate with transparent fees.',
