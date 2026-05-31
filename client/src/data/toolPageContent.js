@@ -169,26 +169,48 @@ export const TOOL_ABOUT = {
   },
 
   'jpg-to-pdf': {
-    whatIsIt: 'AWE-OS JPG to PDF converts JPEG and PNG images into a single PDF document entirely in your browser. It is widely used in India for creating a single PDF from multiple scanned documents (Aadhaar, PAN, marksheets), combining photos of handwritten notes for college submission, and consolidating multiple image receipts into one PDF for expense reporting or GST documentation.',
-    howToUse: [
-      'Click "Add Images" or drag JPEG, JPG, or PNG files into the tool — multiple files are supported',
-      'Reorder images by dragging them into the correct sequence',
-      'Select page size (A4 is standard for Indian documents) and orientation',
-      'Click "Convert to PDF" and download the generated PDF immediately — no account needed',
-    ],
-    whyUseUs: [
-      '100% free — no watermarks on the PDF output, no file count limits',
-      'Private — images are converted locally in your browser, never uploaded to any server',
-      'No signup required — works instantly without registration',
-      'Supports batch conversion — combine multiple images into one PDF in one step',
-    ],
-    faqs: [
-      { q: 'Is JPG to PDF free?', a: 'Yes. Completely free with no limits on number of images or conversions.' },
-      { q: 'Are my images safe?', a: 'All processing happens in your browser. Images are never uploaded to any server, making it safe for Aadhaar scans, PAN cards, and other sensitive documents.' },
-      { q: 'Does it work on mobile?', a: 'Yes. Works on Android and iOS in Chrome, Firefox, Safari, and Edge. You can upload photos directly from your phone gallery.' },
-      { q: 'What is the maximum number of images I can convert?', a: 'There is no enforced limit on the number of images. However, very large batches (50+ high-resolution images) may be slow depending on your device. For best results, combine images in batches of 10–20 if you have many files to process.' },
-    ],
-  },
+  "description": "AWE-OS JPG to PDF is a user-friendly online tool designed for Indian users, allowing them to effortlessly convert JPEG and PNG images into a single PDF document directly in their browser. This tool is particularly valuable for students and professionals who need to compile multiple scanned documents, such as Aadhaar cards, PAN cards, and mark sheets, into one cohesive file. Additionally, it's perfect for combining images of handwritten notes for college submissions or consolidating receipts for expense reporting and GST documentation. With AWE-OS, creating a professional-looking PDF is quick, easy, and entirely free.",
+  "features": [
+    "Easy to use interface that allows quick conversion without the need for downloads, saving time and effort.",
+    "Supports multiple file formats including JPEG and PNG, accommodating a wide range of image types.",
+    "Allows users to reorder images by dragging and dropping, ensuring the final PDF is structured correctly.",
+    "Provides options for selecting page sizes, such as A4 or Letter, catering to specific document requirements.",
+    "No file size limits, enabling users to upload large batches of images for conversion without hassle.",
+    "Completely free to use, making it accessible for all users in India, whether for personal or professional needs."
+  ],
+  "useCases": [
+    "Students can use AWE-OS JPG to PDF to combine their scanned mark sheets and project notes into a single PDF for easy submission to universities, ensuring all documents are together and neatly organized.",
+    "Small business owners can consolidate multiple image receipts into one PDF for GST documentation, simplifying their accounting process and making it easier to track expenses during tax filing.",
+    "Professionals may need to convert photos of handwritten meeting notes into a PDF to share with colleagues, allowing for effective collaboration without the need for physical paperwork.",
+    "Individuals applying for loans or government services can combine important documents such as Aadhaar and PAN cards into a single PDF, making submission to banks or government offices seamless."
+  ],
+  "howToUse": [
+    "Step 1: Click the 'Add Images' button or simply drag and drop your JPEG, JPG, or PNG files into the conversion tool. You can upload multiple files at once.",
+    "Step 2: Once your images are uploaded, you can easily reorder them by dragging the thumbnails to your desired sequence, ensuring they appear in the correct order in the final PDF.",
+    "Step 3: Select the page size that suits your needs, whether it's A4 for standard documents or other sizes, making it flexible for various requirements.",
+    "Step 4: After organizing your images and selecting the page size, click on the 'Convert' button to start the process. The tool will compile your images into a single PDF document.",
+    "Step 5: Once the conversion is complete, download your PDF file to your device for easy sharing and storage."
+  ],
+  "whyUseUs": [
+    "AWE-OS is tailored for Indian users, offering a completely free tool that eliminates the need for software downloads, saving both time and storage space.",
+    "Our platform supports a wide range of image formats and allows easy manipulation of files, making it perfect for students, business owners, and anyone needing to compile documents efficiently.",
+    "With AWE-OS, you can trust that your documents are processed securely in your browser, ensuring privacy and safety while converting important files."
+  ],
+  "faqs": [
+    {
+      "q": "Is there a limit on the number of images I can upload?",
+      "a": "No, AWE-OS JPG to PDF does not impose any limits on the number of images you can upload. You can combine as many JPEG and PNG files as you need into a single PDF document, making it ideal for large projects like compiling multiple receipts or documents for GST filing."
+    },
+    {
+      "q": "What image formats are supported for conversion?",
+      "a": "AWE-OS JPG to PDF primarily supports JPEG and PNG formats. This flexibility allows users to work with various types of images, whether they are scanned documents or photos, ensuring your needs are met for any conversion task."
+    },
+    {
+      "q": "Is this tool really free to use?",
+      "a": "Yes, AWE-OS JPG to PDF is completely free to use. There are no hidden fees or charges. This makes it an ideal choice for students, small business owners, and anyone needing to convert images to PDF without worrying about costs."
+    }
+  ]
+},
 
   'pdf-to-jpg': {
   "description": "AWE-OS PDF to JPG is a powerful online tool designed specifically for Indian users, enabling them to effortlessly convert PDF files into high-quality JPEG images. Whether you're a student needing to share lecture notes, a small business owner looking to convert product brochures, or a professional aiming to create engaging presentations, this tool is tailored for you. With no installation required and instant conversion directly in your browser, it’s perfect for those who value convenience. Plus, with the rising use of digital communication in India, converting PDFs to JPGs makes sharing content via WhatsApp or social media platforms more accessible and visually appealing, all free of charge.",
