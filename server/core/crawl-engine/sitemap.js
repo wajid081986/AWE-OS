@@ -15,7 +15,7 @@ async function parseSitemap(sitemapUrl, maxUrls = 500) {
     try {
       const res = await fetch(url, {
         signal:  AbortSignal.timeout(10000),
-        headers: { 'User-Agent': 'AWE-OS Crawler' },
+        headers: { 'User-Agent': 'AWE-OS Crawler', 'Cache-Control': 'no-cache' },
       });
       if (!res.ok) continue;
 

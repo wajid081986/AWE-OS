@@ -20,8 +20,10 @@ async function crawlPage(url, allowedHost) {
         signal:   controller.signal,
         redirect: 'follow',
         headers:  {
-          'User-Agent': 'AWE-OS Crawler/1.0',
-          'Accept':     'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'User-Agent':    'AWE-OS Crawler/1.0',
+          'Accept':        'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Cache-Control': 'no-cache, no-store',
+          'Pragma':        'no-cache',
         },
       });
     } finally {

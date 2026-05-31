@@ -692,26 +692,112 @@ router.post('/audit', requireAuth, requireAdmin, async (req, res) => {
   }
 })
 
-// ── POST /crawl — full site crawl ─────────────────────────────────────────────
-router.post('/crawl', requireAuth, requireAdmin, async (req, res) => {
-  const { url, maxPages = 30, maxDepth = 3, followSitemap = true } = req.body
+// ── Async crawl job store ─────────────────────────────────────────────────────
+const crawlJobs = new Map()
+setInterval(() => {
+  const expiry = Date.now() - 10 * 60 * 1000
+  for (const [id, job] of crawlJobs) {
+    if (job.startTime < expiry) crawlJobs.delete(id)
+  }
+}, 60_000)
+
+// ── POST /crawl-start — kick off async crawl, return jobId immediately ────────
+router.post('/crawl-start', requireAuth, requireAdmin, async (req, res) => {
+  const { url, maxPages = 200, maxDepth = 3, followSitemap = true, delayMs = 300 } = req.body
   if (!url) return res.status(400).json({ success: false, error: 'URL required' })
   try { new URL(url) } catch { return res.status(400).json({ success: false, error: 'Invalid URL' }) }
 
-  req.setTimeout(120_000)
-  res.setTimeout(120_000)
+  const jobId = `job_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+  const job = {
+    status:    'running',
+    progress:  { current: 0, total: Number(maxPages) || 200, url: '', speed: 0, thinCount: 0, goodCount: 0 },
+    report:    null,
+    error:     null,
+    startTime: Date.now(),
+  }
+  crawlJobs.set(jobId, job)
+
+  crawlEngine.crawl(url, {
+    maxPages:      Math.min(Number(maxPages) || 200, 500),
+    maxDepth:      Math.min(Number(maxDepth)  || 3,   5),
+    followSitemap: Boolean(followSitemap),
+    respectRobots: true,
+    delayMs:       Number(delayMs) || 300,
+    onProgress: (p) => {
+      job.progress = {
+        current:   p.current   || 0,
+        total:     p.total     || Number(maxPages) || 200,
+        url:       p.url       || '',
+        speed:     p.speed     || 0,
+        thinCount: (job.progress.thinCount || 0) + (p.isThin  ? 1 : 0),
+        goodCount: (job.progress.goodCount || 0) + (p.isGood  ? 1 : 0),
+      }
+    },
+  }).then(report => {
+    job.status = 'done'
+    job.report = report
+  }).catch(err => {
+    job.status = 'error'
+    job.error  = err.message
+  })
+
+  res.json({ success: true, jobId })
+})
+
+// ── GET /crawl-status/:jobId ──────────────────────────────────────────────────
+router.get('/crawl-status/:jobId', requireAuth, requireAdmin, (req, res) => {
+  const job = crawlJobs.get(req.params.jobId)
+  if (!job) return res.status(404).json({ success: false, error: 'Job not found or expired' })
+  res.json({
+    success:  true,
+    status:   job.status,
+    progress: job.progress,
+    report:   job.status === 'done' ? job.report : null,
+    error:    job.error || null,
+  })
+})
+
+// ── POST /crawl — full site crawl (sync, kept for compatibility) ───────────────
+router.post('/crawl', requireAuth, requireAdmin, async (req, res) => {
+  const { url, maxPages = 200, maxDepth = 3, followSitemap = true, delayMs = 300 } = req.body
+  if (!url) return res.status(400).json({ success: false, error: 'URL required' })
+  try { new URL(url) } catch { return res.status(400).json({ success: false, error: 'Invalid URL' }) }
+
+  req.setTimeout(300_000)
+  res.setTimeout(300_000)
 
   try {
     const report = await crawlEngine.crawl(url, {
-      maxPages:      Math.min(Number(maxPages) || 30, 100),
+      maxPages:      Math.min(Number(maxPages) || 200, 500),
       maxDepth:      Math.min(Number(maxDepth)  || 3,   5),
       followSitemap: Boolean(followSitemap),
       respectRobots: true,
-      delayMs:       300,
+      delayMs:       Number(delayMs) || 300,
     })
     res.json({ success: true, report })
   } catch (err) {
     console.error('[admin-seo/crawl]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /submit-orphans-gsc — batch-submit orphan URLs to GSC index log ──────
+router.post('/submit-orphans-gsc', requireAuth, requireAdmin, async (req, res) => {
+  const { urls } = req.body
+  if (!urls?.length) return res.status(400).json({ success: false, error: 'urls array required' })
+  try {
+    const supabase = require('../db/supabase')
+    const records = urls.map(url => ({
+      url,
+      type:         'URL_UPDATED',
+      status:       'pending',
+      submitted_at: new Date().toISOString(),
+    }))
+    const { error } = await supabase.from('gsc_index_log').insert(records)
+    if (error) throw error
+    res.json({ success: true, submitted: urls.length })
+  } catch (err) {
+    console.error('[admin-seo/submit-orphans-gsc]', err.message)
     res.status(500).json({ success: false, error: err.message })
   }
 })
