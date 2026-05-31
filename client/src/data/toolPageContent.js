@@ -220,26 +220,48 @@ export const TOOL_ABOUT = {
   },
 
   'rotate-pdf': {
-    whatIsIt: 'AWE-OS Rotate PDF fixes the orientation of PDF pages that are sideways or upside down — entirely in your browser without uploading to any server. Scanned documents often have incorrect orientations when the paper was placed at an angle in the scanner. This tool lets you rotate individual pages or the entire document by 90°, 180°, or 270° and download the corrected PDF instantly.',
-    howToUse: [
-      'Upload your PDF by clicking "Select PDF" or dropping the file into the tool',
-      'Select which pages to rotate — all pages, or specific page numbers',
-      'Choose the rotation direction: 90° clockwise, 90° counter-clockwise, or 180°',
-      'Click "Rotate PDF" and download the corrected file with fixed orientation',
-    ],
-    whyUseUs: [
-      '100% free — no limits, no watermarks on the corrected PDF',
-      'Private — pages are rotated locally in your browser, file never uploaded',
-      'No signup required — fix rotation instantly without an account',
-      'Rotate individual pages or the entire document in one step',
-    ],
-    faqs: [
-      { q: 'Is Rotate PDF free?', a: 'Yes. Free with no usage limits and no watermarks on the output.' },
-      { q: 'Is my PDF safe?', a: 'All rotation processing happens locally in your browser. Your file is never transmitted to any server.' },
-      { q: 'Does it work on mobile?', a: 'Yes. Works on Android and iOS browsers including Chrome, Firefox, Safari, and Edge.' },
-      { q: 'Can I rotate only specific pages in a multi-page PDF?', a: 'Yes. The tool lets you specify individual pages (e.g., page 3 only) or ranges (e.g., pages 1–5) to rotate, leaving all other pages in their original orientation. This is useful when a scanned document has a mix of correctly-oriented and rotated pages.' },
-    ],
-  },
+  "description": "AWE-OS Rotate PDF is an invaluable online tool for Indian users looking to adjust the orientation of their PDF documents effortlessly. Whether you’re a student preparing assignments, a business professional finalizing reports, or someone digitizing old records, this tool ensures your PDF pages are aligned correctly without the hassle of uploading sensitive documents to external servers. This service is free, efficient, and designed to help you manage your documents effectively. With the rise of digital transactions and documentation, having a reliable PDF rotation tool can save time and improve presentation quality, making it essential for both personal and professional use.",
+  "features": [
+    "Quick and easy PDF rotation for all pages or selected ones, saving you time and effort.",
+    "Supports multiple rotation angles (90°, 180°, 270°), providing flexibility for various document needs.",
+    "No server uploads required, ensuring your data privacy and security while editing documents.",
+    "Instant download of corrected PDFs, allowing you to get back to your tasks without delays.",
+    "User-friendly interface tailored for Indian users, ensuring accessibility and ease of use.",
+    "Compatible with all major browsers, making it convenient to use from anywhere in India."
+  ],
+  "useCases": [
+    "Students in India can use the Rotate PDF tool to quickly fix the orientation of their scanned notes or assignments, ensuring they present their work neatly during submissions, whether online or in-person.",
+    "Small business owners can utilize this tool to rotate documents such as invoices and contracts, ensuring that all their paperwork is professionally presented before sending them to clients or vendors.",
+    "Freelancers offering services such as graphic design or documentation can benefit from this tool by ensuring that all deliverables are in the correct orientation, enhancing their professionalism and client satisfaction.",
+    "Individuals digitizing old family documents or photographs can use the Rotate PDF tool to adjust orientations, preserving cherished memories in a neat, organized manner, ready to be shared with loved ones."
+  ],
+  "howToUse": [
+    "Step 1: Click on 'Select PDF' to upload your file or drag and drop it into the designated area on the tool's interface.",
+    "Step 2: Choose which pages you wish to rotate - you can select all pages or specify certain page numbers for rotation.",
+    "Step 3: Select the desired rotation angle (90°, 180°, or 270°) based on your document’s needs.",
+    "Step 4: Click on the 'Rotate' button to process your request; the tool will instantly adjust the orientation of your selected pages.",
+    "Step 5: Once completed, download the corrected PDF file directly to your device for immediate use."
+  ],
+  "whyUseUs": [
+    "Our tool is completely free to use, making it a cost-effective solution for students, professionals, and anyone needing to manage PDFs in India without incurring costs.",
+    "The convenience of processing documents directly in your browser without uploads ensures that your sensitive information remains private and secure.",
+    "With a user-friendly design specifically aimed at Indian users, AWE-OS Rotate PDF is accessible to everyone, regardless of technical skill level, ensuring that anyone can manage their PDF documents with ease."
+  ],
+  "faqs": [
+    {
+      "q": "Is my document safe when using the AWE-OS Rotate PDF tool?",
+      "a": "Absolutely! AWE-OS Rotate PDF operates entirely in your browser, meaning your documents are not uploaded to any server, ensuring your privacy and security. Your files remain on your device, and we do not collect any personal data or document information, making it a reliable choice for sensitive materials."
+    },
+    {
+      "q": "Can I rotate scanned documents that are in PDF format?",
+      "a": "Yes, the AWE-OS Rotate PDF tool is designed to handle various types of PDF files, including scanned documents. You can easily upload your scanned PDFs and rotate them to correct the orientation before downloading the adjusted version to ensure clarity and professionalism in your documents."
+    },
+    {
+      "q": "What devices can I use to access the Rotate PDF tool?",
+      "a": "The AWE-OS Rotate PDF tool is compatible with all major web browsers and can be accessed on various devices, including desktops, laptops, tablets, and smartphones. Whether you're at home, in a café, or on the go, you can easily rotate your PDFs from anywhere in India with an internet connection."
+    }
+  ]
+},
 
   'watermark-pdf': {
   "description": "The AWE-OS Watermark PDF tool is designed to help Indian users add essential text watermarks to their PDF documents effortlessly. In a business landscape where confidentiality and professionalism are paramount, this tool allows you to watermark documents with phrases like 'CONFIDENTIAL', 'DRAFT', or 'SAMPLE' directly from your browser. Whether you are in the corporate sector, legal field, or academic environment, this tool is particularly useful for safeguarding client proposals, rate cards, and contract drafts before sharing them via email or messaging apps like WhatsApp. Protect your intellectual property and maintain your brand’s integrity with our easy-to-use solution, all for free.",
