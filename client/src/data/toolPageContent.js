@@ -147,26 +147,48 @@ export const TOOL_ABOUT = {
   },
 
   'compress-pdf': {
-    whatIsIt: 'AWE-OS Compress PDF is a free, browser-based tool that reduces the file size of PDF documents without uploading them to any server. It is designed for Indian users who regularly hit file size limits on government portals (income tax portal, DigiLocker, university admission systems), email attachments, and WhatsApp document sharing — where limits of 2MB or 25MB are commonly enforced.',
-    howToUse: [
-      'Open the Compress PDF tool and click "Select PDF" or drag your file into the drop zone',
-      'Choose a compression level — Medium is recommended for most documents, High for very large files',
-      'Click "Compress PDF" and wait a few seconds for processing to complete in your browser',
-      'Review the file size reduction shown, then click "Download" to save the compressed file',
-    ],
-    whyUseUs: [
-      '100% free — no watermarks, no file limits, no hidden charges',
-      'Private — your PDF is processed locally in your browser, never uploaded to any server',
-      'No signup required — open and use instantly on any browser',
-      'Works on Windows, macOS, Android, and iOS',
-    ],
-    faqs: [
-      { q: 'Is Compress PDF free to use?', a: 'Yes. The AWE-OS PDF compressor is completely free with no usage limits, no watermarks, and no account required.' },
-      { q: 'Is my PDF file safe when compressing online?', a: 'Yes. All compression happens locally in your browser using JavaScript. Your PDF is never uploaded to any server and is permanently discarded when you close the browser tab. This is especially important for sensitive documents like salary slips, bank statements, and tax returns.' },
-      { q: 'Does Compress PDF work on mobile?', a: 'Yes. The tool works on Android and iOS in Chrome, Firefox, Safari, and Edge. No app download required.' },
-      { q: 'How much will my PDF be compressed?', a: 'Compression results depend on the original content. PDFs with many high-resolution images typically compress by 60–80%. Text-heavy PDFs such as legal documents or reports usually compress by 20–40%. The tool shows the original and compressed file sizes so you can see the reduction before downloading.' },
-    ],
-  },
+  "description": "AWE-OS Compress PDF is a free, browser-based tool tailored for Indian users, enabling them to easily reduce the size of their PDF documents without any server uploads. This is particularly beneficial for individuals who frequently encounter file size restrictions on government portals, such as the income tax portal where file uploads are limited to 2MB. Additionally, students applying for university admissions often need to submit documents under strict size limits, and professionals sharing documents via email or WhatsApp frequently face the 25MB cap. Our tool ensures that these users can compress their PDFs effortlessly, maintaining document quality while complying with these size constraints.",
+  "features": [
+    "No File Uploads: Your files are processed locally, ensuring privacy and security.",
+    "Multiple Compression Levels: Choose from Medium and High compression options based on your needs.",
+    "User-Friendly Interface: Simple drag-and-drop functionality makes it easy for anyone to use.",
+    "Fast Processing: Compress your PDFs quickly without waiting for uploads or downloads.",
+    "Quality Retention: Maintain the integrity and readability of your documents post-compression.",
+    "Completely Free: Enjoy unlimited usage without any hidden fees or subscriptions."
+  ],
+  "useCases": [
+    "Indian businesses often need to submit various documents for GST filings. With AWE-OS Compress PDF, they can reduce large invoices and receipts to meet the 2MB file size requirement on the government portal, ensuring compliance and timely submissions.",
+    "Students applying for universities in India must upload documents like mark sheets and certificates which often exceed size limits. By using our tool, they can compress these PDFs, making the application process smoother and hassle-free.",
+    "Freelancers and professionals frequently send proposals and contracts via email. By compressing these documents to stay within the 25MB limit, they can ensure their communications are seamless and professional.",
+    "Individuals sharing family documents or educational materials via WhatsApp can use our tool to compress larger PDFs, allowing for easy sharing without the frustration of size restrictions."
+  ],
+  "howToUse": [
+    "Step 1: Open the AWE-OS Compress PDF tool on your browser.",
+    "Step 2: Click on 'Select PDF' or simply drag and drop your PDF file into the designated area.",
+    "Step 3: Choose your desired compression level; Medium is generally recommended for standard documents, while High is best for files that need significant size reduction.",
+    "Step 4: Click on the 'Compress' button and wait for the tool to process your PDF.",
+    "Step 5: Once the compression is complete, download your reduced-size PDF and use it as needed."
+  ],
+  "whyUseUs": [
+    "Our tool is specifically designed for Indian users, addressing local challenges such as government document size restrictions, ensuring you can always submit your files without hassle.",
+    "AWE-OS Compress PDF is entirely free, allowing you to optimize your documents without worrying about costs, making it an accessible solution for students and professionals alike.",
+    "With a focus on user experience, our intuitive interface and quick processing times mean you can get your PDFs compressed and ready in no time, enhancing your productivity."
+  ],
+  "faqs": [
+    {
+      "q": "Is there a limit to how many PDFs I can compress?",
+      "a": "No, AWE-OS Compress PDF is completely free to use with no limits on the number of PDFs you can compress. This makes it an ideal tool for students, professionals, and businesses in India who frequently need to manage multiple document submissions."
+    },
+    {
+      "q": "Will compressing my PDF affect its quality?",
+      "a": "Our tool is designed to retain the quality of your PDFs even after compression. While some minor loss in quality may occur with high compression settings, the readability and essential features of your document will remain intact, making it suitable for all types of documents."
+    },
+    {
+      "q": "Can I use this tool on my mobile device?",
+      "a": "Yes, AWE-OS Compress PDF is a browser-based tool, which means you can access it from any device with an internet connection, including mobile phones and tablets. This flexibility allows you to compress your PDFs on the go, whether you're a student submitting applications or a business professional managing documents."
+    }
+  ]
+},
 
   'jpg-to-pdf': {
   "description": "AWE-OS JPG to PDF is a user-friendly online tool designed for Indian users, allowing them to effortlessly convert JPEG and PNG images into a single PDF document directly in their browser. This tool is particularly valuable for students and professionals who need to compile multiple scanned documents, such as Aadhaar cards, PAN cards, and mark sheets, into one cohesive file. Additionally, it's perfect for combining images of handwritten notes for college submissions or consolidating receipts for expense reporting and GST documentation. With AWE-OS, creating a professional-looking PDF is quick, easy, and entirely free.",
