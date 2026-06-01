@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { useAuth } from '../modules/auth/context/AuthContext'
 import { TOOL_CATALOGUE } from '../data/toolCatalogue'
 
 // ── Shared: one tool link inside a dropdown ──────────────────────────────────
@@ -121,6 +122,8 @@ function MobileAccordion({ catKey, data, onClose }) {
 
 // ── Main Header ───────────────────────────────────────────────────────────────
 export default function Header() {
+  const { role } = useAuth()
+  const isAdmin = role === 'admin'
   const [openMenu, setOpenMenu]   = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled]   = useState(false)
@@ -276,6 +279,15 @@ export default function Header() {
             )}
 
 
+            {isAdmin && (
+              <Link
+                to="/dashboard"
+                className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+              >
+                Dashboard →
+              </Link>
+            )}
+
             {/* Mobile hamburger */}
             <button
               className="lg:hidden p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
@@ -357,6 +369,17 @@ export default function Header() {
               <span className="text-gray-400 text-xs">Get in touch →</span>
             </Link>
 
+            {isAdmin && (
+              <div className="pt-4 pb-6">
+                <Link
+                  to="/dashboard"
+                  onClick={() => setMobileOpen(false)}
+                  className="block w-full py-3 text-center text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors"
+                >
+                  Dashboard →
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}
