@@ -396,6 +396,48 @@ Return ONLY valid JSON (no markdown):
   }
 })
 
+// ── POST /api/admin/traffic/pinterest-pin-claude ─────────────────────────────
+
+router.post('/pinterest-pin-claude', requireAuth, requireAdmin, async (req, res) => {
+  const { toolName, toolSlug, toolUrl, board, keywords } = req.body
+  if (!toolName || !board) return res.status(400).json({ success: false, error: 'toolName and board are required' })
+  const url = toolUrl || `https://www.awe-os.com/tools/${toolSlug || ''}`
+  try {
+    const msg = await getAnthropic().messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 800,
+      system: `You create Pinterest pin content for AWE-OS, a free online tools platform for Indian users.
+Rules:
+- Titles: exactly 3, each max 100 characters, SEO-optimised for Pinterest search, include a benefit or number
+- Description: 150-200 words, flows naturally, includes the tool URL once (${url}), weaves in keywords naturally, ends with a soft CTA
+- Hashtags: exactly 10, relevant to the tool and Indian audience, no spaces, no # prefix needed
+Return ONLY valid JSON (no markdown):
+{
+  "titles": ["title1", "title2", "title3"],
+  "description": "string",
+  "hashtags": ["tag1","tag2","tag3","tag4","tag5","tag6","tag7","tag8","tag9","tag10"]
+}`,
+      messages: [{
+        role: 'user',
+        content: `Tool: ${toolName}\nURL: ${url}\nBoard: ${board}\nTarget keywords: ${keywords || toolName + ' India free online'}\n\nCreate Pinterest pin content.`,
+      }],
+    })
+    const raw   = msg.content[0]?.text || ''
+    const match = raw.match(/\{[\s\S]*\}/)
+    if (!match) throw new Error('Unexpected Claude response format')
+    const data = JSON.parse(match[0])
+    res.json({
+      success: true,
+      titles:      Array.isArray(data.titles)   ? data.titles.slice(0, 3) : [],
+      description: data.description || '',
+      hashtags:    Array.isArray(data.hashtags)  ? data.hashtags.slice(0, 10) : [],
+    })
+  } catch (err) {
+    console.error('[admin-traffic/pinterest-pin-claude]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
 // ── POST /api/admin/traffic/reddit-post-claude ───────────────────────────────
 // Generates a single helpful, non-spammy Reddit post using Claude claude-sonnet-4-6.
 
