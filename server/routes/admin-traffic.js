@@ -321,6 +321,81 @@ Create 3 Pinterest pins to drive Indian traffic.`,
   }
 })
 
+// ── POST /api/admin/traffic/quora-questions-claude ───────────────────────────
+
+router.post('/quora-questions-claude', requireAuth, requireAdmin, async (req, res) => {
+  const { toolName, toolSlug, niche } = req.body
+  if (!toolName) return res.status(400).json({ success: false, error: 'toolName is required' })
+  try {
+    const msg = await getAnthropic().messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 800,
+      system: `You generate realistic Quora questions that real users actually search for.
+Focus on the specific tool and its use cases. Questions should be concrete, not generic.
+Return ONLY valid JSON (no markdown):
+{
+  "questions": [
+    {
+      "question": "string",
+      "estimatedViews": "string (e.g. 10K–50K views)",
+      "opportunity": "High"|"Medium"|"Low",
+      "reason": "string (why this is a good opportunity, 1 sentence)"
+    }
+  ]
+}
+Return exactly 5 questions sorted by opportunity.`,
+      messages: [{
+        role: 'user',
+        content: `Tool: ${toolName}\nSlug: ${toolSlug}\nNiche: ${niche || 'general'}\n\nGenerate 5 high-opportunity Quora questions that real users ask about ${toolName} — focus on problems this tool solves for Indian users.`,
+      }],
+    })
+    const raw    = msg.content[0]?.text || ''
+    const match  = raw.match(/\{[\s\S]*\}/)
+    if (!match) throw new Error('Unexpected Claude response format')
+    const data = JSON.parse(match[0])
+    res.json({ success: true, questions: data.questions || [] })
+  } catch (err) {
+    console.error('[admin-traffic/quora-questions-claude]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /api/admin/traffic/quora-answer-claude ───────────────────────────────
+
+router.post('/quora-answer-claude', requireAuth, requireAdmin, async (req, res) => {
+  const { question, toolName, toolSlug, toolUrl, niche } = req.body
+  if (!question) return res.status(400).json({ success: false, error: 'question is required' })
+  const url = toolUrl || `https://awe-os.com/tools/${toolSlug || ''}`
+  try {
+    const msg = await getAnthropic().messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 700,
+      system: `You write expert Quora answers that genuinely help the person asking.
+Rules:
+- 200–300 words total
+- Start directly with the most useful insight (no "Great question!" filler)
+- Provide 2–3 concrete, actionable points with Indian context where relevant
+- Mention ${toolName} and ${url} naturally once, as a tool you personally find useful
+- End with a single soft call-to-action sentence (not pushy)
+- Sound like a knowledgeable Indian professional, not a marketer
+Return ONLY valid JSON (no markdown):
+{"answer": "string", "aweosMention": "string (the exact sentence mentioning the tool)", "callToAction": "string (the last CTA sentence)"}`,
+      messages: [{
+        role: 'user',
+        content: `Write a Quora answer to: "${question}"\nTool to mention: ${toolName} (${url})\nNiche: ${niche || 'general'}`,
+      }],
+    })
+    const raw   = msg.content[0]?.text || ''
+    const match = raw.match(/\{[\s\S]*\}/)
+    if (!match) throw new Error('Unexpected Claude response format')
+    const data = JSON.parse(match[0])
+    res.json({ success: true, answer: { content: data.answer || '', aweosMention: data.aweosMention || '', callToAction: data.callToAction || '' } })
+  } catch (err) {
+    console.error('[admin-traffic/quora-answer-claude]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
 // ── POST /api/admin/traffic/reddit-post-claude ───────────────────────────────
 // Generates a single helpful, non-spammy Reddit post using Claude claude-sonnet-4-6.
 
