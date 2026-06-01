@@ -425,6 +425,223 @@ function buildAboutBody() {
 </main>`
 }
 
+function buildContactBody() {
+  return `<main>
+<h1>Contact AWE-OS — Support &amp; Feedback</h1>
+<p>Have a question, suggestion, or found a bug? We'd love to hear from you. The AWE-OS team typically responds within 24 hours on weekdays.</p>
+
+<section aria-label="Contact methods">
+  <h2>Other Ways to Reach Us</h2>
+  <ul>
+    <li><strong>Email:</strong> <a href="mailto:contact@awe-os.com">contact@awe-os.com</a> — for support, feedback, and partnership enquiries.</li>
+    <li><strong>Twitter / X:</strong> <a href="https://twitter.com/awe_os" rel="noopener noreferrer">@awe_os</a> — follow us for updates and tool announcements.</li>
+    <li><strong>Response time:</strong> We typically respond within 24 hours on weekdays. We aim to reply to all messages within 48 hours.</li>
+  </ul>
+</section>
+
+<section aria-label="What we can help with">
+  <h2>What We Can Help With</h2>
+  <dl>
+    <dt>Bug Reports</dt>
+    <dd>If a tool is not working correctly — incorrect output, broken UI, or unexpected errors — please describe the issue and the tool name. Screenshots or steps to reproduce are very helpful.</dd>
+    <dt>Feature Requests</dt>
+    <dd>We love hearing what tools or features you'd like to see added to AWE-OS. Describe your use case and we'll add it to our roadmap consideration.</dd>
+    <dt>General Questions</dt>
+    <dd>Questions about how our tools work, data privacy, browser compatibility, or anything else. We're happy to explain.</dd>
+    <dt>Partnership &amp; Collaboration</dt>
+    <dd>Interested in partnering with AWE-OS? Whether it's content collaboration, tool integration, or something else entirely, reach out and let's talk.</dd>
+  </dl>
+</section>
+
+<section aria-label="Quick help links">
+  <h2>Looking for Quick Help?</h2>
+  <ul>
+    <li><a href="/tools/merge-pdf">How do I merge PDF files?</a></li>
+    <li><a href="/about">Is my data safe on AWE-OS?</a></li>
+    <li><a href="/about">Are all tools really free?</a></li>
+    <li><a href="/tools">Browse all free tools</a></li>
+    <li><a href="/privacy-policy">Privacy Policy</a></li>
+    <li><a href="/terms">Terms of Service</a></li>
+  </ul>
+</section>
+
+<section aria-label="Send a message">
+  <h2>Send Us a Message</h2>
+  <p>Use our contact form to send us your name, email address, subject, and message. We accept messages about general questions, bug reports, feature requests, partnerships, and other topics.</p>
+  <p>All fields are required. Please include as much detail as possible so we can help you effectively. For bug reports, include the tool name, what you expected to happen, and what actually happened.</p>
+</section>
+</main>`
+}
+
+function buildPrivacyBody() {
+  return `<main>
+<h1>Privacy Policy</h1>
+<p>Last updated: June 1, 2026</p>
+
+<section aria-label="Introduction">
+  <h2>1. Introduction</h2>
+  <p>AWE-OS is a free, browser-based tools platform. We are committed to your privacy — not just as a legal obligation, but as a core design principle. This policy explains exactly what data we do and do not handle when you use awe-os.com.</p>
+  <p>The short version: we built AWE-OS so your data never has to leave your device. PDF processing, image editing, calculations, and conversions all run locally in your browser. Nothing is uploaded to our servers. Nothing is stored. Nothing is sold.</p>
+</section>
+
+<section aria-label="Data we do not collect">
+  <h2>2. Data We Do NOT Collect</h2>
+  <p>The following data is never sent to our servers under any circumstances:</p>
+  <ul>
+    <li>Files you upload to PDF tools (merge, compress, split, convert, etc.)</li>
+    <li>Images you process with our image tools</li>
+    <li>Numbers or values you enter into calculators or converters</li>
+    <li>Text you paste into any text-processing tool</li>
+    <li>QR code data, colour values, or unit conversion inputs</li>
+  </ul>
+  <p>All of the above run entirely inside your browser using JavaScript. Your data never travels over the network. We have no access to it, and we never will.</p>
+</section>
+
+<section aria-label="Data we may collect">
+  <h2>3. Data We May Collect</h2>
+  <p>The only personal data we may receive comes through two voluntary channels:</p>
+  <p><strong>Contact form:</strong> If you use the contact form at awe-os.com/contact, we receive your name, email address, and the message you write. We use this solely to reply to you and do not add you to any marketing list.</p>
+  <p><strong>Analytics:</strong> If Google Analytics is active on the site, it collects anonymised usage data — pages visited, session duration, country, and device type. This data is aggregated and never linked to you personally. You can opt out at any time using the Google Analytics Opt-out Browser Add-on.</p>
+</section>
+
+<section aria-label="Cookies">
+  <h2>4. Cookies</h2>
+  <p>AWE-OS itself does not set any tracking or login cookies — there are no user accounts, so there is no session to maintain.</p>
+  <p>If Google Analytics or Google AdSense is active, those services may set their own cookies. Analytics cookies measure site traffic in aggregate and do not identify you personally. Advertising cookies (Google AdSense) are used to serve contextually relevant ads and can be opted out via Google Ads Settings.</p>
+  <p>You can block or delete all cookies through your browser settings at any time. Doing so will not affect any tool functionality on AWE-OS.</p>
+</section>
+
+<section aria-label="Third-party services">
+  <h2>5. Third-Party Services</h2>
+  <p><strong>Google AdSense:</strong> We plan to display non-intrusive ads to fund the platform. AdSense may use cookies to personalise ads based on your browsing history across the web.</p>
+  <p><strong>Google Analytics:</strong> Anonymised traffic measurement. Data is processed by Google under their standard terms. No personally identifiable information is shared.</p>
+  <p>We do not use any other third-party data processors. We do not sell, rent, or share your data with any party for commercial purposes.</p>
+</section>
+
+<section aria-label="Your rights">
+  <h2>6. Your Rights</h2>
+  <p>We respect your rights under both the EU General Data Protection Regulation (GDPR) and the Indian Information Technology Act 2000 and its associated rules (IT Reasonable Security Practices and Procedures Rules 2011).</p>
+  <p>Because we collect almost no personal data, most rights are automatically satisfied. You have the right to access any contact form data we hold, the right to erasure (contact us and we will delete within 30 days), and the right to object to analytics or advertising cookies at any time via their respective opt-out mechanisms.</p>
+  <p>For any privacy-related questions or data deletion requests, email: <a href="mailto:contact@awe-os.com">contact@awe-os.com</a></p>
+</section>
+
+<section aria-label="Contact">
+  <h2>7. Contact</h2>
+  <p>For any privacy-related questions, data deletion requests, or concerns, please contact us at <a href="mailto:contact@awe-os.com">contact@awe-os.com</a> or via our <a href="/contact">contact form</a>. We aim to respond to all privacy enquiries within 5 business days.</p>
+</section>
+
+<section aria-label="Changes to this policy">
+  <h2>8. Changes to This Policy</h2>
+  <p>We may update this Privacy Policy from time to time. When we do, we will update the "Last updated" date at the top of this page. Because we do not hold your email address (unless you contacted us), we cannot notify you of changes directly. Continued use of AWE-OS after a policy update constitutes your acceptance of the revised policy.</p>
+</section>
+</main>`
+}
+
+function buildTermsBody() {
+  return `<main>
+<h1>Terms of Service</h1>
+<p>Last updated: June 1, 2026</p>
+
+<section aria-label="Acceptance of terms">
+  <h2>1. Acceptance of Terms</h2>
+  <p>By accessing or using AWE-OS at awe-os.com, you agree to be bound by these Terms of Service. If you do not agree with any part of these terms, you must not use AWE-OS.</p>
+  <p>We reserve the right to update these Terms at any time. Changes take effect immediately upon posting. Continued use of AWE-OS after a change constitutes your acceptance of the revised Terms.</p>
+</section>
+
+<section aria-label="Free use">
+  <h2>2. Free Use — Personal and Commercial</h2>
+  <p>AWE-OS tools are free to use for both personal and commercial purposes. No sign-up, subscription, or payment is required to access any tool on the platform.</p>
+  <p>You are permitted to use all tools for personal projects, freelance work, and business use; use outputs generated by AWE-OS tools in commercial products and client deliverables; and share links to AWE-OS tools freely.</p>
+  <p>You must not use the Service for any unlawful purpose, attempt to reverse-engineer or systematically scrape AWE-OS content, use automated bots at rates exceeding normal human use, infringe intellectual property rights, or submit malicious code designed to disrupt the platform.</p>
+</section>
+
+<section aria-label="No warranty">
+  <h2>3. No Warranty</h2>
+  <p>AWE-OS is provided "as is" and "as available" without warranties of any kind, either express or implied. We make no warranty that the Service will be uninterrupted or error-free, that tool outputs will be accurate or fit for any particular purpose, or that any defects or errors will be corrected.</p>
+  <p>You use AWE-OS at your own risk. We disclaim all implied warranties, including merchantability, fitness for a particular purpose, and non-infringement to the fullest extent permitted by law.</p>
+</section>
+
+<section aria-label="Limitation of liability">
+  <h2>4. Limitation of Liability</h2>
+  <p>To the maximum extent permitted by applicable law, AWE-OS and its owners shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of — or inability to use — the Service. This includes loss of data or files, loss of profits or business revenue, decisions made based on tool outputs, and service interruptions or downtime.</p>
+  <p>Because AWE-OS is a free service, our total liability to you for any claim shall not exceed INR 100.</p>
+</section>
+
+<section aria-label="Intellectual property">
+  <h2>5. Intellectual Property</h2>
+  <p>All original content on AWE-OS — including the platform design, tool interfaces, branding, and written content — is the intellectual property of AWE-OS and is protected under applicable copyright law.</p>
+  <p>Your inputs and outputs belong to you. Files you upload, text you enter, and results generated by our tools remain your property. By using AWE-OS, you grant us no licence to your content — it stays on your device and we never see it.</p>
+  <p>You may not reproduce, republish, or create derivative works from AWE-OS's own content (tool UI, branding, marketing copy) without prior written permission.</p>
+</section>
+
+<section aria-label="Governing law">
+  <h2>6. Governing Law</h2>
+  <p>These Terms of Service are governed by and construed in accordance with the laws of India, including the Information Technology Act 2000 and applicable rules thereunder.</p>
+  <p>Any disputes arising out of or relating to these Terms or your use of AWE-OS shall be subject to the exclusive jurisdiction of the courts in Bengaluru, Karnataka, India.</p>
+  <p>If you have questions about these Terms, please contact us at <a href="mailto:contact@awe-os.com">contact@awe-os.com</a> or via the <a href="/contact">contact form</a>.</p>
+</section>
+</main>`
+}
+
+function buildDisclaimerBody() {
+  return `<main>
+<h1>Disclaimer</h1>
+<p>Please read this disclaimer carefully before using the tools and services provided by AWE-OS at awe-os.com. Last updated: May 8, 2026.</p>
+
+<section aria-label="General disclaimer">
+  <h2>1. General Disclaimer</h2>
+  <p>The information, tools, calculators, converters and AI-generated content available on AWE-OS are provided strictly for general informational and educational purposes. While we make every reasonable effort to ensure the accuracy and reliability of our tools, AWE-OS makes no representations or warranties of any kind — express, implied, statutory or otherwise — about the completeness, accuracy, reliability, suitability or availability of any tool, result or content on this platform.</p>
+  <p>Any reliance you place on information or results generated by our tools is strictly at your own risk. AWE-OS expressly disclaims all liability for any errors, omissions, or inaccuracies in tool outputs, and for any loss or damage — direct or indirect — arising from your use of or reliance on any content or tool on this platform.</p>
+</section>
+
+<section aria-label="No financial advice">
+  <h2>2. No Financial Advice</h2>
+  <p>AWE-OS offers financial calculation tools such as loan calculators, EMI calculators, compound interest calculators, percentage calculators, and similar utilities. These tools are designed to help you perform mathematical computations quickly and conveniently.</p>
+  <p>Nothing on AWE-OS constitutes financial advice. The results produced by our financial calculators are estimates based on the inputs you provide and standard mathematical formulas. They are not a substitute for advice from a qualified financial advisor, accountant, or investment professional.</p>
+  <p>Financial decisions — including loans, investments, tax planning, budgeting and retirement planning — involve complex variables, regulatory requirements and personal circumstances that our tools cannot fully account for. Before making any financial decision, consult a licensed financial professional.</p>
+</section>
+
+<section aria-label="No medical advice">
+  <h2>3. No Medical or Health Advice</h2>
+  <p>AWE-OS offers health-related tools such as BMI calculators, calorie estimators, age calculators and similar health metrics tools. These tools are provided for general informational purposes only.</p>
+  <p>Nothing on AWE-OS constitutes medical advice, diagnosis, or treatment. The results from our health and wellness calculators are based on general population formulas (such as WHO and CDC guidelines) and do not account for individual medical history, pre-existing conditions, medications, or other personal health factors.</p>
+  <p>Always consult a qualified healthcare professional before making decisions about your health, diet, exercise or medical treatment.</p>
+</section>
+
+<section aria-label="No legal advice">
+  <h2>4. No Legal Advice</h2>
+  <p>Some tools on AWE-OS — such as document converters, invoice generators, contract templates and content generators — may produce documents or text that have legal implications. Nothing on AWE-OS constitutes legal advice. The documents, templates, and text generated by our tools are provided for general informational purposes only and should not be treated as legal counsel.</p>
+  <p>Laws vary significantly by jurisdiction, and no automated tool can account for the full complexity of your legal situation. Documents generated by AWE-OS tools should be reviewed by a licensed legal professional before being used in formal or legally binding contexts. AWE-OS is not a law firm and no attorney-client relationship is created by your use of this platform.</p>
+</section>
+
+<section aria-label="AI-generated content disclaimer">
+  <h2>5. AI-Generated Content Disclaimer</h2>
+  <p>Several tools on AWE-OS use artificial intelligence — including large language models (LLMs) — to generate text, summaries, rewritten content, resumes, cover letters and other outputs. AI-generated content is produced by statistical models and may contain errors, inaccuracies, outdated information, or content that does not fully meet your needs.</p>
+  <p>AI outputs should always be reviewed, fact-checked and edited by a qualified human before being used in any professional, academic, medical, legal or financial context. AWE-OS does not guarantee that AI-generated content is original, free from plagiarism, or suitable for any particular purpose.</p>
+</section>
+
+<section aria-label="Tool accuracy and limitations">
+  <h2>6. Tool Accuracy and Limitations</h2>
+  <p>AWE-OS tools are built using widely accepted algorithms, mathematical formulas, and industry-standard methods. However, all digital tools have inherent limitations: results are only as accurate as the inputs you provide; rounding and approximation methods may introduce minor inaccuracies; unit converters use standardised conversion factors which may not account for regional variations; PDF tools may not preserve all formatting from every document type; image compression tools balance quality and file size; and AI writing tools reflect training data up to a knowledge cut-off date.</p>
+</section>
+
+<section aria-label="External links">
+  <h2>7. External Links</h2>
+  <p>AWE-OS may contain links to external websites and services that are not operated by us. These links are provided for your convenience only. We have no control over the content, accuracy, or availability of external sites and accept no responsibility or liability for them. The inclusion of a link does not imply our endorsement of the linked website or its content.</p>
+</section>
+
+<section aria-label="Limitation of liability">
+  <h2>8. Limitation of Liability</h2>
+  <p>To the fullest extent permitted by applicable law, AWE-OS, its founders, employees, agents, partners and affiliates shall not be liable for any direct, indirect, incidental, consequential, special or punitive damages arising from your use of or inability to use any tool, feature, or content on AWE-OS — including errors in tool outputs, decisions made based on tool results, temporary unavailability of the platform, or unauthorised access to your data.</p>
+</section>
+
+<section aria-label="Contact">
+  <h2>9. Contact Us</h2>
+  <p>If you have questions about this Disclaimer or concerns about the accuracy of any tool result, contact us at <a href="mailto:contact@awe-os.com">contact@awe-os.com</a> or via our <a href="/contact">contact form</a>.</p>
+</section>
+</main>`
+}
+
 function buildBlogIndexBody() {
   const links = BLOG_POSTS.slice(0, 12)
     .map(p => `<li><a href="/blog/${p.slug}">${esc(p.title)}</a></li>`)
@@ -529,26 +746,66 @@ const STATIC_ROUTES = [
     path: '/about',
     title: 'About AWE-OS — Free AI-Powered Tools for Everyone',
     description: 'AWE-OS provides 50+ free browser-based tools for everyone. Learn about our mission to make powerful tools accessible without subscriptions.',
+    schema: {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: 'About AWE-OS',
+      description: 'AWE-OS provides 50+ free browser-based tools for everyone. Learn about our mission to make powerful tools accessible without subscriptions.',
+      url: `${SITE_URL}/about`,
+      isPartOf: { '@type': 'WebSite', name: 'AWE-OS', url: SITE_URL },
+    },
   },
   {
     path: '/contact',
     title: 'Contact AWE-OS — Support & Feedback',
     description: 'Contact the AWE-OS team for support, feedback, or partnership enquiries. We respond within 24 hours.',
+    schema: {
+      '@context': 'https://schema.org',
+      '@type': 'ContactPage',
+      name: 'Contact AWE-OS',
+      description: 'Contact the AWE-OS team for support, feedback, or partnership enquiries. We respond within 24 hours.',
+      url: `${SITE_URL}/contact`,
+      isPartOf: { '@type': 'WebSite', name: 'AWE-OS', url: SITE_URL },
+    },
   },
   {
     path: '/privacy-policy',
     title: 'Privacy Policy — AWE-OS',
     description: 'AWE-OS privacy policy. All free tool computations run in your browser — no personal data is processed or stored on our servers.',
+    schema: {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: 'Privacy Policy — AWE-OS',
+      description: 'AWE-OS privacy policy. All free tool computations run in your browser — no personal data is processed or stored on our servers.',
+      url: `${SITE_URL}/privacy-policy`,
+      isPartOf: { '@type': 'WebSite', name: 'AWE-OS', url: SITE_URL },
+    },
   },
   {
     path: '/terms',
     title: 'Terms of Service — AWE-OS',
     description: 'AWE-OS terms of service and usage conditions for free and premium tools.',
+    schema: {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: 'Terms of Service — AWE-OS',
+      description: 'AWE-OS terms of service and usage conditions for free and premium tools.',
+      url: `${SITE_URL}/terms`,
+      isPartOf: { '@type': 'WebSite', name: 'AWE-OS', url: SITE_URL },
+    },
   },
   {
     path: '/disclaimer',
     title: 'Disclaimer — AWE-OS',
     description: 'AWE-OS disclaimer regarding tool accuracy, financial calculations, and third-party services.',
+    schema: {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: 'Disclaimer — AWE-OS',
+      description: 'AWE-OS disclaimer regarding tool accuracy, financial calculations, and third-party services.',
+      url: `${SITE_URL}/disclaimer`,
+      isPartOf: { '@type': 'WebSite', name: 'AWE-OS', url: SITE_URL },
+    },
   },
   {
     path: '/blog',
@@ -686,6 +943,14 @@ for (const route of ALL_ROUTES) {
       bodyHTML = buildBlogIndexBody()
     } else if (route.path === '/about') {
       bodyHTML = buildAboutBody()
+    } else if (route.path === '/contact') {
+      bodyHTML = buildContactBody()
+    } else if (route.path === '/privacy-policy') {
+      bodyHTML = buildPrivacyBody()
+    } else if (route.path === '/terms') {
+      bodyHTML = buildTermsBody()
+    } else if (route.path === '/disclaimer') {
+      bodyHTML = buildDisclaimerBody()
     } else {
       bodyHTML = buildStaticBody(route)
     }
