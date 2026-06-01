@@ -433,11 +433,6 @@ const STATIC_ROUTES = [
     description: 'AWE-OS provides 50+ free browser-based tools for everyone. Learn about our mission to make powerful tools accessible without subscriptions.',
   },
   {
-    path: '/pricing',
-    title: 'Pricing Plans — AWE-OS',
-    description: 'AWE-OS pricing: start free with 50+ tools, upgrade for AI credits and premium features. No credit card required for free tier.',
-  },
-  {
     path: '/contact',
     title: 'Contact AWE-OS — Support & Feedback',
     description: 'Contact the AWE-OS team for support, feedback, or partnership enquiries. We respond within 24 hours.',
