@@ -122,7 +122,7 @@ function MobileAccordion({ catKey, data, onClose }) {
 
 // ── Main Header ───────────────────────────────────────────────────────────────
 export default function Header() {
-  const { role } = useAuth()
+  const { isAuthenticated, role } = useAuth()
   const isAdmin = role === 'admin'
   const [openMenu, setOpenMenu]   = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -279,12 +279,19 @@ export default function Header() {
             )}
 
 
-            {isAdmin && (
+            {isAdmin ? (
               <Link
                 to="/dashboard"
                 className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
               >
                 Dashboard →
+              </Link>
+            ) : !isAuthenticated && (
+              <Link
+                to="/login"
+                className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                Login
               </Link>
             )}
 
@@ -369,14 +376,18 @@ export default function Header() {
               <span className="text-gray-400 text-xs">Get in touch →</span>
             </Link>
 
-            {isAdmin && (
+            {(isAdmin || !isAuthenticated) && (
               <div className="pt-4 pb-6">
                 <Link
-                  to="/dashboard"
+                  to={isAdmin ? '/dashboard' : '/login'}
                   onClick={() => setMobileOpen(false)}
-                  className="block w-full py-3 text-center text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors"
+                  className={`block w-full py-3 text-center text-sm font-semibold text-white rounded-xl transition-colors ${
+                    isAdmin
+                      ? 'bg-indigo-600 hover:bg-indigo-700'
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
                 >
-                  Dashboard →
+                  {isAdmin ? 'Dashboard →' : 'Login'}
                 </Link>
               </div>
             )}
