@@ -19,7 +19,7 @@
  */
 
 import { lazy, Suspense } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import PublicLayout   from '../components/PublicLayout'
 import AppShell       from '../shared/components/AppShell'
 import AdminShell     from '../shared/components/AdminShell'
@@ -41,7 +41,6 @@ const BlogPostPage   = lazy(() => import('../pages/BlogPostPage'))
 const NotFoundPage   = lazy(() => import('../pages/NotFoundPage'))
 
 // ── Payment pages ─────────────────────────────────────────────────────────────
-const PricingPage    = lazy(() => import('../pages/PricingPage'))
 const PaymentSuccess = lazy(() => import('../pages/PaymentSuccess'))
 
 // ── Auth / standalone ─────────────────────────────────────────────────────────
@@ -164,7 +163,7 @@ export default function AppRoutes() {
         <Route path="/terms"          element={lazy$(<Terms />)} />
         <Route path="/disclaimer"     element={lazy$(<Disclaimer />)} />
         <Route path="/contact"        element={lazy$(<ContactPage />)} />
-        <Route path="/pricing"        element={lazy$(<PricingPage />)} />
+        <Route path="/pricing"        element={<Navigate to="/" replace />} />
         <Route path="/payment/success" element={lazy$(<PaymentSuccess />)} />
 
         {/* Legacy redirect shim: /privacy → /privacy-policy (same component) */}

@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../modules/auth/context/AuthContext'
 import { TOOL_CATALOGUE } from '../data/toolCatalogue'
-import PaymentModal from './PaymentModal'
 
 // ── Shared: one tool link inside a dropdown ──────────────────────────────────
 function DropdownItem({ icon, label, to, comingSoon, onClick }) {
@@ -123,13 +121,11 @@ function MobileAccordion({ catKey, data, onClose }) {
 
 // ── Main Header ───────────────────────────────────────────────────────────────
 export default function Header() {
-  const { isAuthenticated, isPro } = useAuth()
   const [openMenu, setOpenMenu]   = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled]   = useState(false)
   const [searching, setSearching] = useState(false)
   const [q, setQ]                 = useState('')
-  const [upgradeModal, setUpgradeModal] = useState(false)
   const navigate  = useNavigate()
   const location  = useLocation()
   const navRef    = useRef(null)
@@ -279,33 +275,6 @@ export default function Header() {
               </button>
             )}
 
-            {isAuthenticated ? (
-              <>
-                {!isPro && (
-                  <button
-                    onClick={() => setUpgradeModal(true)}
-                    className="hidden sm:inline-flex items-center px-3 py-1.5 text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg transition-colors border border-blue-500"
-                  >
-                    ⚡ Upgrade
-                  </button>
-                )}
-                <Link to="/dashboard"
-                  className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors">
-                  Dashboard →
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link to="/pricing"
-                  className="hidden sm:inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
-                  Pricing
-                </Link>
-                <Link to="/login"
-                  className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-                  Login
-                </Link>
-              </>
-            )}
 
             {/* Mobile hamburger */}
             <button
@@ -388,37 +357,10 @@ export default function Header() {
               <span className="text-gray-400 text-xs">Get in touch →</span>
             </Link>
 
-            {/* Auth */}
-            <div className="pt-4 pb-6">
-              {isAuthenticated ? (
-                <Link
-                  to="/dashboard"
-                  onClick={() => setMobileOpen(false)}
-                  className="block w-full py-3 text-center text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors"
-                >
-                  Dashboard →
-                </Link>
-              ) : (
-                <Link
-                  to="/login"
-                  onClick={() => setMobileOpen(false)}
-                  className="block w-full py-3 text-center text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors"
-                >
-                  Login / Sign Up
-                </Link>
-              )}
-            </div>
           </div>
         </div>
       )}
 
-      {upgradeModal && (
-        <PaymentModal
-          plan="pro_monthly"
-          onClose={() => setUpgradeModal(false)}
-          onSuccess={() => setUpgradeModal(false)}
-        />
-      )}
     </>
   )
 }
