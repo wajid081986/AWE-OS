@@ -1045,7 +1045,7 @@ export const TOOL_REGISTRY = [
     isPremium: false,
     comingSoon: false,
     tags: ['resume builder', 'ai resume', 'cv builder', 'ats resume', 'free resume maker', 'resume generator'],
-    relatedSlugs: ['ai-content-writer'],
+    relatedSlugs: ['ai-content-writer', 'word-to-pdf', 'word-counter', 'protect-pdf'],
     seo: {
       title: 'AI Resume Builder — Create Professional Resume Free | AWE-OS',
       description: 'Build a professional, ATS-friendly resume with AI. Multiple templates, instant download. Free online resume builder.',
@@ -1063,7 +1063,7 @@ export const TOOL_REGISTRY = [
     isPremium: false,
     comingSoon: false,
     tags: ['ai content writer', 'ai writer', 'blog post generator', 'copywriting ai', 'content generator', 'gpt writer'],
-    relatedSlugs: ['resume-builder'],
+    relatedSlugs: ['resume-builder', 'word-counter', 'word-to-pdf', 'contract-generator'],
     seo: {
       title: 'AI Content Writer — Generate Blog Posts & Copy Free | AWE-OS',
       description: 'Write blog posts, social media captions, and ad copy with AI. GPT-powered content writer. Free to use.',

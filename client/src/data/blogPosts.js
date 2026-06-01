@@ -5669,8 +5669,7 @@ export const BLOG_POSTS = [
     excerpt:
       'Large PDFs cause upload failures, slow email delivery, and rejected submissions. Learn exactly how PDF compression works and how to reduce file size without degrading your document.',
     metaTitle: 'How to Compress PDF Without Losing Quality | AWE-OS',
-    metaDescription:
-      'Step-by-step guide to compressing PDFs without quality loss. Learn what browser-based compression removes and how to get the smallest file while keeping text and images sharp.',
+    metaDescription: 'Step-by-step guide to compress PDF without quality loss. Reduce file size with browser-based compression — text and images stay sharp.',
     relatedTools: [
       { label: 'Compress PDF',  slug: 'compress-pdf',  icon: '🗜️' },
       { label: 'Merge PDF',     slug: 'merge-pdf',     icon: '📑' },
@@ -5839,8 +5838,7 @@ export const BLOG_POSTS = [
     excerpt:
       'Up to 75% of resumes are rejected by Applicant Tracking Systems before a human ever reads them. Here is exactly what to do — and what to avoid — to get through.',
     metaTitle: 'Resume Tips to Beat ATS Systems in 2025 | AWE-OS',
-    metaDescription:
-      'Learn how ATS resume screening works and the exact formatting, keyword, and structure tips that get your resume past automated filters and in front of hiring managers.',
+    metaDescription: 'ATS resume tips that work: formatting, keyword, and structure strategies to pass automated filters and reach hiring managers in 2025.',
     relatedTools: [
       { label: 'AI Resume Builder', slug: 'resume-builder',  icon: '📄' },
       { label: 'Word to PDF',       slug: 'word-to-pdf',     icon: '📝' },
@@ -6345,8 +6343,7 @@ export const BLOG_POSTS = [
     excerpt:
       'Converting Word documents to PDF is simple — but choosing the right method, preserving your formatting, and ensuring ATS compatibility requires understanding what each approach does under the hood.',
     metaTitle: 'Word to PDF Complete Guide 2025 — Best Methods Compared | AWE-OS',
-    metaDescription:
-      'Complete guide to converting Word to PDF in 2025. Compare browser, desktop, and online methods. Learn which preserves formatting best for resumes and professional documents.',
+    metaDescription: 'Convert Word to PDF in 2025: compare browser, desktop, and online methods. Learn which best preserves formatting for resumes and documents.',
     relatedTools: [
       { label: 'Word to PDF',  slug: 'word-to-pdf',  icon: '📝' },
       { label: 'PDF to Word',  slug: 'pdf-to-word',  icon: '📄' },

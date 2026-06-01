@@ -45,6 +45,14 @@ try {
   console.warn('⚠️  Could not import toolPageContent.js — about sections will be skipped.')
 }
 
+let TOOL_GUIDE = {}
+try {
+  const guide = await import('../src/data/toolGuideContent.js')
+  TOOL_GUIDE = guide.TOOL_GUIDE ?? {}
+} catch (e) {
+  console.warn('⚠️  Could not import toolGuideContent.js — guide sections will be skipped.')
+}
+
 try {
   const blog = await import('../src/data/blogPosts.js')
   BLOG_POSTS = blog.BLOG_POSTS
@@ -203,6 +211,21 @@ function buildToolBody(tool) {
     }
   }
 
+  const guideData = TOOL_GUIDE[tool.slug]
+  let guideSection = ''
+  if (guideData) {
+    const guideParts = []
+    if (guideData.tips?.length) {
+      guideParts.push(`<h2>Tips &amp; Best Practices</h2><ul>${guideData.tips.map(t => `<li>${esc(t)}</li>`).join('')}</ul>`)
+    }
+    if (guideData.mistakes?.length) {
+      guideParts.push(`<h2>Common Mistakes to Avoid</h2><ul>${guideData.mistakes.map(m => `<li>${esc(m)}</li>`).join('')}</ul>`)
+    }
+    if (guideParts.length) {
+      guideSection = `<section aria-label="Guide for ${esc(tool.name)}">${guideParts.join('\n')}</section>`
+    }
+  }
+
   return `${bc}
 <main>
 <h1>${esc(tool.icon ?? '')} ${esc(tool.name)}</h1>
@@ -210,6 +233,7 @@ function buildToolBody(tool) {
 <p>${esc(tool.description)}</p>
 ${tagList}
 ${aboutSection}
+${guideSection}
 ${relatedSection}
 </main>`
 }
@@ -263,6 +287,34 @@ ${faqItems ? `<section><h2>Frequently Asked Questions</h2>${faqItems}</section>`
 </main>`
 }
 
+function renderBlogBlock(block) {
+  switch (block.type) {
+    case 'h2':   return `<h2>${esc(block.text)}</h2>`
+    case 'h3':   return `<h3>${esc(block.text)}</h3>`
+    case 'p':    return `<p>${esc(block.text)}</p>`
+    case 'ul':
+      return `<ul>${(block.items ?? []).map(i => `<li>${esc(i)}</li>`).join('')}</ul>`
+    case 'ol':
+      return `<ol>${(block.items ?? []).map(i => `<li>${esc(i)}</li>`).join('')}</ol>`
+    case 'table': {
+      const thead = block.headers?.length
+        ? `<thead><tr>${block.headers.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead>`
+        : ''
+      const tbody = block.rows?.length
+        ? `<tbody>${block.rows.map(r => `<tr>${r.map(c => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody>`
+        : ''
+      return `<table>${thead}${tbody}</table>`
+    }
+    case 'callout': {
+      const linkHtml = (block.links ?? [])
+        .map(l => `<a href="${l.href}">${esc(l.label)}</a>`)
+        .join(' ')
+      return `<aside><p>${esc(block.text)}${linkHtml ? ' ' + linkHtml : ''}</p></aside>`
+    }
+    default: return ''
+  }
+}
+
 function buildBlogBody(post) {
   const bc = breadcrumb([
     { href: '/', label: 'Home' },
@@ -270,13 +322,37 @@ function buildBlogBody(post) {
     { label: post.title },
   ])
 
+  const contentHtml = (post.content ?? []).map(renderBlogBlock).filter(Boolean).join('\n')
+
+  // Related tools links
+  const relatedToolLinks = (post.relatedTools ?? [])
+    .map(t => `<li><a href="/tools/${t.slug}">${esc(t.icon ?? '')} ${esc(t.label)}</a></li>`)
+    .join('')
+  const relatedToolsSection = relatedToolLinks
+    ? `<section aria-label="Related tools"><h2>Related Tools</h2><ul>${relatedToolLinks}</ul></section>`
+    : ''
+
+  // Related blog posts (same category, different slug, up to 3)
+  const relatedPosts = BLOG_POSTS
+    .filter(p => p.slug !== post.slug && p.category === post.category)
+    .slice(0, 3)
+  const relatedPostLinks = relatedPosts
+    .map(p => `<li><a href="/blog/${p.slug}">${esc(p.title)}</a></li>`)
+    .join('')
+  const relatedPostsSection = relatedPostLinks
+    ? `<section aria-label="Related articles"><h2>Related Articles</h2><ul>${relatedPostLinks}</ul></section>`
+    : ''
+
   return `${bc}
 <main>
 <article>
 <h1>${esc(post.title)}</h1>
 ${post.excerpt ? `<p>${esc(post.excerpt)}</p>` : ''}
 ${post.date ? `<time datetime="${esc(post.date)}">${esc(post.date)}</time>` : ''}
+${contentHtml}
 </article>
+${relatedToolsSection}
+${relatedPostsSection}
 </main>`
 }
 
@@ -736,11 +812,27 @@ const STATIC_ROUTES = [
     path: '/tools',
     title: 'Free Online Tools — PDF, Calculators, AI & Converters | AWE-OS',
     description: 'Browse 50+ free tools: PDF merger, compressor & converter; BMI & loan EMI calculators; QR code generator; AI resume builder. No sign-up, works in browser.',
+    schema: {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: 'Free Online Tools — AWE-OS',
+      description: 'Browse 50+ free tools: PDF merger, compressor & converter; BMI & loan EMI calculators; QR code generator; AI resume builder. No sign-up, works in browser.',
+      url: `${SITE_URL}/tools`,
+      isPartOf: { '@type': 'WebSite', name: 'AWE-OS', url: SITE_URL },
+    },
   },
   {
     path: '/tools/free',
     title: 'Free Tools — No Sign-Up Required | AWE-OS',
     description: 'All free tools on AWE-OS require no account, no payment, and no software. PDF, calculators, converters, AI tools — 100% free in your browser.',
+    schema: {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: 'Free Tools — No Sign-Up Required',
+      description: 'All free tools on AWE-OS require no account, no payment, and no software. PDF, calculators, converters, AI tools — 100% free in your browser.',
+      url: `${SITE_URL}/tools/free`,
+      isPartOf: { '@type': 'WebSite', name: 'AWE-OS', url: SITE_URL },
+    },
   },
   {
     path: '/about',
@@ -748,7 +840,7 @@ const STATIC_ROUTES = [
     description: 'AWE-OS provides 50+ free browser-based tools for everyone. Learn about our mission to make powerful tools accessible without subscriptions.',
     schema: {
       '@context': 'https://schema.org',
-      '@type': 'WebPage',
+      '@type': 'AboutPage',
       name: 'About AWE-OS',
       description: 'AWE-OS provides 50+ free browser-based tools for everyone. Learn about our mission to make powerful tools accessible without subscriptions.',
       url: `${SITE_URL}/about`,
@@ -811,6 +903,14 @@ const STATIC_ROUTES = [
     path: '/blog',
     title: 'Blog — Free Tools Guides & Tutorials | AWE-OS',
     description: 'Guides, tutorials, and tips on PDF handling, online calculators, AI writing tools, and free productivity software.',
+    schema: {
+      '@context': 'https://schema.org',
+      '@type': 'Blog',
+      name: 'AWE-OS Blog',
+      description: 'Guides, tutorials, and tips on PDF handling, online calculators, AI writing tools, and free productivity software.',
+      url: `${SITE_URL}/blog`,
+      publisher: { '@type': 'Organization', name: 'AWE-OS', url: SITE_URL },
+    },
   },
 ]
 
