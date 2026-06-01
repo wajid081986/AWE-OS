@@ -1,4 +1,4 @@
-﻿import { Helmet } from 'react-helmet-async'
+import { Helmet } from 'react-helmet-async'
 
 function Section({ title, children }) {
   return (
@@ -14,12 +14,12 @@ export default function Terms() {
     <>
       <Helmet>
         <title>Terms of Service — AWE-OS</title>
-        <meta name="description"         content="AWE-OS Terms of Service — rules for using our platform, your rights, and our responsibilities." />
+        <meta name="description"         content="AWE-OS Terms of Service. Free to use for personal and commercial purposes. No sign-up required. Read our terms before using the platform." />
         <link rel="canonical"            href="https://www.awe-os.com/terms" />
         <meta property="og:site_name"    content="AWE-OS" />
         <meta property="og:locale"       content="en_US" />
         <meta property="og:title"        content="Terms of Service — AWE-OS" />
-        <meta property="og:description"  content="AWE-OS Terms of Service — rules for using our platform, your rights, and our responsibilities." />
+        <meta property="og:description"  content="AWE-OS Terms of Service. Free to use for personal and commercial purposes. No sign-up required." />
         <meta property="og:url"          content="https://www.awe-os.com/terms" />
         <meta property="og:type"         content="website" />
         <meta property="og:image"        content="https://www.awe-os.com/og-image.svg" />
@@ -29,7 +29,7 @@ export default function Terms() {
         <meta name="twitter:card"        content="summary_large_image" />
         <meta name="twitter:site"        content="@awe_os" />
         <meta name="twitter:title"       content="Terms of Service — AWE-OS" />
-        <meta name="twitter:description" content="AWE-OS Terms of Service — rules for using our platform, your rights, and our responsibilities." />
+        <meta name="twitter:description" content="AWE-OS Terms of Service. Free to use for personal and commercial purposes. No sign-up required." />
         <meta name="twitter:image"       content="https://www.awe-os.com/og-image.svg" />
         <meta name="twitter:image:alt"   content="AWE-OS Terms of Service" />
       </Helmet>
@@ -37,93 +37,118 @@ export default function Terms() {
       <div className="max-w-3xl mx-auto px-4 py-14">
         <div className="mb-10">
           <h1 className="text-3xl font-bold text-gray-900 mb-3">Terms of Service</h1>
-          <p className="text-sm text-gray-400">Last updated: May 8, 2026</p>
+          <p className="text-sm text-gray-400">Last updated: June 1, 2026</p>
         </div>
 
         <Section title="1. Acceptance of Terms">
-          <p>By accessing or using AWE-OS (&quot;Service&quot;, &quot;Platform&quot;, &quot;we&quot;, &quot;us&quot;), you agree to be bound by these Terms of Service and our Privacy Policy. If you do not agree, you must not use AWE-OS.</p>
-          <p>We reserve the right to modify these Terms at any time. Material changes will be communicated via email to registered users. Continued use after changes constitutes acceptance.</p>
+          <p>
+            By accessing or using AWE-OS (&quot;Service&quot;, &quot;Platform&quot;, &quot;we&quot;,
+            &quot;us&quot;) at awe-os.com, you agree to be bound by these Terms of Service. If you do
+            not agree with any part of these terms, you must not use AWE-OS.
+          </p>
+          <p>
+            We reserve the right to update these Terms at any time. Changes take effect immediately
+            upon posting. Continued use of AWE-OS after a change constitutes your acceptance of the
+            revised Terms. The &quot;Last updated&quot; date at the top of this page always reflects
+            when the Terms were most recently changed.
+          </p>
         </Section>
 
-        <Section title="2. Description of Service">
-          <p>AWE-OS provides a collection of free and premium AI-powered tools, converters, calculators and digital products accessible via the web. Features may be added, modified or discontinued at our discretion.</p>
-          <p>While we strive for 99.9% uptime, we do not guarantee uninterrupted access to the Service. We are not liable for service interruptions outside our reasonable control.</p>
-        </Section>
-
-        <Section title="3. Account Registration">
-          <p>Some features require creating an account. You agree to:</p>
+        <Section title="2. Free Use — Personal and Commercial">
+          <p>
+            AWE-OS tools are <strong>free to use for both personal and commercial purposes</strong>.
+            No sign-up, subscription, or payment is required to access any tool on the platform.
+          </p>
+          <p>You are permitted to:</p>
           <ul className="list-disc pl-5 space-y-1">
-            <li>Provide accurate, current and complete information during registration</li>
-            <li>Maintain the security of your password and notify us immediately of any breach</li>
-            <li>Be responsible for all activity under your account</li>
-            <li>Not share your account credentials with any third party</li>
-            <li>Be at least 13 years old (or the minimum age in your jurisdiction)</li>
+            <li>Use all tools on AWE-OS for personal projects, freelance work, and business use</li>
+            <li>Use outputs generated by AWE-OS tools in commercial products and client deliverables</li>
+            <li>Share links to AWE-OS tools freely</li>
+          </ul>
+          <p>You must not:</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Use the Service for any unlawful purpose or in violation of applicable law</li>
+            <li>Attempt to reverse-engineer, scrape, or systematically copy AWE-OS content or tools</li>
+            <li>Use automated bots or scripts to access the Service at rates exceeding normal human use</li>
+            <li>Infringe the intellectual property rights of AWE-OS or any third party</li>
+            <li>Submit malicious code, viruses, or any content designed to disrupt the platform</li>
           </ul>
         </Section>
 
-        <Section title="4. Permitted Use">
-          <p>You may use AWE-OS for lawful personal and commercial purposes. You agree not to:</p>
+        <Section title="3. No Warranty">
+          <p>
+            AWE-OS is provided <strong>&quot;as is&quot;</strong> and{' '}
+            <strong>&quot;as available&quot;</strong> without warranties of any kind, either express
+            or implied. We make no warranty that:
+          </p>
           <ul className="list-disc pl-5 space-y-1">
-            <li>Use the Service for illegal activities or to violate any applicable law</li>
-            <li>Infringe intellectual property rights of AWE-OS or third parties</li>
-            <li>Submit malicious code, viruses, or disruptive content</li>
-            <li>Attempt to gain unauthorised access to our systems</li>
-            <li>Scrape, crawl or bot-access the Service without prior written consent</li>
-            <li>Use the Service to generate spam, misinformation, or harmful content</li>
-            <li>Resell or commercialise the Service itself without our permission</li>
-            <li>Use automated tools to exceed normal human usage rates</li>
+            <li>The Service will be uninterrupted, error-free, or always available</li>
+            <li>Tool outputs will be accurate, complete, or fit for any particular purpose</li>
+            <li>Any defects or errors will be corrected</li>
           </ul>
+          <p>
+            You use AWE-OS at your own risk. We disclaim all implied warranties, including
+            merchantability, fitness for a particular purpose, and non-infringement to the fullest
+            extent permitted by law.
+          </p>
         </Section>
 
-        <Section title="5. Tool Usage Rules">
-          <p>When using AI-powered tools:</p>
+        <Section title="4. Limitation of Liability">
+          <p>
+            To the maximum extent permitted by applicable law, AWE-OS and its owners shall not be
+            liable for any indirect, incidental, special, consequential, or punitive damages arising
+            from your use of — or inability to use — the Service.
+          </p>
+          <p>This includes, without limitation:</p>
           <ul className="list-disc pl-5 space-y-1">
-            <li>You are responsible for the accuracy and appropriateness of inputs you provide</li>
-            <li>AI outputs are provided as-is and may not always be accurate — always review before use</li>
-            <li>You must not use AI tools to generate content that is defamatory, discriminatory or illegal</li>
-            <li>Tool outputs generated using our platform belong to you, subject to any third-party AI model terms</li>
+            <li>Loss of data or files</li>
+            <li>Loss of profits or business revenue</li>
+            <li>Decisions made based on tool outputs</li>
+            <li>Service interruptions or downtime</li>
           </ul>
+          <p>
+            Because AWE-OS is a free service, our total liability to you for any claim, regardless
+            of its basis, shall not exceed INR 100 (Indian Rupees one hundred).
+          </p>
         </Section>
 
-        <Section title="6. Intellectual Property">
-          <p>All content on AWE-OS — including the platform design, tool interfaces, code, brand identity and original text — is the property of AWE-OS and protected by copyright law.</p>
-          <p>You retain ownership of content you input into our tools. By using our tools, you grant us a limited, non-exclusive licence to process your inputs solely to deliver the requested service.</p>
-          <p>You may not reproduce, distribute or create derivative works from AWE-OS content without written permission.</p>
+        <Section title="5. Intellectual Property">
+          <p>
+            All original content on AWE-OS — including the platform design, tool interfaces,
+            branding, and written content — is the intellectual property of AWE-OS and is protected
+            under applicable copyright law.
+          </p>
+          <p>
+            <strong>Your inputs and outputs belong to you.</strong> Files you upload, text you enter,
+            and results generated by our tools remain your property. By using AWE-OS, you grant us
+            no licence to your content — it stays on your device and we never see it.
+          </p>
+          <p>
+            You may not reproduce, republish, or create derivative works from AWE-OS&apos;s own
+            content (tool UI, branding, marketing copy) without prior written permission.
+          </p>
         </Section>
 
-        <Section title="7. Free vs Premium Features">
-          <p>Free tier usage is subject to fair-use limits. We reserve the right to throttle or restrict access if usage significantly exceeds reasonable personal use.</p>
-          <p>Premium subscriptions are billed monthly or annually. Refunds are provided within 7 days of purchase if the service is materially deficient. Subscription cancellations take effect at the end of the current billing period.</p>
-        </Section>
-
-        <Section title="8. Advertising">
-          <p>AWE-OS displays third-party advertisements via Google AdSense. We are not responsible for the content of these advertisements. Clicking on ads may take you to third-party websites; their terms and privacy policies apply.</p>
-          <p>We do not endorse products or services advertised on our platform.</p>
-        </Section>
-
-        <Section title="9. Disclaimers">
-          <p>The Service is provided &quot;as is&quot; and &quot;as available&quot; without warranties of any kind, express or implied. We disclaim all warranties including merchantability, fitness for a particular purpose and non-infringement.</p>
-          <p>AI-generated content is not guaranteed to be accurate, complete or suitable for any particular purpose. You should independently verify AI outputs before acting on them.</p>
-        </Section>
-
-        <Section title="10. Limitation of Liability">
-          <p>To the maximum extent permitted by law, AWE-OS and its affiliates shall not be liable for any indirect, incidental, special, consequential or punitive damages arising from your use of the Service, including but not limited to lost profits, data loss or business interruption.</p>
-          <p>Our total liability to you for any claim shall not exceed the amount you paid us in the 12 months preceding the claim, or INR 500, whichever is greater.</p>
-        </Section>
-
-        <Section title="11. Termination">
-          <p>We may suspend or terminate your account at any time if you violate these Terms. You may delete your account at any time from account settings.</p>
-          <p>Upon termination, your right to access the Service ceases immediately. Provisions relating to intellectual property, disclaimers and limitation of liability survive termination.</p>
-        </Section>
-
-        <Section title="12. Governing Law">
-          <p>These Terms are governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts located in Bengaluru, Karnataka, India.</p>
-        </Section>
-
-        <Section title="13. Contact">
-          <p>For questions about these Terms:</p>
-          <p><strong>Email:</strong> <a href="mailto:legal@awe-os.com" className="text-blue-600 hover:underline">legal@awe-os.com</a></p>
-          <p><strong>Website:</strong> <a href="/contact" className="text-blue-600 hover:underline">awe-os.com/contact</a></p>
+        <Section title="6. Governing Law">
+          <p>
+            These Terms of Service are governed by and construed in accordance with the laws of
+            India, including the Information Technology Act 2000 and applicable rules thereunder.
+          </p>
+          <p>
+            Any disputes arising out of or relating to these Terms or your use of AWE-OS shall be
+            subject to the exclusive jurisdiction of the courts in Bengaluru, Karnataka, India.
+          </p>
+          <p>
+            If you have questions about these Terms, please contact us at{' '}
+            <a href="mailto:contact@awe-os.com" className="text-blue-600 hover:underline">
+              contact@awe-os.com
+            </a>{' '}
+            or via the{' '}
+            <a href="/contact" className="text-blue-600 hover:underline">
+              contact form
+            </a>
+            .
+          </p>
         </Section>
       </div>
     </>

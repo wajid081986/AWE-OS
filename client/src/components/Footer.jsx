@@ -23,7 +23,7 @@ const COLS = [
     title: 'Legal',
     links: [
       { label: 'Contact Us',      to: '/contact'     },
-      { label: 'Privacy Policy',  to: '/privacy'     },
+      { label: 'Privacy Policy',  to: '/privacy-policy' },
       { label: 'Terms of Use',    to: '/terms'       },
       { label: 'Disclaimer',      to: '/disclaimer'  },
     ],
@@ -90,7 +90,7 @@ export default function Footer() {
         <div className="mt-12 pt-6 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
           <p>© {new Date().getFullYear()} AWE-OS. All rights reserved.</p>
           <nav aria-label="Legal links" className="flex gap-4">
-            <Link to="/privacy"     className="hover:text-gray-300 transition-colors">Privacy</Link>
+            <Link to="/privacy-policy" className="hover:text-gray-300 transition-colors">Privacy</Link>
             <Link to="/terms"       className="hover:text-gray-300 transition-colors">Terms</Link>
             <Link to="/disclaimer"  className="hover:text-gray-300 transition-colors">Disclaimer</Link>
             <Link to="/contact"     className="hover:text-gray-300 transition-colors">Contact</Link>
