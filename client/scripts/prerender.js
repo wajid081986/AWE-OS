@@ -327,6 +327,104 @@ function buildStaticBody(route) {
 </main>`
 }
 
+function buildAboutBody() {
+  const values = [
+    { title: 'Always Free',       desc: 'Core tools are free forever. No hidden fees, no paywalls on essential features. We believe utility should not be gated by your budget.' },
+    { title: 'Fast & Simple',     desc: 'Every tool is designed to deliver results in seconds. No sign-ups, no bloated interfaces — just paste, click, done.' },
+    { title: 'Private & Safe',    desc: 'We never sell your data. Files you process in our PDF tools are never stored on our servers. Your inputs stay yours.' },
+    { title: 'AI-Powered',        desc: 'Cutting-edge language models and machine learning algorithms work behind every AI tool to deliver smarter, more accurate results.' },
+    { title: 'Mobile First',      desc: 'Every tool works perfectly on your phone, tablet or desktop. No app download needed — just open your browser and start.' },
+    { title: 'Built for Everyone', desc: 'From students in Lagos to freelancers in London, AWE-OS is designed to be useful regardless of your device, language, or technical skill.' },
+  ]
+
+  const categories = [
+    {
+      title: 'PDF Tools', href: '/tools/pdf',
+      desc: 'Merge, split, compress, rotate, protect, unlock, watermark and convert PDF files — all without uploading to a third-party server. Our browser-based PDF engine processes everything locally for maximum privacy.',
+      tools: ['Merge PDF', 'Compress PDF', 'PDF to Word', 'Word to PDF', 'Split PDF', 'Protect PDF'],
+    },
+    {
+      title: 'Calculators', href: '/tools/calculators',
+      desc: 'From BMI and loan repayments to GPA and compound interest, our calculators cover the everyday maths that matters. Each one is built with verified formulas from authoritative sources like WHO, RBI, and standard financial principles.',
+      tools: ['BMI Calculator', 'Loan Calculator', 'Age Calculator', 'GPA Calculator', 'SIP Calculator', 'GST Calculator'],
+    },
+    {
+      title: 'Converters & Generators', href: '/tools/converters',
+      desc: 'Instantly convert between units, file formats, colour spaces, and data formats. Whether you need to convert kilometres to miles or CSV to JSON, our converters are accurate, fast and completely free.',
+      tools: ['Unit Converter', 'CSV to JSON', 'Color Picker', 'Image Compressor', 'QR Code Generator'],
+    },
+    {
+      title: 'Productivity & AI Tools', href: '/tools/productivity',
+      desc: 'Our AI-powered tools tap into state-of-the-art language models to help you write, create and produce better content faster. Build a polished resume in minutes, generate marketing copy, or create invoices and contracts.',
+      tools: ['AI Resume Builder', 'AI Content Writer', 'Invoice Generator', 'Contract Generator'],
+    },
+  ]
+
+  const team = [
+    { name: 'Wajid',     role: 'Founder & CEO',       bio: 'Passionate about democratising AI and making powerful software tools accessible to people who need them most.' },
+    { name: 'AI Team',   role: 'Engineering & Models', bio: 'Our AI agents continuously discover, design and deploy new tools based on real user needs.' },
+    { name: 'Community', role: 'Users & Contributors', bio: 'Over 50,000 users across 120+ countries who shape what we build next.' },
+  ]
+
+  const catHTML = categories.map(c => `
+<section>
+  <h3><a href="${c.href}">${esc(c.title)}</a></h3>
+  <p>${esc(c.desc)}</p>
+  <ul>${c.tools.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+</section>`).join('')
+
+  const valuesHTML = values.map(v =>
+    `<dt>${esc(v.title)}</dt><dd>${esc(v.desc)}</dd>`
+  ).join('')
+
+  const teamHTML = team.map(m =>
+    `<section><h3>${esc(m.name)}</h3><p>${esc(m.role)}</p><p>${esc(m.bio)}</p></section>`
+  ).join('')
+
+  return `<main>
+<h1>About AWE-OS</h1>
+<p>We build free, fast, browser-based tools for everyone.</p>
+
+<section aria-label="Platform statistics">
+  <ul>
+    <li>100+ Free Tools</li>
+    <li>50K+ Monthly Users</li>
+    <li>99.9% Uptime</li>
+    <li>Zero cost to you</li>
+  </ul>
+</section>
+
+<section aria-label="Our Mission">
+  <h2>Our Mission</h2>
+  <p>AWE-OS was built to give everyone access to tools that usually cost money or require accounts. PDF tools, financial calculators, AI tools — all free, all private, all in the browser. Whether you're a student in Mumbai, a freelancer in Lagos, or a small business owner in London, you deserve the same powerful tools as any Fortune 500 company.</p>
+  <p>Privacy is not an afterthought — it's our foundation. No data is sent to any server. Everything runs locally in your browser. When you compress a PDF, calculate your BMI, or generate a QR code, your data never leaves your device. We have no access to it, and we never will.</p>
+  <p>We live in an era where AI and browser technology are powerful enough to run sophisticated tools entirely on your device — with zero uploads, zero accounts, and zero cost. AWE-OS is our commitment to that future: a free, open platform that grows with what users actually need.</p>
+</section>
+
+<section aria-label="What you can do on AWE-OS">
+  <h2>What You Can Do on AWE-OS</h2>
+  ${catHTML}
+</section>
+
+<section aria-label="Why we built this">
+  <h2>Why We Built This</h2>
+  <p>Most online tool sites are cluttered with ads, require sign-ups, or upload your files to foreign servers. A simple PDF compression sends your private documents to a server you know nothing about. A basic calculator is buried under pop-ups asking you to subscribe. We built AWE-OS to fix that.</p>
+  <p>The goal was simple: clean UI, zero signup, browser-only processing. Every tool on AWE-OS runs entirely inside your browser. Your files never travel over the network. Your calculations are never logged. You never have to create an account just to convert a PDF or check your BMI.</p>
+</section>
+
+<section aria-label="Our Values">
+  <h2>Our Values</h2>
+  <dl>${valuesHTML}</dl>
+</section>
+
+<section aria-label="The Team">
+  <h2>The Team</h2>
+  <p>AWE-OS is built and maintained by a small team of developers passionate about making useful tools accessible to everyone.</p>
+  ${teamHTML}
+</section>
+</main>`
+}
+
 function buildBlogIndexBody() {
   const links = BLOG_POSTS.slice(0, 12)
     .map(p => `<li><a href="/blog/${p.slug}">${esc(p.title)}</a></li>`)
@@ -586,6 +684,8 @@ for (const route of ALL_ROUTES) {
       bodyHTML = buildToolsIndexBody()
     } else if (route.path === '/blog') {
       bodyHTML = buildBlogIndexBody()
+    } else if (route.path === '/about') {
+      bodyHTML = buildAboutBody()
     } else {
       bodyHTML = buildStaticBody(route)
     }
