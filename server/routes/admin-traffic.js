@@ -2,6 +2,7 @@ const express          = require('express')
 const requireAuth      = require('../middleware/auth')
 const { getOpenAI }    = require('../core/ai-engine')
 const parseAIJson      = require('../services/parseAIJson')
+const Anthropic        = require('@anthropic-ai/sdk')
 
 const router = express.Router()
 
@@ -316,6 +317,57 @@ Create 3 Pinterest pins to drive Indian traffic.`,
     res.json({ success: true, pins: result?.pins || [] })
   } catch (err) {
     console.error('[admin-traffic/pinterest-pins]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /api/admin/traffic/reddit-post-claude ───────────────────────────────
+// Generates a single helpful, non-spammy Reddit post using Claude claude-sonnet-4-6.
+
+let _anthropic = null
+function getAnthropic() {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    const err = new Error('ANTHROPIC_API_KEY environment variable is not set')
+    err.code = 'AI_UNAVAILABLE'
+    throw err
+  }
+  if (!_anthropic) _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  return _anthropic
+}
+
+router.post('/reddit-post-claude', requireAuth, requireAdmin, async (req, res) => {
+  const { toolName, toolSlug, toolUrl, subreddit, targetAudience } = req.body
+  if (!toolName || !subreddit) {
+    return res.status(400).json({ success: false, error: 'toolName and subreddit are required' })
+  }
+  const url = toolUrl || `https://awe-os.com/tools/${toolSlug || 'sip-calculator'}`
+  try {
+    const client = getAnthropic()
+    const msg = await client.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 600,
+      system: `You write genuine, helpful Reddit posts for ${subreddit}.
+Community rules you must follow:
+- 150–250 words total
+- Lead with real value or a relatable problem — NEVER open with promotion
+- Mention the AWE-OS tool and its URL exactly once, framed as something you personally found useful
+- No hard selling, no "check out", no "amazing tool" hype language
+- Sound like a real community member sharing a helpful tip
+- Target audience: ${targetAudience || 'Indian users'}
+Return ONLY valid JSON (no markdown, no explanation):
+{"title": "...", "body": "..."}`,
+      messages: [{
+        role: 'user',
+        content: `Write a Reddit post for ${subreddit} naturally mentioning ${toolName} (${url}). Focus on being genuinely helpful first.`,
+      }],
+    })
+    const raw = msg.content[0]?.text || ''
+    const match = raw.match(/\{[\s\S]*\}/)
+    if (!match) throw new Error('Claude returned unexpected format')
+    const data = JSON.parse(match[0])
+    res.json({ success: true, post: { title: data.title || '', body: data.body || '' } })
+  } catch (err) {
+    console.error('[admin-traffic/reddit-post-claude]', err.message)
     res.status(500).json({ success: false, error: err.message })
   }
 })
