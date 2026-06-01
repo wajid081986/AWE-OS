@@ -28,6 +28,7 @@ import {
   getRelatedTools,
   getApplicationCategory,
 } from '../../data/toolRegistry'
+import { TOOL_GUIDE } from '../../data/toolGuideContent'
 
 const SITE_URL  = 'https://www.awe-os.com'
 const OG_IMAGE  = 'https://www.awe-os.com/og-image.svg'
@@ -115,6 +116,7 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
   // Resolve tool and category metadata from the registry
   const toolMeta = getToolBySlug(slug)
   const catMeta  = toolMeta ? getCategoryMeta(toolMeta.category) : null
+  const guide    = TOOL_GUIDE[slug] || null
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -178,6 +180,40 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
     itemListElement: breadcrumbItems,
   }
 
+  const articleSchema = {
+    '@context':        'https://schema.org',
+    '@type':           'Article',
+    headline:          `${name} — Free Online Tool | Complete Guide`,
+    description:       seoDesc,
+    url:               pageUrl,
+    image:             OG_IMAGE,
+    author:            { '@type': 'Organization', name: 'AWE-OS', url: SITE_URL },
+    publisher: {
+      '@type': 'Organization',
+      name:    'AWE-OS',
+      url:     SITE_URL,
+      logo:    { '@type': 'ImageObject', url: `${SITE_URL}/og-image.svg` },
+    },
+    datePublished:     '2024-01-01',
+    dateModified:      '2026-06-01',
+    mainEntityOfPage:  { '@type': 'WebPage', '@id': pageUrl },
+  }
+
+  // Collect all FAQs from both the `faqs` prop and `about.faqs` for the JSON-LD schema
+  const allFaqsForSchema = [
+    ...(faqs || []),
+    ...((about && !Array.isArray(about) && about.faqs) ? about.faqs : []),
+  ]
+  const faqSchema = allFaqsForSchema.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type':    'FAQPage',
+    mainEntity: allFaqsForSchema.map(({ q, a }) => ({
+      '@type':         'Question',
+      name:            q,
+      acceptedAnswer:  { '@type': 'Answer', text: a },
+    })),
+  } : null
+
   return (
     <>
       <Helmet>
@@ -204,8 +240,10 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
         <meta name="twitter:image:alt"   content={`${name} — AWE-OS`} />
         {/* Schema.org */}
         <script type="application/ld+json">{JSON.stringify(softwareSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
         {howToSchema && <script type="application/ld+json">{JSON.stringify(howToSchema)}</script>}
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+        {faqSchema && <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>}
       </Helmet>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -388,6 +426,39 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
                   )}
                 </section>
               )
+            )}
+
+            {/* Tips & Best Practices */}
+            {guide?.tips?.length > 0 && (
+              <section className="mb-10 p-5 bg-amber-50 rounded-xl border border-amber-200">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Tips &amp; Best Practices for {name}</h2>
+                <ul className="space-y-3">
+                  {guide.tips.map((tip, i) => (
+                    <li key={i} className="flex items-start gap-2.5 text-sm text-gray-700 leading-relaxed">
+                      <span className="text-amber-500 shrink-0 mt-0.5 font-bold">💡</span>
+                      <span>{tip}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {/* Mid-content ad */}
+            <AdBanner size="leaderboard" />
+
+            {/* Common Mistakes to Avoid */}
+            {guide?.mistakes?.length > 0 && (
+              <section className="mb-10 p-5 bg-red-50 rounded-xl border border-red-200">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Common Mistakes to Avoid with {name}</h2>
+                <ul className="space-y-3">
+                  {guide.mistakes.map((mistake, i) => (
+                    <li key={i} className="flex items-start gap-2.5 text-sm text-gray-700 leading-relaxed">
+                      <span className="text-red-500 shrink-0 mt-0.5 font-bold">✕</span>
+                      <span>{mistake}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
             )}
 
             {/* FAQ accordion */}

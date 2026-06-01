@@ -1,6 +1,15 @@
 ﻿import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 
+const ORG_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'AWE-OS',
+  url: 'https://www.awe-os.com',
+  description: 'Free browser-based online tools for everyone — PDF tools, calculators, converters, and AI tools. No signup required.',
+  sameAs: ['https://twitter.com/awe_os'],
+}
+
 const VALUES = [
   { icon: '🆓', title: 'Always Free',       desc: 'Core tools are free forever. No hidden fees, no paywalls on essential features. We believe utility should not be gated by your budget.' },
   { icon: '⚡', title: 'Fast & Simple',     desc: 'Every tool is designed to deliver results in seconds. No sign-ups, no bloated interfaces — just paste, click, done.' },
@@ -14,26 +23,34 @@ const CATEGORIES = [
   {
     icon: '📄',
     title: 'PDF Tools',
+    count: '21 tools',
+    href: '/tools/pdf',
     desc: 'Merge, split, compress, rotate, protect, unlock, watermark and convert PDF files — all without uploading to a third-party server. Our browser-based PDF engine processes everything locally for maximum privacy.',
     tools: ['Merge PDF', 'Compress PDF', 'PDF to Word', 'Word to PDF', 'Split PDF', 'Protect PDF'],
   },
   {
     icon: '🧮',
     title: 'Calculators',
+    count: '13 tools',
+    href: '/tools/calculators',
     desc: 'From BMI and loan repayments to GPA and compound interest, our calculators cover the everyday maths that matters. Each one is built with verified formulas from authoritative sources like WHO, RBI, and standard financial principles.',
-    tools: ['BMI Calculator', 'Loan Calculator', 'Age Calculator', 'GPA Calculator', 'Percentage Calculator', 'Compound Interest'],
+    tools: ['BMI Calculator', 'Loan Calculator', 'Age Calculator', 'GPA Calculator', 'SIP Calculator', 'GST Calculator'],
   },
   {
     icon: '🔄',
-    title: 'Converters',
+    title: 'Converters & Generators',
+    count: '10 tools',
+    href: '/tools/converters',
     desc: 'Instantly convert between units, file formats, colour spaces, and data formats. Whether you need to convert kilometres to miles or CSV to JSON, our converters are accurate, fast and completely free.',
     tools: ['Unit Converter', 'CSV to JSON', 'Color Picker', 'Image Compressor', 'QR Code Generator'],
   },
   {
     icon: '✨',
-    title: 'AI Tools',
-    desc: 'Our AI-powered tools tap into state-of-the-art language models to help you write, create and produce better content faster. Build a polished resume in minutes, generate marketing copy, or let AI rewrite your text in a new tone.',
-    tools: ['AI Resume Builder', 'AI Content Writer', 'Cover Letter Generator', 'Text Summariser'],
+    title: 'Productivity & AI Tools',
+    count: '',
+    href: '/tools/productivity',
+    desc: 'Our AI-powered tools tap into state-of-the-art language models to help you write, create and produce better content faster. Build a polished resume in minutes, generate marketing copy, or create invoices and contracts.',
+    tools: ['AI Resume Builder', 'AI Content Writer', 'Invoice Generator', 'Contract Generator'],
   },
 ]
 
@@ -54,25 +71,26 @@ export default function AboutPage() {
   return (
     <>
       <Helmet>
-        <title>About Us — AWE-OS | Free AI-Powered Tools for Everyone</title>
-        <meta name="description"         content="Learn about AWE-OS — our mission to make AI-powered tools free and accessible to everyone. PDF tools, calculators, converters and AI writers, all at no cost." />
+        <title>About Us — AWE-OS | Free Online Tools</title>
+        <meta name="description"         content="Learn about AWE-OS — who we are, why we built free browser-based tools, and our commitment to privacy-first, no-signup tools for everyone." />
         <link rel="canonical"            href="https://www.awe-os.com/about" />
         <meta property="og:site_name"    content="AWE-OS" />
         <meta property="og:locale"       content="en_US" />
-        <meta property="og:title"        content="About Us — AWE-OS | Free AI-Powered Tools for Everyone" />
-        <meta property="og:description"  content="Learn about AWE-OS — our mission to make AI-powered tools free and accessible to everyone. PDF tools, calculators, converters and AI writers, all at no cost." />
+        <meta property="og:title"        content="About Us — AWE-OS | Free Online Tools" />
+        <meta property="og:description"  content="Learn about AWE-OS — who we are, why we built free browser-based tools, and our commitment to privacy-first, no-signup tools for everyone." />
         <meta property="og:url"          content="https://www.awe-os.com/about" />
         <meta property="og:type"         content="website" />
         <meta property="og:image"        content="https://www.awe-os.com/og-image.svg" />
         <meta property="og:image:width"  content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt"    content="About AWE-OS — Free AI-Powered Tools for Everyone" />
+        <meta property="og:image:alt"    content="About AWE-OS — Free Online Tools for Everyone" />
         <meta name="twitter:card"        content="summary_large_image" />
         <meta name="twitter:site"        content="@awe_os" />
-        <meta name="twitter:title"       content="About Us — AWE-OS | Free AI-Powered Tools for Everyone" />
-        <meta name="twitter:description" content="Learn about AWE-OS — our mission to make AI-powered tools free and accessible to everyone. PDF tools, calculators, converters and AI writers, all at no cost." />
+        <meta name="twitter:title"       content="About Us — AWE-OS | Free Online Tools" />
+        <meta name="twitter:description" content="Learn about AWE-OS — who we are, why we built free browser-based tools, and our commitment to privacy-first, no-signup tools for everyone." />
         <meta name="twitter:image"       content="https://www.awe-os.com/og-image.svg" />
-        <meta name="twitter:image:alt"   content="About AWE-OS — Free AI-Powered Tools for Everyone" />
+        <meta name="twitter:image:alt"   content="About AWE-OS — Free Online Tools for Everyone" />
+        <script type="application/ld+json">{JSON.stringify(ORG_SCHEMA)}</script>
       </Helmet>
 
       {/* Hero */}
@@ -80,11 +98,10 @@ export default function AboutPage() {
         <div className="max-w-3xl mx-auto">
           <span className="text-5xl mb-4 block">🤖</span>
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-            Free AI-Powered Tools for Everyone
+            About AWE-OS
           </h1>
           <p className="text-gray-500 text-lg leading-relaxed max-w-2xl mx-auto">
-            AWE-OS is an open-access platform delivering 100+ free tools — from PDF editors and financial
-            calculators to AI content writers — to students, freelancers and businesses worldwide.
+            We build free, fast, browser-based tools for everyone.
           </p>
         </div>
       </section>
@@ -107,24 +124,25 @@ export default function AboutPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Our Mission</h2>
           <div className="text-gray-600 leading-relaxed space-y-4">
             <p>
-              AWE-OS started with a simple but powerful idea: <strong>what if every person — a student, a
-              freelancer, a small business owner — had access to the same AI tools as a Fortune 500 company?</strong>
+              AWE-OS was built to give everyone access to tools that usually cost money or require accounts.
+              PDF tools, financial calculators, AI tools — all free, all private, all in the browser. Whether
+              you&apos;re a student in Mumbai, a freelancer in Lagos, or a small business owner in London, you
+              deserve the same powerful tools as any Fortune 500 company.
             </p>
             <p>
-              We live in an era where artificial intelligence is reshaping how we work, write, calculate and create.
-              Yet most AI tools are locked behind expensive subscriptions, requiring technical expertise to set up
-              or limited to users in wealthy countries. We think that&apos;s wrong — and AWE-OS is our answer.
+              <strong>Privacy is not an afterthought — it&apos;s our foundation.</strong> No data is sent to any
+              server. Everything runs locally in your browser. When you compress a PDF, calculate your BMI, or
+              generate a QR code, your data never leaves your device. We have no access to it, and we never will.
             </p>
             <p>
-              We&apos;re an AI-first platform that uses autonomous agents to continuously discover, build, test and
-              deploy new tools based on what people actually need. Our AI factory analyses trending searches,
-              user feedback and productivity gaps to ship new tools weekly. Our community decides which ones
-              are worth keeping and improving.
+              We live in an era where AI and browser technology are powerful enough to run sophisticated tools
+              entirely on your device — with zero uploads, zero accounts, and zero cost. AWE-OS is our commitment
+              to that future: a free, open platform that grows with what users actually need.
             </p>
             <p>
-              Today, AWE-OS serves over 50,000 users every month across 100+ free tools — from resume builders
-              and PDF converters to AI content writers and financial calculators. Every tool is built with the
-              same philosophy: make it fast, make it accurate, and keep it free.
+              Today, AWE-OS serves users every month across 49+ free tools — from resume builders and PDF
+              converters to AI content writers and financial calculators. Every tool is built with the same
+              philosophy: make it fast, make it accurate, and keep it free.
             </p>
           </div>
         </div>
@@ -133,15 +151,22 @@ export default function AboutPage() {
       {/* What we offer */}
       <section className="py-14 px-4 bg-gray-50">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-3 text-center">What AWE-OS Offers</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3 text-center">What You Can Do on AWE-OS</h2>
           <p className="text-gray-500 text-center text-sm mb-10 max-w-2xl mx-auto">
             Four powerful categories covering the tools you reach for every day — all free, all browser-based.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {CATEGORIES.map(({ icon, title, desc, tools }) => (
+            {CATEGORIES.map(({ icon, title, count, href, desc, tools }) => (
               <div key={title} className="bg-white border border-gray-200 rounded-xl p-6">
                 <span className="text-3xl block mb-3">{icon}</span>
-                <h3 className="text-gray-900 font-semibold text-base mb-2">{title}</h3>
+                <div className="flex items-center gap-2 mb-2">
+                  <Link to={href} className="text-gray-900 font-semibold text-base hover:text-blue-600 transition-colors">
+                    {title}
+                  </Link>
+                  {count && (
+                    <span className="bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">{count}</span>
+                  )}
+                </div>
                 <p className="text-gray-500 text-sm leading-relaxed mb-4">{desc}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {tools.map(t => (
@@ -150,6 +175,9 @@ export default function AboutPage() {
                     </span>
                   ))}
                 </div>
+                <Link to={href} className="inline-block mt-4 text-xs text-blue-600 hover:underline font-medium">
+                  Browse {title} →
+                </Link>
               </div>
             ))}
           </div>
@@ -159,25 +187,23 @@ export default function AboutPage() {
       {/* Why we built it */}
       <section className="py-14 px-4">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Why We Built AWE-OS</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Why We Built This</h2>
           <div className="text-gray-600 leading-relaxed space-y-4">
             <p>
-              Before AWE-OS, the tools people needed were scattered across dozens of websites. PDF editing
-              required a desktop app or a paid subscription. AI writing tools were gated by usage limits.
-              Calculators had ads that obscured results on mobile. Freelancers spent more time hunting for
-              tools than actually working.
+              Most online tool sites are cluttered with ads, require sign-ups, or upload your files to foreign
+              servers. A simple PDF compression sends your private documents to a server you know nothing about.
+              A basic calculator is buried under pop-ups asking you to subscribe. We built AWE-OS to fix that.
             </p>
             <p>
-              We wanted to build one platform where you could handle your entire digital workflow: prepare
-              your CV with an AI resume builder, calculate loan payments before signing a contract, compress
-              a PDF for email, convert units for an international client, and generate marketing copy for a
-              new product — all without switching tabs, creating accounts on five different sites, or paying
-              a monthly fee.
+              The goal was simple: <strong>clean UI, zero signup, browser-only processing.</strong> Every tool
+              on AWE-OS runs entirely inside your browser. Your files never travel over the network. Your
+              calculations are never logged. You never have to create an account just to convert a PDF or check
+              your BMI.
             </p>
             <p>
-              We also believe the internet should be more equitable. Students in developing countries should
-              have the same access to productivity tools as knowledge workers in Silicon Valley. AWE-OS is
-              our commitment to that principle — free, fast, and available to anyone with a browser.
+              We also believe the internet should be more equitable. Students in India should have the same
+              access to professional-grade tools as knowledge workers in Silicon Valley. AWE-OS is our
+              commitment to that principle — free, fast, and available to anyone with a browser.
             </p>
           </div>
         </div>
@@ -186,7 +212,7 @@ export default function AboutPage() {
       {/* Values */}
       <section className="py-14 px-4 bg-gray-50">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">What We Stand For</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Our Values</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {VALUES.map(({ icon, title, desc }) => (
               <div key={title} className="bg-white border border-gray-200 rounded-xl p-5">
@@ -226,7 +252,11 @@ export default function AboutPage() {
       {/* Team */}
       <section className="py-14 px-4 bg-gray-50">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">The Team Behind AWE-OS</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">The Team</h2>
+          <p className="text-gray-500 text-center text-sm mb-10 max-w-2xl mx-auto">
+            AWE-OS is built and maintained by a small team of developers passionate about making useful tools
+            accessible to everyone. We ship fast, listen to users, and keep things simple.
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {TEAM.map(({ name, role, avatar, bio }) => (
               <div key={name} className="text-center p-6 bg-white rounded-xl border border-gray-200">

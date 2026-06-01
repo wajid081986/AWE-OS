@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import ToolPageShell from './ToolPageShell'
+import { TOOL_ABOUT } from '../../data/toolPageContent'
 
 function WordCounterTool() {
   const [text, setText] = useState('')
@@ -76,13 +77,6 @@ const FAQS = [
   { q: 'Is there a character or word limit?', a: 'There is no enforced limit. The tool handles large documents efficiently — a 10,000-word article or a full book chapter pastes and counts without issue. Performance may vary for very long texts over 100,000 words on older devices, but for typical writing tasks the tool runs without any noticeable delay.' },
 ]
 
-const ABOUT = [
-  'Word count is one of the most fundamental requirements in writing — essays have minimum lengths, articles have targets, meta descriptions have character caps, tweet character limits, and resumes have one-page constraints. The AWE-OS Word Counter tracks all of this in a single place, updating every statistic the instant you type or paste without requiring any button press.',
-  'Six metrics are tracked simultaneously: the total word count, total characters including spaces, characters excluding spaces (for platforms that measure "characters without spaces"), sentence count, paragraph count, and an estimated reading time. This combination covers the full range of writing contexts — academic word limits typically count words, social media platforms count characters, and content planning tools use reading time to gauge whether an article is scannable or dense.',
-  'Reading time is calculated at 200 words per minute, the standard adult reading speed used by publishers, Substack, Medium, and most content management platforms. It is deliberately conservative — most readers skim rather than read every word, but the 200 wpm baseline ensures you plan for thorough reading rather than speed-reading. A 1,500-word article calculates to approximately 8 minutes, which aligns with what platform analytics typically report for that length of content.',
-  'The tool is built for privacy as much as convenience. All counting is performed by JavaScript running directly in your browser — no text is ever transmitted to any server, logged, stored, or analysed. You can safely paste confidential documents, client communications, legal drafts, and personal writing without any concern about data exposure. The text area accepts content from any source and resets instantly with the Clear button when you are done.',
-]
-
 export default function WordCounter() {
   return (
     <ToolPageShell
@@ -92,7 +86,7 @@ export default function WordCounter() {
       icon="📝"
       steps={STEPS}
       faqs={FAQS}
-      about={ABOUT}
+      about={TOOL_ABOUT['word-counter']}
     >
       <WordCounterTool />
     </ToolPageShell>
