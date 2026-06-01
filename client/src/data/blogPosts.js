@@ -12,6 +12,192 @@
 
 export const BLOG_POSTS = [
   // ─────────────────────────────────────────────────────────────────────────────
+  // 21. BMI Calculator India: Understanding ICMR vs WHO Standards
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    slug: 'bmi-calculator-for-indians-icmr-vs-who',
+    title: 'BMI Calculator India: Understanding ICMR vs WHO Standards',
+    date: '2026-06-01',
+    category: 'Health',
+    author: 'AWE-OS Team',
+    readTime: '6 min read',
+    excerpt: 'Discover how BMI calculations vary between ICMR and WHO guidelines for Indians. Learn how to use the BMI Calculator India tool to assess your health effectively.',
+    metaTitle: 'BMI Calculator India: ICMR vs WHO',
+    metaDescription: 'Explore BMI calculator India standards by ICMR vs WHO. Learn more!',
+    relatedTools: [
+      {
+        label: 'BMI Calculator',
+        slug: 'bmi-calculator',
+        icon: '⚖️'
+      },
+      {
+        label: 'Health Risk Assessment',
+        slug: 'health-risk-assessment',
+        icon: '🩺'
+      }
+    ],
+    content: [
+      {
+        type: 'p',
+        text: "Understanding BMI, or Body Mass Index, is crucial for assessing one’s health, especially in a diverse country like India. While the global standard is set by the World Health Organization (WHO), India has its own guidelines by the Indian Council of Medical Research (ICMR). These standards are tailored to better suit the Indian population's unique genetic makeup and lifestyle. Using a BMI calculator specifically designed for India can provide more accurate results and health recommendations. In this post, we explore the differences between the ICMR and WHO BMI standards and how to effectively use a BMI calculator in India."
+      },
+      {
+        type: 'h2',
+        text: 'What is BMI Calculator India?'
+      },
+      {
+        type: 'p',
+        text: "BMI stands for Body Mass Index, a simple calculation using a person's height and weight to determine their overall body fat. The BMI Calculator India is a tool that helps Indians assess their body weight category based on specific guidelines set by the Indian Council of Medical Research (ICMR). Unlike the global standard set by the World Health Organization (WHO), which applies universally, the ICMR takes into consideration the unique genetic and dietary factors of the Indian population."
+      },
+      {
+        type: 'p',
+        text: 'This tool is essential for accurately determining whether an individual falls under categories such as underweight, normal weight, overweight, or obese. The ICMR has slightly different BMI cut-off points than the WHO to better reflect the health risks specific to Indians. Using an Indian-specific BMI calculator ensures a more personalized health assessment, guiding users in making informed lifestyle and dietary choices that are relevant to their cultural and genetic background.'
+      },
+      {
+        type: 'h2',
+        text: 'Main Explanation with Data Table'
+      },
+      {
+        type: 'p',
+        text: 'The main difference between the ICMR and WHO BMI guidelines lies in the cut-off values for different weight categories. For instance, the WHO defines a BMI of 25 as the starting point for overweight, while the ICMR defines it at 23. This lower threshold reflects the higher risk factors associated with Indians at a lower BMI. The following table outlines the differences in BMI classifications between the two organizations:'
+      },
+      {
+        type: 'table',
+        headers: [
+          'Category',
+          'ICMR BMI Range',
+          'WHO BMI Range'
+        ],
+        rows: [
+          [
+            'Underweight',
+            '<18.5',
+            '<18.5'
+          ],
+          [
+            'Normal',
+            '18.5-22.9',
+            '18.5-24.9'
+          ],
+          [
+            'Overweight',
+            '23-24.9',
+            '25-29.9'
+          ],
+          [
+            'Obese',
+            '>25',
+            '>30'
+          ]
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Real Examples with ₹ Calculations'
+      },
+      {
+        type: 'p',
+        text: 'Consider Raj, a 35-year-old software engineer from Bengaluru, earning ₹12,75,000 annually. He stands at 170 cm and weighs 70 kg. Using the BMI Calculator India, his BMI is calculated to be approximately 24.2, categorizing him as overweight by ICMR standards but normal by WHO standards. This discrepancy highlights the importance of using a region-specific calculator for Indians to better understand personal health risks.'
+      },
+      {
+        type: 'p',
+        text: 'Now, take Priya, a 28-year-old teacher from Delhi, with an annual salary of ₹8,50,000. She is 160 cm tall and weighs 68 kg. Her BMI calculates to 26.6, which classifies her as obese according to ICMR but only overweight by WHO criteria. By using the BMI Calculator India, Priya can take preemptive health measures, potentially saving on future healthcare costs, which could be significant given her current salary.'
+      },
+      {
+        type: 'h2',
+        text: 'Who Should Use This?'
+      },
+      {
+        type: 'ul',
+        items: [
+          'Individuals seeking a tailored assessment of their weight and health risks should consider the BMI Calculator India for more accurate results.',
+          'Healthcare professionals in India can use this tool to provide more personalized advice to patients based on ICMR guidelines.',
+          'Fitness enthusiasts aiming to monitor their weight and health progress will find this calculator beneficial in setting realistic goals.',
+          'Dieticians and nutritionists can utilize this tool to design customized dietary plans that align with the specific health needs of their Indian clients.'
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Step by Step Guide to Using a BMI Calculator for Indians'
+      },
+      {
+        type: 'p',
+        text: 'Calculating BMI using the Indian Council of Medical Research (ICMR) or World Health Organization (WHO) guidelines can be easy if done correctly. Follow these steps to ensure accurate results.'
+      },
+      {
+        type: 'ul',
+        items: [
+          'Step 1: Gather your height and weight measurements. Use a reliable scale and measuring tape to ensure accuracy. Note these measurements in kilograms and centimeters.',
+          'Step 2: Choose the appropriate BMI calculator. It is vital to select one that provides calculations based on Indian standards, such as the ICMR guidelines.',
+          'Step 3: Enter your height and weight into the calculator. Ensure that you input the data in the correct fields to avoid errors.',
+          'Step 4: Select the guideline you wish to use, either ICMR or WHO. This will affect the interpretation of your BMI result.',
+          'Step 5: Review your BMI result. The calculator will provide an interpretation of your BMI, indicating whether you are underweight, normal, overweight, or obese according to the selected guideline.'
+        ]
+      },
+      {
+        type: 'callout',
+        text: 'For an accurate BMI calculation tailored to Indian standards, use our BMI Calculator.',
+        links: [
+          {
+            href: '/tools/bmi-calculator',
+            label: 'BMI Calculator'
+          }
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Common Mistakes When Calculating BMI'
+      },
+      {
+        type: 'ul',
+        items: [
+          'Mistake 1: Using incorrect units for height and weight. Many calculators require inputs in kilograms and centimeters, so ensure you convert your measurements if necessary.',
+          'Mistake 2: Selecting the wrong guideline. Using WHO standards instead of ICMR can lead to a misunderstanding of your health status, as the thresholds differ.',
+          'Mistake 3: Ignoring age and gender factors. These can influence BMI interpretations significantly, especially in Indian populations, where nutritional and lifestyle factors vary widely.'
+        ]
+      },
+      {
+        type: 'h2',
+        text: 'Frequently Asked Questions'
+      },
+      {
+        type: 'p',
+        text: 'Understanding the nuances of BMI calculation is important for maintaining health. Here are some frequently asked questions to help you navigate this topic.'
+      },
+      {
+        type: 'h2',
+        text: 'Conclusion'
+      },
+      {
+        type: 'p',
+        text: 'In conclusion, using a BMI calculator tailored to Indian guidelines is crucial for an accurate assessment of your health status. While both ICMR and WHO offer valuable insights, it is essential to select the one that best fits your personal health profile. Regularly monitoring your BMI can help you maintain a healthy weight and prevent lifestyle-related diseases.'
+      },
+      {
+        type: 'p',
+        text: 'We encourage you to take your health seriously by using reliable tools like our BMI Calculator. Understanding your BMI can be the first step towards a healthier lifestyle. For more information on how to use the calculator and interpret the results, visit our website today.'
+      }
+    ],
+    faqs: [
+      {
+        q: 'What is the difference between ICMR and WHO guidelines?',
+        a: 'The primary difference between ICMR and WHO guidelines lies in the BMI thresholds for categorizing underweight, normal weight, overweight, and obesity. ICMR guidelines are tailored to the Indian population, considering factors like genetic predisposition and lifestyle, which can affect BMI interpretations. WHO guidelines, on the other hand, are more general and globally applicable. For the Indian context, it is advisable to use ICMR for a more accurate health assessment.'
+      },
+      {
+        q: 'Why is BMI important for Indians?',
+        a: 'BMI is a significant health indicator for Indians because it helps assess body weight relative to height, providing insights into potential health risks. With the increasing prevalence of lifestyle diseases such as diabetes and hypertension, understanding BMI can guide individuals in maintaining a healthy weight. It also helps in identifying risks related to being underweight or overweight, enabling timely interventions. Thus, using a BMI calculator specifically designed for Indians can lead to better health outcomes.'
+      },
+      {
+        q: 'Can I use any BMI calculator for Indians?',
+        a: 'While many BMI calculators are available online, it is important to use one that accommodates the specific needs of the Indian population. Calculators based on ICMR guidelines are preferred as they consider unique Indian health factors. These calculators provide more accurate results than generic ones, which may not account for regional variations. Therefore, choose a BMI calculator that considers Indian guidelines for the most reliable health insights.'
+      },
+      {
+        q: 'How often should I check my BMI?',
+        a: 'Regular monitoring of your BMI is recommended, especially if you are actively managing your weight. Checking your BMI every three to six months can help track your progress and make necessary lifestyle adjustments. Frequent checks are beneficial in understanding how changes in diet and physical activity affect your health. For those with specific health goals, more frequent monitoring may be advisable under the guidance of a healthcare professional.'
+      }
+    ],
+    id: 21
+  },
+  // ─────────────────────────────────────────────────────────────────────────────
   // 20. How to Compress PDF Without Losing Quality - Compress PDF Free
   // ─────────────────────────────────────────────────────────────────────────────
   {
