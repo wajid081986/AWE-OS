@@ -13,6 +13,7 @@ const TABS = [
   { id: 'decisions',     label: '📋 Decisions'      },
   { id: 'pipeline',      label: '📡 Pipeline'       },
   { id: 'intelligence',  label: '🧠 Intelligence'   },
+  { id: 'traffic',       label: '🚀 Traffic Campaign' },
 ]
 
 // ── Agent metadata for Overview cards ─────────────────────────
@@ -2222,6 +2223,610 @@ function IntelligenceTab() {
   )
 }
 
+// ── Traffic Campaign: 49 AWE-OS tools ─────────────────────────
+const CAMPAIGN_TOOLS = [
+  { name: 'Merge PDF',                  slug: 'merge-pdf',             category: 'PDF Tools'    },
+  { name: 'Split PDF',                  slug: 'split-pdf',             category: 'PDF Tools'    },
+  { name: 'Remove PDF Pages',           slug: 'remove-pages-pdf',      category: 'PDF Tools'    },
+  { name: 'Extract PDF Pages',          slug: 'extract-pages-pdf',     category: 'PDF Tools'    },
+  { name: 'Organize PDF',               slug: 'organize-pdf',          category: 'PDF Tools'    },
+  { name: 'Compress PDF',               slug: 'compress-pdf',          category: 'PDF Tools'    },
+  { name: 'JPG to PDF',                 slug: 'jpg-to-pdf',            category: 'PDF Tools'    },
+  { name: 'Word to PDF',                slug: 'word-to-pdf',           category: 'PDF Tools'    },
+  { name: 'Excel to PDF',               slug: 'excel-to-pdf',          category: 'PDF Tools'    },
+  { name: 'PowerPoint to PDF',          slug: 'powerpoint-to-pdf',     category: 'PDF Tools'    },
+  { name: 'PDF to JPG',                 slug: 'pdf-to-jpg',            category: 'PDF Tools'    },
+  { name: 'PDF to Word',                slug: 'pdf-to-word',           category: 'PDF Tools'    },
+  { name: 'PDF to Text',                slug: 'pdf-to-text',           category: 'PDF Tools'    },
+  { name: 'PDF to PowerPoint',          slug: 'pdf-to-ppt',            category: 'PDF Tools'    },
+  { name: 'PDF to Excel',               slug: 'pdf-to-excel',          category: 'PDF Tools'    },
+  { name: 'Rotate PDF',                 slug: 'rotate-pdf',            category: 'PDF Tools'    },
+  { name: 'Add Watermark to PDF',       slug: 'watermark-pdf',         category: 'PDF Tools'    },
+  { name: 'Add Page Numbers to PDF',    slug: 'page-numbers-pdf',      category: 'PDF Tools'    },
+  { name: 'PDF Editor',                 slug: 'pdf-editor',            category: 'PDF Tools'    },
+  { name: 'Protect PDF',                slug: 'protect-pdf',           category: 'PDF Tools'    },
+  { name: 'Unlock PDF',                 slug: 'unlock-pdf',            category: 'PDF Tools'    },
+  { name: 'FD Calculator',              slug: 'fd-calculator',         category: 'Calculators'  },
+  { name: 'PPF Calculator',             slug: 'ppf-calculator',        category: 'Calculators'  },
+  { name: 'SIP Calculator',             slug: 'sip-calculator',        category: 'Calculators'  },
+  { name: 'ROI Calculator',             slug: 'roi-calculator',        category: 'Calculators'  },
+  { name: 'Tax Calculator',             slug: 'tax-calculator',        category: 'Calculators'  },
+  { name: 'Loan EMI Calculator',        slug: 'loan-calculator',       category: 'Calculators'  },
+  { name: 'Percentage Calculator',      slug: 'percentage-calculator', category: 'Calculators'  },
+  { name: 'GST Calculator',             slug: 'gst-calculator',        category: 'Calculators'  },
+  { name: 'Tip Calculator',             slug: 'tip-calculator',        category: 'Calculators'  },
+  { name: 'Discount Calculator',        slug: 'discount-calculator',   category: 'Calculators'  },
+  { name: 'BMI Calculator',             slug: 'bmi-calculator',        category: 'Calculators'  },
+  { name: 'Age Calculator',             slug: 'age-calculator',        category: 'Calculators'  },
+  { name: 'GPA Calculator',             slug: 'gpa-calculator',        category: 'Calculators'  },
+  { name: 'Unit Converter',             slug: 'unit-converter',        category: 'Converters'   },
+  { name: 'Word Counter',               slug: 'word-counter',          category: 'Converters'   },
+  { name: 'Password Generator',         slug: 'password-generator',    category: 'Converters'   },
+  { name: 'Color Picker',               slug: 'color-picker',          category: 'Converters'   },
+  { name: 'QR Code Generator',          slug: 'qr-code-generator',     category: 'Converters'   },
+  { name: 'Image Compressor',           slug: 'image-compressor',      category: 'Converters'   },
+  { name: 'Currency Converter',         slug: 'currency-converter',    category: 'Converters'   },
+  { name: 'Number Base Converter',      slug: 'base-converter',        category: 'Converters'   },
+  { name: 'JSON Formatter',             slug: 'json-formatter',        category: 'Converters'   },
+  { name: 'CSV to JSON',                slug: 'csv-to-json',           category: 'Converters'   },
+  { name: 'Invoice Generator',          slug: 'invoice',               category: 'Productivity' },
+  { name: 'Invoice Generator (Quick)',  slug: 'invoice-generator',     category: 'Productivity' },
+  { name: 'Contract Generator',         slug: 'contract-generator',    category: 'Productivity' },
+  { name: 'AI Resume Builder',          slug: 'resume-builder',        category: 'AI Tools'     },
+  { name: 'AI Content Writer',          slug: 'ai-content-writer',     category: 'AI Tools'     },
+]
+
+const TC_SUBREDDIT = {
+  'PDF Tools':    'india',
+  'Calculators':  'personalfinanceindia',
+  'Converters':   'productivity',
+  'Productivity': 'freelance',
+  'AI Tools':     'artificial',
+}
+
+const TC_BOARD = {
+  'PDF Tools':    'PDF Tips India',
+  'Calculators':  'Financial Planning India',
+  'Converters':   'Online Tools India',
+  'Productivity': 'Work Productivity',
+  'AI Tools':     'AI Tools Tips',
+}
+
+const TC_CHANNEL_STEPS = [
+  { id: 'reddit',    label: 'Reddit Post',   icon: '🔴' },
+  { id: 'quora',     label: 'Quora Answer',  icon: '🟤' },
+  { id: 'pinterest', label: 'Pinterest Pin', icon: '📌' },
+  { id: 'blog',      label: 'Blog Article',  icon: '📝' },
+  { id: 'social',    label: 'Social Blast',  icon: '📣' },
+]
+
+function TrafficCampaignTab() {
+  const today = new Date().toISOString().slice(0, 10)
+
+  const [selectedTool, setSelectedTool] = useState(CAMPAIGN_TOOLS[0])
+  const [audience,     setAudience]     = useState('Indian Students')
+  const [campaignName, setCampaignName] = useState(`${CAMPAIGN_TOOLS[0].name} Traffic Campaign - ${today}`)
+  const [channels,     setChannels]     = useState({ reddit: true, quora: true, pinterest: true, blog: true, social: true })
+  const [phase,        setPhase]        = useState('setup')
+  const [steps,        setSteps]        = useState(TC_CHANNEL_STEPS.map(s => ({ ...s, status: 'pending', result: null, error: null })))
+  const [expanded,     setExpanded]     = useState({})
+  const [copyFeedback, setCopyFeedback] = useState(null)
+  const [saveDone,     setSaveDone]     = useState(false)
+  const [history,      setHistory]      = useState(() => {
+    try { return JSON.parse(localStorage.getItem('awe_campaign_history') || '[]') } catch { return [] }
+  })
+
+  useEffect(() => {
+    setCampaignName(`${selectedTool.name} Traffic Campaign - ${today}`)
+  }, [selectedTool, today])
+
+  const doneCount    = steps.filter(s => s.status === 'done').length
+  const totalEnabled = TC_CHANNEL_STEPS.filter(s => channels[s.id]).length
+
+  const buildParams = useCallback(() => {
+    const t   = selectedTool
+    const url = `https://www.awe-os.com/tools/${t.slug}`
+    return {
+      toolName:       t.name,
+      toolSlug:       t.slug,
+      toolUrl:        url,
+      subreddit:      TC_SUBREDDIT[t.category] || 'india',
+      targetAudience: audience,
+      question:       `What is the best free ${t.name} tool for Indians?`,
+      niche:          t.category.toLowerCase().replace(/\s+/g, '_'),
+      board:          TC_BOARD[t.category] || 'Online Tools India',
+      keywords:       `${t.name} free online India`,
+      keyword:        `free ${t.name} online India`,
+      articleTitle:   `Best Free ${t.name} Online for Indian Users`,
+      audience,
+    }
+  }, [selectedTool, audience])
+
+  const runCampaign = async () => {
+    const params = buildParams()
+    setPhase('running')
+    setSteps(TC_CHANNEL_STEPS.map(s => ({ ...s, status: channels[s.id] ? 'pending' : 'skipped', result: null, error: null })))
+    setExpanded({})
+
+    for (const ch of ['reddit', 'quora', 'pinterest', 'blog', 'social']) {
+      if (!channels[ch]) continue
+      setSteps(prev => prev.map(s => s.id === ch ? { ...s, status: 'running' } : s))
+      try {
+        let result
+        if (ch === 'reddit') {
+          const r = await api.post('/api/admin/traffic/reddit-post-claude', {
+            toolName: params.toolName, toolSlug: params.toolSlug, toolUrl: params.toolUrl,
+            subreddit: params.subreddit, targetAudience: params.targetAudience,
+          })
+          result = r.data
+        } else if (ch === 'quora') {
+          const r = await api.post('/api/admin/traffic/quora-answer-claude', {
+            question: params.question, toolName: params.toolName, toolSlug: params.toolSlug,
+            toolUrl: params.toolUrl, niche: params.niche,
+          })
+          result = r.data
+        } else if (ch === 'pinterest') {
+          const r = await api.post('/api/admin/traffic/pinterest-pin-claude', {
+            toolName: params.toolName, toolSlug: params.toolSlug, toolUrl: params.toolUrl,
+            board: params.board, keywords: params.keywords,
+          })
+          result = r.data
+        } else if (ch === 'blog') {
+          const r = await api.post('/api/admin/blog-writer-claude', {
+            keyword: params.keyword, toolName: params.toolName, toolSlug: params.toolSlug,
+          })
+          result = r.data
+        } else if (ch === 'social') {
+          const r = await api.post('/api/admin/social-blast-claude', {
+            articleTitle: params.articleTitle, articleUrl: params.toolUrl,
+            toolName: params.toolName, toolSlug: params.toolSlug, audience: params.audience,
+          })
+          result = r.data
+        }
+        setSteps(prev => prev.map(s => s.id === ch ? { ...s, status: 'done', result } : s))
+      } catch (err) {
+        setSteps(prev => prev.map(s => s.id === ch ? { ...s, status: 'failed', error: err.response?.data?.error || err.message } : s))
+      }
+    }
+    setPhase('done')
+  }
+
+  const copyText = (text, key) => {
+    navigator.clipboard.writeText(text)
+    setCopyFeedback(key)
+    setTimeout(() => setCopyFeedback(null), 2000)
+  }
+
+  const formatResult = (step) => {
+    const r = step.result
+    if (!r) return ''
+    if (step.id === 'reddit') {
+      return `Title: ${r.post?.title}\n\n${r.post?.body}`
+    }
+    if (step.id === 'quora') {
+      return `Q: What is the best free ${selectedTool.name} tool for Indians?\n\n${r.answer?.content}\n\n${r.answer?.callToAction || ''}`
+    }
+    if (step.id === 'pinterest') {
+      return `Titles:\n${r.titles?.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n\nDescription:\n${r.description}\n\nHashtags: ${r.hashtags?.join(' ')}`
+    }
+    if (step.id === 'blog') {
+      let text = `# ${r.title}\nMeta: ${r.metaDescription}\nSlug: /blog/${r.slug}\n\n`
+      r.sections?.forEach(sec => { text += `## ${sec.h2}\n${sec.content}\n\n` })
+      r.faqSection?.forEach(faq => { text += `Q: ${faq.q}\nA: ${faq.a}\n\n` })
+      return text
+    }
+    if (step.id === 'social') {
+      return [
+        `=== LinkedIn ===\n${r.linkedinPost?.text}`,
+        `=== WhatsApp ===\n${r.whatsappMessage?.text}`,
+        `=== Twitter Thread ===\n${r.twitterThread?.map((t, i) => `${i + 1}. ${t.tweet}`).join('\n')}`,
+      ].join('\n\n')
+    }
+    return ''
+  }
+
+  const copyAll = () => {
+    let text = `# ${campaignName}\nTool: ${selectedTool.name} | Audience: ${audience}\n\n`
+    steps.forEach(step => {
+      if (step.status !== 'done') return
+      text += `${'='.repeat(50)}\n## ${step.icon} ${step.label}\n${'='.repeat(50)}\n`
+      text += formatResult(step)
+      text += '\n\n'
+    })
+    copyText(text, 'all')
+  }
+
+  const saveCampaign = () => {
+    const entry = {
+      id:        Date.now(),
+      name:      campaignName,
+      tool:      selectedTool.name,
+      audience,
+      timestamp: new Date().toISOString(),
+      completed: steps.filter(s => s.status === 'done').length,
+      total:     totalEnabled,
+    }
+    const updated = [entry, ...history].slice(0, 10)
+    setHistory(updated)
+    localStorage.setItem('awe_campaign_history', JSON.stringify(updated))
+    setSaveDone(true)
+    setTimeout(() => setSaveDone(false), 2500)
+  }
+
+  const reset = () => {
+    setPhase('setup')
+    setSteps(TC_CHANNEL_STEPS.map(s => ({ ...s, status: 'pending', result: null, error: null })))
+    setExpanded({})
+  }
+
+  const renderResultContent = (step) => {
+    const r = step.result
+    if (!r) return null
+    if (step.id === 'reddit') return (
+      <div className="space-y-3">
+        <div>
+          <p className="text-orange-400 text-xs font-semibold mb-1">TITLE</p>
+          <p className="text-gray-200 text-sm font-medium">{r.post?.title}</p>
+        </div>
+        <div>
+          <p className="text-orange-400 text-xs font-semibold mb-1">BODY</p>
+          <p className="text-gray-300 text-sm whitespace-pre-wrap">{r.post?.body}</p>
+        </div>
+      </div>
+    )
+    if (step.id === 'quora') return (
+      <div className="space-y-3">
+        <div>
+          <p className="text-orange-400 text-xs font-semibold mb-1">ANSWER</p>
+          <p className="text-gray-300 text-sm whitespace-pre-wrap">{r.answer?.content}</p>
+        </div>
+        {r.answer?.callToAction && (
+          <div>
+            <p className="text-orange-400 text-xs font-semibold mb-1">CALL TO ACTION</p>
+            <p className="text-gray-400 text-sm italic">{r.answer.callToAction}</p>
+          </div>
+        )}
+      </div>
+    )
+    if (step.id === 'pinterest') return (
+      <div className="space-y-3">
+        <div>
+          <p className="text-orange-400 text-xs font-semibold mb-1">TITLES</p>
+          {r.titles?.map((t, i) => <p key={i} className="text-gray-300 text-sm">• {t}</p>)}
+        </div>
+        <div>
+          <p className="text-orange-400 text-xs font-semibold mb-1">DESCRIPTION</p>
+          <p className="text-gray-300 text-sm">{r.description}</p>
+        </div>
+        <div>
+          <p className="text-orange-400 text-xs font-semibold mb-1">HASHTAGS</p>
+          <p className="text-gray-400 text-xs">{r.hashtags?.join(' ')}</p>
+        </div>
+      </div>
+    )
+    if (step.id === 'blog') return (
+      <div className="space-y-3">
+        <div>
+          <p className="text-orange-400 text-xs font-semibold mb-1">TITLE</p>
+          <p className="text-gray-200 text-sm font-medium">{r.title}</p>
+        </div>
+        <div className="flex gap-4 text-xs text-gray-500">
+          <span>Slug: /blog/{r.slug}</span>
+          <span>{r.wordCount} words</span>
+        </div>
+        <div>
+          <p className="text-orange-400 text-xs font-semibold mb-1">META DESCRIPTION</p>
+          <p className="text-gray-400 text-sm italic">{r.metaDescription}</p>
+        </div>
+        {r.sections?.map((sec, i) => (
+          <div key={i}>
+            <p className="text-gray-200 text-sm font-semibold">## {sec.h2}</p>
+            <p className="text-gray-400 text-xs mt-0.5 line-clamp-4">{sec.content}</p>
+          </div>
+        ))}
+        {r.faqSection?.length > 0 && (
+          <div>
+            <p className="text-orange-400 text-xs font-semibold mb-1">FAQs ({r.faqSection.length})</p>
+            {r.faqSection.map((faq, i) => (
+              <div key={i} className="mb-1.5">
+                <p className="text-gray-300 text-xs font-medium">Q: {faq.q}</p>
+                <p className="text-gray-500 text-xs">A: {faq.a}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+    if (step.id === 'social') return (
+      <div className="space-y-4">
+        {r.linkedinPost && (
+          <div>
+            <p className="text-orange-400 text-xs font-semibold mb-1">LINKEDIN</p>
+            <p className="text-gray-300 text-sm whitespace-pre-wrap">{r.linkedinPost.text}</p>
+          </div>
+        )}
+        {r.whatsappMessage && (
+          <div>
+            <p className="text-orange-400 text-xs font-semibold mb-1">WHATSAPP</p>
+            <p className="text-gray-300 text-sm">{r.whatsappMessage.text}</p>
+          </div>
+        )}
+        {r.twitterThread?.length > 0 && (
+          <div>
+            <p className="text-orange-400 text-xs font-semibold mb-1">TWITTER THREAD</p>
+            {r.twitterThread.map((t, i) => (
+              <div key={i} className="flex gap-2 mb-1.5">
+                <span className="text-gray-600 text-xs w-4 shrink-0">{i + 1}.</span>
+                <p className="text-gray-300 text-sm">{t.tweet}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+    return null
+  }
+
+  return (
+    <div className="space-y-6">
+
+      {/* ── Step 1: Campaign Setup ── */}
+      <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+        <h2 className="text-white font-semibold text-base mb-5">
+          Step 1 — Campaign Setup
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Tool selector */}
+          <div>
+            <label className="block text-gray-400 text-xs font-medium mb-1.5">Tool (49 AWE-OS tools)</label>
+            <select
+              value={selectedTool.slug}
+              disabled={phase === 'running'}
+              onChange={e => {
+                const t = CAMPAIGN_TOOLS.find(x => x.slug === e.target.value)
+                if (t) setSelectedTool(t)
+              }}
+              className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50"
+            >
+              {['PDF Tools', 'Calculators', 'Converters', 'Productivity', 'AI Tools'].map(cat => (
+                <optgroup key={cat} label={`── ${cat}`}>
+                  {CAMPAIGN_TOOLS.filter(t => t.category === cat).map(t => (
+                    <option key={t.slug} value={t.slug}>{t.name}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+
+          {/* Target audience */}
+          <div>
+            <label className="block text-gray-400 text-xs font-medium mb-1.5">Target Audience</label>
+            <select
+              value={audience}
+              disabled={phase === 'running'}
+              onChange={e => setAudience(e.target.value)}
+              className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50"
+            >
+              {['Indian Students', 'Indian Professionals', 'Freelancers', 'General'].map(a => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Campaign name */}
+          <div className="md:col-span-2">
+            <label className="block text-gray-400 text-xs font-medium mb-1.5">Campaign Name</label>
+            <input
+              type="text"
+              value={campaignName}
+              disabled={phase === 'running'}
+              onChange={e => setCampaignName(e.target.value)}
+              className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50"
+            />
+          </div>
+        </div>
+
+        {/* Channel toggles */}
+        <div className="mt-5">
+          <p className="text-gray-400 text-xs font-medium mb-3">Channels (toggle ON/OFF)</p>
+          <div className="flex flex-wrap gap-3">
+            {TC_CHANNEL_STEPS.map(ch => (
+              <button
+                key={ch.id}
+                disabled={phase === 'running'}
+                onClick={() => setChannels(prev => ({ ...prev, [ch.id]: !prev[ch.id] }))}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-colors disabled:opacity-50 ${
+                  channels[ch.id]
+                    ? 'bg-orange-500/20 border-orange-500/50 text-orange-300'
+                    : 'bg-gray-700/50 border-gray-600 text-gray-500'
+                }`}
+              >
+                <span className={`w-4 h-4 rounded border flex items-center justify-center text-xs font-bold ${
+                  channels[ch.id] ? 'bg-orange-500 border-orange-500 text-white' : 'border-gray-500 text-gray-600'
+                }`}>
+                  {channels[ch.id] ? '✓' : ''}
+                </span>
+                {ch.icon} {ch.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Run / Reset buttons */}
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <button
+            onClick={runCampaign}
+            disabled={phase === 'running' || totalEnabled === 0}
+            className="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-base px-8 py-3 rounded-xl transition-colors"
+          >
+            {phase === 'running' ? '⏳ Running Campaign...' : '🚀 Run Campaign'}
+          </button>
+          {phase === 'done' && (
+            <button
+              onClick={reset}
+              className="text-sm text-gray-400 hover:text-white px-4 py-3 transition-colors"
+            >
+              ↩ Run Another
+            </button>
+          )}
+          {totalEnabled === 0 && (
+            <p className="text-red-400 text-xs">Enable at least one channel</p>
+          )}
+        </div>
+      </div>
+
+      {/* ── Step 2: Execution Progress ── */}
+      {(phase === 'running' || phase === 'done') && (
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-white font-semibold text-base">Step 2 — Execution Progress</h2>
+            <span className="text-sm text-gray-400 tabular-nums">{doneCount} / {totalEnabled} complete</span>
+          </div>
+
+          {/* Overall progress bar */}
+          <div className="h-2 bg-gray-700 rounded-full mb-5 overflow-hidden">
+            <div
+              className="h-full bg-orange-500 rounded-full transition-all duration-500"
+              style={{ width: totalEnabled > 0 ? `${(doneCount / totalEnabled) * 100}%` : '0%' }}
+            />
+          </div>
+
+          {/* Per-channel step list */}
+          <div className="space-y-2">
+            {steps.map(step => {
+              if (step.status === 'skipped') return null
+              return (
+                <div
+                  key={step.id}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg border ${
+                    step.status === 'done'    ? 'bg-green-900/20  border-green-800/40' :
+                    step.status === 'running' ? 'bg-orange-900/20 border-orange-800/40' :
+                    step.status === 'failed'  ? 'bg-red-900/20    border-red-800/40' :
+                                               'bg-gray-700/30   border-gray-700/30'
+                  }`}
+                >
+                  {/* Animated status icon */}
+                  <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                    {step.status === 'done'    && <span className="text-green-400 font-bold text-base">✓</span>}
+                    {step.status === 'failed'  && <span className="text-red-400   font-bold text-base">✗</span>}
+                    {step.status === 'pending' && <span className="text-gray-600  text-base">○</span>}
+                    {step.status === 'running' && (
+                      <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                    )}
+                  </div>
+                  <span className="text-base">{step.icon}</span>
+                  <span className={`text-sm flex-1 font-medium ${
+                    step.status === 'done'    ? 'text-green-300'  :
+                    step.status === 'running' ? 'text-orange-300' :
+                    step.status === 'failed'  ? 'text-red-300'   : 'text-gray-500'
+                  }`}>
+                    [{step.label}]
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {step.status === 'running' ? '⏳ Generating...' :
+                     step.status === 'done'    ? '✅ Done' :
+                     step.status === 'failed'  ? `❌ ${step.error || 'Failed'}` : 'Waiting'}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Step 3: Results Panel ── */}
+      {phase === 'done' && (
+        <div className="space-y-4">
+          {/* Results header + actions */}
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="text-white font-semibold text-base flex-1">Step 3 — Campaign Results</h2>
+            <button
+              onClick={copyAll}
+              className="text-sm bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors"
+            >
+              {copyFeedback === 'all' ? '✓ Copied!' : '📋 Copy All'}
+            </button>
+            <button
+              onClick={saveCampaign}
+              className="text-sm bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-medium transition-colors"
+            >
+              {saveDone ? '✓ Saved!' : '💾 Save Campaign'}
+            </button>
+          </div>
+
+          {/* Result cards (expandable) */}
+          {steps.filter(s => s.status === 'done').map(step => (
+            <div key={step.id} className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+              {/* Card header */}
+              <div
+                className="px-5 py-3.5 flex items-center gap-3 cursor-pointer hover:bg-gray-750 transition-colors"
+                onClick={() => setExpanded(prev => ({ ...prev, [step.id]: !prev[step.id] }))}
+              >
+                <span className="text-xl">{step.icon}</span>
+                <span className="text-white font-medium text-sm flex-1">{step.label}</span>
+                <button
+                  onClick={e => { e.stopPropagation(); copyText(formatResult(step), step.id) }}
+                  className="text-xs text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-md transition-colors mr-2 shrink-0"
+                >
+                  {copyFeedback === step.id ? '✓ Copied' : 'Copy'}
+                </button>
+                <span className={`text-gray-500 text-xs transition-transform duration-200 ${expanded[step.id] ? 'rotate-180' : ''}`}>
+                  ▼
+                </span>
+              </div>
+              {/* Expanded content */}
+              {expanded[step.id] && (
+                <div className="px-5 py-4 border-t border-gray-700">
+                  {renderResultContent(step)}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* Failed channels */}
+          {steps.filter(s => s.status === 'failed').map(step => (
+            <div key={step.id} className="bg-red-900/20 border border-red-800/40 rounded-xl px-5 py-3 flex items-center gap-3">
+              <span className="text-red-400 font-bold">✗</span>
+              <span className="text-lg">{step.icon}</span>
+              <span className="text-red-300 text-sm flex-1">{step.label} — Failed</span>
+              <span className="text-red-400 text-xs">{step.error || 'Unknown error'}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Campaign History ── */}
+      {history.length > 0 && (
+        <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-700 flex items-center justify-between">
+            <h3 className="text-white text-sm font-semibold">Campaign History</h3>
+            <span className="text-gray-500 text-xs">Last {history.length}</span>
+          </div>
+          <div className="divide-y divide-gray-700/60">
+            {history.map(entry => (
+              <div key={entry.id} className="px-5 py-3 flex items-center gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-gray-300 text-sm font-medium truncate">{entry.name}</p>
+                  <p className="text-gray-500 text-xs mt-0.5">
+                    {entry.audience} · {entry.completed}/{entry.total} channels complete
+                  </p>
+                </div>
+                <p className="text-gray-600 text-xs shrink-0">
+                  {new Date(entry.timestamp).toLocaleString('en-IN', {
+                    timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short',
+                  })}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+    </div>
+  )
+}
+
 // ── Main page ──────────────────────────────────────────────────
 export default function AgentControlPage() {
   const [tab, setTab] = useState('overview')
@@ -2237,6 +2842,7 @@ export default function AgentControlPage() {
     decisions:    <DecisionsTab />,
     pipeline:     <PipelineHealthTab />,
     intelligence: <IntelligenceTab />,
+    traffic:      <TrafficCampaignTab />,
   }
 
   return (
