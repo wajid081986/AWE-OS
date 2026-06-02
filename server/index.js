@@ -51,6 +51,7 @@ const revenueIntelRoutes             = require('./routes/revenue.intelligence.ro
 const agentEconomyRoutes             = require('./routes/agent.economy.routes');
 const selfHealingRoutes              = require('./routes/selfHealing.routes');
 const landingPagesRoutes             = require('./routes/landing-pages.routes');
+const adminWeeklyReportRoutes        = require('./routes/admin-weekly-report');
 const { initializeRuntime, shutdownRuntime } = require('./runtime');
 const { initializeMemory, shutdownMemory }   = require('./memory');
 const { initializeLearning, shutdownLearning } = require('./learning');
@@ -247,6 +248,7 @@ app.use('/api/admin/blog',       adminLimiter, adminBlogRoutes);
 app.use('/api/admin/traffic',   adminLimiter, adminTrafficRoutes);
 app.use('/api/admin/seo',       adminLimiter, adminSeoRoutes);
 app.use('/api/admin/automation',adminLimiter, adminAutomationRoutes);
+app.use('/api/admin',           adminLimiter, adminWeeklyReportRoutes);
 app.use('/api/admin',           adminLimiter, adminContentRoutes);
 app.use('/api/admin',           adminLimiter, adminRoutes);
 app.use('/api/billing',        paymentLimiter, billingRoutes);

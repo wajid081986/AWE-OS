@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { icon: '🧬', label: 'Agents',           to: '/admin/agents',        badge: 'LIVE'   },
   { icon: '🛠️', label: 'Tool Builder',     to: '/admin/tools/builder'                  },
   { icon: '🔄', label: 'Pipeline Control', to: '/admin/pipeline',      badge: 'pending'},
+  { icon: '🧠', label: 'Intelligence',     to: '/admin/intelligence'                   },
   { icon: '📦', label: 'Products',         to: '/admin/products'                       },
   { icon: '🧮', label: 'Calculators',      to: '/admin/calculators'                    },
   { icon: '👥', label: 'Users',            to: '/admin/users'                          },
