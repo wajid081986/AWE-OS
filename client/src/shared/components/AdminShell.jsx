@@ -4,6 +4,7 @@ import api from '../../services/api.service'
 
 const NAV_ITEMS = [
   { icon: '📊', label: 'Overview',         to: '/admin',               end: true },
+  { icon: '⭐', label: 'Auto Campaign',    to: '/admin/auto-campaign', badge: 'NEW'  },
   { icon: '🤖', label: 'AI Factory',       to: '/admin/factory',       badge: '⚡'     },
   { icon: '🏗️', label: 'Landing Builder', to: '/admin/landing-builder'                 },
   { icon: '📣', label: 'Marketing',        to: '/admin/marketing'                      },
