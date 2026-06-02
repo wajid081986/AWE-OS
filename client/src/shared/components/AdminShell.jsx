@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { icon: '🏗️', label: 'Landing Builder', to: '/admin/landing-builder'                 },
   { icon: '📣', label: 'Marketing',        to: '/admin/marketing'                      },
   { icon: '📈', label: 'Traffic Growth',   to: '/admin/traffic'                        },
+  { icon: '✏️', label: 'Content Engine',  to: '/admin/content-engine'                 },
   { icon: '✍️', label: 'Blog Assistant',   to: '/admin/blog'                           },
   { icon: '🧬', label: 'Agents',           to: '/admin/agents',        badge: 'LIVE'   },
   { icon: '🛠️', label: 'Tool Builder',     to: '/admin/tools/builder'                  },

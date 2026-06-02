@@ -94,6 +94,7 @@ const RuntimeResilienceCenter    = lazy(() => import('../modules/admin/selfHeali
 const ContentStudioPage          = lazy(() => import('../modules/admin/blog/ContentStudio'))
 const AutomationHubPage          = lazy(() => import('../modules/admin/AutomationHub'))
 const LandingBuilderPage         = lazy(() => import('../modules/admin/landing/LandingBuilderPage'))
+const ContentEnginePage          = lazy(() => import('../modules/admin/content-engine/ContentEngine'))
 const PdfEditorStandalone        = lazy(() => import('../pages/tools/pdf/PdfEditorStandalone'))
 const SeoDashboard               = lazy(() => import('../modules/admin/seo/SeoDashboard'))
 const SeoAgent                   = lazy(() => import('../modules/admin/seo/SeoAgent'))
@@ -243,6 +244,7 @@ export default function AppRoutes() {
           <Route path="/admin/content-studio"        element={lazy$(<ContentStudioPage />)} />
           <Route path="/admin/automation"            element={lazy$(<AutomationHubPage />)} />
           <Route path="/admin/landing-builder"       element={lazy$(<LandingBuilderPage />)} />
+          <Route path="/admin/content-engine"       element={lazy$(<ContentEnginePage />)} />
         </Route>
       </Route>
 
