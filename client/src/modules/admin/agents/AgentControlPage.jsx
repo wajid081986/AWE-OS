@@ -2813,9 +2813,12 @@ function TrafficCampaignTab() {
   const [phase,        setPhase]        = useState('setup')
   const [steps,        setSteps]        = useState(TC_CHANNEL_STEPS.map(s => ({ ...s, status: 'pending', result: null, error: null })))
   const [expanded,     setExpanded]     = useState({})
-  const [copyFeedback, setCopyFeedback] = useState(null)
-  const [saveDone,     setSaveDone]     = useState(false)
-  const [history,      setHistory]      = useState(() => {
+  const [copyFeedback,  setCopyFeedback]  = useState(null)
+  const [saveDone,      setSaveDone]      = useState(false)
+  const [autoPublish,   setAutoPublish]   = useState({ twitter: true, pinterest: true, blog: true })
+  const [publishStatus, setPublishStatus] = useState({ twitter: null, pinterest: null, blog: null })
+  const [publishing,    setPublishing]    = useState(false)
+  const [history,       setHistory]       = useState(() => {
     try { return JSON.parse(localStorage.getItem('awe_campaign_history') || '[]') } catch { return [] }
   })
 
@@ -2960,6 +2963,87 @@ function TrafficCampaignTab() {
     setPhase('setup')
     setSteps(TC_CHANNEL_STEPS.map(s => ({ ...s, status: 'pending', result: null, error: null })))
     setExpanded({})
+    setPublishStatus({ twitter: null, pinterest: null, blog: null })
+  }
+
+  const publishAll = async () => {
+    const t      = selectedTool
+    const toolUrl = `https://www.awe-os.com/tools/${t.slug}`
+    const blogStep = steps.find(s => s.id === 'blog' && s.status === 'done')
+    const socialStep = steps.find(s => s.id === 'social' && s.status === 'done')
+
+    const twitterText = socialStep?.result?.twitterThread?.[0]?.tweet
+      || `AWE-OS has ${t.name} — free online tool. No signup needed! ${toolUrl}`
+
+    const pinterestTitle = blogStep?.result?.title || `Free ${t.name} Online — AWE-OS`
+    const pinterestDesc  = blogStep?.result?.metaDescription || `Use ${t.name} for free at AWE-OS. No signup needed. Perfect for Indian users.`
+
+    setPublishing(true)
+    const nextStatus = {
+      twitter:   autoPublish.twitter   ? 'loading' : 'skipped',
+      pinterest: autoPublish.pinterest ? 'loading' : 'skipped',
+      blog:      autoPublish.blog      ? 'loading' : 'skipped',
+    }
+    setPublishStatus(nextStatus)
+
+    const tasks = []
+
+    if (autoPublish.twitter || autoPublish.pinterest) {
+      tasks.push(
+        api.post('/api/social/post-all', {
+          toolName: t.name, toolUrl,
+          twitterText,
+          pinterestTitle, pinterestDescription: pinterestDesc,
+        }).then(r => r.data).catch(err => ({
+          twitter:   { success: false, error: err.response?.data?.error || err.message },
+          pinterest: { success: false, error: err.response?.data?.error || err.message },
+        }))
+      )
+    }
+
+    if (autoPublish.blog && blogStep) {
+      const r = blogStep.result
+      tasks.push(
+        api.post('/api/admin/blog/publish-db', {
+          title:            r.title,
+          slug:             r.slug,
+          content:          r.sections || [],
+          meta_title:       r.title,
+          meta_description: r.metaDescription || '',
+          category:         r.category || t.category || 'General',
+          excerpt:          r.metaDescription || '',
+          read_time:        r.wordCount ? `${Math.ceil(r.wordCount / 200)} min read` : '5 min read',
+          faqs:             r.faqSection || [],
+          tags:             [t.name, t.category, 'AWE-OS', 'free online tools'],
+        }).then(rd => rd.data).catch(err => ({ success: false, error: err.response?.data?.error || err.message }))
+      )
+    }
+
+    const results = await Promise.allSettled(tasks)
+
+    const updated = { ...nextStatus }
+
+    let taskIdx = 0
+    if (autoPublish.twitter || autoPublish.pinterest) {
+      const socialRes = results[taskIdx]?.status === 'fulfilled' ? results[taskIdx].value : {
+        twitter:   { success: false, error: 'Request failed' },
+        pinterest: { success: false, error: 'Request failed' },
+      }
+      if (autoPublish.twitter)   updated.twitter   = socialRes.twitter
+      if (autoPublish.pinterest) updated.pinterest  = socialRes.pinterest
+      taskIdx++
+    }
+
+    if (autoPublish.blog && blogStep) {
+      const blogRes = results[taskIdx]?.status === 'fulfilled' ? results[taskIdx].value : { success: false, error: 'Request failed' }
+      updated.blog = blogRes
+      taskIdx++
+    } else if (autoPublish.blog && !blogStep) {
+      updated.blog = { success: false, error: 'No blog article generated in this campaign' }
+    }
+
+    setPublishStatus(updated)
+    setPublishing(false)
   }
 
   const renderResultContent = (step) => {
@@ -3296,6 +3380,150 @@ function TrafficCampaignTab() {
               <span className="text-red-400 text-xs">{step.error || 'Unknown error'}</span>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ── Auto Publish ── */}
+      {phase === 'done' && (
+        <div className="bg-gray-800 border border-orange-700/50 rounded-xl p-6">
+          <h2 className="text-white font-semibold text-base mb-1">🚀 Auto Publish</h2>
+          <p className="text-gray-400 text-xs mb-5">Post the generated content directly to your platforms</p>
+
+          {/* Platform toggles */}
+          <div className="flex flex-wrap gap-3 mb-5">
+            {[
+              { id: 'twitter',   label: 'Post to X/Twitter', icon: '🐦' },
+              { id: 'pinterest', label: 'Create Pinterest Pin', icon: '📌' },
+              { id: 'blog',      label: 'Publish Blog Article', icon: '📝' },
+            ].map(p => (
+              <button
+                key={p.id}
+                disabled={publishing}
+                onClick={() => setAutoPublish(prev => ({ ...prev, [p.id]: !prev[p.id] }))}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-colors disabled:opacity-50 ${
+                  autoPublish[p.id]
+                    ? 'bg-orange-500/20 border-orange-500/50 text-orange-300'
+                    : 'bg-gray-700/50 border-gray-600 text-gray-500'
+                }`}
+              >
+                <span className={`w-4 h-4 rounded border flex items-center justify-center text-xs font-bold ${
+                  autoPublish[p.id] ? 'bg-orange-500 border-orange-500 text-white' : 'border-gray-500'
+                }`}>
+                  {autoPublish[p.id] ? '✓' : ''}
+                </span>
+                {p.icon} {p.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Publish button */}
+          {!publishStatus.twitter && !publishStatus.pinterest && !publishStatus.blog ? (
+            <button
+              onClick={publishAll}
+              disabled={publishing || (!autoPublish.twitter && !autoPublish.pinterest && !autoPublish.blog)}
+              className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold px-8 py-3 rounded-xl transition-colors"
+            >
+              {publishing ? '⏳ Publishing...' : '🚀 Publish Now'}
+            </button>
+          ) : (
+            <div className="space-y-3">
+              {/* Twitter status */}
+              {autoPublish.twitter && publishStatus.twitter !== 'skipped' && (
+                <div className={`flex items-center gap-3 px-4 py-3 rounded-lg border ${
+                  publishStatus.twitter === 'loading'          ? 'bg-orange-900/20 border-orange-800/40' :
+                  publishStatus.twitter?.success               ? 'bg-green-900/20 border-green-800/40' :
+                                                                 'bg-red-900/20 border-red-800/40'
+                }`}>
+                  <span className="text-base">🐦</span>
+                  <span className="text-sm font-medium flex-1 text-gray-200">X / Twitter</span>
+                  {publishStatus.twitter === 'loading' && (
+                    <span className="text-orange-300 text-xs flex items-center gap-1.5">
+                      <span className="w-3 h-3 border border-orange-400 border-t-transparent rounded-full animate-spin inline-block" />
+                      Posting...
+                    </span>
+                  )}
+                  {publishStatus.twitter?.success && (
+                    <span className="text-green-300 text-xs flex items-center gap-2">
+                      ✅ Posted!
+                      <a href={publishStatus.twitter.tweetUrl} target="_blank" rel="noopener noreferrer"
+                        className="underline hover:text-green-200">View Tweet</a>
+                    </span>
+                  )}
+                  {publishStatus.twitter && publishStatus.twitter !== 'loading' && !publishStatus.twitter.success && (
+                    <span className="text-red-300 text-xs">❌ {publishStatus.twitter.error}</span>
+                  )}
+                </div>
+              )}
+
+              {/* Pinterest status */}
+              {autoPublish.pinterest && publishStatus.pinterest !== 'skipped' && (
+                <div className={`flex items-center gap-3 px-4 py-3 rounded-lg border ${
+                  publishStatus.pinterest === 'loading'          ? 'bg-orange-900/20 border-orange-800/40' :
+                  publishStatus.pinterest?.success               ? 'bg-green-900/20 border-green-800/40' :
+                                                                   'bg-red-900/20 border-red-800/40'
+                }`}>
+                  <span className="text-base">📌</span>
+                  <span className="text-sm font-medium flex-1 text-gray-200">Pinterest</span>
+                  {publishStatus.pinterest === 'loading' && (
+                    <span className="text-orange-300 text-xs flex items-center gap-1.5">
+                      <span className="w-3 h-3 border border-orange-400 border-t-transparent rounded-full animate-spin inline-block" />
+                      Creating pin...
+                    </span>
+                  )}
+                  {publishStatus.pinterest?.success && (
+                    <span className="text-green-300 text-xs flex items-center gap-2">
+                      ✅ Pin created!
+                      <a href={publishStatus.pinterest.pinUrl} target="_blank" rel="noopener noreferrer"
+                        className="underline hover:text-green-200">View Pin</a>
+                    </span>
+                  )}
+                  {publishStatus.pinterest && publishStatus.pinterest !== 'loading' && !publishStatus.pinterest.success && (
+                    <span className="text-red-300 text-xs">❌ {publishStatus.pinterest.error}</span>
+                  )}
+                </div>
+              )}
+
+              {/* Blog status */}
+              {autoPublish.blog && publishStatus.blog !== 'skipped' && (
+                <div className={`flex items-center gap-3 px-4 py-3 rounded-lg border ${
+                  publishStatus.blog === 'loading'          ? 'bg-orange-900/20 border-orange-800/40' :
+                  publishStatus.blog?.success               ? 'bg-green-900/20 border-green-800/40' :
+                                                              'bg-red-900/20 border-red-800/40'
+                }`}>
+                  <span className="text-base">📝</span>
+                  <span className="text-sm font-medium flex-1 text-gray-200">Blog Article</span>
+                  {publishStatus.blog === 'loading' && (
+                    <span className="text-orange-300 text-xs flex items-center gap-1.5">
+                      <span className="w-3 h-3 border border-orange-400 border-t-transparent rounded-full animate-spin inline-block" />
+                      Publishing...
+                    </span>
+                  )}
+                  {publishStatus.blog?.success && (
+                    <span className="text-green-300 text-xs flex items-center gap-2">
+                      ✅ Published!
+                      <a href={publishStatus.blog.liveUrl} target="_blank" rel="noopener noreferrer"
+                        className="underline hover:text-green-200">View Post</a>
+                    </span>
+                  )}
+                  {publishStatus.blog && publishStatus.blog !== 'loading' && !publishStatus.blog.success && (
+                    <span className="text-red-300 text-xs">❌ {publishStatus.blog.error}</span>
+                  )}
+                </div>
+              )}
+
+              {/* Publish again button */}
+              {!publishing && (
+                <button
+                  onClick={() => {
+                    setPublishStatus({ twitter: null, pinterest: null, blog: null })
+                  }}
+                  className="text-sm text-gray-400 hover:text-white transition-colors mt-1"
+                >
+                  ↩ Publish Again
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
