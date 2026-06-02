@@ -198,6 +198,10 @@ export default function BlogWriterPanel() {
   const [draftsOpen, setDraftsOpen] = useState(false)
   const [saveMsg, setSaveMsg]     = useState('')
 
+  // ── Publish to Blog ───────────────────────────────────────────────────────
+  const [publishing, setPublishing] = useState(false)
+  const [pubResult,  setPubResult]  = useState(null)
+
   const keywordInputRef = useRef(null)
 
   const leftTool  = AWE_TOOLS.find(t => t.slug === leftToolSlug)  || AWE_TOOLS[0]
@@ -266,6 +270,46 @@ export default function BlogWriterPanel() {
       title: d.title, metaDescription: d.metaDescription, slug: d.slug,
       wordCount: d.wordCount, sections: d.sections, faqSection: d.faqSection
     })
+    setPubResult(null)
+  }
+
+  // ── Publish to Blog (Supabase) ────────────────────────────────────────────
+  async function publishToBlog() {
+    if (!article) return
+    setPublishing(true)
+    setPubResult(null)
+    try {
+      // Convert Content Engine's { h2, content } sections → BlogPostPage blocks
+      const contentBlocks = []
+      for (const s of (article.sections || [])) {
+        contentBlocks.push({ type: 'h2', text: s.h2 })
+        const paras = s.content.split(/\n\n+/).filter(Boolean)
+        for (const p of paras) {
+          contentBlocks.push({ type: 'p', text: p })
+        }
+      }
+      const wc       = contentBlocks.filter(b => b.type === 'p').reduce((n, b) => n + b.text.split(/\s+/).length, 0)
+      const readTime = `${Math.max(1, Math.ceil(wc / 200))} min read`
+
+      const res = await api.post('/api/admin/blog/publish-db', {
+        title:            article.title,
+        slug:             article.slug,
+        meta_title:       article.title,
+        meta_description: article.metaDescription,
+        content:          contentBlocks,
+        faqs:             article.faqSection || [],
+        category:         rightTool.name + ' Tools',
+        excerpt:          article.metaDescription,
+        read_time:        readTime,
+        related_tools:    [{ label: rightTool.name, slug: rightTool.slug, icon: '🔧' }],
+        tags:             [rightTool.name, keyword, 'India', 'Free Tools'].filter(Boolean),
+      })
+      setPubResult(res.data)
+    } catch (err) {
+      setPubResult({ success: false, error: err.response?.data?.error || err.message })
+    } finally {
+      setPublishing(false)
+    }
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -486,26 +530,61 @@ export default function BlogWriterPanel() {
             </div>
 
             {/* Action bar */}
-            <div className="bg-gray-800 border border-gray-700 rounded-2xl p-3 flex items-center gap-2">
+            <div className="bg-gray-800 border border-gray-700 rounded-2xl p-3 flex flex-col gap-2">
+              {/* Secondary actions */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => triggerMd('Copied')}
+                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-xs font-semibold py-2 rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                >
+                  📋 {mdLabel || 'Copy MD'}
+                </button>
+                <button
+                  onClick={() => triggerHtml('Copied')}
+                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-xs font-semibold py-2 rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                >
+                  🖥️ {htmlLabel || 'Copy HTML'}
+                </button>
+                <button
+                  onClick={saveDraft}
+                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-xs font-semibold py-2 rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                >
+                  💾 {saveMsg || 'Save Draft'}
+                </button>
+              </div>
+              {/* Primary publish */}
               <button
-                onClick={() => triggerMd('Copied')}
-                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-xs font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                onClick={publishToBlog}
+                disabled={publishing}
+                className="w-full bg-orange-500 hover:bg-orange-600 active:bg-orange-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2"
               >
-                📋 {mdLabel || 'Copy as Markdown'}
-              </button>
-              <button
-                onClick={() => triggerHtml('Copied')}
-                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white text-xs font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1.5"
-              >
-                🖥️ {htmlLabel || 'Copy HTML'}
-              </button>
-              <button
-                onClick={saveDraft}
-                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1.5"
-              >
-                💾 {saveMsg || 'Save Draft'}
+                {publishing
+                  ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Publishing…</>
+                  : '🚀 Publish to Blog'}
               </button>
             </div>
+
+            {/* Publish result */}
+            {pubResult && (
+              pubResult.success ? (
+                <div className="bg-green-900/30 border border-green-700/60 rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold text-green-400">✅ Published!</p>
+                  <a
+                    href={pubResult.liveUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-semibold text-green-300 hover:text-white underline underline-offset-2 truncate"
+                  >
+                    {pubResult.liveUrl} →
+                  </a>
+                </div>
+              ) : (
+                <div className="bg-red-900/20 border border-red-800/50 rounded-2xl px-4 py-3">
+                  <p className="text-sm font-semibold text-red-400 mb-0.5">❌ Publish failed</p>
+                  <p className="text-xs text-red-300">{pubResult.error}</p>
+                </div>
+              )
+            )}
           </div>
         )}
       </div>
