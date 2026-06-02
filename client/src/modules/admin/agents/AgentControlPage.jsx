@@ -14,6 +14,7 @@ const TABS = [
   { id: 'pipeline',      label: '📡 Pipeline'       },
   { id: 'intelligence',  label: '🧠 Intelligence'   },
   { id: 'traffic',       label: '🚀 Traffic Campaign' },
+  { id: 'scheduler',     label: '📅 Smart Scheduler'  },
 ]
 
 // ── Agent metadata for Overview cards ─────────────────────────
@@ -2223,6 +2224,507 @@ function IntelligenceTab() {
   )
 }
 
+// ── Smart Scheduler constants ─────────────────────────────────
+const SS_DAYS       = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const SS_TIME_SLOTS = ['Morning', 'Afternoon', 'Evening', 'Night']
+const SS_TIME_LABELS = { Morning: '8–10 AM', Afternoon: '12–2 PM', Evening: '6–8 PM', Night: '9–11 PM' }
+const SS_TIME_HOUR  = { Morning: 8, Afternoon: 12, Evening: 18, Night: 21 }
+
+// Orange-highlighted best slots for Indian audiences
+const SS_BEST_SLOTS = new Set(['Mon-Evening', 'Wed-Evening', 'Fri-Evening', 'Sat-Morning', 'Sun-Morning'])
+
+// Best platform per highlighted slot (for auto-schedule)
+const SS_SLOT_PLATFORMS = {
+  'Mon-Evening': ['Reddit',    'LinkedIn', 'Twitter'  ],
+  'Wed-Evening': ['Reddit',    'Blog',     'LinkedIn' ],
+  'Fri-Evening': ['Reddit',    'Twitter',  'WhatsApp' ],
+  'Sat-Morning': ['Pinterest', 'Blog',     'Quora'    ],
+  'Sun-Morning': ['Pinterest', 'Quora',    'Blog'     ],
+}
+
+const SS_PLATFORM_ICON = { Reddit:'🔴', Quora:'🟤', Pinterest:'📌', Blog:'📝', LinkedIn:'💼', WhatsApp:'💬', Twitter:'🐦' }
+const SS_PLATFORM_COLOR = {
+  Reddit:    'bg-red-900/60 text-red-300',
+  Quora:     'bg-orange-900/60 text-orange-300',
+  Pinterest: 'bg-pink-900/60 text-pink-300',
+  Blog:      'bg-blue-900/60 text-blue-300',
+  LinkedIn:  'bg-sky-900/60 text-sky-300',
+  WhatsApp:  'bg-green-900/60 text-green-300',
+  Twitter:   'bg-cyan-900/60 text-cyan-300',
+}
+const SS_ALL_PLATFORMS = ['Reddit', 'Quora', 'Pinterest', 'Blog', 'LinkedIn', 'WhatsApp', 'Twitter']
+const SS_CATEGORIES    = ['PDF Tools', 'Calculators', 'Converters', 'Productivity', 'AI Tools']
+const SS_AUDIENCES     = ['Indian Students', 'Indian Professionals', 'Freelancers', 'General']
+
+// JS getDay() 0=Sun → grid 0=Mon
+function ssJsToGrid(jsDay) { return (jsDay + 6) % 7 }
+
+function ssUpcomingBestSlots(n = 3) {
+  const now = new Date()
+  const todayGrid = ssJsToGrid(now.getDay())
+  const todayHour = now.getHours()
+  const ranked = [
+    { day: 'Mon', gridIdx: 0, time: 'Evening' },
+    { day: 'Wed', gridIdx: 2, time: 'Evening' },
+    { day: 'Fri', gridIdx: 4, time: 'Evening' },
+    { day: 'Sat', gridIdx: 5, time: 'Morning' },
+    { day: 'Sun', gridIdx: 6, time: 'Morning' },
+  ].map(s => {
+    let diff = (s.gridIdx - todayGrid + 7) % 7
+    if (diff === 0 && todayHour >= SS_TIME_HOUR[s.time]) diff = 7
+    return { ...s, diff }
+  }).sort((a, b) => a.diff - b.diff)
+  return ranked.slice(0, n)
+}
+
+function ssDateForSlot(gridIdx, timeSlot) {
+  const now  = new Date()
+  const diff = (gridIdx - ssJsToGrid(now.getDay()) + 7) % 7
+  const d    = new Date(now)
+  d.setDate(d.getDate() + diff)
+  d.setHours(SS_TIME_HOUR[timeSlot], 0, 0, 0)
+  return d
+}
+
+function ssParseTime(raw) {
+  return SS_TIME_SLOTS.find(t => raw?.startsWith(t)) || 'Evening'
+}
+
+function fmtScheduleTime(iso) {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleString('en-IN', {
+    timeZone: 'Asia/Kolkata', weekday: 'short', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  })
+}
+
+// ── Smart Scheduler Tab ────────────────────────────────────────
+function SmartSchedulerTab() {
+  const [schedule, setSchedule] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('awe_posting_schedule') || '[]') } catch { return [] }
+  })
+  const [history] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('awe_campaign_history') || '[]') } catch { return [] }
+  })
+  const [selCampaign,     setSelCampaign]     = useState('')
+  const [filterPlatform,  setFilterPlatform]  = useState('all')
+  const [filterStatus,    setFilterStatus]    = useState('all')
+  const [aiCategory,      setAiCategory]      = useState('PDF Tools')
+  const [aiAudience,      setAiAudience]      = useState('Indian Students')
+  const [aiSuggestions,   setAiSuggestions]   = useState([])
+  const [aiLoading,       setAiLoading]       = useState(false)
+  const [toastMsg,        setToastMsg]        = useState(null)
+
+  const persistSchedule = (updated) => {
+    setSchedule(updated)
+    localStorage.setItem('awe_posting_schedule', JSON.stringify(updated))
+  }
+
+  const showToast = (msg, type = 'success') => {
+    setToastMsg({ msg, type })
+    setTimeout(() => setToastMsg(null), 3000)
+  }
+
+  // ── Auto-schedule selected campaign into next 3 best slots ──
+  const autoSchedule = () => {
+    const campaign = history.find(c => String(c.id) === selCampaign)
+    if (!campaign) return
+    const slots = ssUpcomingBestSlots(3)
+    const entries = slots.map((slot, i) => {
+      const slotKey  = `${slot.day}-${slot.time}`
+      const platform = (SS_SLOT_PLATFORMS[slotKey] || ['Reddit'])[0]
+      const d        = ssDateForSlot(slot.gridIdx, slot.time)
+      return {
+        id:                Date.now() + i,
+        campaignName:      campaign.name,
+        tool:              campaign.tool,
+        audience:          campaign.audience,
+        platform,
+        content:           `${platform} post for ${campaign.tool} · ${campaign.audience}`,
+        scheduledDay:      slot.day,
+        scheduledTime:     slot.time,
+        scheduledDateTime: d.toISOString(),
+        status:            'pending',
+      }
+    })
+    persistSchedule([...entries, ...schedule])
+    showToast(`Scheduled ${entries.length} posts from "${campaign.name}"`)
+  }
+
+  // ── Fetch AI suggestions ────────────────────────────────────
+  const fetchAI = async () => {
+    setAiLoading(true)
+    setAiSuggestions([])
+    try {
+      const r = await api.post('/api/admin/schedule-intelligence', {
+        toolCategory: aiCategory,
+        audience:     aiAudience,
+        dayOfWeek:    new Date().getDay(),
+      })
+      setAiSuggestions(r.data.suggestions || [])
+    } catch (err) {
+      showToast(err.response?.data?.error || 'AI request failed', 'error')
+    } finally {
+      setAiLoading(false)
+    }
+  }
+
+  const buildEntryFromSuggestion = (sug, idx) => {
+    const dayIdx = SS_DAYS.indexOf(sug.day)
+    const time   = ssParseTime(sug.time)
+    const d      = dayIdx >= 0 ? ssDateForSlot(dayIdx, time) : new Date()
+    return {
+      id:                Date.now() + idx,
+      campaignName:      `AI Suggestion · ${aiCategory}`,
+      tool:              aiCategory,
+      audience:          aiAudience,
+      platform:          sug.platform,
+      content:           `${sug.platform} post for ${aiCategory} — ${(sug.reason || '').slice(0, 90)}`,
+      scheduledDay:      sug.day,
+      scheduledTime:     time,
+      scheduledDateTime: d.toISOString(),
+      status:            'pending',
+    }
+  }
+
+  const applySuggestion = (sug, idx) => {
+    persistSchedule([buildEntryFromSuggestion(sug, idx), ...schedule])
+    showToast(`Added ${sug.platform} · ${sug.day} ${sug.time} to schedule`)
+  }
+
+  const applyAllSuggestions = () => {
+    const entries = aiSuggestions.map((s, i) => buildEntryFromSuggestion(s, i))
+    persistSchedule([...entries, ...schedule])
+    showToast(`Applied ${entries.length} AI suggestions`)
+  }
+
+  const markPosted  = (id) => persistSchedule(schedule.map(s => s.id === id ? { ...s, status: 'posted' } : s))
+  const deleteEntry = (id) => persistSchedule(schedule.filter(s => s.id !== id))
+
+  // Filtered + sorted table rows
+  const tableRows = schedule
+    .filter(s => (filterPlatform === 'all' || s.platform === filterPlatform)
+              && (filterStatus   === 'all' || s.status   === filterStatus))
+    .sort((a, b) => new Date(a.scheduledDateTime) - new Date(b.scheduledDateTime))
+
+  // Grid lookup
+  const gridMap = {}
+  schedule.forEach(s => {
+    const k = `${s.scheduledDay}-${s.scheduledTime}`
+    if (!gridMap[k]) gridMap[k] = []
+    gridMap[k].push(s)
+  })
+
+  // Slots preview for selected campaign
+  const previewSlots = selCampaign ? ssUpcomingBestSlots(3) : []
+
+  return (
+    <div className="space-y-6">
+      {toastMsg && <Toast msg={toastMsg.msg} type={toastMsg.type} onDone={() => setToastMsg(null)} />}
+
+      {/* ── 1: Weekly Schedule Grid ── */}
+      <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+        <div className="px-5 py-3 border-b border-gray-700 flex flex-wrap items-center gap-3">
+          <h2 className="text-white font-semibold text-sm flex-1">Weekly Schedule Grid (IST)</h2>
+          <span className="text-gray-500 text-xs">🟠 Best times for Indian audiences</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs border-collapse">
+            <thead>
+              <tr className="border-b border-gray-700">
+                <th className="text-left text-gray-400 px-3 py-2 font-medium w-28 border-r border-gray-700/50">
+                  Slot / Day
+                </th>
+                {SS_DAYS.map(day => (
+                  <th key={day} className="text-center text-gray-300 px-2 py-2 font-semibold min-w-[90px]">
+                    {day}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {SS_TIME_SLOTS.map((time, ti) => (
+                <tr key={time} className={`border-b border-gray-700/40 ${ti % 2 === 0 ? 'bg-gray-800' : 'bg-gray-800/50'}`}>
+                  {/* Time label */}
+                  <td className="px-3 py-3 border-r border-gray-700/50 align-top">
+                    <p className="text-gray-300 font-medium">{time}</p>
+                    <p className="text-gray-600 text-xs mt-0.5">{SS_TIME_LABELS[time]}</p>
+                  </td>
+                  {SS_DAYS.map(day => {
+                    const key    = `${day}-${time}`
+                    const isBest = SS_BEST_SLOTS.has(key)
+                    const items  = gridMap[key] || []
+                    return (
+                      <td
+                        key={day}
+                        className={`px-2 py-2 align-top ${isBest ? 'bg-orange-500/8' : ''}`}
+                        style={isBest ? { background: 'rgba(249,115,22,0.07)' } : {}}
+                      >
+                        {/* Best slot indicator dot (empty) */}
+                        {isBest && items.length === 0 && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-orange-500/60 mx-auto mt-1.5 mb-1" />
+                        )}
+                        {/* Scheduled items */}
+                        <div className="space-y-0.5">
+                          {items.map(item => (
+                            <div
+                              key={item.id}
+                              title={`${item.platform}: ${item.content}`}
+                              className={`text-xs px-1.5 py-0.5 rounded truncate ${
+                                item.status === 'posted'
+                                  ? 'bg-green-900/60 text-green-400'
+                                  : (SS_PLATFORM_COLOR[item.platform] || 'bg-gray-700 text-gray-300')
+                              }`}
+                            >
+                              {SS_PLATFORM_ICON[item.platform]} {item.platform}
+                            </div>
+                          ))}
+                        </div>
+                      </td>
+                    )
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ── 2: Quick Schedule ── */}
+      <div className="bg-gray-800 border border-gray-700 rounded-xl p-5">
+        <h2 className="text-white font-semibold text-sm mb-4">Quick Schedule</h2>
+        {history.length === 0 ? (
+          <p className="text-gray-500 text-sm">
+            No saved campaigns yet — run a <span className="text-orange-400">Traffic Campaign</span> first, then save it.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-3 items-end">
+              <div className="flex-1 min-w-[220px]">
+                <label className="block text-gray-400 text-xs mb-1.5">Select Saved Campaign</label>
+                <select
+                  value={selCampaign}
+                  onChange={e => setSelCampaign(e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                >
+                  <option value="">— Choose a campaign —</option>
+                  {history.map(c => (
+                    <option key={c.id} value={String(c.id)}>
+                      {c.name} · {c.completed}/{c.total} channels
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                onClick={autoSchedule}
+                disabled={!selCampaign}
+                className="bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm px-5 py-2 rounded-lg transition-colors"
+              >
+                ⚡ Auto-Schedule
+              </button>
+            </div>
+
+            {/* Slot preview */}
+            {selCampaign && previewSlots.length > 0 && (
+              <div>
+                <p className="text-gray-500 text-xs mb-2">Will be scheduled into these best upcoming slots:</p>
+                <div className="flex flex-wrap gap-2">
+                  {previewSlots.map((slot, i) => {
+                    const slotKey  = `${slot.day}-${slot.time}`
+                    const platform = (SS_SLOT_PLATFORMS[slotKey] || ['Reddit'])[0]
+                    return (
+                      <div key={i} className="bg-orange-500/10 border border-orange-500/30 rounded-lg px-3 py-2 text-xs flex items-center gap-2">
+                        <span className="text-orange-300 font-semibold">{slot.day}</span>
+                        <span className="text-gray-500">·</span>
+                        <span className="text-gray-400">{slot.time} {SS_TIME_LABELS[slot.time]}</span>
+                        <span className="text-gray-600">→</span>
+                        <span className="text-gray-300">{SS_PLATFORM_ICON[platform]} {platform}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── 3: Scheduled Posts Table ── */}
+      <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+        <div className="px-5 py-3 border-b border-gray-700 flex flex-wrap items-center gap-3">
+          <h2 className="text-white font-semibold text-sm flex-1">
+            Scheduled Posts <span className="text-gray-500 font-normal">({schedule.length})</span>
+          </h2>
+          <select
+            value={filterPlatform}
+            onChange={e => setFilterPlatform(e.target.value)}
+            className="bg-gray-700 border border-gray-600 text-gray-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-orange-500"
+          >
+            <option value="all">All Platforms</option>
+            {SS_ALL_PLATFORMS.map(p => <option key={p} value={p}>{SS_PLATFORM_ICON[p]} {p}</option>)}
+          </select>
+          <select
+            value={filterStatus}
+            onChange={e => setFilterStatus(e.target.value)}
+            className="bg-gray-700 border border-gray-600 text-gray-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-orange-500"
+          >
+            <option value="all">All Status</option>
+            <option value="pending">⏰ Pending</option>
+            <option value="posted">✓ Posted</option>
+          </select>
+        </div>
+
+        {tableRows.length === 0 ? (
+          <p className="text-gray-600 text-sm text-center py-10">No scheduled posts yet</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="border-b border-gray-700">
+                <tr>
+                  {['Platform', 'Content', 'Scheduled Time', 'Status', 'Actions'].map(h => (
+                    <th key={h} className="text-left text-gray-400 px-4 py-2.5 font-medium">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {tableRows.map(row => (
+                  <tr key={row.id} className="border-b border-gray-700/50 last:border-0">
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded font-medium ${SS_PLATFORM_COLOR[row.platform] || 'bg-gray-700 text-gray-300'}`}>
+                        {SS_PLATFORM_ICON[row.platform]} {row.platform}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 max-w-[220px]">
+                      <p className="text-gray-300 truncate">{row.content}</p>
+                      <p className="text-gray-600 text-xs mt-0.5 truncate">{row.campaignName}</p>
+                    </td>
+                    <td className="px-4 py-3 text-gray-300 whitespace-nowrap">
+                      {fmtScheduleTime(row.scheduledDateTime)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-0.5 rounded font-medium ${
+                        row.status === 'posted'
+                          ? 'bg-green-900/50 text-green-300'
+                          : 'bg-yellow-900/50 text-yellow-300'
+                      }`}>
+                        {row.status === 'posted' ? '✓ Posted' : '⏰ Pending'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-3">
+                        {row.status === 'pending' && (
+                          <button
+                            onClick={() => markPosted(row.id)}
+                            className="text-green-400 hover:text-green-300 transition-colors hover:underline"
+                          >
+                            Mark Posted
+                          </button>
+                        )}
+                        <button
+                          onClick={() => deleteEntry(row.id)}
+                          className="text-red-400 hover:text-red-300 transition-colors hover:underline"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* ── 4: Best Time Intelligence ── */}
+      <div className="bg-gray-800 border border-gray-700 rounded-xl p-5">
+        <h2 className="text-white font-semibold text-sm mb-4">Best Time Intelligence</h2>
+        <div className="flex flex-wrap gap-3 items-end mb-5">
+          <div>
+            <label className="block text-gray-400 text-xs mb-1.5">Tool Category</label>
+            <select
+              value={aiCategory}
+              onChange={e => setAiCategory(e.target.value)}
+              className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-orange-500"
+            >
+              {SS_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-gray-400 text-xs mb-1.5">Audience</label>
+            <select
+              value={aiAudience}
+              onChange={e => setAiAudience(e.target.value)}
+              className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-orange-500"
+            >
+              {SS_AUDIENCES.map(a => <option key={a} value={a}>{a}</option>)}
+            </select>
+          </div>
+          <button
+            onClick={fetchAI}
+            disabled={aiLoading}
+            className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-semibold text-sm px-5 py-2 rounded-lg transition-colors flex items-center gap-2"
+          >
+            {aiLoading
+              ? <><span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Analyzing...</>
+              : '🧠 Get AI Suggestions'}
+          </button>
+        </div>
+
+        {/* AI Suggestion cards */}
+        {aiSuggestions.length > 0 ? (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-gray-400 text-xs">
+                Claude's recommendations for <span className="text-white">{aiCategory}</span> / <span className="text-white">{aiAudience}</span>
+              </p>
+              <button
+                onClick={applyAllSuggestions}
+                className="text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
+              >
+                Apply All ({aiSuggestions.length})
+              </button>
+            </div>
+            {aiSuggestions.map((sug, i) => (
+              <div key={i} className="bg-gray-700/40 border border-gray-600/60 rounded-xl p-4 flex items-start gap-4">
+                {/* Priority badge */}
+                <div className="w-7 h-7 rounded-full bg-orange-500/20 border border-orange-500/40 flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-orange-300 font-bold text-xs">{sug.priority || i + 1}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  {/* Day + Time + Platform */}
+                  <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                    <span className="text-white font-semibold text-sm">{sug.day}</span>
+                    <span className="text-orange-300 text-sm">· {sug.time}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded font-medium ${SS_PLATFORM_COLOR[sug.platform] || 'bg-gray-600 text-gray-300'}`}>
+                      {SS_PLATFORM_ICON[sug.platform] || ''} {sug.platform}
+                    </span>
+                  </div>
+                  <p className="text-gray-400 text-xs leading-relaxed">{sug.reason}</p>
+                </div>
+                <button
+                  onClick={() => applySuggestion(sug, i)}
+                  className="text-xs text-orange-400 hover:text-orange-300 border border-orange-500/40 hover:border-orange-500/70 px-3 py-1.5 rounded-lg transition-colors shrink-0"
+                >
+                  + Add
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          !aiLoading && (
+            <div className="text-center py-6">
+              <p className="text-gray-600 text-sm">Select category and audience, then click "Get AI Suggestions"</p>
+              <p className="text-gray-700 text-xs mt-1">Claude will analyze optimal posting times for Indian users in IST</p>
+            </div>
+          )
+        )}
+      </div>
+
+    </div>
+  )
+}
+
 // ── Traffic Campaign: 49 AWE-OS tools ─────────────────────────
 const CAMPAIGN_TOOLS = [
   { name: 'Merge PDF',                  slug: 'merge-pdf',             category: 'PDF Tools'    },
@@ -2843,6 +3345,7 @@ export default function AgentControlPage() {
     pipeline:     <PipelineHealthTab />,
     intelligence: <IntelligenceTab />,
     traffic:      <TrafficCampaignTab />,
+    scheduler:    <SmartSchedulerTab />,
   }
 
   return (

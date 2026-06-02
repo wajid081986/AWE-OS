@@ -257,4 +257,51 @@ Rules for each platform:
   }
 })
 
+// ── POST /api/admin/schedule-intelligence ─────────────────────────────────────
+router.post('/schedule-intelligence', requireAuth, requireAdmin, async (req, res) => {
+  const { toolCategory, audience, dayOfWeek } = req.body
+  if (!toolCategory || !audience) {
+    return res.status(400).json({ success: false, error: 'toolCategory and audience are required' })
+  }
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const currentDay = dayNames[typeof dayOfWeek === 'number' ? dayOfWeek : new Date().getDay()]
+  try {
+    const client = getAnthropic()
+    const msg = await client.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 800,
+      system: `You are a social media scheduling expert for Indian audiences.
+Analyze the best posting times for AWE-OS content based on Indian user behavior in IST timezone.
+Return ONLY valid JSON — no markdown, no extra text:
+{
+  "suggestions": [
+    {
+      "day": "string (Mon/Tue/Wed/Thu/Fri/Sat/Sun)",
+      "time": "string — exactly one of: Morning 8-10 AM | Afternoon 12-2 PM | Evening 6-8 PM | Night 9-11 PM",
+      "platform": "string — exactly one of: Reddit | Quora | Pinterest | Blog | LinkedIn | WhatsApp | Twitter",
+      "reason": "string (1-2 sentences why this slot works for this audience in India)",
+      "priority": 1
+    }
+  ]
+}
+Rules:
+- Return EXACTLY 3 suggestions, priority values 1, 2, 3
+- Match platform to audience: Finance/PDF → LinkedIn + Reddit; AI tools → Twitter; lifestyle → Pinterest
+- Avoid times that have already passed today (current day: ${currentDay})
+- Reference Indian work/study schedules (college hours 9-5, office 9-6, peak phone usage 6-10 PM)`,
+      messages: [{
+        role: 'user',
+        content: `Tool category: ${toolCategory}\nTarget audience: ${audience}\nCurrent day: ${currentDay}\n\nSuggest the 3 best posting times this week for maximum reach.`
+      }]
+    })
+    const raw = msg.content[0]?.text || ''
+    let result
+    try { result = extractJson(raw) } catch { result = { suggestions: [] } }
+    res.json({ success: true, suggestions: result.suggestions || [] })
+  } catch (err) {
+    console.error('[admin-content/schedule-intelligence]', err.message)
+    res.status(err.status || 500).json({ success: false, error: err.message })
+  }
+})
+
 module.exports = router
