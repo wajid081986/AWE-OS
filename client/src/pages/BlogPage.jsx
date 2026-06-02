@@ -1,7 +1,8 @@
-﻿import { useState } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { BLOG_POSTS, BLOG_CATEGORIES } from '../data/blogPosts'
+import api from '../services/api.service'
 
 const CATEGORY_COLORS = {
   'AI Tools':    'bg-purple-100 text-purple-700',
@@ -58,10 +59,24 @@ function PostCard({ post }) {
 
 export default function BlogPage() {
   const [activeCategory, setActiveCategory] = useState('All')
+  const [dbPosts, setDbPosts] = useState([])
+
+  useEffect(() => {
+    const staticSlugs = new Set(BLOG_POSTS.map(p => p.slug))
+    api.get('/api/blog/posts')
+      .then(r => {
+        if (r.data.success) {
+          setDbPosts(r.data.posts.filter(p => !staticSlugs.has(p.slug)))
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const allPosts = [...BLOG_POSTS, ...dbPosts]
 
   const filtered = activeCategory === 'All'
-    ? BLOG_POSTS
-    : BLOG_POSTS.filter(p => p.category === activeCategory)
+    ? allPosts
+    : allPosts.filter(p => p.category === activeCategory)
 
   const blogSchema = {
     '@context':   'https://schema.org',
@@ -74,7 +89,7 @@ export default function BlogPage() {
       name:    'AWE-OS',
       url:     'https://www.awe-os.com',
     },
-    hasPart: BLOG_POSTS.slice(0, 10).map(p => ({
+    hasPart: allPosts.slice(0, 10).map(p => ({
       '@type':         'Article',
       headline:        p.title,
       url:             `https://www.awe-os.com/blog/${p.slug}`,
@@ -122,7 +137,7 @@ export default function BlogPage() {
                 {cat}
                 {cat !== 'All' && (
                   <span className="ml-1.5 text-xs opacity-70">
-                    ({BLOG_POSTS.filter(p => p.category === cat).length})
+                    ({allPosts.filter(p => p.category === cat).length})
                   </span>
                 )}
               </button>

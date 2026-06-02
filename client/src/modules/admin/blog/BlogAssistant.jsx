@@ -49,6 +49,7 @@ const WORD_COUNTS = [800, 1200, 1500]
 
 const TABS = [
   { id: 'write',               label: '✍️ AI Blog Writer'       },
+  { id: 'published',           label: '📚 Published Posts'      },
   { id: 'ideas',               label: '💡 Idea Generator'       },
   { id: 'calendar',            label: '📅 Content Calendar'     },
   { id: 'seo',                 label: '🔍 SEO Booster'          },
@@ -161,8 +162,10 @@ function AIBlogWriterTab({ onPreFill }) {
   const [generating,  setGenerating]  = useState(false)
   const [post,        setPost]        = useState(null)
   const [meta,        setMeta]        = useState({})
-  const [publishing,  setPublishing]  = useState(false)
-  const [pubResult,   setPubResult]   = useState(null)
+  const [publishing,   setPublishing]  = useState(false)
+  const [pubResult,    setPubResult]   = useState(null)
+  const [publishingDb, setPublishingDb] = useState(false)
+  const [pubDbResult,  setPubDbResult]  = useState(null)
   const [copied,       setCopied]       = useState(false)
   const [genError,     setGenError]     = useState(null)
   const [actualWords,  setActualWords]  = useState(null)
@@ -233,6 +236,32 @@ function AIBlogWriterTab({ onPreFill }) {
       setPubResult({ success: false, error: err.response?.data?.error || 'Publish failed.' })
     } finally {
       setPublishing(false)
+    }
+  }
+
+  async function handlePublishToDb() {
+    if (!post) return
+    setPublishingDb(true)
+    setPubDbResult(null)
+    try {
+      const finalPost = { ...post, ...meta }
+      const res = await api.post('/api/admin/blog/publish-db', {
+        title:           finalPost.title,
+        slug:            finalPost.slug,
+        content:         finalPost.content,
+        meta_title:      finalPost.metaTitle,
+        meta_description: finalPost.metaDescription,
+        category:        finalPost.category,
+        excerpt:         finalPost.excerpt,
+        read_time:       finalPost.readTime,
+        faqs:            finalPost.faqs,
+        related_tools:   finalPost.relatedTools,
+      })
+      setPubDbResult(res.data)
+    } catch (err) {
+      setPubDbResult({ success: false, error: err.response?.data?.error || 'Publish failed.' })
+    } finally {
+      setPublishingDb(false)
     }
   }
 
@@ -384,40 +413,62 @@ function AIBlogWriterTab({ onPreFill }) {
           <div className="flex gap-3 pt-2">
             <button
               onClick={handleCopyJs}
-              className="flex-1 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors"
+              className="py-2 px-3 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
             >
-              {copied ? '✓ Copied!' : '📋 Copy as JS Object'}
+              {copied ? '✓ Copied!' : '📋 Copy JS'}
+            </button>
+            <button
+              onClick={handlePublishToDb}
+              disabled={publishingDb}
+              className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              {publishingDb ? <><Spinner />Saving…</> : '🗄️ Publish to Blog'}
             </button>
             <button
               onClick={handlePublish}
               disabled={publishing}
               className="flex-1 py-2 bg-green-700 hover:bg-green-600 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
             >
-              {publishing ? <><Spinner />Publishing…</> : '🚀 Publish to Website'}
+              {publishing ? <><Spinner />Pushing…</> : '🚀 Push to GitHub'}
             </button>
           </div>
 
+          {/* DB publish result */}
+          {pubDbResult && (
+            pubDbResult.success ? (
+              <div className="bg-indigo-900/30 border border-indigo-700 rounded-xl p-4">
+                <p className="text-indigo-300 font-semibold text-sm mb-0.5">✅ Saved to database!</p>
+                <p className="text-gray-400 text-xs mb-3">Article is live immediately at the URL below.</p>
+                <a
+                  href={pubDbResult.liveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full py-2 text-center text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+                >
+                  View Article → {pubDbResult.liveUrl}
+                </a>
+              </div>
+            ) : (
+              <div className="bg-red-900/30 border border-red-700 rounded-xl p-3">
+                <p className="text-red-400 text-sm font-semibold">❌ DB publish failed: {pubDbResult.error}</p>
+              </div>
+            )
+          )}
+
+          {/* GitHub push result */}
           {pubResult && (
             pubResult.success ? (
               <div className="bg-green-900/30 border border-green-700 rounded-xl p-4">
-                <p className="text-green-400 font-semibold text-sm mb-0.5">✅ Article published!</p>
+                <p className="text-green-400 font-semibold text-sm mb-0.5">✅ Pushed to GitHub!</p>
                 <p className="text-gray-400 text-xs mb-3">Render.com will deploy in ~2 minutes.</p>
                 <div className="flex gap-2">
-                  <a
-                    href={pubResult.liveUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 py-2 text-center text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
-                  >
+                  <a href={pubResult.liveUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex-1 py-2 text-center text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors">
                     View Article →
                   </a>
                   {pubResult.commitUrl && (
-                    <a
-                      href={pubResult.commitUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 py-2 text-center text-xs font-semibold bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
-                    >
+                    <a href={pubResult.commitUrl} target="_blank" rel="noopener noreferrer"
+                      className="flex-1 py-2 text-center text-xs font-semibold bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
                       View on GitHub →
                     </a>
                   )}
@@ -425,12 +476,10 @@ function AIBlogWriterTab({ onPreFill }) {
               </div>
             ) : (
               <div className="bg-red-900/30 border border-red-700 rounded-xl p-4">
-                <p className="text-red-400 text-sm font-semibold mb-1">❌ Publish failed</p>
+                <p className="text-red-400 text-sm font-semibold mb-1">❌ GitHub push failed</p>
                 <p className="text-red-300 text-xs mb-3">{pubResult.error}</p>
-                <button
-                  onClick={handleCopyJs}
-                  className="w-full py-2 text-xs font-semibold bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
-                >
+                <button onClick={handleCopyJs}
+                  className="w-full py-2 text-xs font-semibold bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
                   {copied ? '✓ Copied!' : '📋 Copy as JS Object — paste into blogPosts.js'}
                 </button>
               </div>
@@ -763,6 +812,203 @@ function ContentIntelligenceTab({ onWriteArticle }) {
   )
 }
 
+// ── TAB: Published Posts ──────────────────────────────────────────────────────
+
+const STATUS_BADGE = {
+  published: 'bg-green-900/60 text-green-300',
+  draft:     'bg-yellow-900/60 text-yellow-300',
+  archived:  'bg-gray-700 text-gray-400',
+}
+
+function PublishedPostsTab() {
+  const [posts,    setPosts]    = useState([])
+  const [loading,  setLoading]  = useState(true)
+  const [error,    setError]    = useState(null)
+  const [editing,  setEditing]  = useState(null)   // post being edited
+  const [saving,   setSaving]   = useState(false)
+  const [deleting, setDeleting] = useState(null)   // id being deleted
+  const [toast,    setToast]    = useState('')
+
+  function showToast(msg) {
+    setToast(msg)
+    setTimeout(() => setToast(''), 2500)
+  }
+
+  useEffect(() => {
+    load()
+  }, [])
+
+  async function load() {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await api.get('/api/admin/blog/published')
+      if (res.data.success) setPosts(res.data.posts)
+      else setError(res.data.error)
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to load posts.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleSave() {
+    if (!editing) return
+    setSaving(true)
+    try {
+      await api.patch(`/api/admin/blog/published/${editing.id}`, {
+        title:           editing.title,
+        slug:            editing.slug,
+        category:        editing.category,
+        excerpt:         editing.excerpt,
+        meta_description: editing.meta_description,
+        status:          editing.status,
+      })
+      setPosts(ps => ps.map(p => p.id === editing.id ? { ...p, ...editing } : p))
+      setEditing(null)
+      showToast('✅ Saved!')
+    } catch (err) {
+      showToast('❌ Save failed: ' + (err.response?.data?.error || err.message))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDelete(id) {
+    setDeleting(id)
+    try {
+      await api.delete(`/api/admin/blog/published/${id}`)
+      setPosts(ps => ps.filter(p => p.id !== id))
+      showToast('🗑️ Deleted.')
+    } catch (err) {
+      showToast('❌ Delete failed: ' + (err.response?.data?.error || err.message))
+    } finally {
+      setDeleting(null)
+    }
+  }
+
+  if (loading) return <div className="flex justify-center py-16"><Spinner /></div>
+  if (error)   return <p className="text-red-400 text-sm p-4">{error}</p>
+
+  return (
+    <div className="space-y-4">
+      {toast && (
+        <div className="fixed top-4 right-4 z-50 bg-gray-800 border border-gray-600 text-white text-sm px-4 py-2 rounded-xl shadow-xl">
+          {toast}
+        </div>
+      )}
+
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-white">
+          {posts.length} published post{posts.length !== 1 ? 's' : ''}
+        </h2>
+        <button onClick={load} className="text-xs text-gray-400 hover:text-white transition-colors">↻ Refresh</button>
+      </div>
+
+      {posts.length === 0 ? (
+        <div className="bg-gray-800 border border-gray-700 border-dashed rounded-xl p-10 text-center">
+          <p className="text-4xl mb-3">📭</p>
+          <p className="text-gray-400 text-sm">No posts published to the database yet.</p>
+          <p className="text-gray-600 text-xs mt-1">Use "🗄️ Publish to Blog" in the AI Blog Writer tab.</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {posts.map(post => (
+            <div key={post.id} className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+              {/* Row */}
+              <div className="flex items-center gap-3 px-4 py-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{post.title}</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    /blog/{post.slug} · {post.category} · {post.date}
+                  </p>
+                </div>
+                <span className={`text-[10px] px-2 py-0.5 rounded font-semibold shrink-0 ${STATUS_BADGE[post.status] || STATUS_BADGE.published}`}>
+                  {post.status || 'published'}
+                </span>
+                <a
+                  href={`https://www.awe-os.com/blog/${post.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs px-2.5 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white rounded-lg shrink-0 transition-colors"
+                >
+                  View →
+                </a>
+                <button
+                  onClick={() => setEditing({ ...post })}
+                  className="text-xs px-2.5 py-1 bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg shrink-0 transition-colors"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(post.id)}
+                  disabled={deleting === post.id}
+                  className="text-xs px-2.5 py-1 bg-red-900/60 hover:bg-red-800 disabled:opacity-40 text-red-300 hover:text-white rounded-lg shrink-0 transition-colors"
+                >
+                  {deleting === post.id ? '…' : 'Delete'}
+                </button>
+              </div>
+
+              {/* Inline edit form */}
+              {editing?.id === post.id && (
+                <div className="border-t border-gray-700 px-4 py-4 space-y-3 bg-gray-900/40">
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="Title">
+                      <Input value={editing.title} onChange={v => setEditing(e => ({ ...e, title: v }))} />
+                    </Field>
+                    <Field label="Slug">
+                      <Input value={editing.slug} onChange={v => setEditing(e => ({ ...e, slug: v }))} />
+                    </Field>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="Category">
+                      <Select value={editing.category || 'General'} onChange={v => setEditing(e => ({ ...e, category: v }))} options={CATEGORIES} />
+                    </Field>
+                    <Field label="Status">
+                      <Select value={editing.status || 'published'} onChange={v => setEditing(e => ({ ...e, status: v }))} options={['published', 'draft', 'archived']} />
+                    </Field>
+                  </div>
+                  <Field label="Excerpt">
+                    <textarea
+                      value={editing.excerpt || ''}
+                      onChange={ev => setEditing(e => ({ ...e, excerpt: ev.target.value }))}
+                      rows={2}
+                      className="w-full bg-gray-900 border border-gray-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500 resize-none"
+                    />
+                  </Field>
+                  <Field label={`Meta Description (${(editing.meta_description || '').length}/155)`}>
+                    <textarea
+                      value={editing.meta_description || ''}
+                      onChange={ev => setEditing(e => ({ ...e, meta_description: ev.target.value }))}
+                      rows={2}
+                      className="w-full bg-gray-900 border border-gray-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500 resize-none"
+                    />
+                  </Field>
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
+                    >
+                      {saving ? <><Spinner small />Saving…</> : '💾 Save Changes'}
+                    </button>
+                    <button
+                      onClick={() => setEditing(null)}
+                      className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export default function BlogAssistant() {
@@ -797,6 +1043,7 @@ export default function BlogAssistant() {
         </div>
 
         {activeTab === 'write'                && <AIBlogWriterTab   onPreFill={preFill} />}
+        {activeTab === 'published'            && <PublishedPostsTab />}
         {activeTab === 'ideas'                && <IdeaGeneratorTab  onWriteIdea={handleWriteIdea} />}
         {activeTab === 'calendar'             && <ContentCalendarTab onWriteArticle={handleWriteIdea} />}
         {activeTab === 'seo'                  && <SEOBoosterTab onWriteIdea={handleWriteIdea} />}

@@ -1,6 +1,8 @@
-﻿import { Link, useParams } from 'react-router-dom'
+﻿import { useState, useEffect } from 'react'
+import { Link, useParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { getBlogPostBySlug } from '../data/blogPosts'
+import api from '../services/api.service'
 
 const CATEGORY_COLORS = {
   'AI Tools':    'bg-purple-100 text-purple-700',
@@ -86,9 +88,31 @@ function ContentBlock({ block }) {
 
 export default function BlogPostPage() {
   const { slug } = useParams()
-  const post = getBlogPostBySlug(slug)
+  const staticPost = getBlogPostBySlug(slug)
 
-  if (!post) {
+  const [dbPost,   setDbPost]   = useState(null)
+  const [loading,  setLoading]  = useState(!staticPost)
+  const [notFound, setNotFound] = useState(false)
+
+  useEffect(() => {
+    if (staticPost) return
+    api.get(`/api/blog/posts/${slug}`)
+      .then(r => { if (r.data.success) setDbPost(r.data.post); else setNotFound(true) })
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false))
+  }, [slug, staticPost])
+
+  const post = staticPost || dbPost
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <span className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (!post || notFound) {
     return (
       <>
         <Helmet><title>Post Not Found | AWE-OS Blog</title></Helmet>

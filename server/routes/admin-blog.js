@@ -1275,6 +1275,112 @@ Return ONLY the improved article text. No JSON, no extra text.`,
   }
 })
 
+// ── POST /publish-db — save article to Supabase blog_posts ───────────────────
+//
+// Required Supabase table (run once):
+//   CREATE TABLE blog_posts (
+//     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+//     slug TEXT UNIQUE NOT NULL,
+//     title TEXT NOT NULL,
+//     date DATE NOT NULL DEFAULT CURRENT_DATE,
+//     category TEXT DEFAULT 'General',
+//     author TEXT DEFAULT 'AWE-OS Team',
+//     read_time TEXT DEFAULT '5 min read',
+//     excerpt TEXT, meta_title TEXT, meta_description TEXT,
+//     content JSONB DEFAULT '[]', faqs JSONB DEFAULT '[]',
+//     related_tools JSONB DEFAULT '[]', tags TEXT[] DEFAULT '{}',
+//     status TEXT DEFAULT 'published',
+//     created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW()
+//   );
+
+router.post('/publish-db', requireAuth, requireAdmin, async (req, res) => {
+  const { title, slug, content, meta_title, meta_description, category, excerpt, read_time, faqs, related_tools, tags } = req.body
+  if (!title || !slug) return res.status(400).json({ success: false, error: 'title and slug are required' })
+
+  const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
+  const row = {
+    slug:             cleanSlug,
+    title,
+    date:             new Date().toISOString().split('T')[0],
+    category:         category         || 'General',
+    author:           'AWE-OS Team',
+    read_time:        read_time        || '5 min read',
+    excerpt:          excerpt          || '',
+    meta_title:       meta_title       || title,
+    meta_description: meta_description || '',
+    content:          content          || [],
+    faqs:             faqs             || [],
+    related_tools:    related_tools    || [],
+    tags:             tags             || [],
+    status:           'published',
+    updated_at:       new Date().toISOString(),
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .upsert([row], { onConflict: 'slug' })
+      .select('id, slug')
+    if (error) throw error
+    res.json({
+      success: true,
+      id:      data[0]?.id,
+      slug:    cleanSlug,
+      liveUrl: `https://www.awe-os.com/blog/${cleanSlug}`,
+    })
+  } catch (err) {
+    console.error('[admin-blog/publish-db]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── GET /published — list all posts from Supabase ────────────────────────────
+
+router.get('/published', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('id, slug, title, date, category, status, excerpt, meta_description')
+      .order('date', { ascending: false })
+    if (error) throw error
+    res.json({ success: true, posts: data || [] })
+  } catch (err) {
+    console.error('[admin-blog/published GET]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── PATCH /published/:id — update post metadata ───────────────────────────────
+
+router.patch('/published/:id', requireAuth, requireAdmin, async (req, res) => {
+  const allowed = ['title', 'slug', 'category', 'excerpt', 'meta_description', 'status']
+  const updates = { updated_at: new Date().toISOString() }
+  for (const key of allowed) {
+    if (req.body[key] !== undefined) updates[key] = req.body[key]
+  }
+  try {
+    const { error } = await supabase.from('blog_posts').update(updates).eq('id', req.params.id)
+    if (error) throw error
+    res.json({ success: true })
+  } catch (err) {
+    console.error('[admin-blog/published PATCH]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── DELETE /published/:id ─────────────────────────────────────────────────────
+
+router.delete('/published/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { error } = await supabase.from('blog_posts').delete().eq('id', req.params.id)
+    if (error) throw error
+    res.json({ success: true })
+  } catch (err) {
+    console.error('[admin-blog/published DELETE]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
 // ── Content Studio routes ─────────────────────────────────────────────────────
 
 // POST /api/admin/blog/humanize
