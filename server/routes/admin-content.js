@@ -257,6 +257,84 @@ Rules for each platform:
   }
 })
 
+// ── POST /api/admin/backlink-content-claude ───────────────────────────────────
+router.post('/backlink-content-claude', requireAuth, requireAdmin, async (req, res) => {
+  const { toolName, toolSlug, directoryName } = req.body
+  if (!toolName || !directoryName) {
+    return res.status(400).json({ success: false, error: 'toolName and directoryName are required' })
+  }
+  const toolUrl = `https://www.awe-os.com/tools/${toolSlug || ''}`
+  try {
+    const client = getAnthropic()
+    const msg = await client.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 900,
+      system: `You write directory submission content for AWE-OS, a free online tools platform for Indian users (PDF tools, calculators, converters, AI tools).
+Return ONLY valid JSON — no markdown, no extra text:
+{
+  "tagline": "string (max 60 chars, compelling benefit-focused headline, no filler)",
+  "shortDescription": "string (max 150 chars, what the tool does, for whom, mention it is free)",
+  "longDescription": "string (max 500 chars, detailed description with Indian use cases and key features, include tool URL naturally at end)",
+  "categories": ["string", "string", "string"],
+  "tags": ["string", "string", "string", "string", "string"]
+}
+Rules:
+- tagline: punchy, clear benefit, no exclamation marks
+- categories: 3 relevant directory-style categories (e.g. "Productivity", "Free Tools", "PDF Utilities")
+- tags: 5 short search-friendly tags without spaces`,
+      messages: [{
+        role: 'user',
+        content: `Tool: ${toolName}\nURL: ${toolUrl}\nDirectory: ${directoryName}\n\nGenerate directory submission content optimised for ${directoryName}.`
+      }]
+    })
+    const raw = msg.content[0]?.text || ''
+    let result
+    try { result = extractJson(raw) } catch { result = {} }
+    res.json({ success: true, ...result })
+  } catch (err) {
+    console.error('[admin-content/backlink-content-claude]', err.message)
+    res.status(err.status || 500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /api/admin/outreach-email-claude ─────────────────────────────────────
+router.post('/outreach-email-claude', requireAuth, requireAdmin, async (req, res) => {
+  const { bloggerUrl, toolName, toolSlug } = req.body
+  if (!bloggerUrl || !toolName) {
+    return res.status(400).json({ success: false, error: 'bloggerUrl and toolName are required' })
+  }
+  const toolUrl = `https://www.awe-os.com/tools/${toolSlug || ''}`
+  try {
+    const client = getAnthropic()
+    const msg = await client.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 800,
+      system: `You write personalized outreach emails for AWE-OS (a free tools platform) to bloggers and websites that cover free tools, productivity, PDF tools, or calculators.
+Return ONLY valid JSON — no markdown, no extra text:
+{
+  "subject": "string (personalized subject, max 70 chars, references their niche, not generic)",
+  "body": "string (150-200 word email body: opens with genuine reference to their content area, briefly explains AWE-OS value prop, includes the tool URL naturally, ends with a low-friction specific ask for a mention or review)"
+}
+Rules:
+- Subject: specific to their site niche, avoids words like 'collaboration', 'partnership', 'synergy'
+- Body: peer-to-peer tone like a fellow creator, not corporate PR
+- No excessive exclamation marks
+- The ask should be easy to say yes to (e.g. "happy to be featured in a round-up" not "partnership deal")`,
+      messages: [{
+        role: 'user',
+        content: `Blogger/Website: ${bloggerUrl}\nTool to promote: ${toolName}\nTool URL: ${toolUrl}\n\nWrite a personalized outreach email.`
+      }]
+    })
+    const raw = msg.content[0]?.text || ''
+    let result
+    try { result = extractJson(raw) } catch { result = {} }
+    res.json({ success: true, subject: result.subject || '', body: result.body || '' })
+  } catch (err) {
+    console.error('[admin-content/outreach-email-claude]', err.message)
+    res.status(err.status || 500).json({ success: false, error: err.message })
+  }
+})
+
 // ── POST /api/admin/schedule-intelligence ─────────────────────────────────────
 router.post('/schedule-intelligence', requireAuth, requireAdmin, async (req, res) => {
   const { toolCategory, audience, dayOfWeek } = req.body

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import api from '../../../services/api.service'
 
 // ── Tab definitions ────────────────────────────────────────────
@@ -15,6 +15,7 @@ const TABS = [
   { id: 'intelligence',  label: '🧠 Intelligence'   },
   { id: 'traffic',       label: '🚀 Traffic Campaign' },
   { id: 'scheduler',     label: '📅 Smart Scheduler'  },
+  { id: 'backlinks',     label: '🔗 Backlink Bot'     },
 ]
 
 // ── Agent metadata for Overview cards ─────────────────────────
@@ -3329,6 +3330,562 @@ function TrafficCampaignTab() {
   )
 }
 
+// ── Backlink Bot: 20 directories ──────────────────────────────
+const BL_DIRECTORIES = [
+  { id: 'alternativeto',  name: 'AlternativeTo',                url: 'https://alternativeto.net',                          category: 'Global', da: 78 },
+  { id: 'futurepedia',    name: 'Futurepedia',                  url: 'https://www.futurepedia.io',                         category: 'Global', da: 54 },
+  { id: 'theresanai',     name: "There's An AI For That",       url: 'https://theresanaiforthat.com',                      category: 'Global', da: 62 },
+  { id: 'toolpilot',      name: 'ToolPilot',                    url: 'https://www.toolpilot.ai',                           category: 'Global', da: 32 },
+  { id: 'producthunt',    name: 'Product Hunt',                 url: 'https://www.producthunt.com',                        category: 'Global', da: 89 },
+  { id: 'g2',             name: 'G2',                           url: 'https://www.g2.com',                                 category: 'Global', da: 91 },
+  { id: 'capterra',       name: 'Capterra',                     url: 'https://www.capterra.com',                           category: 'Global', da: 90 },
+  { id: 'saashub',        name: 'SaaSHub',                      url: 'https://www.saashub.com',                            category: 'Global', da: 64 },
+  { id: 'slant',          name: 'Slant',                        url: 'https://www.slant.co',                               category: 'Global', da: 71 },
+  { id: 'getapp',         name: 'GetApp',                       url: 'https://www.getapp.com',                             category: 'Global', da: 86 },
+  { id: 'trustpilot',     name: 'Trustpilot',                   url: 'https://www.trustpilot.com',                         category: 'Global', da: 93 },
+  { id: 'indiamart',      name: 'IndiaMART',                    url: 'https://www.indiamart.com',                          category: 'India',  da: 76 },
+  { id: 'justdial',       name: 'Justdial',                     url: 'https://www.justdial.com',                           category: 'India',  da: 72 },
+  { id: 'startupindia',   name: 'Startup India',                url: 'https://www.startupindia.gov.in',                    category: 'India',  da: 69 },
+  { id: 'yourstory',      name: 'YourStory Tools',              url: 'https://yourstory.com',                              category: 'India',  da: 74 },
+  { id: 'techinasia',     name: 'Tech In Asia',                 url: 'https://www.techinasia.com',                         category: 'India',  da: 77 },
+  { id: 'appsumo',        name: 'AppSumo',                      url: 'https://appsumo.com',                                category: 'Global', da: 81 },
+  { id: 'betalist',       name: 'BetaList',                     url: 'https://betalist.com',                               category: 'Global', da: 60 },
+  { id: 'indiehackers',   name: 'Indie Hackers',                url: 'https://www.indiehackers.com',                       category: 'Global', da: 82 },
+  { id: 'rib',            name: 'r/InternetIsBeautiful',        url: 'https://www.reddit.com/r/InternetIsBeautiful',       category: 'Global', da: 91 },
+]
+
+const BL_STATUS_CYCLE   = { not_submitted: 'submitted', submitted: 'listed', listed: 'not_submitted' }
+const BL_STATUS_CFG = {
+  not_submitted: { label: 'Not Submitted', cls: 'bg-gray-700 text-gray-400 border-gray-600'          },
+  submitted:     { label: 'Submitted',     cls: 'bg-yellow-900/60 text-yellow-300 border-yellow-800/50' },
+  listed:        { label: 'Listed ✅',     cls: 'bg-green-900/60 text-green-300 border-green-800/50'  },
+}
+const BL_OUTREACH_STATUSES = [
+  { value: 'pending',     label: '⏳ Pending',      cls: 'bg-yellow-900/60 text-yellow-300' },
+  { value: 'sent',        label: '📤 Sent',          cls: 'bg-blue-900/60 text-blue-300'    },
+  { value: 'replied',     label: '✅ Replied',       cls: 'bg-green-900/60 text-green-300'  },
+  { value: 'no_response', label: '🔕 No Response',   cls: 'bg-gray-700 text-gray-500'       },
+]
+
+function BacklinkBotTab() {
+  // ── Section 1 state ────────────────────────────────────────
+  const [statuses, setStatuses] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('awe_dir_statuses') || '{}') } catch { return {} }
+  })
+  const [notes, setNotes] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('awe_dir_notes') || '{}') } catch { return {} }
+  })
+
+  // ── Section 2 state ────────────────────────────────────────
+  const [genTool,    setGenTool]    = useState(CAMPAIGN_TOOLS[0])
+  const [genDirId,   setGenDirId]   = useState(BL_DIRECTORIES[0].id)
+  const [genResult,  setGenResult]  = useState(null)
+  const [genEdited,  setGenEdited]  = useState({})
+  const [genLoading, setGenLoading] = useState(false)
+  const sec2Ref = useRef(null)
+
+  // ── Section 3 state ────────────────────────────────────────
+  const [outUrl,        setOutUrl]        = useState('')
+  const [outTool,       setOutTool]       = useState(CAMPAIGN_TOOLS[0])
+  const [outResult,     setOutResult]     = useState(null)
+  const [outLoading,    setOutLoading]    = useState(false)
+  const [outreachList,  setOutreachList]  = useState(() => {
+    try { return JSON.parse(localStorage.getItem('awe_outreach_list') || '[]') } catch { return [] }
+  })
+
+  // ── Shared ──────────────────────────────────────────────────
+  const [copyKey,  setCopyKey]  = useState(null)
+  const [toastMsg, setToastMsg] = useState(null)
+
+  const showToast = (msg, type = 'success') => {
+    setToastMsg({ msg, type })
+    setTimeout(() => setToastMsg(null), 3000)
+  }
+
+  const copyText = (text, key) => {
+    navigator.clipboard.writeText(text)
+    setCopyKey(key)
+    setTimeout(() => setCopyKey(null), 2000)
+  }
+
+  const fmtDate = (iso) => iso
+    ? new Date(iso).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short' })
+    : '—'
+
+  // ── Section 1 handlers ─────────────────────────────────────
+  const cycleStatus = (dirId) => {
+    const cur     = statuses[dirId] || 'not_submitted'
+    const updated = { ...statuses, [dirId]: BL_STATUS_CYCLE[cur] }
+    setStatuses(updated)
+    localStorage.setItem('awe_dir_statuses', JSON.stringify(updated))
+  }
+
+  const saveNote = (dirId, val) => {
+    const updated = { ...notes, [dirId]: val }
+    setNotes(updated)
+    localStorage.setItem('awe_dir_notes', JSON.stringify(updated))
+  }
+
+  const submittedCount = BL_DIRECTORIES.filter(d => {
+    const s = statuses[d.id] || 'not_submitted'
+    return s === 'submitted' || s === 'listed'
+  }).length
+
+  const openGenForDir = (dirId) => {
+    setGenDirId(dirId)
+    setGenResult(null)
+    setGenEdited({})
+    setTimeout(() => sec2Ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+  }
+
+  // ── Section 2 handlers ─────────────────────────────────────
+  const generateContent = async () => {
+    const dir = BL_DIRECTORIES.find(d => d.id === genDirId)
+    if (!dir) return
+    setGenLoading(true)
+    setGenResult(null)
+    setGenEdited({})
+    try {
+      const r = await api.post('/api/admin/backlink-content-claude', {
+        toolName:      genTool.name,
+        toolSlug:      genTool.slug,
+        directoryName: dir.name,
+      })
+      setGenResult(r.data)
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Generation failed', 'error')
+    } finally {
+      setGenLoading(false)
+    }
+  }
+
+  const getField = (key) => {
+    if (genEdited[key] !== undefined) return genEdited[key]
+    if (!genResult) return ''
+    if (key === 'categories') return (genResult.categories || []).join(', ')
+    if (key === 'tags')       return (genResult.tags       || []).join(', ')
+    return genResult[key] || ''
+  }
+
+  const setField = (key, val) => setGenEdited(prev => ({ ...prev, [key]: val }))
+
+  const markDirSubmitted = () => {
+    const updated = { ...statuses, [genDirId]: 'submitted' }
+    setStatuses(updated)
+    localStorage.setItem('awe_dir_statuses', JSON.stringify(updated))
+    showToast(`${BL_DIRECTORIES.find(d => d.id === genDirId)?.name} marked as Submitted`)
+  }
+
+  const genCopyAll = () => copyText(
+    `Tagline: ${getField('tagline')}\n\nShort: ${getField('shortDescription')}\n\nLong: ${getField('longDescription')}\n\nCategories: ${getField('categories')}\n\nTags: ${getField('tags')}`,
+    'gen_all'
+  )
+
+  // ── Section 3 handlers ─────────────────────────────────────
+  const generateOutreach = async () => {
+    if (!outUrl.trim()) { showToast('Enter a blogger URL first', 'error'); return }
+    setOutLoading(true)
+    setOutResult(null)
+    try {
+      const r = await api.post('/api/admin/outreach-email-claude', {
+        bloggerUrl: outUrl.trim(),
+        toolName:   outTool.name,
+        toolSlug:   outTool.slug,
+      })
+      setOutResult(r.data)
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Generation failed', 'error')
+    } finally {
+      setOutLoading(false)
+    }
+  }
+
+  const saveOutreach = () => {
+    if (!outResult) return
+    const followUp = new Date()
+    followUp.setDate(followUp.getDate() + 7)
+    const entry = {
+      id:           Date.now(),
+      targetSite:   outUrl.trim(),
+      tool:         outTool.name,
+      subject:      outResult.subject,
+      status:       'pending',
+      date:         new Date().toISOString(),
+      followUpDate: followUp.toISOString(),
+    }
+    const updated = [entry, ...outreachList]
+    setOutreachList(updated)
+    localStorage.setItem('awe_outreach_list', JSON.stringify(updated))
+    showToast('Saved to outreach list')
+  }
+
+  const updateOutreach = (id, status) => {
+    const updated = outreachList.map(o => o.id === id ? { ...o, status } : o)
+    setOutreachList(updated)
+    localStorage.setItem('awe_outreach_list', JSON.stringify(updated))
+  }
+
+  const deleteOutreach = (id) => {
+    const updated = outreachList.filter(o => o.id !== id)
+    setOutreachList(updated)
+    localStorage.setItem('awe_outreach_list', JSON.stringify(updated))
+  }
+
+  const GEN_FIELDS = [
+    { key: 'tagline',          label: 'Tagline',           hint: '60 chars',        rows: 1 },
+    { key: 'shortDescription', label: 'Short Description', hint: '150 chars',       rows: 2 },
+    { key: 'longDescription',  label: 'Long Description',  hint: '500 chars',       rows: 5 },
+    { key: 'categories',       label: 'Categories',        hint: 'comma-separated', rows: 1 },
+    { key: 'tags',             label: 'Tags',              hint: 'comma-separated', rows: 1 },
+  ]
+
+  return (
+    <div className="space-y-6">
+      {toastMsg && <Toast msg={toastMsg.msg} type={toastMsg.type} onDone={() => setToastMsg(null)} />}
+
+      {/* ── Section 1: Directory Submission Tracker ── */}
+      <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-700">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-white font-semibold text-sm">Directory Submission Tracker</h2>
+            <span className="text-gray-400 text-xs tabular-nums">{submittedCount} / {BL_DIRECTORIES.length} submitted</span>
+          </div>
+          <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-orange-500 rounded-full transition-all duration-500"
+              style={{ width: `${(submittedCount / BL_DIRECTORIES.length) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+          {BL_DIRECTORIES.map(dir => {
+            const status = statuses[dir.id] || 'not_submitted'
+            const cfg    = BL_STATUS_CFG[status]
+            return (
+              <div
+                key={dir.id}
+                className="border border-gray-700/60 rounded-xl p-4 flex flex-col gap-3"
+                style={{ background: 'rgba(17,24,39,0.5)' }}
+              >
+                {/* Row 1: name + badges + status toggle */}
+                <div className="flex items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <a
+                      href={dir.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-white font-medium text-sm hover:text-orange-400 transition-colors leading-tight"
+                    >
+                      {dir.name}
+                      <span className="text-gray-600 ml-1 text-xs">↗</span>
+                    </a>
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                        dir.category === 'India'
+                          ? 'bg-orange-900/50 text-orange-300'
+                          : 'bg-blue-900/50 text-blue-300'
+                      }`}>
+                        {dir.category === 'India' ? '🇮🇳' : '🌐'} {dir.category}
+                      </span>
+                      <span className="text-xs bg-gray-700/80 text-gray-400 px-1.5 py-0.5 rounded font-mono">
+                        DA {dir.da}
+                      </span>
+                    </div>
+                  </div>
+                  {/* Status button (cycles on click) */}
+                  <button
+                    onClick={() => cycleStatus(dir.id)}
+                    className={`text-xs px-2.5 py-1 rounded-lg font-medium border transition-opacity hover:opacity-75 shrink-0 ${cfg.cls}`}
+                  >
+                    {cfg.label}
+                  </button>
+                </div>
+
+                {/* Row 2: generate content action */}
+                <button
+                  onClick={() => openGenForDir(dir.id)}
+                  className="text-xs text-orange-400 hover:text-orange-300 border border-orange-500/30 hover:border-orange-500/60 px-3 py-1.5 rounded-lg transition-colors text-left w-fit"
+                >
+                  ✨ Generate Submission Content
+                </button>
+
+                {/* Row 3: notes */}
+                <input
+                  type="text"
+                  value={notes[dir.id] || ''}
+                  onChange={e => saveNote(dir.id, e.target.value)}
+                  placeholder="Add note (URL, date, contact...)"
+                  className="w-full bg-gray-700/40 border border-gray-600/40 text-gray-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-orange-500/50 placeholder-gray-600"
+                />
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* ── Section 2: Submission Content Generator ── */}
+      <div ref={sec2Ref} className="bg-gray-800 border border-gray-700 rounded-xl p-5">
+        <h2 className="text-white font-semibold text-sm mb-4">Submission Content Generator</h2>
+        <div className="flex flex-wrap gap-3 items-end mb-4">
+          {/* Tool selector */}
+          <div className="flex-1 min-w-[180px]">
+            <label className="block text-gray-400 text-xs mb-1.5">AWE-OS Tool</label>
+            <select
+              value={genTool.slug}
+              onChange={e => { const t = CAMPAIGN_TOOLS.find(x => x.slug === e.target.value); if (t) setGenTool(t) }}
+              className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-orange-500"
+            >
+              {['PDF Tools', 'Calculators', 'Converters', 'Productivity', 'AI Tools'].map(cat => (
+                <optgroup key={cat} label={`── ${cat}`}>
+                  {CAMPAIGN_TOOLS.filter(t => t.category === cat).map(t => (
+                    <option key={t.slug} value={t.slug}>{t.name}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+          {/* Directory selector */}
+          <div className="flex-1 min-w-[180px]">
+            <label className="block text-gray-400 text-xs mb-1.5">Directory</label>
+            <select
+              value={genDirId}
+              onChange={e => setGenDirId(e.target.value)}
+              className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-orange-500"
+            >
+              {BL_DIRECTORIES.map(d => (
+                <option key={d.id} value={d.id}>{d.name} · DA {d.da}</option>
+              ))}
+            </select>
+          </div>
+          <button
+            onClick={generateContent}
+            disabled={genLoading}
+            className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-semibold text-sm px-5 py-2 rounded-lg transition-colors flex items-center gap-2"
+          >
+            {genLoading
+              ? <><span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generating...</>
+              : '✨ Generate'}
+          </button>
+        </div>
+
+        {/* Output fields */}
+        {genResult && (
+          <div className="space-y-3 border-t border-gray-700 pt-4">
+            {GEN_FIELDS.map(({ key, label, hint, rows }) => (
+              <div key={key}>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-gray-400 text-xs font-medium">
+                    {label} <span className="text-gray-600">({hint})</span>
+                  </label>
+                  <button
+                    onClick={() => copyText(getField(key), `gen_${key}`)}
+                    className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+                  >
+                    {copyKey === `gen_${key}` ? '✓ Copied' : 'Copy'}
+                  </button>
+                </div>
+                {rows === 1 ? (
+                  <input
+                    type="text"
+                    value={getField(key)}
+                    onChange={e => setField(key, e.target.value)}
+                    className="w-full bg-gray-700 border border-gray-600 text-gray-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  />
+                ) : (
+                  <textarea
+                    rows={rows}
+                    value={getField(key)}
+                    onChange={e => setField(key, e.target.value)}
+                    className="w-full bg-gray-700 border border-gray-600 text-gray-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-orange-500 resize-none"
+                  />
+                )}
+              </div>
+            ))}
+
+            <div className="flex flex-wrap gap-3 pt-1">
+              <button
+                onClick={markDirSubmitted}
+                className="bg-green-700 hover:bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+              >
+                ✓ Mark as Submitted
+              </button>
+              <button
+                onClick={genCopyAll}
+                className="bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+              >
+                {copyKey === 'gen_all' ? '✓ Copied!' : '📋 Copy All Fields'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {!genResult && !genLoading && (
+          <p className="text-gray-600 text-sm text-center py-4">
+            Select a tool + directory, then click Generate
+          </p>
+        )}
+      </div>
+
+      {/* ── Section 3: Outreach Email Generator ── */}
+      <div className="bg-gray-800 border border-gray-700 rounded-xl p-5">
+        <h2 className="text-white font-semibold text-sm mb-4">Outreach Email Generator</h2>
+        <p className="text-gray-500 text-xs mb-4">
+          Target bloggers and websites that cover free tools, PDF tools, calculators, or productivity.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-gray-400 text-xs mb-1.5">Blogger / Website URL</label>
+            <input
+              type="text"
+              value={outUrl}
+              onChange={e => setOutUrl(e.target.value)}
+              placeholder="https://example.com/best-free-pdf-tools"
+              className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-orange-500 placeholder-gray-600"
+            />
+          </div>
+          <div>
+            <label className="block text-gray-400 text-xs mb-1.5">Tool to Promote</label>
+            <select
+              value={outTool.slug}
+              onChange={e => { const t = CAMPAIGN_TOOLS.find(x => x.slug === e.target.value); if (t) setOutTool(t) }}
+              className="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-orange-500"
+            >
+              {CAMPAIGN_TOOLS.map(t => (
+                <option key={t.slug} value={t.slug}>{t.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <button
+          onClick={generateOutreach}
+          disabled={outLoading || !outUrl.trim()}
+          className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm px-5 py-2 rounded-lg transition-colors flex items-center gap-2 mb-4"
+        >
+          {outLoading
+            ? <><span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generating...</>
+            : '✉️ Generate Email'}
+        </button>
+
+        {/* Generated email output */}
+        {outResult && (
+          <div className="space-y-3 border-t border-gray-700 pt-4">
+            {/* Subject */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-gray-400 text-xs font-medium">Subject Line</label>
+                <button onClick={() => copyText(outResult.subject, 'out_sub')} className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
+                  {copyKey === 'out_sub' ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
+              <input
+                type="text"
+                value={outResult.subject}
+                onChange={e => setOutResult(prev => ({ ...prev, subject: e.target.value }))}
+                className="w-full bg-gray-700 border border-gray-600 text-gray-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-orange-500"
+              />
+            </div>
+            {/* Body */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-gray-400 text-xs font-medium">Email Body</label>
+                <button onClick={() => copyText(outResult.body, 'out_body')} className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
+                  {copyKey === 'out_body' ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
+              <textarea
+                rows={8}
+                value={outResult.body}
+                onChange={e => setOutResult(prev => ({ ...prev, body: e.target.value }))}
+                className="w-full bg-gray-700 border border-gray-600 text-gray-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-orange-500 resize-none"
+              />
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={saveOutreach}
+                className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+              >
+                💾 Save to Outreach List
+              </button>
+              <button
+                onClick={() => copyText(`Subject: ${outResult.subject}\n\n${outResult.body}`, 'out_all')}
+                className="bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+              >
+                {copyKey === 'out_all' ? '✓ Copied!' : '📋 Copy Full Email'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Outreach List Table ── */}
+      {outreachList.length > 0 && (
+        <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-700">
+            <h3 className="text-white text-sm font-semibold">
+              Outreach List <span className="text-gray-500 font-normal">({outreachList.length})</span>
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="border-b border-gray-700">
+                <tr>
+                  {['Target Site', 'Tool', 'Subject', 'Status', 'Sent', 'Follow-up', 'Actions'].map(h => (
+                    <th key={h} className="text-left text-gray-400 px-4 py-2.5 font-medium whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {outreachList.map(row => {
+                  const sc = BL_OUTREACH_STATUSES.find(s => s.value === row.status) || BL_OUTREACH_STATUSES[0]
+                  return (
+                    <tr key={row.id} className="border-b border-gray-700/50 last:border-0">
+                      <td className="px-4 py-3 max-w-[140px]">
+                        <p className="text-gray-300 truncate text-xs" title={row.targetSite}>
+                          {row.targetSite.replace(/^https?:\/\//, '').split('/')[0]}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3 text-gray-400 whitespace-nowrap">{row.tool}</td>
+                      <td className="px-4 py-3 max-w-[160px]">
+                        <p className="text-gray-400 truncate" title={row.subject}>{row.subject}</p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <select
+                          value={row.status}
+                          onChange={e => updateOutreach(row.id, e.target.value)}
+                          className={`text-xs px-2 py-0.5 rounded font-medium focus:outline-none cursor-pointer ${sc.cls}`}
+                          style={{ background: 'transparent', border: 'none' }}
+                        >
+                          {BL_OUTREACH_STATUSES.map(s => (
+                            <option key={s.value} value={s.value} style={{ background: '#1f2937', color: '#d1d5db' }}>
+                              {s.label}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{fmtDate(row.date)}</td>
+                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{fmtDate(row.followUpDate)}</td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => deleteOutreach(row.id)}
+                          className="text-red-400 hover:text-red-300 transition-colors hover:underline"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+    </div>
+  )
+}
+
 // ── Main page ──────────────────────────────────────────────────
 export default function AgentControlPage() {
   const [tab, setTab] = useState('overview')
@@ -3346,6 +3903,7 @@ export default function AgentControlPage() {
     intelligence: <IntelligenceTab />,
     traffic:      <TrafficCampaignTab />,
     scheduler:    <SmartSchedulerTab />,
+    backlinks:    <BacklinkBotTab />,
   }
 
   return (
