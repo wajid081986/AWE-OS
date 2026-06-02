@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   getMultiAgentStatus,
   queryIntelligence,
@@ -25,6 +26,369 @@ function StatCard({ label, value, color = 'text-white', sub }) {
       <p className="text-gray-400 text-xs mb-1">{label}</p>
       <p className={`text-2xl font-bold ${color}`}>{value ?? '—'}</p>
       {sub && <p className="text-gray-500 text-xs mt-1">{sub}</p>}
+    </div>
+  )
+}
+
+// ── Content Intelligence Tab ──────────────────────────────────────────────────
+
+const CONTENT_TYPES = ['Blog', 'Reddit', 'Quora', 'Pinterest']
+const TYPE_COLORS   = { Blog: 'text-blue-400', Reddit: 'text-orange-400', Quora: 'text-red-400', Pinterest: 'text-pink-400' }
+const DIFF_COLORS   = { Easy: 'bg-green-600', Medium: 'bg-yellow-600', Hard: 'bg-red-600' }
+
+function StarRating({ value, onChange, size = 'text-base' }) {
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map(s => (
+        <button key={s} type="button" onClick={() => onChange(s)}
+          className={`${size} leading-none transition-colors ${s <= value ? 'text-yellow-400' : 'text-gray-600'} hover:text-yellow-300`}>
+          ★
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function ContentIntelligenceTab() {
+  const navigate = useNavigate()
+
+  const readLS = (key, fb) => { try { return JSON.parse(localStorage.getItem(key) || fb) } catch { return JSON.parse(fb) } }
+
+  const [entries,      setEntries]      = useState(() => readLS('awe_content_performance', '[]'))
+  const [sortBy,       setSortBy]       = useState('date')
+  const [showForm,     setShowForm]     = useState(false)
+  const [form,         setForm]         = useState({
+    title: '', type: 'Blog', date: new Date().toISOString().split('T')[0], views: '', engagement: '', rating: 0,
+  })
+  const [analyzing,    setAnalyzing]    = useState(false)
+  const [patterns,     setPatterns]     = useState(() => readLS('awe_content_patterns', 'null'))
+  const [analyzeErr,   setAnalyzeErr]   = useState(null)
+  const [suggesting,   setSuggesting]   = useState(false)
+  const [suggestions,  setSuggestions]  = useState(() => readLS('awe_content_suggestions', '[]'))
+  const [suggestErr,   setSuggestErr]   = useState(null)
+
+  const persist = (key, data, setter) => {
+    setter(data)
+    localStorage.setItem(key, JSON.stringify(data))
+  }
+
+  const addEntry = () => {
+    if (!form.title.trim()) return
+    const entry = { ...form, id: Date.now(), views: Number(form.views) || 0, engagement: Number(form.engagement) || 0 }
+    persist('awe_content_performance', [entry, ...entries], setEntries)
+    setForm({ title: '', type: 'Blog', date: new Date().toISOString().split('T')[0], views: '', engagement: '', rating: 0 })
+    setShowForm(false)
+  }
+
+  const deleteEntry = (id) => persist('awe_content_performance', entries.filter(e => e.id !== id), setEntries)
+  const updateRating = (id, rating) => persist('awe_content_performance', entries.map(e => e.id === id ? { ...e, rating } : e), setEntries)
+
+  const sorted = [...entries].sort((a, b) => {
+    if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0)
+    if (sortBy === 'type')   return a.type.localeCompare(b.type)
+    return new Date(b.date) - new Date(a.date)
+  })
+
+  const handleAnalyze = async () => {
+    if (!entries.length) return
+    setAnalyzing(true); setAnalyzeErr(null)
+    try {
+      const { data: res } = await api.post('/api/admin/content-patterns-claude', { entries })
+      if (!res.success) throw new Error(res.error)
+      persist('awe_content_patterns', res.data, setPatterns)
+    } catch (err) {
+      setAnalyzeErr(err.response?.data?.error || err.message)
+    } finally { setAnalyzing(false) }
+  }
+
+  const handleSuggest = async () => {
+    setSuggesting(true); setSuggestErr(null)
+    try {
+      const { data: res } = await api.post('/api/admin/content-suggestions-claude', { patterns, entries })
+      if (!res.success) throw new Error(res.error)
+      persist('awe_content_suggestions', res.data, setSuggestions)
+    } catch (err) {
+      setSuggestErr(err.response?.data?.error || err.message)
+    } finally { setSuggesting(false) }
+  }
+
+  const handleGenerate = (s) => {
+    localStorage.setItem('awe_content_prefill', JSON.stringify(s))
+    navigate('/admin/content-engine')
+  }
+
+  return (
+    <div className="space-y-10">
+
+      {/* ── Section 1: Performance Tracker ── */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Content Performance Tracker</h2>
+            <p className="text-gray-500 text-xs mt-0.5">Log what you publish and rate how well it performed</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex gap-1">
+              {['date', 'rating', 'type'].map(s => (
+                <button key={s} onClick={() => setSortBy(s)}
+                  className={`px-2.5 py-1 text-xs rounded-lg capitalize transition-colors ${sortBy === s ? 'bg-orange-500 text-white' : 'bg-gray-700 text-gray-400 hover:text-white'}`}>
+                  {s}
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setShowForm(v => !v)}
+              className="px-3 py-1.5 bg-orange-500 hover:bg-orange-400 text-white text-sm font-semibold rounded-lg transition-colors">
+              + Add Entry
+            </button>
+          </div>
+        </div>
+
+        {showForm && (
+          <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 mb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              <div className="lg:col-span-2">
+                <label className="block text-[11px] text-gray-400 mb-1">Title *</label>
+                <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                  placeholder="Content title…" onKeyDown={e => e.key === 'Enter' && addEntry()}
+                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-2.5 py-1.5 text-sm text-white placeholder-gray-500 focus:border-orange-500 outline-none" />
+              </div>
+              <div>
+                <label className="block text-[11px] text-gray-400 mb-1">Type</label>
+                <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-2.5 py-1.5 text-sm text-white focus:border-orange-500 outline-none">
+                  {CONTENT_TYPES.map(t => <option key={t}>{t}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[11px] text-gray-400 mb-1">Published Date</label>
+                <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-2.5 py-1.5 text-sm text-white focus:border-orange-500 outline-none" />
+              </div>
+              <div>
+                <label className="block text-[11px] text-gray-400 mb-1">Views / Traffic</label>
+                <input type="number" min="0" value={form.views} onChange={e => setForm(f => ({ ...f, views: e.target.value }))}
+                  placeholder="0"
+                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-2.5 py-1.5 text-sm text-white placeholder-gray-500 focus:border-orange-500 outline-none" />
+              </div>
+              <div>
+                <label className="block text-[11px] text-gray-400 mb-1">Engagement</label>
+                <input type="number" min="0" value={form.engagement} onChange={e => setForm(f => ({ ...f, engagement: e.target.value }))}
+                  placeholder="0"
+                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-2.5 py-1.5 text-sm text-white placeholder-gray-500 focus:border-orange-500 outline-none" />
+              </div>
+            </div>
+            <div className="mt-3 flex items-center gap-4 flex-wrap">
+              <div>
+                <p className="text-[11px] text-gray-400 mb-1">Rating</p>
+                <StarRating value={form.rating} onChange={v => setForm(f => ({ ...f, rating: v }))} size="text-xl" />
+              </div>
+              <div className="ml-auto flex gap-2">
+                <button onClick={() => setShowForm(false)}
+                  className="px-4 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm rounded-lg transition-colors">
+                  Cancel
+                </button>
+                <button onClick={addEntry} disabled={!form.title.trim()}
+                  className="px-4 py-1.5 bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors">
+                  Add Entry
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {sorted.length === 0 ? (
+          <div className="bg-gray-800/40 border border-dashed border-gray-700 rounded-xl p-8 text-center">
+            <p className="text-2xl mb-2">📝</p>
+            <p className="text-gray-500 text-sm">No content logged yet. Click "+ Add Entry" to start tracking.</p>
+          </div>
+        ) : (
+          <div className="rounded-xl overflow-hidden border border-gray-700">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-700/60 text-gray-400 text-[11px] uppercase tracking-wider">
+                  <th className="text-left px-4 py-2.5">Title</th>
+                  <th className="text-left px-3 py-2.5">Type</th>
+                  <th className="text-left px-3 py-2.5 whitespace-nowrap">Date</th>
+                  <th className="text-right px-3 py-2.5">Views</th>
+                  <th className="text-right px-3 py-2.5">Engagement</th>
+                  <th className="text-left px-3 py-2.5">Rating</th>
+                  <th className="px-3 py-2.5 w-6" />
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map((entry, i) => {
+                  const isTop = entry.rating >= 4
+                  return (
+                    <tr key={entry.id}
+                      className={`border-t border-gray-700 transition-colors group
+                        ${i % 2 === 0 ? 'bg-gray-800' : 'bg-gray-900/40'}
+                        ${isTop ? 'border-l-2 border-l-yellow-500' : ''}`}>
+                      <td className="px-4 py-2.5 max-w-[200px]">
+                        <span className="text-white font-medium truncate block">{entry.title}</span>
+                        {isTop && <span className="text-[10px] text-yellow-400 font-bold">★ TOP PERFORMER</span>}
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <span className={`text-xs font-semibold ${TYPE_COLORS[entry.type] || 'text-gray-400'}`}>{entry.type}</span>
+                      </td>
+                      <td className="px-3 py-2.5 text-gray-400 text-xs whitespace-nowrap">{entry.date}</td>
+                      <td className="px-3 py-2.5 text-right text-gray-300">{entry.views.toLocaleString()}</td>
+                      <td className="px-3 py-2.5 text-right text-gray-300">{entry.engagement.toLocaleString()}</td>
+                      <td className="px-3 py-2.5">
+                        <StarRating value={entry.rating} onChange={v => updateRating(entry.id, v)} />
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <button onClick={() => deleteEntry(entry.id)}
+                          className="text-gray-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 text-xs">
+                          ✕
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* ── Section 2: Pattern Analyzer ── */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Pattern Analyzer</h2>
+            <p className="text-gray-500 text-xs mt-0.5">Discover what makes your content succeed</p>
+          </div>
+          <button onClick={handleAnalyze} disabled={analyzing || entries.length === 0}
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors flex items-center gap-2">
+            {analyzing
+              ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Analyzing…</>
+              : '🔍 Analyze Patterns'}
+          </button>
+        </div>
+
+        {analyzeErr && (
+          <div className="bg-red-900/30 border border-red-700 rounded-xl p-3 text-red-300 text-sm mb-4">{analyzeErr}</div>
+        )}
+
+        {patterns ? (
+          <div className="bg-gradient-to-br from-gray-800 via-gray-800 to-purple-900/20 rounded-xl border border-purple-500/30 p-5">
+            <div className="flex items-center gap-3 mb-5">
+              <span className="text-3xl">🧬</span>
+              <div>
+                <h3 className="text-base font-bold text-white">Your Content DNA</h3>
+                <p className="text-purple-400 text-xs">The formula that makes your content work</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+              {[
+                { label: 'Best Content Type', value: patterns.bestContentType, color: 'text-yellow-400' },
+                { label: 'Ideal Word Count',  value: patterns.bestWordCount,   color: 'text-blue-400'   },
+                { label: 'Best Posting Time', value: patterns.bestPostingTime, color: 'text-green-400'  },
+              ].map(({ label, value, color }) => (
+                <div key={label} className="bg-gray-700/50 rounded-lg p-3 border border-gray-600/50">
+                  <p className="text-[11px] text-gray-500 mb-1 uppercase tracking-wider">{label}</p>
+                  <p className={`text-sm font-bold ${color}`}>{value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-lg p-3 mb-4">
+              <p className="text-[11px] text-yellow-600 uppercase tracking-wider mb-1">⚡ Winning Formula</p>
+              <p className="text-sm text-white leading-relaxed">{patterns.winningFormula}</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+              <div>
+                <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-2">Best Topics</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {(patterns.bestTopics || []).map((t, i) => (
+                    <span key={i} className="px-2 py-0.5 bg-purple-900/50 border border-purple-700/50 text-purple-300 text-xs rounded-full">{t}</span>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-2">Improvement Areas</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {(patterns.improvementAreas || []).map((a, i) => (
+                    <span key={i} className="px-2 py-0.5 bg-orange-900/40 border border-orange-700/40 text-orange-300 text-xs rounded-full">{a}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-3 border-t border-gray-700/50">
+              <div>
+                <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Audience Insights</p>
+                <p className="text-sm text-gray-300 leading-relaxed">{patterns.audienceInsights}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Title Patterns That Work</p>
+                <p className="text-sm text-gray-300 leading-relaxed">{patterns.titlePatterns}</p>
+              </div>
+            </div>
+          </div>
+        ) : !analyzing && (
+          <div className="bg-gray-800/40 border border-dashed border-gray-700 rounded-xl p-8 text-center">
+            <p className="text-3xl mb-2">🔬</p>
+            <p className="text-gray-500 text-sm">
+              Add at least 3 content entries and rate them, then click "Analyze Patterns" to discover your content DNA.
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* ── Section 3: Smart Suggestions ── */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Smart Content Suggestions</h2>
+            <p className="text-gray-500 text-xs mt-0.5">AI ideas tailored to your winning patterns</p>
+          </div>
+          <button onClick={handleSuggest} disabled={suggesting}
+            className="px-4 py-2 bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors flex items-center gap-2">
+            {suggesting
+              ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Generating…</>
+              : suggestions.length ? '🔄 Refresh Ideas' : '💡 Get Suggestions'}
+          </button>
+        </div>
+
+        {suggestErr && (
+          <div className="bg-red-900/30 border border-red-700 rounded-xl p-3 text-red-300 text-sm mb-4">{suggestErr}</div>
+        )}
+
+        {suggestions.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {suggestions.map((s, i) => (
+              <div key={i}
+                className="group bg-gray-800 rounded-xl border border-gray-700 hover:border-orange-500 p-4 transition-all flex flex-col">
+                <div className="flex items-start justify-between mb-2">
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold text-white ${DIFF_COLORS[s.estimatedDifficulty] || 'bg-gray-600'}`}>
+                    {s.estimatedDifficulty}
+                  </span>
+                  <span className="text-[11px] text-gray-500">{s.suggestedLength}</span>
+                </div>
+                <h4 className="text-sm font-semibold text-white leading-snug mb-1.5">{s.title}</h4>
+                <p className="text-[11px] text-orange-400 font-medium mb-2">🔑 {s.keyword}</p>
+                <p className="text-xs text-gray-400 leading-relaxed flex-1 mb-3">{s.whyItWillWork}</p>
+                <button onClick={() => handleGenerate(s)}
+                  className="w-full py-1.5 bg-orange-500/10 hover:bg-orange-500 border border-orange-500/40 hover:border-orange-500 text-orange-400 hover:text-white text-xs font-semibold rounded-lg transition-all">
+                  Generate This →
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : !suggesting && (
+          <div className="bg-gray-800/40 border border-dashed border-gray-700 rounded-xl p-8 text-center">
+            <p className="text-3xl mb-2">💡</p>
+            <p className="text-gray-500 text-sm">
+              {patterns
+                ? 'Click "Get Suggestions" to generate 5 content ideas based on your patterns.'
+                : 'Run Pattern Analysis first for better, personalised suggestions.'}
+            </p>
+          </div>
+        )}
+      </section>
     </div>
   )
 }
@@ -417,7 +781,7 @@ export default function IntelligenceDashboard() {
   const intel     = status?.intelligence
   const consensus = status?.consensus
 
-  const TABS = ['intelligence', 'decisions', 'contribute', 'coordinate', 'weekly-report']
+  const TABS = ['intelligence', 'decisions', 'contribute', 'coordinate', 'weekly-report', 'content-intelligence']
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -585,7 +949,8 @@ export default function IntelligenceDashboard() {
           )}
 
           {/* Weekly Report tab */}
-          {tab === 'weekly-report' && <WeeklyReportTab />}
+          {tab === 'weekly-report'        && <WeeklyReportTab />}
+          {tab === 'content-intelligence' && <ContentIntelligenceTab />}
 
           {/* Coordinate tab */}
           {tab === 'coordinate' && (
