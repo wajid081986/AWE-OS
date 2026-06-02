@@ -1,0 +1,1195 @@
+import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
+import api from '../../../services/api.service'
+
+// ── Traffic Alerts Tab ────────────────────────────────────────────────────────
+
+const ALERT_RULES = [
+  { id: 'campaign',  label: 'No campaign run in 7 days',          description: 'Traffic campaigns keep your audience engaged'    },
+  { id: 'blog',      label: 'No blog published in 14 days',       description: 'Regular blogging drives organic search traffic'  },
+  { id: 'directory', label: 'Less than 3 directories submitted',   description: 'Directory submissions build backlinks over time' },
+  { id: 'traffic',   label: 'Traffic dropped 20%+',               description: 'Significant drop needs immediate attention'      },
+  { id: 'quora',     label: 'No Quora answers in 7 days',         description: 'Quora drives high-intent referral traffic'       },
+]
+
+const GOAL_META = {
+  visitors:  { label: 'Monthly Visitors', color: 'text-blue-400'   },
+  blogPosts: { label: 'Blog Posts',       color: 'text-purple-400' },
+  campaigns: { label: 'Campaigns',        color: 'text-orange-400' },
+  backlinks: { label: 'Backlinks / Dirs', color: 'text-green-400'  },
+}
+
+function GoalEditor({ goals, onSave }) {
+  const [draft, setDraft] = useState({ ...goals })
+  const FIELDS = [
+    { key: 'visitors',  label: 'Target Visitors' },
+    { key: 'blogPosts', label: 'Blog Posts'       },
+    { key: 'campaigns', label: 'Campaigns'        },
+    { key: 'backlinks', label: 'Backlinks / Dirs' },
+  ]
+  return (
+    <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 mb-4">
+      <p className="text-xs text-gray-400 mb-3 font-medium">Set monthly targets</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {FIELDS.map(({ key, label }) => (
+          <div key={key}>
+            <label className="block text-[11px] text-gray-500 mb-1">{label}</label>
+            <input type="number" min="0" value={draft[key] ?? ''}
+              onChange={e => setDraft(d => ({ ...d, [key]: parseInt(e.target.value) || 0 }))}
+              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-2.5 py-1.5 text-sm text-white focus:border-orange-500 outline-none" />
+          </div>
+        ))}
+      </div>
+      <button onClick={() => onSave(draft)}
+        className="mt-3 px-4 py-1.5 bg-orange-500 hover:bg-orange-400 text-white text-sm font-semibold rounded-lg transition-colors">
+        Save Goals
+      </button>
+    </div>
+  )
+}
+
+function TrafficAlertsTab() {
+  const navigate = useNavigate()
+  const readLS   = (key, fb) => { try { return JSON.parse(localStorage.getItem(key) || fb) } catch { return JSON.parse(fb) } }
+
+  const DEFAULT_RULES = { campaign: true, blog: true, directory: true, traffic: true, quora: true }
+  const DEFAULT_GOALS = { visitors: 5000, blogPosts: 4, campaigns: 8, backlinks: 10 }
+
+  const [trafficHistory, setTrafficHistory] = useState(() => readLS('awe_traffic_history', '[]'))
+  const [weekInput,      setWeekInput]      = useState('')
+  const [weekDate,       setWeekDate]       = useState(new Date().toISOString().split('T')[0])
+
+  const [rulesEnabled, setRulesEnabled] = useState(() => readLS('awe_alert_rules_enabled', JSON.stringify(DEFAULT_RULES)))
+  const [alertResults, setAlertResults] = useState(() => readLS('awe_alert_results', '[]'))
+  const [checking,     setChecking]     = useState(false)
+
+  const [recovering,   setRecovering]  = useState(false)
+  const [recoveryPlan, setRecoveryPlan] = useState(null)
+  const [recoveryErr,  setRecoveryErr]  = useState(null)
+  const [checked,      setChecked]      = useState({})
+
+  const [goals,      setGoals]      = useState(() => readLS('awe_monthly_goals', JSON.stringify(DEFAULT_GOALS)))
+  const [editGoals,  setEditGoals]  = useState(false)
+  const [motivating, setMotivating] = useState(false)
+  const [motivation, setMotivation] = useState(null)
+
+  const recent        = trafficHistory[0]
+  const prev          = trafficHistory[1]
+  const trafficChange = recent && prev && prev.visitors > 0
+    ? ((recent.visitors - prev.visitors) / prev.visitors) * 100
+    : null
+
+  const logTraffic = () => {
+    const n = parseInt(weekInput)
+    if (!n || n <= 0) return
+    const entry   = { date: weekDate, visitors: n, loggedAt: new Date().toISOString() }
+    const updated = [entry, ...trafficHistory.filter(t => t.date !== weekDate)]
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 16)
+    setTrafficHistory(updated)
+    localStorage.setItem('awe_traffic_history', JSON.stringify(updated))
+    setWeekInput('')
+  }
+
+  const runChecks = () => {
+    setChecking(true)
+    const daysSince = (iso) => iso ? (Date.now() - new Date(iso).getTime()) / 86400000 : Infinity
+
+    const campaigns = readLS('awe_campaign_history', '[]')
+    const drafts    = readLS('awe_content_drafts',   '[]')
+    const dirStats  = readLS('awe_dir_statuses',     '{}')
+    const blasts    = readLS('awe_social_blast_history', '[]')
+
+    const dirCount       = Object.values(dirStats).filter(s => ['submitted', 'done'].includes(s)).length
+    const lastCampaign   = campaigns[0]?.timestamp
+    const lastBlog       = drafts[0]?.savedAt
+    const recentQuora    = blasts.find(b => b.quoraAnswer && daysSince(b.savedAt) <= 7)
+    const trafficDropped = trafficHistory.length >= 2 && trafficHistory[1].visitors > 0
+      ? (trafficHistory[0].visitors - trafficHistory[1].visitors) / trafficHistory[1].visitors < -0.20
+      : false
+
+    const now = new Date().toISOString()
+    const results = [
+      { id: 'campaign',  triggered: daysSince(lastCampaign) > 7, lastChecked: now, detail: lastCampaign ? `Last: ${new Date(lastCampaign).toLocaleDateString('en-IN')}` : 'Never run'              },
+      { id: 'blog',      triggered: daysSince(lastBlog) > 14,    lastChecked: now, detail: lastBlog     ? `Last: ${new Date(lastBlog).toLocaleDateString('en-IN')}`     : 'No drafts found'         },
+      { id: 'directory', triggered: dirCount < 3,                lastChecked: now, detail: `${dirCount} submissions logged`                                                                          },
+      { id: 'traffic',   triggered: trafficDropped,              lastChecked: now, detail: trafficHistory.length < 2 ? 'Need 2+ weeks of data' : trafficChange !== null ? `${trafficChange.toFixed(1)}% change` : '—' },
+      { id: 'quora',     triggered: !recentQuora,                lastChecked: now, detail: recentQuora  ? 'Recent answer found'                                          : 'No recent Quora answers' },
+    ]
+
+    setAlertResults(results)
+    localStorage.setItem('awe_alert_results', JSON.stringify(results))
+    setRecoveryPlan(null)
+    setChecking(false)
+  }
+
+  const triggeredAlerts = alertResults.filter(r => rulesEnabled[r.id] && r.triggered)
+
+  const handleRecovery = async () => {
+    setRecovering(true); setRecoveryErr(null)
+    try {
+      const { data: res } = await api.post('/api/admin/recovery-plan-claude', {
+        triggeredAlerts: triggeredAlerts.map(a => ({ ...a, name: ALERT_RULES.find(r => r.id === a.id)?.label })),
+        trafficHistory:  trafficHistory.slice(0, 4),
+        trafficChange,
+      })
+      if (!res.success) throw new Error(res.error)
+      setRecoveryPlan(res.data)
+      setChecked({})
+    } catch (err) {
+      setRecoveryErr(err.response?.data?.error || err.message)
+    } finally { setRecovering(false) }
+  }
+
+  const toggleRule = (id) => {
+    const next = { ...rulesEnabled, [id]: !rulesEnabled[id] }
+    setRulesEnabled(next)
+    localStorage.setItem('awe_alert_rules_enabled', JSON.stringify(next))
+  }
+
+  const currentMonth = new Date().toISOString().slice(0, 7)
+  const actuals = {
+    visitors:  trafficHistory.filter(t => t.date?.startsWith(currentMonth)).reduce((s, t) => s + (t.visitors || 0), 0),
+    blogPosts: readLS('awe_content_drafts',    '[]').filter(d => d.savedAt?.startsWith(currentMonth)).length,
+    campaigns: readLS('awe_campaign_history',  '[]').filter(c => c.timestamp?.startsWith(currentMonth)).length,
+    backlinks: Object.values(readLS('awe_dir_statuses', '{}')).filter(s => ['submitted', 'done'].includes(s)).length,
+  }
+  const pct      = Object.fromEntries(Object.entries(actuals).map(([k, v]) => [k, goals[k] > 0 ? Math.min(100, Math.round((v / goals[k]) * 100)) : 0]))
+  const achieved = Object.entries(pct).filter(([, v]) => v >= 100).map(([k]) => k)
+
+  const handleMotivation = async () => {
+    setMotivating(true)
+    try {
+      const { data: res } = await api.post('/api/admin/goal-analysis-claude', {
+        goals, actuals, pct,
+        achieved: achieved.map(k => GOAL_META[k]?.label),
+      })
+      if (!res.success) throw new Error(res.error)
+      setMotivation(res.data.message)
+    } catch {
+      setMotivation('Incredible milestone! AWE-OS is growing — keep this momentum and the results will compound week over week!')
+    } finally { setMotivating(false) }
+  }
+
+  const saveGoals = (g) => {
+    setGoals(g); localStorage.setItem('awe_monthly_goals', JSON.stringify(g))
+    setEditGoals(false); setMotivation(null)
+  }
+
+  const chartData = [...trafficHistory]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-8)
+    .map(e => ({ label: e.date.slice(5), visitors: e.visitors }))
+
+  return (
+    <div className="space-y-10">
+
+      {/* ── Section 1: Traffic Health ── */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-1">Traffic Health Dashboard</h2>
+        <p className="text-gray-500 text-xs mb-4">Track weekly visitors and detect trends automatically</p>
+
+        {trafficChange !== null && trafficChange <= -20 && (
+          <div className="mb-4 px-4 py-3 bg-red-500/20 border border-red-500 rounded-xl flex items-center gap-3">
+            <span className="text-xl">🔴</span>
+            <span className="text-red-300 text-sm font-medium">
+              Traffic dropped {Math.abs(trafficChange).toFixed(1)}% this week — action needed!
+            </span>
+          </div>
+        )}
+        {trafficChange !== null && trafficChange > 0 && (
+          <div className="mb-4 px-4 py-3 bg-green-500/20 border border-green-500 rounded-xl flex items-center gap-3">
+            <span className="text-xl">📈</span>
+            <span className="text-green-300 text-sm font-medium">
+              Traffic up {trafficChange.toFixed(1)}% this week! Keep it going.
+            </span>
+          </div>
+        )}
+
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 mb-4">
+          <p className="text-xs text-gray-500 mb-3 font-medium">Log this week's visitors</p>
+          <div className="flex gap-3 flex-wrap items-end">
+            <div>
+              <label className="block text-[11px] text-gray-500 mb-1">Week of</label>
+              <input type="date" value={weekDate} onChange={e => setWeekDate(e.target.value)}
+                className="bg-gray-700 border border-gray-600 rounded-lg px-2.5 py-1.5 text-sm text-white focus:border-orange-500 outline-none" />
+            </div>
+            <div className="flex-1 min-w-[140px]">
+              <label className="block text-[11px] text-gray-500 mb-1">Total visitors</label>
+              <input type="number" min="0" value={weekInput}
+                onChange={e => setWeekInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && logTraffic()}
+                placeholder="e.g. 3200"
+                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-2.5 py-1.5 text-sm text-white placeholder-gray-500 focus:border-orange-500 outline-none" />
+            </div>
+            <button onClick={logTraffic} disabled={!weekInput.trim()}
+              className="px-4 py-1.5 bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap">
+              Log This Week
+            </button>
+          </div>
+        </div>
+
+        {chartData.length > 0 ? (
+          <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-medium text-gray-300">Visitor Trend — last {chartData.length} weeks</p>
+              {recent && (
+                <p className="text-xs text-gray-500">
+                  Latest: <span className="text-orange-400 font-semibold">{recent.visitors.toLocaleString()}</span> visitors
+                </p>
+              )}
+            </div>
+            <ResponsiveContainer width="100%" height={180}>
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="trafficGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#f97316" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#f97316" stopOpacity={0}    />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="label" stroke="#6b7280" tick={{ fontSize: 11, fill: '#9ca3af' }} />
+                <YAxis stroke="#6b7280" tick={{ fontSize: 11, fill: '#9ca3af' }} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 8, fontSize: 12 }}
+                  labelStyle={{ color: '#f9fafb' }}
+                  itemStyle={{ color: '#f97316' }}
+                />
+                <Area type="monotone" dataKey="visitors" name="Visitors" stroke="#f97316" strokeWidth={2}
+                  fill="url(#trafficGrad)"
+                  dot={{ fill: '#f97316', strokeWidth: 0, r: 4 }}
+                  activeDot={{ r: 6, fill: '#fb923c' }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="bg-gray-800/40 border border-dashed border-gray-700 rounded-xl p-8 text-center">
+            <p className="text-2xl mb-2">📊</p>
+            <p className="text-gray-500 text-sm">Log at least one week of traffic to see the trend chart.</p>
+          </div>
+        )}
+      </section>
+
+      {/* ── Section 2: Alert Rules ── */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Alert Rules</h2>
+            <p className="text-gray-500 text-xs mt-0.5">Automatically checked against your activity data</p>
+          </div>
+          <button onClick={runChecks} disabled={checking}
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors flex items-center gap-2">
+            {checking
+              ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Checking…</>
+              : '⚡ Run Check Now'}
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {ALERT_RULES.map(rule => {
+            const result    = alertResults.find(r => r.id === rule.id)
+            const enabled   = rulesEnabled[rule.id] !== false
+            const triggered = enabled && result?.triggered
+            return (
+              <div key={rule.id}
+                className={`bg-gray-800 rounded-xl border p-4 transition-all ${
+                  !enabled  ? 'border-gray-700 opacity-60' :
+                  triggered ? 'border-red-500/60'          :
+                  result    ? 'border-green-500/40'        : 'border-gray-700'
+                }`}>
+                <div className="flex items-start justify-between mb-2 gap-2">
+                  <p className="text-sm font-medium text-white leading-snug">{rule.label}</p>
+                  <button onClick={() => toggleRule(rule.id)}
+                    className={`shrink-0 w-9 h-5 rounded-full transition-colors relative ${enabled ? 'bg-orange-500' : 'bg-gray-600'}`}>
+                    <span className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow transition-transform duration-200 ${enabled ? 'translate-x-5' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+                <p className="text-[11px] text-gray-500 mb-3 leading-relaxed">{rule.description}</p>
+                {result ? (
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                      !enabled  ? 'bg-gray-700 text-gray-500'                                            :
+                      triggered ? 'bg-red-600/30 text-red-400 border border-red-600/50'                 :
+                                  'bg-green-600/20 text-green-400 border border-green-600/40'
+                    }`}>
+                      {!enabled ? 'Inactive' : triggered ? '⚠ Triggered' : '✓ OK'}
+                    </span>
+                    <span className="text-[10px] text-gray-600 truncate">{result.detail}</span>
+                  </div>
+                ) : (
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${enabled ? 'bg-indigo-900/40 text-indigo-400 border border-indigo-700/40' : 'bg-gray-700 text-gray-500'}`}>
+                    {enabled ? 'Active — not yet checked' : 'Inactive'}
+                  </span>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
+      {/* ── Section 3: Recovery Plan ── */}
+      {triggeredAlerts.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-white">Recovery Action Generator</h2>
+              <p className="text-gray-500 text-xs mt-0.5">
+                {triggeredAlerts.length} alert{triggeredAlerts.length > 1 ? 's' : ''} triggered — get a targeted fix plan
+              </p>
+            </div>
+            <button onClick={handleRecovery} disabled={recovering}
+              className="px-4 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors flex items-center gap-2">
+              {recovering
+                ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Planning…</>
+                : '🚨 Get Recovery Plan'}
+            </button>
+          </div>
+
+          {!recoveryPlan && !recovering && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {triggeredAlerts.map(a => (
+                <span key={a.id} className="text-xs px-2.5 py-1 bg-red-900/30 border border-red-700/50 text-red-300 rounded-full">
+                  ⚠ {ALERT_RULES.find(r => r.id === a.id)?.label}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {recoveryErr && (
+            <div className="bg-red-900/30 border border-red-700 rounded-xl p-3 text-red-300 text-sm mb-4">{recoveryErr}</div>
+          )}
+
+          {recoveryPlan && (
+            <div className="bg-gray-800 rounded-xl border border-red-500/30 p-5 space-y-5">
+              <div className="flex items-center gap-3">
+                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold text-white ${
+                  recoveryPlan.urgency === 'Critical' ? 'bg-red-600' :
+                  recoveryPlan.urgency === 'High'     ? 'bg-orange-600' : 'bg-yellow-600'
+                }`}>{recoveryPlan.urgency}</span>
+                <p className="text-sm font-semibold text-white">{recoveryPlan.alertType}</p>
+              </div>
+
+              <div className="bg-gray-700/40 rounded-lg p-3">
+                <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Root Cause Analysis</p>
+                <p className="text-sm text-gray-300 leading-relaxed">{recoveryPlan.rootCauseAnalysis}</p>
+              </div>
+
+              <div>
+                <p className="text-xs font-bold text-red-400 uppercase tracking-wider mb-3">⚡ Immediate Actions</p>
+                <div className="space-y-2">
+                  {(recoveryPlan.immediateActions || []).map((a, i) => {
+                    const k = `imm-${i}`
+                    return (
+                      <div key={i} onClick={() => setChecked(c => ({ ...c, [k]: !c[k] }))}
+                        className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                          checked[k] ? 'bg-green-900/20 border-green-700/40' : 'bg-gray-700/30 border-gray-600/50 hover:border-gray-500'
+                        }`}>
+                        <div className={`w-4 h-4 mt-0.5 rounded border-2 shrink-0 flex items-center justify-center ${checked[k] ? 'bg-green-600 border-green-600' : 'border-gray-500'}`}>
+                          {checked[k] && <span className="text-white text-[9px] font-bold">✓</span>}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm ${checked[k] ? 'line-through text-gray-500' : 'text-white'}`}>{a.action}</p>
+                          <div className="flex gap-3 mt-1 flex-wrap">
+                            <span className="text-[10px] text-gray-500">⏱ {a.timeRequired}</span>
+                            <span className="text-[10px] text-green-400">→ {a.expectedImpact}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs font-bold text-orange-400 uppercase tracking-wider mb-3">📅 7-Day Recovery Plan</p>
+                <div className="space-y-2">
+                  {(recoveryPlan.weekPlan || []).map((item, i) => {
+                    const k = `week-${i}`
+                    return (
+                      <div key={i} onClick={() => setChecked(c => ({ ...c, [k]: !c[k] }))}
+                        className={`flex items-start gap-3 p-2.5 rounded-lg border cursor-pointer transition-all ${
+                          checked[k] ? 'bg-green-900/20 border-green-700/40' : 'bg-gray-700/20 border-gray-700/50 hover:border-gray-600'
+                        }`}>
+                        <div className={`w-4 h-4 mt-0.5 rounded border-2 shrink-0 flex items-center justify-center ${checked[k] ? 'bg-green-600 border-green-600' : 'border-gray-600'}`}>
+                          {checked[k] && <span className="text-white text-[9px] font-bold">✓</span>}
+                        </div>
+                        <p className={`text-sm ${checked[k] ? 'line-through text-gray-500' : 'text-gray-300'}`}>{item}</p>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <button onClick={() => {
+                localStorage.setItem('awe_pipeline_prefill', JSON.stringify({ source: 'recovery', alerts: triggeredAlerts }))
+                navigate('/admin/pipeline')
+              }}
+                className="px-5 py-2 bg-orange-500 hover:bg-orange-400 text-white text-sm font-semibold rounded-xl transition-colors">
+                🚀 Start Recovery Campaign →
+              </button>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ── Section 4: Goals Tracker ── */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Monthly Goals</h2>
+            <p className="text-gray-500 text-xs mt-0.5">
+              {new Date().toLocaleString('en-IN', { month: 'long', year: 'numeric' })}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {achieved.length > 0 && (
+              <button onClick={handleMotivation} disabled={motivating}
+                className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-500 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5">
+                {motivating
+                  ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  : '🏆'}
+                AI Message
+              </button>
+            )}
+            <button onClick={() => setEditGoals(v => !v)}
+              className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs font-semibold rounded-lg transition-colors">
+              {editGoals ? 'Cancel' : '⚙ Set Goals'}
+            </button>
+          </div>
+        </div>
+
+        {motivation && (
+          <div className="mb-4 bg-yellow-900/20 border border-yellow-600/40 rounded-xl p-4 flex gap-3">
+            <span className="text-2xl shrink-0">🏆</span>
+            <p className="text-yellow-200 text-sm leading-relaxed">{motivation}</p>
+          </div>
+        )}
+
+        {editGoals && <GoalEditor goals={goals} onSave={saveGoals} />}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {Object.entries(GOAL_META).map(([key, { label, color }]) => {
+            const p      = pct[key]
+            const actual = actuals[key]
+            const target = goals[key] || 0
+            const status = p >= 100 ? 'achieved' : p >= 70 ? 'on-track' : 'behind'
+            return (
+              <div key={key} className={`bg-gray-800 rounded-xl border p-4 transition-colors ${p >= 100 ? 'border-yellow-500/50' : 'border-gray-700'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`text-sm font-semibold ${color}`}>{label}</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                    status === 'achieved'  ? 'bg-yellow-600/30 text-yellow-300 border border-yellow-600/50' :
+                    status === 'on-track'  ? 'bg-green-600/20  text-green-400  border border-green-600/40'  :
+                                            'bg-red-600/20   text-red-400   border border-red-600/40'
+                  }`}>
+                    {status === 'achieved' ? '🏆 Achieved' : status === 'on-track' ? '✓ On Track' : '⚠ Behind'}
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-2 mb-2">
+                  <span className="text-2xl font-bold text-white">{actual.toLocaleString()}</span>
+                  <span className="text-gray-500 text-sm">/ {target.toLocaleString()}</span>
+                  <span className={`ml-auto text-sm font-bold ${color}`}>{p}%</span>
+                </div>
+                <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-700 ${p >= 100 ? 'bg-yellow-500' : 'bg-orange-500'}`}
+                    style={{ width: `${Math.min(p, 100)}%` }}
+                  />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+// ── Content Intelligence Tab ──────────────────────────────────────────────────
+
+const CONTENT_TYPES = ['Blog', 'Reddit', 'Quora', 'Pinterest']
+const TYPE_COLORS   = { Blog: 'text-blue-400', Reddit: 'text-orange-400', Quora: 'text-red-400', Pinterest: 'text-pink-400' }
+const DIFF_COLORS   = { Easy: 'bg-green-600', Medium: 'bg-yellow-600', Hard: 'bg-red-600' }
+
+function StarRating({ value, onChange, size = 'text-base' }) {
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map(s => (
+        <button key={s} type="button" onClick={() => onChange(s)}
+          className={`${size} leading-none transition-colors ${s <= value ? 'text-yellow-400' : 'text-gray-600'} hover:text-yellow-300`}>
+          ★
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function ContentIntelligenceTab() {
+  const navigate = useNavigate()
+
+  const readLS = (key, fb) => { try { return JSON.parse(localStorage.getItem(key) || fb) } catch { return JSON.parse(fb) } }
+
+  const [entries,      setEntries]      = useState(() => readLS('awe_content_performance', '[]'))
+  const [sortBy,       setSortBy]       = useState('date')
+  const [showForm,     setShowForm]     = useState(false)
+  const [form,         setForm]         = useState({
+    title: '', type: 'Blog', date: new Date().toISOString().split('T')[0], views: '', engagement: '', rating: 0,
+  })
+  const [analyzing,    setAnalyzing]    = useState(false)
+  const [patterns,     setPatterns]     = useState(() => readLS('awe_content_patterns', 'null'))
+  const [analyzeErr,   setAnalyzeErr]   = useState(null)
+  const [suggesting,   setSuggesting]   = useState(false)
+  const [suggestions,  setSuggestions]  = useState(() => readLS('awe_content_suggestions', '[]'))
+  const [suggestErr,   setSuggestErr]   = useState(null)
+
+  const persist = (key, data, setter) => {
+    setter(data)
+    localStorage.setItem(key, JSON.stringify(data))
+  }
+
+  const addEntry = () => {
+    if (!form.title.trim()) return
+    const entry = { ...form, id: Date.now(), views: Number(form.views) || 0, engagement: Number(form.engagement) || 0 }
+    persist('awe_content_performance', [entry, ...entries], setEntries)
+    setForm({ title: '', type: 'Blog', date: new Date().toISOString().split('T')[0], views: '', engagement: '', rating: 0 })
+    setShowForm(false)
+  }
+
+  const deleteEntry = (id) => persist('awe_content_performance', entries.filter(e => e.id !== id), setEntries)
+  const updateRating = (id, rating) => persist('awe_content_performance', entries.map(e => e.id === id ? { ...e, rating } : e), setEntries)
+
+  const sorted = [...entries].sort((a, b) => {
+    if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0)
+    if (sortBy === 'type')   return a.type.localeCompare(b.type)
+    return new Date(b.date) - new Date(a.date)
+  })
+
+  const handleAnalyze = async () => {
+    if (!entries.length) return
+    setAnalyzing(true); setAnalyzeErr(null)
+    try {
+      const { data: res } = await api.post('/api/admin/content-patterns-claude', { entries })
+      if (!res.success) throw new Error(res.error)
+      persist('awe_content_patterns', res.data, setPatterns)
+    } catch (err) {
+      setAnalyzeErr(err.response?.data?.error || err.message)
+    } finally { setAnalyzing(false) }
+  }
+
+  const handleSuggest = async () => {
+    setSuggesting(true); setSuggestErr(null)
+    try {
+      const { data: res } = await api.post('/api/admin/content-suggestions-claude', { patterns, entries })
+      if (!res.success) throw new Error(res.error)
+      persist('awe_content_suggestions', res.data, setSuggestions)
+    } catch (err) {
+      setSuggestErr(err.response?.data?.error || err.message)
+    } finally { setSuggesting(false) }
+  }
+
+  const handleGenerate = (s) => {
+    localStorage.setItem('awe_content_prefill', JSON.stringify(s))
+    navigate('/admin/content-engine')
+  }
+
+  return (
+    <div className="space-y-10">
+
+      {/* ── Section 1: Performance Tracker ── */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Content Performance Tracker</h2>
+            <p className="text-gray-500 text-xs mt-0.5">Log what you publish and rate how well it performed</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex gap-1">
+              {['date', 'rating', 'type'].map(s => (
+                <button key={s} onClick={() => setSortBy(s)}
+                  className={`px-2.5 py-1 text-xs rounded-lg capitalize transition-colors ${sortBy === s ? 'bg-orange-500 text-white' : 'bg-gray-700 text-gray-400 hover:text-white'}`}>
+                  {s}
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setShowForm(v => !v)}
+              className="px-3 py-1.5 bg-orange-500 hover:bg-orange-400 text-white text-sm font-semibold rounded-lg transition-colors">
+              + Add Entry
+            </button>
+          </div>
+        </div>
+
+        {showForm && (
+          <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 mb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              <div className="lg:col-span-2">
+                <label className="block text-[11px] text-gray-400 mb-1">Title *</label>
+                <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                  placeholder="Content title…" onKeyDown={e => e.key === 'Enter' && addEntry()}
+                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-2.5 py-1.5 text-sm text-white placeholder-gray-500 focus:border-orange-500 outline-none" />
+              </div>
+              <div>
+                <label className="block text-[11px] text-gray-400 mb-1">Type</label>
+                <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-2.5 py-1.5 text-sm text-white focus:border-orange-500 outline-none">
+                  {CONTENT_TYPES.map(t => <option key={t}>{t}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[11px] text-gray-400 mb-1">Published Date</label>
+                <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-2.5 py-1.5 text-sm text-white focus:border-orange-500 outline-none" />
+              </div>
+              <div>
+                <label className="block text-[11px] text-gray-400 mb-1">Views / Traffic</label>
+                <input type="number" min="0" value={form.views} onChange={e => setForm(f => ({ ...f, views: e.target.value }))}
+                  placeholder="0"
+                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-2.5 py-1.5 text-sm text-white placeholder-gray-500 focus:border-orange-500 outline-none" />
+              </div>
+              <div>
+                <label className="block text-[11px] text-gray-400 mb-1">Engagement</label>
+                <input type="number" min="0" value={form.engagement} onChange={e => setForm(f => ({ ...f, engagement: e.target.value }))}
+                  placeholder="0"
+                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-2.5 py-1.5 text-sm text-white placeholder-gray-500 focus:border-orange-500 outline-none" />
+              </div>
+            </div>
+            <div className="mt-3 flex items-center gap-4 flex-wrap">
+              <div>
+                <p className="text-[11px] text-gray-400 mb-1">Rating</p>
+                <StarRating value={form.rating} onChange={v => setForm(f => ({ ...f, rating: v }))} size="text-xl" />
+              </div>
+              <div className="ml-auto flex gap-2">
+                <button onClick={() => setShowForm(false)}
+                  className="px-4 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm rounded-lg transition-colors">
+                  Cancel
+                </button>
+                <button onClick={addEntry} disabled={!form.title.trim()}
+                  className="px-4 py-1.5 bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors">
+                  Add Entry
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {sorted.length === 0 ? (
+          <div className="bg-gray-800/40 border border-dashed border-gray-700 rounded-xl p-8 text-center">
+            <p className="text-2xl mb-2">📝</p>
+            <p className="text-gray-500 text-sm">No content logged yet. Click "+ Add Entry" to start tracking.</p>
+          </div>
+        ) : (
+          <div className="rounded-xl overflow-hidden border border-gray-700">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-700/60 text-gray-400 text-[11px] uppercase tracking-wider">
+                  <th className="text-left px-4 py-2.5">Title</th>
+                  <th className="text-left px-3 py-2.5">Type</th>
+                  <th className="text-left px-3 py-2.5 whitespace-nowrap">Date</th>
+                  <th className="text-right px-3 py-2.5">Views</th>
+                  <th className="text-right px-3 py-2.5">Engagement</th>
+                  <th className="text-left px-3 py-2.5">Rating</th>
+                  <th className="px-3 py-2.5 w-6" />
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map((entry, i) => {
+                  const isTop = entry.rating >= 4
+                  return (
+                    <tr key={entry.id}
+                      className={`border-t border-gray-700 transition-colors group
+                        ${i % 2 === 0 ? 'bg-gray-800' : 'bg-gray-900/40'}
+                        ${isTop ? 'border-l-2 border-l-yellow-500' : ''}`}>
+                      <td className="px-4 py-2.5 max-w-[200px]">
+                        <span className="text-white font-medium truncate block">{entry.title}</span>
+                        {isTop && <span className="text-[10px] text-yellow-400 font-bold">★ TOP PERFORMER</span>}
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <span className={`text-xs font-semibold ${TYPE_COLORS[entry.type] || 'text-gray-400'}`}>{entry.type}</span>
+                      </td>
+                      <td className="px-3 py-2.5 text-gray-400 text-xs whitespace-nowrap">{entry.date}</td>
+                      <td className="px-3 py-2.5 text-right text-gray-300">{entry.views.toLocaleString()}</td>
+                      <td className="px-3 py-2.5 text-right text-gray-300">{entry.engagement.toLocaleString()}</td>
+                      <td className="px-3 py-2.5">
+                        <StarRating value={entry.rating} onChange={v => updateRating(entry.id, v)} />
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <button onClick={() => deleteEntry(entry.id)}
+                          className="text-gray-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 text-xs">
+                          ✕
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* ── Section 2: Pattern Analyzer ── */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Pattern Analyzer</h2>
+            <p className="text-gray-500 text-xs mt-0.5">Discover what makes your content succeed</p>
+          </div>
+          <button onClick={handleAnalyze} disabled={analyzing || entries.length === 0}
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors flex items-center gap-2">
+            {analyzing
+              ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Analyzing…</>
+              : '🔍 Analyze Patterns'}
+          </button>
+        </div>
+
+        {analyzeErr && (
+          <div className="bg-red-900/30 border border-red-700 rounded-xl p-3 text-red-300 text-sm mb-4">{analyzeErr}</div>
+        )}
+
+        {patterns ? (
+          <div className="bg-gradient-to-br from-gray-800 via-gray-800 to-purple-900/20 rounded-xl border border-purple-500/30 p-5">
+            <div className="flex items-center gap-3 mb-5">
+              <span className="text-3xl">🧬</span>
+              <div>
+                <h3 className="text-base font-bold text-white">Your Content DNA</h3>
+                <p className="text-purple-400 text-xs">The formula that makes your content work</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+              {[
+                { label: 'Best Content Type', value: patterns.bestContentType, color: 'text-yellow-400' },
+                { label: 'Ideal Word Count',  value: patterns.bestWordCount,   color: 'text-blue-400'   },
+                { label: 'Best Posting Time', value: patterns.bestPostingTime, color: 'text-green-400'  },
+              ].map(({ label, value, color }) => (
+                <div key={label} className="bg-gray-700/50 rounded-lg p-3 border border-gray-600/50">
+                  <p className="text-[11px] text-gray-500 mb-1 uppercase tracking-wider">{label}</p>
+                  <p className={`text-sm font-bold ${color}`}>{value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-lg p-3 mb-4">
+              <p className="text-[11px] text-yellow-600 uppercase tracking-wider mb-1">⚡ Winning Formula</p>
+              <p className="text-sm text-white leading-relaxed">{patterns.winningFormula}</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+              <div>
+                <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-2">Best Topics</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {(patterns.bestTopics || []).map((t, i) => (
+                    <span key={i} className="px-2 py-0.5 bg-purple-900/50 border border-purple-700/50 text-purple-300 text-xs rounded-full">{t}</span>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-2">Improvement Areas</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {(patterns.improvementAreas || []).map((a, i) => (
+                    <span key={i} className="px-2 py-0.5 bg-orange-900/40 border border-orange-700/40 text-orange-300 text-xs rounded-full">{a}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-3 border-t border-gray-700/50">
+              <div>
+                <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Audience Insights</p>
+                <p className="text-sm text-gray-300 leading-relaxed">{patterns.audienceInsights}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Title Patterns That Work</p>
+                <p className="text-sm text-gray-300 leading-relaxed">{patterns.titlePatterns}</p>
+              </div>
+            </div>
+          </div>
+        ) : !analyzing && (
+          <div className="bg-gray-800/40 border border-dashed border-gray-700 rounded-xl p-8 text-center">
+            <p className="text-3xl mb-2">🔬</p>
+            <p className="text-gray-500 text-sm">
+              Add at least 3 content entries and rate them, then click "Analyze Patterns" to discover your content DNA.
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* ── Section 3: Smart Suggestions ── */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Smart Content Suggestions</h2>
+            <p className="text-gray-500 text-xs mt-0.5">AI ideas tailored to your winning patterns</p>
+          </div>
+          <button onClick={handleSuggest} disabled={suggesting}
+            className="px-4 py-2 bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors flex items-center gap-2">
+            {suggesting
+              ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Generating…</>
+              : suggestions.length ? '🔄 Refresh Ideas' : '💡 Get Suggestions'}
+          </button>
+        </div>
+
+        {suggestErr && (
+          <div className="bg-red-900/30 border border-red-700 rounded-xl p-3 text-red-300 text-sm mb-4">{suggestErr}</div>
+        )}
+
+        {suggestions.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {suggestions.map((s, i) => (
+              <div key={i}
+                className="group bg-gray-800 rounded-xl border border-gray-700 hover:border-orange-500 p-4 transition-all flex flex-col">
+                <div className="flex items-start justify-between mb-2">
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold text-white ${DIFF_COLORS[s.estimatedDifficulty] || 'bg-gray-600'}`}>
+                    {s.estimatedDifficulty}
+                  </span>
+                  <span className="text-[11px] text-gray-500">{s.suggestedLength}</span>
+                </div>
+                <h4 className="text-sm font-semibold text-white leading-snug mb-1.5">{s.title}</h4>
+                <p className="text-[11px] text-orange-400 font-medium mb-2">🔑 {s.keyword}</p>
+                <p className="text-xs text-gray-400 leading-relaxed flex-1 mb-3">{s.whyItWillWork}</p>
+                <button onClick={() => handleGenerate(s)}
+                  className="w-full py-1.5 bg-orange-500/10 hover:bg-orange-500 border border-orange-500/40 hover:border-orange-500 text-orange-400 hover:text-white text-xs font-semibold rounded-lg transition-all">
+                  Generate This →
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : !suggesting && (
+          <div className="bg-gray-800/40 border border-dashed border-gray-700 rounded-xl p-8 text-center">
+            <p className="text-3xl mb-2">💡</p>
+            <p className="text-gray-500 text-sm">
+              {patterns
+                ? 'Click "Get Suggestions" to generate 5 content ideas based on your patterns.'
+                : 'Run Pattern Analysis first for better, personalised suggestions.'}
+            </p>
+          </div>
+        )}
+      </section>
+    </div>
+  )
+}
+
+// ── Weekly Report Tab ─────────────────────────────────────────────────────────
+
+function StatCard({ label, value, color = 'text-white', sub }) {
+  return (
+    <div className="bg-gray-800 rounded-xl border border-gray-700 p-4">
+      <p className="text-gray-400 text-xs mb-1">{label}</p>
+      <p className={`text-2xl font-bold ${color}`}>{value ?? '—'}</p>
+      {sub && <p className="text-gray-500 text-xs mt-1">{sub}</p>}
+    </div>
+  )
+}
+
+function WeeklyReportTab() {
+  const [summaryData,    setSummaryData]    = useState(null)
+  const [generating,     setGenerating]     = useState(false)
+  const [currentReport,  setCurrentReport]  = useState(null)
+  const [history,        setHistory]        = useState([])
+  const [selectedIdx,    setSelectedIdx]    = useState(null)
+  const [genError,       setGenError]       = useState(null)
+  const [isDue,          setIsDue]          = useState(false)
+
+  const getWeekStart = () => {
+    const d   = new Date()
+    const day = d.getDay()
+    const mon = new Date(d)
+    mon.setDate(d.getDate() - day + (day === 0 ? -6 : 1))
+    return mon.toISOString().split('T')[0]
+  }
+
+  const readLS = (key, fallback = '[]') => {
+    try { return JSON.parse(localStorage.getItem(key) || fallback) } catch { return JSON.parse(fallback) }
+  }
+
+  const collectData = useCallback(() => {
+    const campaigns    = readLS('awe_campaign_history').length
+    const drafts       = readLS('awe_content_drafts').length
+    const socialBlasts = readLS('awe_social_blast_history').length
+    const contentCount = drafts + socialBlasts
+
+    const dirStatuses    = readLS('awe_dir_statuses', '{}')
+    const dirCount       = Object.values(dirStatuses).filter(s => s === 'submitted' || s === 'done').length
+
+    const schedule    = readLS('awe_posting_schedule')
+    const postedCount = schedule.filter(p => p.status === 'posted').length
+    const pendingCount = schedule.filter(p => p.status === 'pending').length
+
+    return {
+      campaignsCount:    campaigns,
+      contentCount,
+      directoriesCount:  dirCount,
+      scheduledPostsData: { completed: postedCount, pending: pendingCount },
+    }
+  }, [])
+
+  useEffect(() => {
+    setSummaryData(collectData())
+    const stored = readLS('awe_weekly_reports')
+    setHistory(stored)
+    const today = new Date()
+    if (today.getDay() === 1) {
+      const daysSinceLast = stored.length === 0
+        ? Infinity
+        : (today - new Date(stored[0].generatedAt)) / 86400000
+      if (daysSinceLast > 6) setIsDue(true)
+    }
+  }, [collectData])
+
+  const displayedReport = selectedIdx !== null ? history[selectedIdx]?.report : currentReport
+
+  const handleGenerate = async () => {
+    setGenerating(true)
+    setGenError(null)
+    try {
+      const data     = collectData()
+      setSummaryData(data)
+      const prevRecs = history[0]?.report?.nextWeekRecommendations || []
+      const { data: res } = await api.post('/api/admin/weekly-report-claude', {
+        ...data,
+        previousRecommendations: prevRecs,
+        weekStartDate:           getWeekStart(),
+      })
+      if (!res.success) throw new Error(res.error)
+
+      const entry = {
+        generatedAt: new Date().toISOString(),
+        weekOf:      getWeekStart(),
+        summaryData: data,
+        report:      res.data,
+      }
+      const newHist = [entry, ...history].slice(0, 12)
+      localStorage.setItem('awe_weekly_reports', JSON.stringify(newHist))
+      setHistory(newHist)
+      setCurrentReport(res.data)
+      setSelectedIdx(null)
+      setIsDue(false)
+    } catch (err) {
+      setGenError(err.response?.data?.error || err.message)
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const handleExportPDF = () => {
+    document.body.classList.add('awe-print-report')
+    window.print()
+    setTimeout(() => document.body.classList.remove('awe-print-report'), 500)
+  }
+
+  const PriorityBadge = ({ p }) => {
+    const cls = { High: 'bg-red-600', Med: 'bg-yellow-600', Low: 'bg-blue-600' }[p] || 'bg-gray-600'
+    return <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold text-white shrink-0 ${cls}`}>{p}</span>
+  }
+
+  return (
+    <div>
+      <style>{`
+        @media print {
+          body.awe-print-report > * { display: none !important; }
+          body.awe-print-report .awe-report-printable {
+            display: block !important;
+            position: fixed; top: 0; left: 0; width: 100%;
+            padding: 24px; background: #fff;
+          }
+          body.awe-print-report .awe-report-printable * { color: #111 !important; }
+          body.awe-print-report .awe-report-printable .bg-gray-800 { background: #f5f5f5 !important; border: 1px solid #ddd !important; }
+        }
+      `}</style>
+
+      {isDue && (
+        <div className="mb-4 px-4 py-3 bg-orange-500/20 border border-orange-500 rounded-xl flex items-center justify-between">
+          <span className="text-orange-300 text-sm">📊 Weekly report due! Generate now →</span>
+          <button onClick={handleGenerate} disabled={generating}
+            className="px-3 py-1 bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition-colors">
+            {generating ? 'Generating…' : 'Generate'}
+          </button>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* ── Main panel ── */}
+        <div className="lg:col-span-2 space-y-4 awe-report-printable">
+          {summaryData && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <StatCard label="Campaigns Run"   value={summaryData.campaignsCount}                          color="text-orange-400" />
+              <StatCard label="Content Pieces"  value={summaryData.contentCount}                             color="text-purple-400" />
+              <StatCard label="Directories"     value={summaryData.directoriesCount}                         color="text-blue-400"   />
+              <StatCard label="Posts Completed" value={summaryData.scheduledPostsData?.completed}
+                        sub={`${summaryData.scheduledPostsData?.pending ?? 0} pending`}                      color="text-green-400"  />
+            </div>
+          )}
+
+          <div className="flex items-center gap-3">
+            <button onClick={handleGenerate} disabled={generating}
+              className="px-5 py-2.5 bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors flex items-center gap-2">
+              {generating
+                ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Generating…</>
+                : '✨ Generate AI Analysis'}
+            </button>
+            {displayedReport && (
+              <button onClick={handleExportPDF}
+                className="px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-xl transition-colors">
+                Export PDF
+              </button>
+            )}
+          </div>
+
+          {genError && (
+            <div className="bg-red-900/30 border border-red-700 rounded-xl p-3 text-red-300 text-sm">{genError}</div>
+          )}
+
+          {displayedReport ? (
+            <div className="space-y-4">
+              <div className="bg-gray-800 rounded-xl border-l-4 border-purple-500 p-5">
+                <h3 className="text-xs font-bold text-purple-400 uppercase tracking-wider mb-2">Week Summary</h3>
+                <p className="text-gray-200 text-sm leading-relaxed">{displayedReport.weekSummary}</p>
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="bg-gray-700/50 rounded-lg p-3">
+                    <p className="text-[11px] text-gray-500 mb-1">Focus Tool Next Week</p>
+                    <p className="text-sm font-semibold text-orange-400">{displayedReport.focusToolForNextWeek}</p>
+                  </div>
+                  <div className="bg-gray-700/50 rounded-lg p-3">
+                    <p className="text-[11px] text-gray-500 mb-1">Estimated Traffic Impact</p>
+                    <p className="text-sm font-semibold text-green-400">{displayedReport.estimatedTrafficImpact}</p>
+                  </div>
+                </div>
+              </div>
+
+              {displayedReport.topPerformingChannels?.length > 0 && (
+                <div className="bg-gray-800 rounded-xl border-l-4 border-green-500 p-5">
+                  <h3 className="text-xs font-bold text-green-400 uppercase tracking-wider mb-3">Top Performing Channels</h3>
+                  <div className="space-y-2">
+                    {displayedReport.topPerformingChannels.map((c, i) => (
+                      <div key={i} className="flex items-start gap-2">
+                        <span className="text-green-500 mt-0.5 shrink-0">▸</span>
+                        <p className="text-sm text-gray-200">
+                          <span className="font-medium text-white">{c.channel}</span>
+                          <span className="text-gray-400"> — {c.reason}</span>
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-gray-800 rounded-xl border-l-4 border-green-500 p-5">
+                  <h3 className="text-xs font-bold text-green-400 uppercase tracking-wider mb-3">What Worked ✓</h3>
+                  <ul className="space-y-2">
+                    {(displayedReport.whatWorked || []).map((item, i) => (
+                      <li key={i} className="text-sm text-gray-300 flex gap-2">
+                        <span className="text-green-500 shrink-0 mt-0.5">•</span>{item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="bg-gray-800 rounded-xl border-l-4 border-red-500 p-5">
+                  <h3 className="text-xs font-bold text-red-400 uppercase tracking-wider mb-3">What Didn't Work ✗</h3>
+                  <ul className="space-y-2">
+                    {(displayedReport.whatDidntWork || []).map((item, i) => (
+                      <li key={i} className="text-sm text-gray-300 flex gap-2">
+                        <span className="text-red-500 shrink-0 mt-0.5">•</span>{item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="bg-gray-800 rounded-xl border-l-4 border-orange-500 p-5">
+                <h3 className="text-xs font-bold text-orange-400 uppercase tracking-wider mb-3">Next Week Recommendations</h3>
+                <div className="space-y-3">
+                  {(displayedReport.nextWeekRecommendations || []).map((rec, i) => (
+                    <div key={i} className="flex items-start gap-3 bg-gray-700/40 rounded-lg p-3 border border-gray-700">
+                      <PriorityBadge p={rec.priority} />
+                      <div className="flex-1">
+                        <p className="text-sm text-white font-medium">{rec.action}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{rec.expectedImpact}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : !generating && (
+            <div className="bg-gray-800/40 rounded-xl border border-dashed border-gray-700 p-10 text-center">
+              <p className="text-3xl mb-3">📊</p>
+              <p className="text-gray-500 text-sm">
+                No report generated yet.<br />
+                Click "Generate AI Analysis" to create your first weekly report.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* ── History panel ── */}
+        <div>
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Report History</h3>
+          {history.length === 0 ? (
+            <p className="text-gray-600 text-xs py-4">No past reports yet. Generate your first one above.</p>
+          ) : (
+            <div className="space-y-2">
+              {history.map((entry, i) => (
+                <button key={i}
+                  onClick={() => { setSelectedIdx(i); setCurrentReport(null) }}
+                  className={`w-full text-left px-3 py-3 rounded-xl border transition-colors ${
+                    selectedIdx === i
+                      ? 'bg-orange-500/20 border-orange-500'
+                      : 'bg-gray-800 border-gray-700 hover:border-gray-500'
+                  }`}>
+                  <p className={`text-sm font-semibold ${selectedIdx === i ? 'text-orange-300' : 'text-gray-200'}`}>
+                    Week of {entry.weekOf}
+                  </p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    {new Date(entry.generatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </p>
+                  <div className="flex flex-wrap gap-2 mt-1.5">
+                    <span className="text-[10px] text-orange-400">{entry.summaryData?.campaignsCount ?? 0} campaigns</span>
+                    <span className="text-[10px] text-purple-400">{entry.summaryData?.contentCount ?? 0} content</span>
+                    <span className="text-[10px] text-blue-400">{entry.summaryData?.directoriesCount ?? 0} dirs</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Phase 4 Intelligence Dashboard ───────────────────────────────────────────
+
+const TABS = [
+  { id: 'weekly-report',        label: 'Weekly Report'        },
+  { id: 'content-intelligence', label: 'Content Intelligence' },
+  { id: 'traffic-alerts',       label: 'Traffic Alerts'       },
+]
+
+export default function Phase4Dashboard() {
+  const [tab, setTab] = useState('weekly-report')
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-white">Intelligence Dashboard</h1>
+        <p className="text-gray-400 text-sm mt-1">Phase 4 — Growth Intelligence & Weekly Insights</p>
+      </div>
+
+      <div className="flex gap-2 mb-6 border-b border-gray-700 pb-2 overflow-x-auto">
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className={`px-4 py-2 text-sm rounded-t whitespace-nowrap transition-colors ${
+              tab === t.id ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-gray-200'
+            }`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'weekly-report'        && <WeeklyReportTab />}
+      {tab === 'content-intelligence' && <ContentIntelligenceTab />}
+      {tab === 'traffic-alerts'       && <TrafficAlertsTab />}
+    </div>
+  )
+}
