@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import api from '../../../services/api.service'
 
 // ── All 49 AWE-OS tools ───────────────────────────────────────────────────────
@@ -198,6 +198,8 @@ export default function BlogWriterPanel() {
   const [draftsOpen, setDraftsOpen] = useState(false)
   const [saveMsg, setSaveMsg]     = useState('')
 
+  const keywordInputRef = useRef(null)
+
   const leftTool  = AWE_TOOLS.find(t => t.slug === leftToolSlug)  || AWE_TOOLS[0]
   const rightTool = AWE_TOOLS.find(t => t.slug === rightToolSlug) || AWE_TOOLS[0]
 
@@ -226,6 +228,9 @@ export default function BlogWriterPanel() {
   function pickKeyword(kw) {
     setKeyword(kw.keyword)
     setRightToolSlug(leftToolSlug)
+    requestAnimationFrame(() =>
+      keywordInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    )
   }
 
   // ── Blog writer ───────────────────────────────────────────────────────────
@@ -398,6 +403,7 @@ export default function BlogWriterPanel() {
 
           <label className="block text-xs font-medium text-gray-400 mb-1.5">Target Keyword</label>
           <input
+            ref={keywordInputRef}
             type="text"
             value={keyword}
             onChange={e => setKeyword(e.target.value)}
