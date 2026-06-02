@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
 import {
   getMultiAgentStatus,
   queryIntelligence,
@@ -26,6 +27,514 @@ function StatCard({ label, value, color = 'text-white', sub }) {
       <p className="text-gray-400 text-xs mb-1">{label}</p>
       <p className={`text-2xl font-bold ${color}`}>{value ?? '—'}</p>
       {sub && <p className="text-gray-500 text-xs mt-1">{sub}</p>}
+    </div>
+  )
+}
+
+// ── Traffic Alerts Tab ────────────────────────────────────────────────────────
+
+const ALERT_RULES = [
+  { id: 'campaign',  label: 'No campaign run in 7 days',          description: 'Traffic campaigns keep your audience engaged'    },
+  { id: 'blog',      label: 'No blog published in 14 days',       description: 'Regular blogging drives organic search traffic'  },
+  { id: 'directory', label: 'Less than 3 directories submitted',   description: 'Directory submissions build backlinks over time' },
+  { id: 'traffic',   label: 'Traffic dropped 20%+',               description: 'Significant drop needs immediate attention'      },
+  { id: 'quora',     label: 'No Quora answers in 7 days',         description: 'Quora drives high-intent referral traffic'       },
+]
+
+const GOAL_META = {
+  visitors:  { label: 'Monthly Visitors', color: 'text-blue-400'   },
+  blogPosts: { label: 'Blog Posts',       color: 'text-purple-400' },
+  campaigns: { label: 'Campaigns',        color: 'text-orange-400' },
+  backlinks: { label: 'Backlinks / Dirs', color: 'text-green-400'  },
+}
+
+function GoalEditor({ goals, onSave }) {
+  const [draft, setDraft] = useState({ ...goals })
+  const FIELDS = [
+    { key: 'visitors',  label: 'Target Visitors' },
+    { key: 'blogPosts', label: 'Blog Posts'       },
+    { key: 'campaigns', label: 'Campaigns'        },
+    { key: 'backlinks', label: 'Backlinks / Dirs' },
+  ]
+  return (
+    <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 mb-4">
+      <p className="text-xs text-gray-400 mb-3 font-medium">Set monthly targets</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {FIELDS.map(({ key, label }) => (
+          <div key={key}>
+            <label className="block text-[11px] text-gray-500 mb-1">{label}</label>
+            <input type="number" min="0" value={draft[key] ?? ''}
+              onChange={e => setDraft(d => ({ ...d, [key]: parseInt(e.target.value) || 0 }))}
+              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-2.5 py-1.5 text-sm text-white focus:border-orange-500 outline-none" />
+          </div>
+        ))}
+      </div>
+      <button onClick={() => onSave(draft)}
+        className="mt-3 px-4 py-1.5 bg-orange-500 hover:bg-orange-400 text-white text-sm font-semibold rounded-lg transition-colors">
+        Save Goals
+      </button>
+    </div>
+  )
+}
+
+function TrafficAlertsTab() {
+  const navigate = useNavigate()
+  const readLS   = (key, fb) => { try { return JSON.parse(localStorage.getItem(key) || fb) } catch { return JSON.parse(fb) } }
+
+  const DEFAULT_RULES = { campaign: true, blog: true, directory: true, traffic: true, quora: true }
+  const DEFAULT_GOALS = { visitors: 5000, blogPosts: 4, campaigns: 8, backlinks: 10 }
+
+  // Section 1 — Traffic
+  const [trafficHistory, setTrafficHistory] = useState(() => readLS('awe_traffic_history', '[]'))
+  const [weekInput,      setWeekInput]      = useState('')
+  const [weekDate,       setWeekDate]       = useState(new Date().toISOString().split('T')[0])
+
+  // Section 2 — Alerts
+  const [rulesEnabled, setRulesEnabled] = useState(() => readLS('awe_alert_rules_enabled', JSON.stringify(DEFAULT_RULES)))
+  const [alertResults, setAlertResults] = useState(() => readLS('awe_alert_results', '[]'))
+  const [checking,     setChecking]     = useState(false)
+
+  // Section 3 — Recovery
+  const [recovering,   setRecovering]  = useState(false)
+  const [recoveryPlan, setRecoveryPlan] = useState(null)
+  const [recoveryErr,  setRecoveryErr]  = useState(null)
+  const [checked,      setChecked]      = useState({})
+
+  // Section 4 — Goals
+  const [goals,      setGoals]      = useState(() => readLS('awe_monthly_goals', JSON.stringify(DEFAULT_GOALS)))
+  const [editGoals,  setEditGoals]  = useState(false)
+  const [motivating, setMotivating] = useState(false)
+  const [motivation, setMotivation] = useState(null)
+
+  const recent        = trafficHistory[0]
+  const prev          = trafficHistory[1]
+  const trafficChange = recent && prev && prev.visitors > 0
+    ? ((recent.visitors - prev.visitors) / prev.visitors) * 100
+    : null
+
+  const logTraffic = () => {
+    const n = parseInt(weekInput)
+    if (!n || n <= 0) return
+    const entry   = { date: weekDate, visitors: n, loggedAt: new Date().toISOString() }
+    const updated = [entry, ...trafficHistory.filter(t => t.date !== weekDate)]
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 16)
+    setTrafficHistory(updated)
+    localStorage.setItem('awe_traffic_history', JSON.stringify(updated))
+    setWeekInput('')
+  }
+
+  const runChecks = () => {
+    setChecking(true)
+    const daysSince = (iso) => iso ? (Date.now() - new Date(iso).getTime()) / 86400000 : Infinity
+
+    const campaigns = readLS('awe_campaign_history', '[]')
+    const drafts    = readLS('awe_content_drafts',   '[]')
+    const dirStats  = readLS('awe_dir_statuses',     '{}')
+    const blasts    = readLS('awe_social_blast_history', '[]')
+
+    const dirCount       = Object.values(dirStats).filter(s => ['submitted', 'done'].includes(s)).length
+    const lastCampaign   = campaigns[0]?.timestamp
+    const lastBlog       = drafts[0]?.savedAt
+    const recentQuora    = blasts.find(b => b.quoraAnswer && daysSince(b.savedAt) <= 7)
+    const trafficDropped = trafficHistory.length >= 2 && trafficHistory[1].visitors > 0
+      ? (trafficHistory[0].visitors - trafficHistory[1].visitors) / trafficHistory[1].visitors < -0.20
+      : false
+
+    const now = new Date().toISOString()
+    const results = [
+      { id: 'campaign',  triggered: daysSince(lastCampaign) > 7, lastChecked: now, detail: lastCampaign ? `Last: ${new Date(lastCampaign).toLocaleDateString('en-IN')}` : 'Never run'              },
+      { id: 'blog',      triggered: daysSince(lastBlog) > 14,    lastChecked: now, detail: lastBlog     ? `Last: ${new Date(lastBlog).toLocaleDateString('en-IN')}`     : 'No drafts found'         },
+      { id: 'directory', triggered: dirCount < 3,                lastChecked: now, detail: `${dirCount} submissions logged`                                                                          },
+      { id: 'traffic',   triggered: trafficDropped,              lastChecked: now, detail: trafficHistory.length < 2 ? 'Need 2+ weeks of data' : trafficChange !== null ? `${trafficChange.toFixed(1)}% change` : '—' },
+      { id: 'quora',     triggered: !recentQuora,                lastChecked: now, detail: recentQuora  ? 'Recent answer found'                                          : 'No recent Quora answers' },
+    ]
+
+    setAlertResults(results)
+    localStorage.setItem('awe_alert_results', JSON.stringify(results))
+    setRecoveryPlan(null)
+    setChecking(false)
+  }
+
+  const triggeredAlerts = alertResults.filter(r => rulesEnabled[r.id] && r.triggered)
+
+  const handleRecovery = async () => {
+    setRecovering(true); setRecoveryErr(null)
+    try {
+      const { data: res } = await api.post('/api/admin/recovery-plan-claude', {
+        triggeredAlerts: triggeredAlerts.map(a => ({ ...a, name: ALERT_RULES.find(r => r.id === a.id)?.label })),
+        trafficHistory:  trafficHistory.slice(0, 4),
+        trafficChange,
+      })
+      if (!res.success) throw new Error(res.error)
+      setRecoveryPlan(res.data)
+      setChecked({})
+    } catch (err) {
+      setRecoveryErr(err.response?.data?.error || err.message)
+    } finally { setRecovering(false) }
+  }
+
+  const toggleRule = (id) => {
+    const next = { ...rulesEnabled, [id]: !rulesEnabled[id] }
+    setRulesEnabled(next)
+    localStorage.setItem('awe_alert_rules_enabled', JSON.stringify(next))
+  }
+
+  // Goals — computed each render (fast localStorage reads)
+  const currentMonth = new Date().toISOString().slice(0, 7)
+  const actuals = {
+    visitors:  trafficHistory.filter(t => t.date?.startsWith(currentMonth)).reduce((s, t) => s + (t.visitors || 0), 0),
+    blogPosts: readLS('awe_content_drafts',    '[]').filter(d => d.savedAt?.startsWith(currentMonth)).length,
+    campaigns: readLS('awe_campaign_history',  '[]').filter(c => c.timestamp?.startsWith(currentMonth)).length,
+    backlinks: Object.values(readLS('awe_dir_statuses', '{}')).filter(s => ['submitted', 'done'].includes(s)).length,
+  }
+  const pct      = Object.fromEntries(Object.entries(actuals).map(([k, v]) => [k, goals[k] > 0 ? Math.min(100, Math.round((v / goals[k]) * 100)) : 0]))
+  const achieved = Object.entries(pct).filter(([, v]) => v >= 100).map(([k]) => k)
+
+  const handleMotivation = async () => {
+    setMotivating(true)
+    try {
+      const { data: res } = await api.post('/api/admin/goal-analysis-claude', {
+        goals, actuals, pct,
+        achieved: achieved.map(k => GOAL_META[k]?.label),
+      })
+      if (!res.success) throw new Error(res.error)
+      setMotivation(res.data.message)
+    } catch {
+      setMotivation('Incredible milestone! AWE-OS is growing — keep this momentum and the results will compound week over week!')
+    } finally { setMotivating(false) }
+  }
+
+  const saveGoals = (g) => {
+    setGoals(g); localStorage.setItem('awe_monthly_goals', JSON.stringify(g))
+    setEditGoals(false); setMotivation(null)
+  }
+
+  const chartData = [...trafficHistory]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-8)
+    .map(e => ({ label: e.date.slice(5), visitors: e.visitors }))
+
+  return (
+    <div className="space-y-10">
+
+      {/* ── Section 1: Traffic Health ── */}
+      <section>
+        <h2 className="text-lg font-semibold text-white mb-1">Traffic Health Dashboard</h2>
+        <p className="text-gray-500 text-xs mb-4">Track weekly visitors and detect trends automatically</p>
+
+        {trafficChange !== null && trafficChange <= -20 && (
+          <div className="mb-4 px-4 py-3 bg-red-500/20 border border-red-500 rounded-xl flex items-center gap-3">
+            <span className="text-xl">🔴</span>
+            <span className="text-red-300 text-sm font-medium">
+              Traffic dropped {Math.abs(trafficChange).toFixed(1)}% this week — action needed!
+            </span>
+          </div>
+        )}
+        {trafficChange !== null && trafficChange > 0 && (
+          <div className="mb-4 px-4 py-3 bg-green-500/20 border border-green-500 rounded-xl flex items-center gap-3">
+            <span className="text-xl">📈</span>
+            <span className="text-green-300 text-sm font-medium">
+              Traffic up {trafficChange.toFixed(1)}% this week! Keep it going.
+            </span>
+          </div>
+        )}
+
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 mb-4">
+          <p className="text-xs text-gray-500 mb-3 font-medium">Log this week's visitors</p>
+          <div className="flex gap-3 flex-wrap items-end">
+            <div>
+              <label className="block text-[11px] text-gray-500 mb-1">Week of</label>
+              <input type="date" value={weekDate} onChange={e => setWeekDate(e.target.value)}
+                className="bg-gray-700 border border-gray-600 rounded-lg px-2.5 py-1.5 text-sm text-white focus:border-orange-500 outline-none" />
+            </div>
+            <div className="flex-1 min-w-[140px]">
+              <label className="block text-[11px] text-gray-500 mb-1">Total visitors</label>
+              <input type="number" min="0" value={weekInput}
+                onChange={e => setWeekInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && logTraffic()}
+                placeholder="e.g. 3200"
+                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-2.5 py-1.5 text-sm text-white placeholder-gray-500 focus:border-orange-500 outline-none" />
+            </div>
+            <button onClick={logTraffic} disabled={!weekInput.trim()}
+              className="px-4 py-1.5 bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap">
+              Log This Week
+            </button>
+          </div>
+        </div>
+
+        {chartData.length > 0 ? (
+          <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-medium text-gray-300">Visitor Trend — last {chartData.length} weeks</p>
+              {recent && (
+                <p className="text-xs text-gray-500">
+                  Latest: <span className="text-orange-400 font-semibold">{recent.visitors.toLocaleString()}</span> visitors
+                </p>
+              )}
+            </div>
+            <ResponsiveContainer width="100%" height={180}>
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="trafficGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#f97316" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#f97316" stopOpacity={0}    />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="label" stroke="#6b7280" tick={{ fontSize: 11, fill: '#9ca3af' }} />
+                <YAxis stroke="#6b7280" tick={{ fontSize: 11, fill: '#9ca3af' }} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 8, fontSize: 12 }}
+                  labelStyle={{ color: '#f9fafb' }}
+                  itemStyle={{ color: '#f97316' }}
+                />
+                <Area type="monotone" dataKey="visitors" name="Visitors" stroke="#f97316" strokeWidth={2}
+                  fill="url(#trafficGrad)"
+                  dot={{ fill: '#f97316', strokeWidth: 0, r: 4 }}
+                  activeDot={{ r: 6, fill: '#fb923c' }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="bg-gray-800/40 border border-dashed border-gray-700 rounded-xl p-8 text-center">
+            <p className="text-2xl mb-2">📊</p>
+            <p className="text-gray-500 text-sm">Log at least one week of traffic to see the trend chart.</p>
+          </div>
+        )}
+      </section>
+
+      {/* ── Section 2: Alert Rules ── */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Alert Rules</h2>
+            <p className="text-gray-500 text-xs mt-0.5">Automatically checked against your activity data</p>
+          </div>
+          <button onClick={runChecks} disabled={checking}
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors flex items-center gap-2">
+            {checking
+              ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Checking…</>
+              : '⚡ Run Check Now'}
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {ALERT_RULES.map(rule => {
+            const result    = alertResults.find(r => r.id === rule.id)
+            const enabled   = rulesEnabled[rule.id] !== false
+            const triggered = enabled && result?.triggered
+            return (
+              <div key={rule.id}
+                className={`bg-gray-800 rounded-xl border p-4 transition-all ${
+                  !enabled  ? 'border-gray-700 opacity-60' :
+                  triggered ? 'border-red-500/60'          :
+                  result    ? 'border-green-500/40'        : 'border-gray-700'
+                }`}>
+                <div className="flex items-start justify-between mb-2 gap-2">
+                  <p className="text-sm font-medium text-white leading-snug">{rule.label}</p>
+                  <button onClick={() => toggleRule(rule.id)}
+                    className={`shrink-0 w-9 h-5 rounded-full transition-colors relative ${enabled ? 'bg-orange-500' : 'bg-gray-600'}`}>
+                    <span className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow transition-transform duration-200 ${enabled ? 'translate-x-5' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+                <p className="text-[11px] text-gray-500 mb-3 leading-relaxed">{rule.description}</p>
+                {result ? (
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                      !enabled  ? 'bg-gray-700 text-gray-500'                                            :
+                      triggered ? 'bg-red-600/30 text-red-400 border border-red-600/50'                 :
+                                  'bg-green-600/20 text-green-400 border border-green-600/40'
+                    }`}>
+                      {!enabled ? 'Inactive' : triggered ? '⚠ Triggered' : '✓ OK'}
+                    </span>
+                    <span className="text-[10px] text-gray-600 truncate">{result.detail}</span>
+                  </div>
+                ) : (
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${enabled ? 'bg-indigo-900/40 text-indigo-400 border border-indigo-700/40' : 'bg-gray-700 text-gray-500'}`}>
+                    {enabled ? 'Active — not yet checked' : 'Inactive'}
+                  </span>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
+      {/* ── Section 3: Recovery Plan ── */}
+      {triggeredAlerts.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-white">Recovery Action Generator</h2>
+              <p className="text-gray-500 text-xs mt-0.5">
+                {triggeredAlerts.length} alert{triggeredAlerts.length > 1 ? 's' : ''} triggered — get a targeted fix plan
+              </p>
+            </div>
+            <button onClick={handleRecovery} disabled={recovering}
+              className="px-4 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors flex items-center gap-2">
+              {recovering
+                ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Planning…</>
+                : '🚨 Get Recovery Plan'}
+            </button>
+          </div>
+
+          {!recoveryPlan && !recovering && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {triggeredAlerts.map(a => (
+                <span key={a.id} className="text-xs px-2.5 py-1 bg-red-900/30 border border-red-700/50 text-red-300 rounded-full">
+                  ⚠ {ALERT_RULES.find(r => r.id === a.id)?.label}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {recoveryErr && (
+            <div className="bg-red-900/30 border border-red-700 rounded-xl p-3 text-red-300 text-sm mb-4">{recoveryErr}</div>
+          )}
+
+          {recoveryPlan && (
+            <div className="bg-gray-800 rounded-xl border border-red-500/30 p-5 space-y-5">
+              <div className="flex items-center gap-3">
+                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold text-white ${
+                  recoveryPlan.urgency === 'Critical' ? 'bg-red-600' :
+                  recoveryPlan.urgency === 'High'     ? 'bg-orange-600' : 'bg-yellow-600'
+                }`}>{recoveryPlan.urgency}</span>
+                <p className="text-sm font-semibold text-white">{recoveryPlan.alertType}</p>
+              </div>
+
+              <div className="bg-gray-700/40 rounded-lg p-3">
+                <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Root Cause Analysis</p>
+                <p className="text-sm text-gray-300 leading-relaxed">{recoveryPlan.rootCauseAnalysis}</p>
+              </div>
+
+              <div>
+                <p className="text-xs font-bold text-red-400 uppercase tracking-wider mb-3">⚡ Immediate Actions</p>
+                <div className="space-y-2">
+                  {(recoveryPlan.immediateActions || []).map((a, i) => {
+                    const k = `imm-${i}`
+                    return (
+                      <div key={i} onClick={() => setChecked(c => ({ ...c, [k]: !c[k] }))}
+                        className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                          checked[k] ? 'bg-green-900/20 border-green-700/40' : 'bg-gray-700/30 border-gray-600/50 hover:border-gray-500'
+                        }`}>
+                        <div className={`w-4 h-4 mt-0.5 rounded border-2 shrink-0 flex items-center justify-center ${checked[k] ? 'bg-green-600 border-green-600' : 'border-gray-500'}`}>
+                          {checked[k] && <span className="text-white text-[9px] font-bold">✓</span>}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm ${checked[k] ? 'line-through text-gray-500' : 'text-white'}`}>{a.action}</p>
+                          <div className="flex gap-3 mt-1 flex-wrap">
+                            <span className="text-[10px] text-gray-500">⏱ {a.timeRequired}</span>
+                            <span className="text-[10px] text-green-400">→ {a.expectedImpact}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs font-bold text-orange-400 uppercase tracking-wider mb-3">📅 7-Day Recovery Plan</p>
+                <div className="space-y-2">
+                  {(recoveryPlan.weekPlan || []).map((item, i) => {
+                    const k = `week-${i}`
+                    return (
+                      <div key={i} onClick={() => setChecked(c => ({ ...c, [k]: !c[k] }))}
+                        className={`flex items-start gap-3 p-2.5 rounded-lg border cursor-pointer transition-all ${
+                          checked[k] ? 'bg-green-900/20 border-green-700/40' : 'bg-gray-700/20 border-gray-700/50 hover:border-gray-600'
+                        }`}>
+                        <div className={`w-4 h-4 mt-0.5 rounded border-2 shrink-0 flex items-center justify-center ${checked[k] ? 'bg-green-600 border-green-600' : 'border-gray-600'}`}>
+                          {checked[k] && <span className="text-white text-[9px] font-bold">✓</span>}
+                        </div>
+                        <p className={`text-sm ${checked[k] ? 'line-through text-gray-500' : 'text-gray-300'}`}>{item}</p>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <button onClick={() => {
+                localStorage.setItem('awe_pipeline_prefill', JSON.stringify({ source: 'recovery', alerts: triggeredAlerts }))
+                navigate('/admin/pipeline')
+              }}
+                className="px-5 py-2 bg-orange-500 hover:bg-orange-400 text-white text-sm font-semibold rounded-xl transition-colors">
+                🚀 Start Recovery Campaign →
+              </button>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ── Section 4: Goals Tracker ── */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Monthly Goals</h2>
+            <p className="text-gray-500 text-xs mt-0.5">
+              {new Date().toLocaleString('en-IN', { month: 'long', year: 'numeric' })}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {achieved.length > 0 && (
+              <button onClick={handleMotivation} disabled={motivating}
+                className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-500 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5">
+                {motivating
+                  ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  : '🏆'}
+                AI Message
+              </button>
+            )}
+            <button onClick={() => setEditGoals(v => !v)}
+              className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs font-semibold rounded-lg transition-colors">
+              {editGoals ? 'Cancel' : '⚙ Set Goals'}
+            </button>
+          </div>
+        </div>
+
+        {motivation && (
+          <div className="mb-4 bg-yellow-900/20 border border-yellow-600/40 rounded-xl p-4 flex gap-3">
+            <span className="text-2xl shrink-0">🏆</span>
+            <p className="text-yellow-200 text-sm leading-relaxed">{motivation}</p>
+          </div>
+        )}
+
+        {editGoals && <GoalEditor goals={goals} onSave={saveGoals} />}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {Object.entries(GOAL_META).map(([key, { label, color }]) => {
+            const p      = pct[key]
+            const actual = actuals[key]
+            const target = goals[key] || 0
+            const status = p >= 100 ? 'achieved' : p >= 70 ? 'on-track' : 'behind'
+            return (
+              <div key={key} className={`bg-gray-800 rounded-xl border p-4 transition-colors ${p >= 100 ? 'border-yellow-500/50' : 'border-gray-700'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`text-sm font-semibold ${color}`}>{label}</span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                    status === 'achieved'  ? 'bg-yellow-600/30 text-yellow-300 border border-yellow-600/50' :
+                    status === 'on-track'  ? 'bg-green-600/20  text-green-400  border border-green-600/40'  :
+                                            'bg-red-600/20   text-red-400   border border-red-600/40'
+                  }`}>
+                    {status === 'achieved' ? '🏆 Achieved' : status === 'on-track' ? '✓ On Track' : '⚠ Behind'}
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-2 mb-2">
+                  <span className="text-2xl font-bold text-white">{actual.toLocaleString()}</span>
+                  <span className="text-gray-500 text-sm">/ {target.toLocaleString()}</span>
+                  <span className={`ml-auto text-sm font-bold ${color}`}>{p}%</span>
+                </div>
+                <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-700 ${p >= 100 ? 'bg-yellow-500' : 'bg-orange-500'}`}
+                    style={{ width: `${Math.min(p, 100)}%` }}
+                  />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </section>
     </div>
   )
 }
@@ -781,7 +1290,7 @@ export default function IntelligenceDashboard() {
   const intel     = status?.intelligence
   const consensus = status?.consensus
 
-  const TABS = ['intelligence', 'decisions', 'contribute', 'coordinate', 'weekly-report', 'content-intelligence']
+  const TABS = ['intelligence', 'decisions', 'contribute', 'coordinate', 'weekly-report', 'content-intelligence', 'traffic-alerts']
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -951,6 +1460,7 @@ export default function IntelligenceDashboard() {
           {/* Weekly Report tab */}
           {tab === 'weekly-report'        && <WeeklyReportTab />}
           {tab === 'content-intelligence' && <ContentIntelligenceTab />}
+          {tab === 'traffic-alerts'       && <TrafficAlertsTab />}
 
           {/* Coordinate tab */}
           {tab === 'coordinate' && (
