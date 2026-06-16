@@ -180,6 +180,16 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
     itemListElement: breadcrumbItems,
   }
 
+  const CATEGORY_DATES = {
+    pdf:          { published: '2024-01-15', modified: '2026-03-01' },
+    calculators:  { published: '2024-05-01', modified: '2026-04-15' },
+    converters:   { published: '2024-08-01', modified: '2026-05-01' },
+    productivity: { published: '2025-01-10', modified: '2026-05-15' },
+    ai:           { published: '2025-03-01', modified: '2026-05-20' },
+    finance:      { published: '2025-06-01', modified: '2026-06-01' },
+  }
+  const catDates = CATEGORY_DATES[toolMeta?.category] ?? { published: '2024-01-01', modified: '2026-06-01' }
+
   const articleSchema = {
     '@context':        'https://schema.org',
     '@type':           'Article',
@@ -194,8 +204,8 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
       url:     SITE_URL,
       logo:    { '@type': 'ImageObject', url: `${SITE_URL}/og-image.svg` },
     },
-    datePublished:     '2024-01-01',
-    dateModified:      '2026-06-01',
+    datePublished:     catDates.published,
+    dateModified:      catDates.modified,
     mainEntityOfPage:  { '@type': 'WebPage', '@id': pageUrl },
   }
 
