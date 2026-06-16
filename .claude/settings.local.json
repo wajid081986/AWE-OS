@@ -39,7 +39,8 @@
       "Bash([ -f \"D:/MyProjects/AWE-OS/$f\" ])",
       "Skill(update-config)",
       "Bash(Get-ChildItem *)",
-      "Bash(Select-Object Name, Mode)"
+      "Bash(Select-Object Name, Mode)",
+      "Bash(pm2 restart *)"
     ]
   }
 }
