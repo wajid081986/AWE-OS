@@ -45,9 +45,9 @@ export const CITY_PAGES = [
             "Fishermen at Visakhapatnam Port can check BMI without delays"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Relevant for local enterprises calculating benefits"
+            "ICMR Guidelines",
+            "Follows Indian health standards",
+            "BMI ranges calibrated to Indian body composition"
           ],
           [
             "Browser-Based",
@@ -188,9 +188,9 @@ export const CITY_PAGES = [
             "Quick check during tea breaks"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Compliant with local tax regulations"
+            "ICMR Guidelines",
+            "Follows Indian health standards",
+            "BMI ranges calibrated to Indian body composition"
           ],
           [
             "Browser-Based",
@@ -474,9 +474,9 @@ export const CITY_PAGES = [
             "Health-conscious students can access it without delays."
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Local wellness startups can integrate it easily."
+            "ICMR Guidelines",
+            "Follows Indian health standards",
+            "BMI ranges calibrated to Indian body composition"
           ],
           [
             "Browser-Based",
@@ -617,9 +617,9 @@ export const CITY_PAGES = [
             "Busy professionals"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Local accountants"
+            "ICMR Guidelines",
+            "Follows Indian health standards",
+            "BMI ranges calibrated to Indian body composition"
           ],
           [
             "Browser-Based",
@@ -760,9 +760,9 @@ export const CITY_PAGES = [
             "A student checking BMI during a health class"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "A health startup analyzing regional data"
+            "ICMR Guidelines",
+            "Follows Indian health standards",
+            "BMI ranges calibrated to Indian body composition"
           ],
           [
             "Browser-Based",
@@ -903,9 +903,9 @@ export const CITY_PAGES = [
             "Fitness enthusiasts trying different diets"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Health workshops in tech companies"
+            "ICMR Guidelines",
+            "Follows Indian health standards",
+            "BMI ranges calibrated to Indian body composition"
           ],
           [
             "Browser-Based",
@@ -1189,9 +1189,9 @@ export const CITY_PAGES = [
             "A busy professional checks BMI between meetings."
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "A health consultant incorporates it in service packages."
+            "ICMR Guidelines",
+            "Follows Indian health standards",
+            "BMI ranges calibrated to Indian body composition"
           ],
           [
             "Browser-Based",
@@ -1475,9 +1475,9 @@ export const CITY_PAGES = [
             "Seamless use at health fairs"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Applicable in health sector"
+            "ICMR Guidelines",
+            "Follows Indian health standards",
+            "BMI ranges calibrated to Indian body composition"
           ],
           [
             "Browser-Based",
@@ -1618,9 +1618,9 @@ export const CITY_PAGES = [
             "A busy professional managing weight on the go"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown for business reports",
-            "Pharma company reporting health stats"
+            "ICMR Guidelines",
+            "Follows Indian health standards",
+            "BMI ranges calibrated to Indian body composition"
           ],
           [
             "Browser-Based",
@@ -1761,9 +1761,9 @@ export const CITY_PAGES = [
             "Office workers can assess health without registration"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Health practitioners can integrate it into services"
+            "ICMR Guidelines",
+            "Follows Indian health standards",
+            "BMI ranges calibrated to Indian body composition"
           ],
           [
             "Browser-Based",
@@ -2190,9 +2190,9 @@ export const CITY_PAGES = [
             "Fitness enthusiasts in Jubilee Hills"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Pharma companies tracking employee health"
+            "ICMR Guidelines",
+            "Follows Indian health standards",
+            "BMI ranges calibrated to Indian body composition"
           ],
           [
             "Browser-Based",
@@ -2333,9 +2333,9 @@ export const CITY_PAGES = [
             "Gym-goers tracking their progress"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Health programs in corporate sectors"
+            "ICMR Guidelines",
+            "Follows Indian health standards",
+            "BMI ranges calibrated to Indian body composition"
           ],
           [
             "Browser-Based",
@@ -2619,9 +2619,9 @@ export const CITY_PAGES = [
             "Fitness enthusiasts accessing it without delays"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Health clinics offering packages"
+            "ICMR Guidelines",
+            "Follows Indian health standards",
+            "BMI ranges calibrated to Indian body composition"
           ],
           [
             "Browser-Based",
@@ -2736,7 +2736,7 @@ export const CITY_PAGES = [
       },
       {
         "type": "p",
-        "text": "The SIP Calculator is specifically designed to cater to the unique needs of Patna's investors. Its key features include real-time calculations, which are crucial for tracking investments in the dynamic economic environment of Patna. The tool is incredibly user-friendly, requiring no prior financial expertise, making it accessible to the city's diverse population. Additionally, the SIP Calculator is Indian tax compliant, providing accurate projections that consider CGST and SGST, factors that are particularly relevant in Patna's business landscape. By offering instant results and being completely free, this tool ensures that Patna's users can make quick and informed decisions without any financial barriers."
+        "text": "The SIP Calculator is specifically designed to cater to the unique needs of Patna's investors. Its key features include real-time calculations, which are crucial for tracking investments in the dynamic economic environment of Patna. The tool is incredibly user-friendly, requiring no prior financial expertise, making it accessible to the city's diverse population. Additionally, for investors using ELSS mutual funds, the SIP Calculator helps plan around the Section 80C deduction of up to ₹1.5 lakh per year — making SIPs one of the most tax-efficient investment choices available to Patna residents. By offering instant results and being completely free, this tool ensures that Patna's users can make quick and informed decisions without any financial barriers."
       },
       {
         "type": "table",
@@ -2762,9 +2762,9 @@ export const CITY_PAGES = [
             "Convenience for busy professionals"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Accurate local tax planning"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -2869,7 +2869,7 @@ export const CITY_PAGES = [
       },
       {
         "type": "p",
-        "text": "The SIP Calculator offered by AWE-OS is tailored to meet the specific needs of Visakhapatnam's investors. It stands out with features that address local financial practices and regulations. The tool is designed to be user-friendly, providing instant results without the need for complex inputs. Visakhapatnam’s investors can easily input their monthly investment amount, expected rate of return, and investment duration to receive a clear projection of their investment growth. This is particularly beneficial for local SMEs and individual investors who need quick and reliable data to make informed financial decisions. The calculator also considers local CGST and SGST rates, ensuring compliance with Indian tax regulations."
+        "text": "The SIP Calculator offered by AWE-OS is tailored to meet the specific needs of Visakhapatnam's investors. It stands out with features that address local financial practices and regulations. The tool is designed to be user-friendly, providing instant results without the need for complex inputs. Visakhapatnam’s investors can easily input their monthly investment amount, expected rate of return, and investment duration to receive a clear projection of their investment growth. This is particularly beneficial for local SMEs and individual investors who need quick and reliable data to make informed financial decisions. The calculator also helps investors understand long-term capital gains tax on equity mutual funds — gains above ₹1.25 lakh per year are taxed at 10% under current Indian income tax rules."
       },
       {
         "type": "table",
@@ -2895,9 +2895,9 @@ export const CITY_PAGES = [
             "Immediate use for an individual investor"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "A pharmaceutical company planning taxes"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -2963,8 +2963,8 @@ export const CITY_PAGES = [
         "a": "The SIP Calculator is particularly beneficial for SMEs in Visakhapatnam by providing a clear picture of potential investment returns. This tool helps business owners in sectors like pharmaceuticals and tourism to strategize financial growth, allowing them to allocate resources efficiently. With insights into future returns, SMEs can make data-driven decisions to expand operations, invest in new projects, or bolster their workforce, ultimately contributing to the business's long-term sustainability and success in the competitive Visakhapatnam market."
       },
       {
-        "q": "Is the SIP Calculator compliant with Indian tax regulations?",
-        "a": "Yes, the SIP Calculator is designed to comply with Indian tax regulations, including CGST and SGST considerations. This ensures that your investment calculations are accurate and reflect the latest financial policies applicable to Visakhapatnam. By using this tool, you can rest assured that your investment projections are not only realistic but also legally compliant, providing peace of mind and helping you avoid any potential tax-related issues in your financial planning."
+        "q": "How does SIP investing help with tax savings in Visakhapatnam?",
+        "a": "SIPs in ELSS mutual funds qualify for a Section 80C deduction of up to ₹1.5 lakh per year under the Income Tax Act — one of the most effective tax-saving instruments for Visakhapatnam investors. Additionally, long-term capital gains on equity funds above ₹1.25 lakh per year are taxed at a concessional 10%, well below standard income tax rates. The SIP Calculator helps you model your contributions and understand post-tax returns, so your financial plan is both realistic and tax-efficient."
       },
       {
         "q": "Can the SIP Calculator be used for personal financial planning in Visakhapatnam?",
@@ -3028,9 +3028,9 @@ export const CITY_PAGES = [
             "A manufacturing firm planning finances"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Retailers managing local tax impacts"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -3096,8 +3096,8 @@ export const CITY_PAGES = [
         "a": "Yes, the SIP Calculator is an excellent resource for Coimbatore's burgeoning IT startups. These startups often operate in a dynamic environment where financial planning is crucial for sustainability and growth. By using the SIP Calculator, IT entrepreneurs can estimate the returns on their investments over time, taking into consideration the rapid technological advancements and market changes that characterize the sector. This helps in strategic planning and securing the necessary financial resources for innovation and expansion."
       },
       {
-        "q": "How do local tax regulations in Coimbatore affect SIP investments?",
-        "a": "Local tax regulations in Coimbatore, including CGST and SGST, can significantly impact the returns on SIP investments. The AWE-OS SIP Calculator is designed to incorporate these tax components, ensuring that users get an accurate picture of their net returns. By understanding how taxes affect their investments, Coimbatore investors can make more informed decisions, optimize their tax liabilities, and ultimately enhance their financial planning strategies. This is particularly beneficial for businesses and individuals seeking to maximize their investment outcomes."
+        "q": "How does income tax affect SIP investment returns in Coimbatore?",
+        "a": "The primary income tax consideration for SIP investors in Coimbatore is long-term capital gains (LTCG) tax: equity mutual fund gains above ₹1.25 lakh in a financial year are taxed at 10%. For those investing in ELSS funds via SIP, an additional benefit applies — contributions up to ₹1.5 lakh per year qualify for Section 80C deduction. Understanding these two levers helps Coimbatore investors optimise both their tax liability and their net investment returns over time."
       },
       {
         "q": "Is the SIP Calculator suitable for SMEs in Coimbatore?",
@@ -3161,9 +3161,9 @@ export const CITY_PAGES = [
             "A small business owner planning finances"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "A trader considering tax implications"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -3294,9 +3294,9 @@ export const CITY_PAGES = [
             "Ideal for busy professionals"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Clear tax planning for IT firms"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -3401,7 +3401,7 @@ export const CITY_PAGES = [
       },
       {
         "type": "p",
-        "text": "Our SIP Calculator is designed to cater specifically to the unique requirements of Bhopal's investors. One of its standout features is its ability to perform calculations compliant with Indian tax regulations, including CGST and SGST breakdowns, which are particularly relevant for local business owners. This feature ensures that you can plan your investments with a clear understanding of the tax implications in Bhopal. Additionally, the calculator provides instant results, allowing users to quickly adjust their investment strategy based on real-time data. The tool is completely free to use, making it accessible for small and medium enterprises (SMEs) that form the backbone of Bhopal's economy. Furthermore, the SIP Calculator is browser-based, ensuring compatibility with any device, so whether you're in a busy office in New Market or relaxing at home in Arera Colony, you can access your investment details with ease."
+        "text": "Our SIP Calculator is designed to cater specifically to the unique requirements of Bhopal's investors. One of its standout features is its ability to model the Section 80C tax benefit — ELSS SIPs qualify for a deduction of up to ₹1.5 lakh per year, making them particularly relevant for Bhopal's tax-planning investors. This feature ensures that you can plan your investments with a clear understanding of the tax implications in Bhopal. Additionally, the calculator provides instant results, allowing users to quickly adjust their investment strategy based on real-time data. The tool is completely free to use, making it accessible for small and medium enterprises (SMEs) that form the backbone of Bhopal's economy. Furthermore, the SIP Calculator is browser-based, ensuring compatibility with any device, so whether you're in a busy office in New Market or relaxing at home in Arera Colony, you can access your investment details with ease."
       },
       {
         "type": "table",
@@ -3427,9 +3427,9 @@ export const CITY_PAGES = [
             "A startup in Bhopal's IT Park"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "A manufacturer in Govindpura"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -3471,7 +3471,7 @@ export const CITY_PAGES = [
         "items": [
           "Localized for Bhopal's Economy: Tailored features that take into account Bhopal's unique economic factors.",
           "Ease of Use: Intuitive interface that simplifies the investment planning process for all user types.",
-          "Comprehensive Calculations: Includes all necessary financial metrics, such as CGST and SGST, relevant for Bhopal's business regulations.",
+          "Section 80C Planning: Models ELSS SIP contributions against the ₹1.5L annual deduction limit, supporting Bhopal investors' tax planning.",
           "Free and Accessible: No cost involved, making it ideal for small businesses and individual users in Bhopal.",
           "No Signup Required: Start using the SIP Calculator without any registration, ensuring privacy and convenience for all Bhopal users."
         ]
@@ -3560,9 +3560,9 @@ export const CITY_PAGES = [
             "Small business owner in Palasia starts planning instantly"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Reflects local tax laws for a food processing unit in Rau"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -3667,7 +3667,7 @@ export const CITY_PAGES = [
       },
       {
         "type": "p",
-        "text": "The SIP Calculator on AWE-OS is designed specifically for Nagpur users, offering a range of features that cater to local needs. This tool provides instant calculations, allowing users to see potential investment outcomes based on their monthly contributions. It is particularly beneficial for Nagpur's SMEs, who may be operating on tight budgets and need to plan their finances prudently. The tool's compliance with Indian tax regulations ensures accurate calculations of the impact of local taxes like CGST and SGST. Additionally, its browser-based functionality means it can be accessed on any device, making it convenient for users who are always on the move. Whether you're a small business owner or an individual investor, this SIP Calculator can help you make better financial decisions by visualizing the growth of your investments over time."
+        "text": "The SIP Calculator on AWE-OS is designed specifically for Nagpur users, offering a range of features that cater to local needs. This tool provides instant calculations, allowing users to see potential investment outcomes based on their monthly contributions. It is particularly beneficial for Nagpur's SMEs, who may be operating on tight budgets and need to plan their finances prudently. The tool helps investors calculate the impact of long-term capital gains tax on equity fund returns, so Nagpur users can plan their SIP contributions with a clear picture of post-tax wealth accumulation. Additionally, its browser-based functionality means it can be accessed on any device, making it convenient for users who are always on the move. Whether you're a small business owner or an individual investor, this SIP Calculator can help you make better financial decisions by visualizing the growth of your investments over time."
       },
       {
         "type": "table",
@@ -3693,9 +3693,9 @@ export const CITY_PAGES = [
             "Salaried professionals managing savings"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Local traders accounting for tax impacts"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -3737,7 +3737,7 @@ export const CITY_PAGES = [
         "items": [
           "Tailored for Local Needs: The tool understands the specific financial challenges faced by Nagpur users and offers solutions accordingly.",
           "Ease of Use: Designed with a user-friendly interface, making it accessible to everyone from young professionals to seasoned investors.",
-          "Comprehensive Tax Compliance: Provides calculations that factor in Nagpur's local CGST/SGST, ensuring accuracy.",
+          "Tax-Efficient Returns: Factors in the 10% LTCG rate on equity mutual fund gains above ₹1.25L, giving Nagpur investors an accurate picture of post-tax wealth.",
           "Accessibility: Being browser-based, it can be accessed from any device, anywhere in Nagpur.",
           "Free and No Signup Required: Allows users to start calculating without any barriers, encouraging more people to take charge of their financial planning."
         ]
@@ -3758,15 +3758,15 @@ export const CITY_PAGES = [
       },
       {
         "q": "What makes the SIP Calculator user-friendly for Nagpur residents?",
-        "a": "The SIP Calculator is designed with user-friendliness in mind, making it accessible to a wide range of Nagpur residents. Its intuitive interface requires no prior financial expertise, allowing users to easily input their investment details and instantly receive projections. The calculator's compliance with Indian tax regulations, including CGST and SGST, ensures accurate financial planning. Additionally, being browser-based, it can be accessed from any device, whether you're at home or at one of Nagpur's many internet cafes. This versatility makes it a convenient tool for both seasoned investors and newcomers alike."
+        "a": "The SIP Calculator is designed with user-friendliness in mind, making it accessible to a wide range of Nagpur residents. Its intuitive interface requires no prior financial expertise, allowing users to easily input their investment details and instantly receive projections. The calculator reflects India's current income tax rules, including LTCG on equity funds and Section 80C deductions for ELSS SIPs, ensuring projections are accurate for long-term financial planning. Additionally, being browser-based, it can be accessed from any device, whether you're at home or at one of Nagpur's many internet cafes. This versatility makes it a convenient tool for both seasoned investors and newcomers alike."
       },
       {
         "q": "Can the SIP Calculator assist with retirement planning in Nagpur?",
         "a": "Yes, the SIP Calculator is an excellent tool for retirement planning in Nagpur. For individuals looking to secure their financial future, SIPs offer a structured investment option that can yield significant returns over time. By using the SIP Calculator, retirees or those nearing retirement can plan their investments by determining how much they need to save monthly to reach their financial goals. The calculator provides a clear picture of potential growth, helping users adjust their contributions and timelines to ensure a comfortable retirement. This foresight is invaluable in managing living expenses and maintaining a desired lifestyle post-retirement."
       },
       {
-        "q": "How does the SIP Calculator accommodate Nagpur's local tax regulations?",
-        "a": "The SIP Calculator is tailored to accommodate local tax regulations in Nagpur, ensuring accurate financial projections. It takes into account the dual GST structure, including both Central GST (CGST) and State GST (SGST), which are crucial for businesses and individuals alike. By factoring these taxes into calculations, the tool provides a realistic estimate of net returns, enabling users to plan investments without the risk of underestimating tax liabilities. This feature is particularly beneficial for businesses operating in Nagpur's diverse economic sectors, ensuring they remain compliant while optimizing their investment strategies."
+        "q": "How does the SIP Calculator help Nagpur investors plan around income tax?",
+        "a": "The SIP Calculator helps Nagpur investors account for two key income tax considerations: the 10% long-term capital gains tax on equity mutual fund returns above ₹1.25 lakh per year, and the Section 80C deduction of up to ₹1.5 lakh available on ELSS fund investments. By factoring these into projections, the tool provides a realistic estimate of net post-tax returns, enabling investors across Nagpur's diverse sectors — from manufacturing to agriculture — to plan their SIPs with confidence."
       },
       {
         "q": "Are there any costs associated with using the SIP Calculator for Nagpur users?",
@@ -3826,9 +3826,9 @@ export const CITY_PAGES = [
             "Individual investors"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Kanpur startup"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -3933,7 +3933,7 @@ export const CITY_PAGES = [
       },
       {
         "type": "p",
-        "text": "The SIP Calculator by AWE-OS is tailored to meet the needs of Lucknow's diverse user base. It provides an intuitive interface that allows users to calculate their potential returns from SIP investments effortlessly. With real-time updates and calculations, the tool helps investors make informed decisions quickly. Moreover, the calculator is fully compliant with Indian tax regulations, ensuring that it provides accurate financial forecasts considering CGST and SGST components. This makes it particularly useful for Lucknow's small and medium enterprises (SMEs), which are often constrained by time and resources but require precise financial tools to stay competitive."
+        "text": "The SIP Calculator by AWE-OS is tailored to meet the needs of Lucknow's diverse user base. It provides an intuitive interface that allows users to calculate their potential returns from SIP investments effortlessly. With real-time updates and calculations, the tool helps investors make informed decisions quickly. Moreover, the calculator helps investors factor in India's income tax framework, including the Section 80C benefit on ELSS SIPs and the 10% LTCG rate on equity fund gains above ₹1.25 lakh per year. This makes it particularly useful for Lucknow's small and medium enterprises (SMEs), which are often constrained by time and resources but require precise financial tools to stay competitive."
       },
       {
         "type": "table",
@@ -3959,9 +3959,9 @@ export const CITY_PAGES = [
             "A student estimating education savings"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "A trader managing tax liabilities"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -4004,7 +4004,7 @@ export const CITY_PAGES = [
           "The tool is free, providing cost-effective financial planning for Lucknow's SMEs.",
           "It offers real-time results, crucial for the fast-paced business environment in Lucknow.",
           "No signup is required, which saves time and encourages more users to explore investment opportunities.",
-          "The calculator is designed with Indian tax regulations, including CGST and SGST, ensuring accurate calculations.",
+          "The calculator accounts for India's income tax framework, including Section 80C deductions on ELSS SIPs, supporting accurate long-term planning.",
           "As a browser-based tool, it is accessible from any device, making it convenient for the mobile workforce in Lucknow."
         ]
       },
@@ -4031,8 +4031,8 @@ export const CITY_PAGES = [
         "a": "Industries such as handicrafts, IT services, and education are particularly well-suited to leverage the SIP Calculator in Lucknow. For example, a startup in the IT sector can use it to plan for venture capital investments or employee benefits. Similarly, educational institutions might use it to manage funds for scholarships or infrastructure development. The tool's flexibility and ease of use make it applicable across various sectors, allowing businesses and individuals alike to plan efficiently and capitalize on investment opportunities."
       },
       {
-        "q": "How does the SIP Calculator align with local regulations in Lucknow?",
-        "a": "The SIP Calculator is designed to comply with Indian financial regulations, including local tax laws applicable in Lucknow like CGST and SGST. This compliance ensures that users receive accurate calculations that reflect the true potential returns on investment after considering tax liabilities. For Lucknow's businesses, especially those dealing with goods and services, this feature is crucial as it helps in planning investments while adhering to local tax requirements, thereby avoiding potential legal issues and optimizing financial planning."
+        "q": "How can SIP investing help with tax planning in Lucknow?",
+        "a": "SIPs in ELSS (Equity Linked Savings Schemes) qualify for a deduction of up to ₹1.5 lakh per year under Section 80C of the Income Tax Act — making them one of the most tax-efficient investments available to Lucknow residents. Long-term capital gains on equity mutual funds above ₹1.25 lakh per year are taxed at 10%, well below standard income tax rates. The SIP Calculator helps Lucknow investors model their contributions and visualise post-tax returns, supporting informed financial planning across all income brackets."
       },
       {
         "q": "Can students in Lucknow benefit from using the SIP Calculator?",
@@ -4092,9 +4092,9 @@ export const CITY_PAGES = [
             "Quick access for busy market traders"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Compliance for local businesses"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -4164,8 +4164,8 @@ export const CITY_PAGES = [
         "a": "Yes, new IT professionals in Surat stand to gain significantly from the SIP Calculator. As they embark on their careers, these young professionals can use the tool to cultivate disciplined savings habits. By setting aside a portion of their monthly income into SIPs, they can leverage the power of compounding over time. The calculator provides a clear picture of how these small, regular investments can grow into substantial wealth, offering them financial security and the means to pursue future opportunities, such as further education or starting their ventures."
       },
       {
-        "q": "How does the SIP Calculator accommodate Surat's local tax regulations?",
-        "a": "The SIP Calculator is designed to incorporate Indian tax liabilities, including CGST and SGST, which are essential for Surat's businesses to consider. This feature ensures that users can account for tax implications in their investment planning, offering a realistic view of their net returns. For Surat's entrepreneurs and SMEs, this tax-compliant feature provides peace of mind and simplifies the otherwise complex process of managing finances while adhering to local tax laws, thus enabling more effective financial planning and compliance."
+        "q": "How does the SIP Calculator support tax-efficient investing for Surat businesses?",
+        "a": "Surat's entrepreneurs and SMEs can use the SIP Calculator to plan ELSS investments that qualify for Section 80C deductions of up to ₹1.5 lakh per year — a meaningful tax saving for high-earning business owners. Long-term capital gains on equity mutual funds are taxed at just 10% above ₹1.25 lakh per year, making SIPs one of the most efficient ways to build wealth while managing annual tax liability. The calculator lets users model different contribution levels to find the optimal balance between growth and tax efficiency."
       },
       {
         "q": "What makes the AWE-OS SIP Calculator accessible to Surat's mobile users?",
@@ -4199,7 +4199,7 @@ export const CITY_PAGES = [
       },
       {
         "type": "p",
-        "text": "The SIP Calculator is tailored to meet the specific needs of Jaipur's investors and businesses. Its user-friendly interface and precise calculations make it an essential tool for anyone looking to invest in mutual funds. Key features include instant result generation, which is crucial for fast-paced industries like tourism and jewelry where financial decisions need to be made swiftly. The tool's compliance with Indian tax regulations ensures that your SIP returns are calculated accurately, including considerations for CGST and SGST, which are vital for Jaipur businesses operating under various tax regimes. The calculator is browser-based, allowing seamless access whether you're at a historical site or in the bustling business district of MI Road."
+        "text": "The SIP Calculator is tailored to meet the specific needs of Jaipur's investors and businesses. Its user-friendly interface and precise calculations make it an essential tool for anyone looking to invest in mutual funds. Key features include instant result generation, which is crucial for fast-paced industries like tourism and jewelry where financial decisions need to be made swiftly. The tool helps Jaipur investors calculate tax-efficient SIP returns — ELSS mutual fund investments qualify for up to ₹1.5 lakh in Section 80C deductions, a key consideration for businesses and individuals managing their annual tax liability. The calculator is browser-based, allowing seamless access whether you're at a historical site or in the bustling business district of MI Road."
       },
       {
         "type": "table",
@@ -4225,9 +4225,9 @@ export const CITY_PAGES = [
             "A small shop owner checks potential returns without delays"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "A local craftsman sees accurate post-tax returns"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -4332,7 +4332,7 @@ export const CITY_PAGES = [
       },
       {
         "type": "p",
-        "text": "The SIP Calculator is an invaluable tool for Ahmedabad's diverse business community, offering features specifically beneficial to local users. It provides real-time, accurate calculations that help investors make informed decisions quickly, a crucial benefit in a fast-paced economic environment like Ahmedabad. The tool is designed to be user-friendly, requiring no registration, allowing businesses of all sizes to access it instantly. Moreover, it is compliant with Indian tax regulations, providing clarity on CGST and SGST implications for local investments. These features make the SIP Calculator not only a tool for financial planning but also a strategic asset for businesses navigating Ahmedabad's unique economic landscape."
+        "text": "The SIP Calculator is an invaluable tool for Ahmedabad's diverse business community, offering features specifically beneficial to local users. It provides real-time, accurate calculations that help investors make informed decisions quickly, a crucial benefit in a fast-paced economic environment like Ahmedabad. The tool is designed to be user-friendly, requiring no registration, allowing businesses of all sizes to access it instantly. Moreover, it provides clarity on the tax efficiency of SIP investing — ELSS funds offer Section 80C deductions of up to ₹1.5 lakh, and equity fund gains above ₹1.25 lakh per year attract a concessional 10% LTCG rate. These features make the SIP Calculator not only a tool for financial planning but also a strategic asset for businesses navigating Ahmedabad's unique economic landscape."
       },
       {
         "type": "table",
@@ -4358,9 +4358,9 @@ export const CITY_PAGES = [
             "Startup planning investments"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Local investor clarity"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -4465,7 +4465,7 @@ export const CITY_PAGES = [
       },
       {
         "type": "p",
-        "text": "The AWE-OS SIP Calculator offers a range of features tailored specifically for Kolkata users. Our tool is 100% free, making it accessible for small and medium enterprises (SMEs) throughout the city. With real-time, instant results, users can quickly evaluate the potential growth of their investments without delay. The calculator requires no signup, allowing for immediate use and convenience. Importantly, it is fully compliant with Indian tax regulations, providing a detailed breakdown that includes CGST and SGST, crucial for businesses operating in Kolkata. Being browser-based, it is easily accessible on any device, whether you are in an office in Park Street or on-the-go in New Town."
+        "text": "The AWE-OS SIP Calculator offers a range of features tailored specifically for Kolkata users. Our tool is 100% free, making it accessible for small and medium enterprises (SMEs) throughout the city. With real-time, instant results, users can quickly evaluate the potential growth of their investments without delay. The calculator requires no signup, allowing for immediate use and convenience. Importantly, it supports tax-aware investment planning for Kolkata users — ELSS SIPs qualify for Section 80C deductions, and long-term equity gains above ₹1.25 lakh per year are taxed at a flat 10%, keeping more returns in investors' hands. Being browser-based, it is easily accessible on any device, whether you are in an office in Park Street or on-the-go in New Town."
       },
       {
         "type": "table",
@@ -4491,9 +4491,9 @@ export const CITY_PAGES = [
             "Tea trader in Dalhousie"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Retailer in Gariahat"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -4535,7 +4535,7 @@ export const CITY_PAGES = [
         "items": [
           "Tailored for Kolkata’s diverse economy, supporting industries from jute to IT.",
           "User-friendly interface designed for quick navigation, essential for busy Kolkatans.",
-          "Comprehensive tax compliance features that detail CGST and SGST.",
+          "Tax-aware projections that factor in Section 80C deductions and LTCG on equity mutual funds.",
           "Accessible on-the-go, perfect for Kolkata’s mobile workforce.",
           "Completely free and requires no signup, ensuring hassle-free financial planning."
         ]
@@ -4560,7 +4560,7 @@ export const CITY_PAGES = [
       },
       {
         "q": "What makes the AWE-OS SIP Calculator unique for Kolkata users?",
-        "a": "The AWE-OS SIP Calculator stands out for Kolkata users due to its precise alignment with the city's diverse economic landscape. It offers features like comprehensive tax compliance with CGST and SGST breakdowns, which are crucial for businesses in Kolkata. The tool's accessibility on any device makes it convenient for the city’s mobile and tech-savvy population. Moreover, being free and requiring no signup, it provides immediate access for quick financial assessments, catering to both individuals and businesses in Kolkata’s fast-paced environment."
+        "a": "The AWE-OS SIP Calculator stands out for Kolkata users due to its precise alignment with the city's diverse economic landscape. It supports tax-aware investment planning — including Section 80C deductions on ELSS SIPs and the 10% LTCG rate on equity fund gains above ₹1.25 lakh — helping Kolkata investors understand their true post-tax returns. The tool's accessibility on any device makes it convenient for the city’s mobile and tech-savvy population. Moreover, being free and requiring no signup, it provides immediate access for quick financial assessments, catering to both individuals and businesses in Kolkata’s fast-paced environment."
       },
       {
         "q": "Can the SIP Calculator assist in retirement planning for Kolkatans?",
@@ -4598,7 +4598,7 @@ export const CITY_PAGES = [
       },
       {
         "type": "p",
-        "text": "The SIP Calculator by AWE-OS.com is tailored specifically for Pune users, offering features that address local investment challenges. This tool is fully compliant with Indian financial regulations, ensuring that calculations consider local taxes such as CGST and SGST, which are particularly relevant for Pune's business community. The calculator provides instant results, enabling users to quickly assess their investment outcomes without delay. It's browser-based, meaning it can be accessed from any device, whether you're at home or in a bustling Pune office. Furthermore, the tool requires no signup, making it a convenient option for both individuals and businesses looking to manage their finances efficiently."
+        "text": "The SIP Calculator by AWE-OS.com is tailored specifically for Pune users, offering features that address local investment challenges. This tool supports tax-efficient financial planning for Pune's business community, helping investors model the Section 80C deduction available on ELSS SIPs and understand the long-term capital gains tax applicable on equity mutual fund returns. The calculator provides instant results, enabling users to quickly assess their investment outcomes without delay. It's browser-based, meaning it can be accessed from any device, whether you're at home or in a bustling Pune office. Furthermore, the tool requires no signup, making it a convenient option for both individuals and businesses looking to manage their finances efficiently."
       },
       {
         "type": "table",
@@ -4624,9 +4624,9 @@ export const CITY_PAGES = [
             "A business owner in Koregaon Park can access it on the go"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "A Baner resident can see accurate tax implications"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -4731,7 +4731,7 @@ export const CITY_PAGES = [
       },
       {
         "type": "p",
-        "text": "The SIP Calculator offers numerous features tailored specifically for the needs of Chennai's investors and business owners. Firstly, it is designed to be 100% free, providing an accessible financial planning resource for Chennai's SMEs without any cost barriers. Users can receive instant results, allowing them to make quick and informed decisions—a critical advantage in the fast-paced economic environment of Chennai. The tool requires no signup, facilitating immediate use, which is beneficial for both seasoned investors and newcomers alike. It is fully compliant with Indian tax regulations, offering detailed CGST and SGST breakdowns, which is particularly useful for Chennai businesses navigating the complexities of tax compliance. Furthermore, as a browser-based tool, it can be accessed from any device, making it convenient for users on-the-go in a city known for its tech-savvy population."
+        "text": "The SIP Calculator offers numerous features tailored specifically for the needs of Chennai's investors and business owners. Firstly, it is designed to be 100% free, providing an accessible financial planning resource for Chennai's SMEs without any cost barriers. Users can receive instant results, allowing them to make quick and informed decisions—a critical advantage in the fast-paced economic environment of Chennai. The tool requires no signup, facilitating immediate use, which is beneficial for both seasoned investors and newcomers alike. It supports tax-efficient investing for Chennai businesses and individuals, factoring in the Section 80C deduction on ELSS SIPs and the 10% LTCG rate on equity fund gains — useful for anyone optimising their annual tax liability. Furthermore, as a browser-based tool, it can be accessed from any device, making it convenient for users on-the-go in a city known for its tech-savvy population."
       },
       {
         "type": "table",
@@ -4757,9 +4757,9 @@ export const CITY_PAGES = [
             "A freelancer can calculate SIPs anytime"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "A manufacturer ensures tax compliance"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -4864,7 +4864,7 @@ export const CITY_PAGES = [
       },
       {
         "type": "p",
-        "text": "The AWE-OS SIP Calculator offers features specifically beneficial for the vibrant business community in Hyderabad. Its 100% free access ensures that both budding entrepreneurs and established companies can make use of it without incurring additional costs. The tool provides instant results, allowing users to quickly adjust their SIP contributions based on real-time market data. No signup is required, meaning that users can start using the tool immediately, which is ideal for fast-paced industries like IT and pharmaceuticals in Hyderabad. Furthermore, the tool is compliant with Indian tax regulations, offering clear insights into CGST and SGST implications. Being browser-based, it is accessible from any device, making it convenient for professionals who are always on the move."
+        "text": "The AWE-OS SIP Calculator offers features specifically beneficial for the vibrant business community in Hyderabad. Its 100% free access ensures that both budding entrepreneurs and established companies can make use of it without incurring additional costs. The tool provides instant results, allowing users to quickly adjust their SIP contributions based on real-time market data. No signup is required, meaning that users can start using the tool immediately, which is ideal for fast-paced industries like IT and pharmaceuticals in Hyderabad. Furthermore, the tool offers clear insights into tax-efficient investing — ELSS SIPs qualify for Section 80C deductions, and long-term capital gains on equity funds are taxed at just 10% above the ₹1.25 lakh annual exemption. Being browser-based, it is accessible from any device, making it convenient for professionals who are always on the move."
       },
       {
         "type": "table",
@@ -4890,9 +4890,9 @@ export const CITY_PAGES = [
             "A pharma company can quickly evaluate investment plans"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "A local business can understand tax implications"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -5023,9 +5023,9 @@ export const CITY_PAGES = [
             "A freelancer managing income"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "A small business owner planning taxes"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -5130,7 +5130,7 @@ export const CITY_PAGES = [
       },
       {
         "type": "p",
-        "text": "Designed specifically for Delhi users, our SIP Calculator offers a suite of features that align with the economic pulse of the city. It allows users to input investment amounts and tenure in a straightforward manner, providing instant calculations that help in visualizing long-term financial growth. Moreover, the tool is compliant with Indian tax structures, including the specific requirements of CGST and SGST prevalent in Delhi. This ensures that users get a precise understanding of post-tax returns. By offering instant results and requiring no prior registration, the calculator is accessible to everyone from busy professionals to budding entrepreneurs. The tool is also optimized for mobile use, catering to Delhi's tech-savvy populace who prefer doing business on-the-go."
+        "text": "Designed specifically for Delhi users, our SIP Calculator offers a suite of features that align with the economic pulse of the city. It allows users to input investment amounts and tenure in a straightforward manner, providing instant calculations that help in visualizing long-term financial growth. Moreover, the tool helps Delhi investors navigate India's income tax framework — ELSS SIPs offer Section 80C deductions up to ₹1.5 lakh per year, with long-term equity gains above ₹1.25 lakh taxed at a flat 10%. This ensures that users get a precise understanding of post-tax returns. By offering instant results and requiring no prior registration, the calculator is accessible to everyone from busy professionals to budding entrepreneurs. The tool is also optimized for mobile use, catering to Delhi's tech-savvy populace who prefer doing business on-the-go."
       },
       {
         "type": "table",
@@ -5156,9 +5156,9 @@ export const CITY_PAGES = [
             "A busy professional in Connaught Place needing quick access"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "A trader in Chandni Chowk understanding tax impacts"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -5198,7 +5198,7 @@ export const CITY_PAGES = [
       {
         "type": "ul",
         "items": [
-          "Localized Tax Insights: Provides detailed CGST/SGST breakdowns relevant to Delhi.",
+          "Tax-Efficient Planning: Helps Delhi investors model ELSS SIPs to maximise their ₹1.5L Section 80C deduction each financial year.",
           "User-Friendly Interface: Designed for Delhi's busy professionals and entrepreneurs who need quick, easy access.",
           "Mobile Optimization: Perfect for on-the-go use in Delhi's fast-paced environment.",
           "Real-Time Calculations: Offers immediate results to assist in rapid decision-making.",
@@ -5263,7 +5263,7 @@ export const CITY_PAGES = [
       },
       {
         "type": "p",
-        "text": "The SIP Calculator by AWE-OS is tailored to meet the needs of Mumbai's diverse populace. In a city where time is money, the calculator delivers instant results, enabling users to make quick and informed decisions. It is especially beneficial for small and medium-sized enterprises (SMEs) that strive to optimize their financial strategies without incurring additional costs. By providing a breakdown of potential returns, the calculator allows businesses to align their investment strategies with Mumbai's specific market conditions. Additionally, the tool's compliance with Indian taxation norms, including CGST and SGST, ensures that users receive accurate projections that consider local financial regulations."
+        "text": "The SIP Calculator by AWE-OS is tailored to meet the needs of Mumbai's diverse populace. In a city where time is money, the calculator delivers instant results, enabling users to make quick and informed decisions. It is especially beneficial for small and medium-sized enterprises (SMEs) that strive to optimize their financial strategies without incurring additional costs. By providing a breakdown of potential returns, the calculator allows businesses to align their investment strategies with Mumbai's specific market conditions. Additionally, the tool helps Mumbai investors plan around income tax considerations — ELSS SIP contributions qualify for Section 80C deductions, and equity fund gains above ₹1.25 lakh per year benefit from the concessional 10% LTCG rate."
       },
       {
         "type": "table",
@@ -5289,9 +5289,9 @@ export const CITY_PAGES = [
             "Startups in Andheri"
           ],
           [
-            "Indian Tax Compliant",
-            "CGST/SGST breakdown",
-            "Corporate firms in Nariman Point"
+            "80C Tax Saving",
+            "Shows Section 80C benefit",
+            "ELSS SIP qualifies for ₹1.5L annual tax deduction"
           ],
           [
             "Browser-Based",
@@ -5357,8 +5357,8 @@ export const CITY_PAGES = [
         "a": "Absolutely, the SIP Calculator is a vital resource for entrepreneurs in Mumbai who need to plan for long-term business growth. By calculating potential returns on investments, business owners can allocate funds more effectively, whether it's for expanding operations, developing new products, or entering new markets. The tool's ability to project future cash flows helps entrepreneurs make informed decisions, ensuring they can sustain and grow their ventures in Mumbai's competitive business landscape."
       },
       {
-        "q": "How is the SIP Calculator compliant with Mumbai's local tax regulations?",
-        "a": "The SIP Calculator is designed to align with Indian tax regulations, including the specific requirements of Mumbai's financial environment. It provides detailed breakdowns of potential returns after considering CGST and SGST, ensuring users understand the tax implications of their investments. This compliance is crucial for Mumbai businesses and investors who need to ensure their financial strategies align with local laws, helping them avoid potential tax liabilities and optimize their returns."
+        "q": "How does the SIP Calculator help Mumbai investors plan around income tax?",
+        "a": "Mumbai's investors often sit in India's highest income tax slabs, making tax-efficient investing particularly valuable. SIPs in ELSS mutual funds qualify for Section 80C deductions of up to ₹1.5 lakh per year, while long-term capital gains on equity funds above ₹1.25 lakh are taxed at a flat 10% — lower than any income tax bracket. The SIP Calculator helps Mumbai users model their contributions and visualise post-tax returns, so they can align their investment strategy with both financial goals and tax-saving objectives."
       },
       {
         "q": "Is the SIP Calculator beneficial for retirees in Mumbai?",
