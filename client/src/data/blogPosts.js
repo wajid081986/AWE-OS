@@ -16,6 +16,7 @@ export const BLOG_POSTS = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     slug: 'how-to-create-a-personal-budget-in-india',
+    noindex: true,
     title: 'How to Create a Personal Budget in India: A Step-by-Step Guide',
     date: '2026-06-13',
     category: 'Finance',
@@ -3359,6 +3360,7 @@ export const BLOG_POSTS = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     slug: 'emi-calculator-home-car-personal-loan-guide',
+    noindex: true,
     title: 'Master Your Finances with the EMI Calculator India',
     date: '2026-06-01',
     category: 'Finance',
@@ -3547,6 +3549,7 @@ export const BLOG_POSTS = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     slug: 'income-tax-calculator-india-2025-old-vs-new-regime',
+    noindex: true,
     title: 'Income Tax Calculator India 2025: Comparing Old vs New Regime',
     date: '2026-06-01',
     category: 'Finance',
@@ -3779,6 +3782,7 @@ export const BLOG_POSTS = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     slug: 'gst-calculator-india-add-or-remove-gst',
+    noindex: true,
     title: 'How to Use a GST Calculator in India: Add or Remove GST Easily',
     date: '2026-06-01',
     category: 'Finance',
@@ -4302,6 +4306,7 @@ export const BLOG_POSTS = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     slug: 'what-is-gst-calculator-complete-guide-indians-2026',
+    noindex: true,
     title: 'What is GST Calculator? Complete Guide for Indians 2026',
     date: '2026-05-24',
     category: 'Finance',
@@ -4418,6 +4423,7 @@ export const BLOG_POSTS = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     slug: 'how-to-use-gst-calculator-online',
+    noindex: true,
     title: 'How to Use GST Calculator Online Efficiently',
     date: '2026-05-24',
     category: 'Finance',
@@ -4535,6 +4541,7 @@ export const BLOG_POSTS = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     slug: 'ppf-calculator-2026-maturity-amount-withdrawal-rules-tax-benefits',
+    noindex: true,
     title: 'Maximize Your Investments with the PPF Calculator 2026',
     date: '2026-05-21',
     category: 'Finance',
@@ -5111,6 +5118,7 @@ export const BLOG_POSTS = [
   {
     id: 5,
     slug: 'top-10-free-online-calculators-for-students',
+    noindex: true,
     title: 'Top 10 Free Online Calculators Every Student Needs',
     date: '2025-05-10',
     category: 'Calculators',
@@ -5475,6 +5483,7 @@ export const BLOG_POSTS = [
   {
     id: 10,
     slug: 'free-calculator-tools-for-students',
+    noindex: true,
     title: 'Free Calculator Tools Every Student Needs in 2025',
     date: '2025-05-19',
     category: 'Calculators',

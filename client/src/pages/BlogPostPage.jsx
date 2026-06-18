@@ -194,6 +194,7 @@ export default function BlogPostPage() {
         <title>{post.metaTitle}</title>
         <meta name="description" content={post.metaDescription} />
         <link rel="canonical" href={`https://www.awe-os.com/blog/${post.slug}`} />
+        {post.noindex && <meta name="robots" content="noindex, follow" />}
         <meta property="og:title" content={post.metaTitle} />
         <meta property="og:description" content={post.metaDescription} />
         <meta property="og:type" content="article" />

@@ -960,6 +960,7 @@ const BLOG_ROUTES = BLOG_POSTS.map(post => ({
   path: `/blog/${post.slug}`,
   title: post.metaTitle   || post.title,
   description: post.metaDescription || post.excerpt || '',
+  noindex: post.noindex ?? false,
   schema: {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -1056,6 +1057,10 @@ for (const route of ALL_ROUTES) {
     }
 
     html = injectBody(html, bodyHTML)
+
+    if (route.noindex) {
+      html = replaceMeta(html, 'robots', 'noindex, follow')
+    }
 
     writeRoute(route.path, html)
     count++
