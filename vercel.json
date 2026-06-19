@@ -6,7 +6,45 @@
   "redirects": [
     { "source": "/tools/pdf-merger",     "destination": "/tools/merge-pdf",      "permanent": true },
     { "source": "/tools/emi-calculator", "destination": "/tools/loan-calculator", "permanent": true },
-    { "source": "/tools/image-to-pdf",   "destination": "/tools/jpg-to-pdf",      "permanent": true }
+    { "source": "/tools/image-to-pdf",   "destination": "/tools/jpg-to-pdf",      "permanent": true },
+
+    { "source": "/bmi-calculator/visakhapatnam", "destination": "/tools/bmi-calculator", "permanent": true },
+    { "source": "/bmi-calculator/coimbatore",    "destination": "/tools/bmi-calculator", "permanent": true },
+    { "source": "/bmi-calculator/kochi",         "destination": "/tools/bmi-calculator", "permanent": true },
+    { "source": "/bmi-calculator/chandigarh",    "destination": "/tools/bmi-calculator", "permanent": true },
+    { "source": "/bmi-calculator/bhopal",        "destination": "/tools/bmi-calculator", "permanent": true },
+    { "source": "/bmi-calculator/indore",        "destination": "/tools/bmi-calculator", "permanent": true },
+    { "source": "/bmi-calculator/nagpur",        "destination": "/tools/bmi-calculator", "permanent": true },
+    { "source": "/bmi-calculator/kanpur",        "destination": "/tools/bmi-calculator", "permanent": true },
+    { "source": "/bmi-calculator/lucknow",       "destination": "/tools/bmi-calculator", "permanent": true },
+    { "source": "/bmi-calculator/surat",         "destination": "/tools/bmi-calculator", "permanent": true },
+    { "source": "/bmi-calculator/jaipur",        "destination": "/tools/bmi-calculator", "permanent": true },
+
+    { "source": "/sip-calculator/patna",         "destination": "/tools/sip-calculator", "permanent": true },
+    { "source": "/sip-calculator/visakhapatnam", "destination": "/tools/sip-calculator", "permanent": true },
+    { "source": "/sip-calculator/coimbatore",    "destination": "/tools/sip-calculator", "permanent": true },
+    { "source": "/sip-calculator/kochi",         "destination": "/tools/sip-calculator", "permanent": true },
+    { "source": "/sip-calculator/chandigarh",    "destination": "/tools/sip-calculator", "permanent": true },
+    { "source": "/sip-calculator/bhopal",        "destination": "/tools/sip-calculator", "permanent": true },
+    { "source": "/sip-calculator/indore",        "destination": "/tools/sip-calculator", "permanent": true },
+    { "source": "/sip-calculator/nagpur",        "destination": "/tools/sip-calculator", "permanent": true },
+    { "source": "/sip-calculator/kanpur",        "destination": "/tools/sip-calculator", "permanent": true },
+    { "source": "/sip-calculator/lucknow",       "destination": "/tools/sip-calculator", "permanent": true },
+    { "source": "/sip-calculator/surat",         "destination": "/tools/sip-calculator", "permanent": true },
+    { "source": "/sip-calculator/jaipur",        "destination": "/tools/sip-calculator", "permanent": true },
+
+    { "source": "/gst-calculator/patna",         "destination": "/tools/gst-calculator", "permanent": true },
+    { "source": "/gst-calculator/visakhapatnam", "destination": "/tools/gst-calculator", "permanent": true },
+    { "source": "/gst-calculator/coimbatore",    "destination": "/tools/gst-calculator", "permanent": true },
+    { "source": "/gst-calculator/kochi",         "destination": "/tools/gst-calculator", "permanent": true },
+    { "source": "/gst-calculator/chandigarh",    "destination": "/tools/gst-calculator", "permanent": true },
+    { "source": "/gst-calculator/bhopal",        "destination": "/tools/gst-calculator", "permanent": true },
+    { "source": "/gst-calculator/indore",        "destination": "/tools/gst-calculator", "permanent": true },
+    { "source": "/gst-calculator/nagpur",        "destination": "/tools/gst-calculator", "permanent": true },
+    { "source": "/gst-calculator/kanpur",        "destination": "/tools/gst-calculator", "permanent": true },
+    { "source": "/gst-calculator/lucknow",       "destination": "/tools/gst-calculator", "permanent": true },
+    { "source": "/gst-calculator/surat",         "destination": "/tools/gst-calculator", "permanent": true },
+    { "source": "/gst-calculator/jaipur",        "destination": "/tools/gst-calculator", "permanent": true }
   ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
