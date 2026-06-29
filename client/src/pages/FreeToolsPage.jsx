@@ -134,6 +134,55 @@ export default function FreeToolsPage() {
           </div>
         </div>
 
+        {/* Why Free section */}
+        {!search && (
+          <section className="mb-10 bg-white rounded-2xl border border-gray-200 p-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Why Are AWE-OS Tools Free?</h2>
+            <div className="space-y-4 text-gray-600 text-sm leading-relaxed">
+              <p>AWE-OS was built with a simple belief: professional-grade tools should be accessible to everyone in India — students, freelancers, teachers, homemakers, and small business owners — regardless of their income or technical background. Every tool on AWE-OS is 100% free with no hidden fees, no subscription tiers, and no features locked behind a paywall.</p>
+              <p>Unlike most "free" tool sites that limit you to 3 downloads per day or watermark your output files, AWE-OS tools have no such restrictions. Merge 50 PDFs, calculate your EMI 100 times, generate unlimited QR codes — everything runs without usage counters or artificial limits. The tools process your files entirely in your browser using JavaScript, which means no server costs are passed on to you and your files never leave your device.</p>
+              <p>We sustain AWE-OS through non-intrusive advertising and optional premium features for power users who want cloud storage and priority support. The core tools — all {tools.length} of them — will always remain free for everyday use by individuals and small businesses across India.</p>
+              <div>
+                <h3 className="text-base font-semibold text-gray-900 mb-3">Popular Free Tools You Can Use Right Now</h3>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {[
+                    { slug: 'merge-pdf',        label: 'Merge PDF',              desc: 'combine multiple PDFs into one file'                },
+                    { slug: 'compress-pdf',      label: 'Compress PDF',           desc: 'reduce file size without quality loss'              },
+                    { slug: 'sip-calculator',    label: 'SIP Calculator',         desc: 'plan mutual fund SIP investments'                   },
+                    { slug: 'bmi-calculator',    label: 'BMI Calculator',         desc: 'check weight using Indian ICMR thresholds'          },
+                    { slug: 'tax-calculator',    label: 'Income Tax Calculator',  desc: 'compare Old and New regime for FY 2025-26'          },
+                    { slug: 'invoice-generator', label: 'Invoice Generator',      desc: 'GST-compliant invoices in seconds'                  },
+                    { slug: 'password-generator',label: 'Password Generator',     desc: 'cryptographically secure passwords'                 },
+                    { slug: 'qr-code-generator', label: 'QR Code Generator',      desc: 'print-ready QR codes for any content'              },
+                  ].map(({ slug, label, desc }) => (
+                    <li key={slug} className="flex items-start gap-2">
+                      <span className="text-blue-500 font-bold shrink-0 mt-0.5">✦</span>
+                      <span><Link to={`/tools/${slug}`} className="text-blue-600 hover:underline font-medium">{label}</Link> — {desc}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="mt-2 pt-4 border-t border-gray-100 space-y-3">
+                <h3 className="text-base font-semibold text-gray-900">Frequently Asked Questions</h3>
+                <div className="space-y-3">
+                  <div>
+                    <p className="font-medium text-gray-900 text-sm mb-1">Are these tools really free — no hidden charges?</p>
+                    <p>Yes — completely free. No credit card, no trial period, no email signup required. Open any tool and start using it immediately with zero restrictions.</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 text-sm mb-1">Do I need to create an account?</p>
+                    <p>No. Every tool works without an account. Creating a free account is optional and only needed if you want to save your work history or access advanced AI-powered features.</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 text-sm mb-1">How do you make money if the tools are free?</p>
+                    <p>AWE-OS earns through non-intrusive advertising shown on pages and optional premium subscriptions for business users who need advanced features. The free tools will always stay free for individual and personal use.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* No results */}
         {filtered.length === 0 && (
           <div className="text-center py-16 text-gray-400">

@@ -174,6 +174,18 @@ export default function ToolsPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
 
+        {/* Intro — shown on All tab for SEO */}
+        {activeTab === 'all' && !q && (
+          <div className="mb-8 p-6 bg-white rounded-2xl border border-gray-200">
+            <h2 className="text-base font-bold text-gray-900 mb-2">49+ Free Online Tools — No Sign Up Required</h2>
+            <div className="text-sm text-gray-600 leading-relaxed space-y-2">
+              <p>AWE-OS provides free online tools for Indian students, professionals, and small businesses — covering everything from PDF manipulation to financial calculations, format conversion, and AI-powered productivity. Every tool runs entirely in your browser with no software download, no registration, and no fees — ever.</p>
+              <p>Our <Link to="/tools/pdf" className="text-blue-600 hover:underline">PDF tools</Link> handle merging, splitting, compressing, rotating, and converting documents for the workflows Indian government portals, universities, and corporates require. The <Link to="/tools/calculators" className="text-blue-600 hover:underline">financial calculators</Link> use Indian standards — ₹ format, lakh/crore notation, SEBI SIP formulas, FY 2025-26 income tax slabs, RBI PPF rates, and ICMR BMI thresholds — making them accurate for Indian users.</p>
+              <p>The <Link to="/tools/converters" className="text-blue-600 hover:underline">converter and utility tools</Link> handle unit conversion (including Indian land units like bigha and marla), live INR currency rates, QR code generation, secure password creation, JSON formatting, and word counting. <Link to="/tools/ai" className="text-blue-600 hover:underline">AI tools</Link> powered by GPT models generate professional resumes and content drafts in seconds. <Link to="/tools/free" className="text-blue-600 hover:underline">Browse all free tools →</Link></p>
+            </div>
+          </div>
+        )}
+
         {/* ── Category tabs + search/sort row ──────────────── */}
         <div className="mb-8 pb-4 border-b border-gray-100 space-y-3">
           <div className="flex gap-1.5 flex-wrap" role="tablist" aria-label="Tool categories">

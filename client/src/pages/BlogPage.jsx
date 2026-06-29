@@ -122,6 +122,29 @@ export default function BlogPage() {
         </div>
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+          {/* Topics We Cover */}
+          <div className="mb-8 p-6 bg-white rounded-2xl border border-gray-200">
+            <h2 className="text-lg font-bold text-gray-900 mb-3">What We Write About</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+              <div className="p-4 bg-red-50 rounded-xl border border-red-100">
+                <p className="font-semibold text-red-800 mb-1">📄 PDF Tools</p>
+                <p className="text-sm text-gray-600 leading-relaxed">Step-by-step guides on merging, compressing, converting, and protecting PDF files for government portals, university submissions, and Indian business workflows.</p>
+              </div>
+              <div className="p-4 bg-green-50 rounded-xl border border-green-100">
+                <p className="font-semibold text-green-800 mb-1">🧮 Finance &amp; Calculators</p>
+                <p className="text-sm text-gray-600 leading-relaxed">SIP investment planning, income tax comparison under Old vs New regime, EMI calculation guides, and personal budgeting tips for Indian salaried professionals.</p>
+              </div>
+              <div className="p-4 bg-purple-50 rounded-xl border border-purple-100">
+                <p className="font-semibold text-purple-800 mb-1">🤖 AI &amp; Productivity</p>
+                <p className="text-sm text-gray-600 leading-relaxed">Using AI tools to write better resumes, generate GST-compliant invoices, create content faster, and grow your freelance or small business across India.</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-500">
+              All guides are written by the AWE-OS team — with Indian examples, ₹ values, and links to free tools you can use right now.{' '}
+              <Link to="/tools" className="text-blue-600 hover:underline">Browse all {allPosts.length > 0 ? '49+' : ''} free tools →</Link>
+            </p>
+          </div>
+
           {/* Category filter */}
           <div className="flex flex-wrap gap-2 mb-8">
             {BLOG_CATEGORIES.map(cat => (

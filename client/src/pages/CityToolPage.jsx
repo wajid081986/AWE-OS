@@ -63,6 +63,10 @@ export default function CityToolPage() {
   // Guard 2 — city page not yet published → redirect to the tool page
   if (!page) return <Navigate to={`/tools/${toolSlug}`} replace />
 
+  const otherCities = CITY_PAGES
+    .filter(p => p.slug !== page.slug && p.slug.startsWith(toolSlug + '/'))
+    .slice(0, 5)
+
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
@@ -95,6 +99,28 @@ export default function CityToolPage() {
                 <p className="px-5 pb-5 text-gray-700 text-sm leading-relaxed border-t border-gray-200 pt-3">{faq.a}</p>
               </details>
             ))}
+          </div>
+        </section>
+      )}
+
+      {/* Other Cities */}
+      {otherCities.length > 0 && (
+        <section className="mt-10">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">{toolLabel} in Other Indian Cities</h2>
+          <div className="flex flex-wrap gap-3">
+            {otherCities.map(c => {
+              const cityPath = c.slug.split('/')[1] || ''
+              const cityName = c.cityName || cityPath.replace(/-/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase())
+              return (
+                <Link
+                  key={c.slug}
+                  to={`/tools/${toolSlug}/${cityPath}`}
+                  className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-colors font-medium"
+                >
+                  {toolLabel} in {cityName}
+                </Link>
+              )
+            })}
           </div>
         </section>
       )}

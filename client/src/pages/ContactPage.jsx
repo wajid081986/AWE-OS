@@ -82,6 +82,44 @@ export default function ContactPage() {
         </div>
       </section>
 
+      {/* About + FAQ */}
+      <section className="py-12 px-4 bg-gray-50 border-b border-gray-100">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">About AWE-OS</h2>
+              <div className="space-y-3 text-sm text-gray-600 leading-relaxed">
+                <p>AWE-OS is a free online tools platform built for Indian students, professionals, and small businesses. We offer 49+ tools across PDF processing, financial calculators, format converters, and AI-powered productivity — all free, all browser-based, and all completely private.</p>
+                <p>Your files never leave your device. All PDF processing, calculations, and conversions happen locally in your browser. No server uploads mean zero privacy risk — your documents, financial details, and personal data stay entirely on your machine and are discarded when you close the tab.</p>
+                <p>We're a small team passionate about making professional tools accessible to everyone in India. Whether you're a student merging assignment PDFs, a freelancer generating GST invoices, or a professional calculating SIP returns for retirement planning — AWE-OS has a free tool for you.</p>
+              </div>
+              <div className="flex flex-wrap gap-4 mt-5">
+                <Link to="/tools"      className="text-sm text-blue-600 hover:underline font-medium">Browse all tools →</Link>
+                <Link to="/blog"       className="text-sm text-blue-600 hover:underline font-medium">Read our blog →</Link>
+                <Link to="/about"      className="text-sm text-blue-600 hover:underline font-medium">About us →</Link>
+                <Link to="/tools/free" className="text-sm text-blue-600 hover:underline font-medium">Free tools list →</Link>
+              </div>
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Support FAQ</h2>
+              <div className="space-y-4">
+                {[
+                  { q: 'What is your response time?',      a: 'We aim to reply within 24 hours on weekdays (Monday–Friday, IST). Messages sent over the weekend are typically answered by Monday morning.' },
+                  { q: 'How do I report a bug?',           a: "Use the contact form below and select 'Bug Report' as the subject. Include the tool name, what you were trying to do, and what happened instead. Screenshots help a lot." },
+                  { q: 'Can I request a new tool?',        a: "Absolutely. We add new tools every few weeks based on user demand. Select 'Feature Request' in the form and describe the tool you need and your specific use case." },
+                  { q: 'Are all AWE-OS tools really free?',a: 'Yes — every tool is free with no usage limits, no watermarks, and no hidden fees. No credit card or subscription required. We earn through non-intrusive advertising.' },
+                ].map(({ q, a }) => (
+                  <div key={q} className="border border-gray-200 rounded-xl p-4 bg-white">
+                    <p className="text-sm font-semibold text-gray-900 mb-1.5">{q}</p>
+                    <p className="text-sm text-gray-600 leading-relaxed">{a}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Contact form + sidebar */}
       <section id="contact-form" className="py-14 px-4">
         <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-10">

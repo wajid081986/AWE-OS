@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { getBlogPostBySlug } from '../data/blogPosts'
+import { getBlogPostBySlug, BLOG_POSTS } from '../data/blogPosts'
 import api from '../services/api.service'
 
 const CATEGORY_COLORS = {
@@ -103,6 +103,9 @@ export default function BlogPostPage() {
   }, [slug, staticPost])
 
   const post = staticPost || dbPost
+  const relatedPosts = post
+    ? BLOG_POSTS.filter(p => !p.noindex && p.slug !== post.slug && p.category === post.category).slice(0, 3)
+    : []
 
   if (loading) {
     return (
@@ -206,6 +209,15 @@ export default function BlogPostPage() {
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
 
+          {/* Breadcrumb */}
+          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-gray-400 mb-4 flex-wrap">
+            <Link to="/" className="hover:text-gray-700 transition-colors">Home</Link>
+            <span aria-hidden>/</span>
+            <Link to="/blog" className="hover:text-gray-700 transition-colors">Blog</Link>
+            <span aria-hidden>/</span>
+            <span className="text-gray-700 font-medium">{post.category}</span>
+          </nav>
+
           {/* Back link */}
           <Link
             to="/blog"
@@ -293,6 +305,28 @@ export default function BlogPostPage() {
                   </Link>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Related Articles */}
+          {relatedPosts.length > 0 && (
+            <div className="bg-white rounded-2xl border border-gray-200 p-8 mt-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Related Articles</h2>
+              <div className="space-y-3">
+                {relatedPosts.map(p => (
+                  <Link
+                    key={p.slug}
+                    to={`/blog/${p.slug}`}
+                    className="flex flex-col gap-1 p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50 transition-colors group"
+                  >
+                    <span className="text-sm font-semibold text-gray-900 group-hover:text-blue-700 transition-colors leading-snug">{p.title}</span>
+                    <span className="text-xs text-gray-400">{p.readTime} · {p.category}</span>
+                  </Link>
+                ))}
+              </div>
+              <Link to="/blog" className="mt-4 text-xs text-blue-600 hover:text-blue-700 font-medium block text-right">
+                Browse all articles →
+              </Link>
             </div>
           )}
 
