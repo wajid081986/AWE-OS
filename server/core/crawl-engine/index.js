@@ -12,9 +12,111 @@ const { CrawlGraph }   = require('./graph');
 const { CrawlResults } = require('./results');
 const { normalizeUrl, isCrawlable } = require('./normalizer');
 
+// Compute word count from content-block arrays (city/compare/faq data structure)
+function countBlockWords(content, faqs) {
+  const blockText = (content || []).map(block => {
+    if (['p', 'h1', 'h2', 'h3', 'callout'].includes(block.type)) return block.text || '';
+    if (block.type === 'ul')    return (block.items  || []).join(' ');
+    if (block.type === 'table') return [
+      (block.headers || []).join(' '),
+      ...(block.rows || []).map(r => r.join(' ')),
+    ].join(' ');
+    return '';
+  }).join(' ');
+
+  const faqText = (faqs || [])
+    .map(f => `${f.q || ''} ${f.a || ''}`)
+    .join(' ');
+
+  return [blockText, faqText]
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .filter(Boolean)
+    .length;
+}
+
 class CrawlEngine {
   constructor() {
     this._activeCrawls = new Map();
+    this._dataCache    = null;
+  }
+
+  // Load + cache city/compare/faq/blog data once per process
+  _loadDataCache() {
+    if (this._dataCache) return this._dataCache;
+
+    const dataDir = path.resolve(__dirname, '../../../client/src/data');
+
+    function evalFile(filePath) {
+      try {
+        const src = fs.readFileSync(filePath, 'utf8');
+        const cjs = src
+          .replace(/export\s+default\s+/g, 'var __default__ = ')
+          .replace(/export\s+(const|let|var)\s+/g, 'var ')
+          .replace(/\bexport\s+function\b/g, 'function')
+          .replace(/\bexport\s+class\b/g, 'class');
+        const ctx = {};
+        vm.runInNewContext(cjs, ctx, { timeout: 5000 });
+        return ctx;
+      } catch { return {}; }
+    }
+
+    const cityCtx    = evalFile(path.join(dataDir, 'cityPages.js'));
+    const compCtx    = evalFile(path.join(dataDir, 'comparisonPages.js'));
+    const faqCtx     = evalFile(path.join(dataDir, 'faqPages.js'));
+    const blogCtx    = evalFile(path.join(dataDir, 'blogPosts.js'));
+
+    this._dataCache = {
+      cityPages:   cityCtx.CITY_PAGES        || [],
+      comparisons: compCtx.COMPARISON_PAGES  || [],
+      faqPages:    faqCtx.FAQ_PAGES          || [],
+      blogPosts:   blogCtx.BLOG_POSTS        || [],
+    };
+    return this._dataCache;
+  }
+
+  // Return data-based word count for pages that aren't prerendered by the Edge Middleware
+  // (city, compare, faq pages, and blog posts whose full content isn't in the middleware)
+  _dataWordCount(url, base) {
+    const pathname = url.replace(base, '').replace(/\/$/, '') || '/';
+    const data     = this._loadDataCache();
+
+    // Blog post: /blog/:slug
+    const blogMatch = pathname.match(/^\/blog\/([^/]+)$/);
+    if (blogMatch) {
+      const post = data.blogPosts.find(p => p.slug === blogMatch[1]);
+      if (post) return countBlockWords(post.content, post.faqs || []);
+    }
+
+    // City page: /:toolSlug/:city (e.g. /bmi-calculator/mumbai)
+    const cityMatch = pathname.match(/^\/([^/]+)\/([^/]+)$/);
+    if (cityMatch) {
+      const reserved = new Set(['tools', 'blog', 'compare', 'faq', 'about', 'contact',
+                                 'pricing', 'privacy-policy', 'privacy', 'terms', 'disclaimer']);
+      if (!reserved.has(cityMatch[1])) {
+        const citySlug = `${cityMatch[1]}/${cityMatch[2]}`;
+        const cityPage = data.cityPages.find(c => c.slug === citySlug);
+        if (cityPage) return countBlockWords(cityPage.content, cityPage.faqs || []);
+      }
+    }
+
+    // Comparison page: /compare/:slug
+    const compareMatch = pathname.match(/^\/compare\/([^/]+)$/);
+    if (compareMatch) {
+      const comp = data.comparisons.find(c => c.slug === compareMatch[1]);
+      if (comp) return countBlockWords(comp.content, comp.faqs || []);
+    }
+
+    // FAQ page: /faq/:slug
+    const faqMatch = pathname.match(/^\/faq\/([^/]+)$/);
+    if (faqMatch) {
+      const faq = data.faqPages.find(f => f.slug === faqMatch[1]);
+      if (faq) return countBlockWords(null, faq.faqs || []);
+    }
+
+    return 0;
   }
 
   async crawl(startUrl, opts = {}) {
@@ -79,6 +181,24 @@ class CrawlEngine {
       graph.addNode(url, depth);
 
       const pageData = await crawlPage(url, allowedHost);
+
+      // Override word count from local data for pages the Edge Middleware doesn't prerender.
+      // The Googlebot UA gets prerendered HTML for /tools/* and /blog/* from middleware.js,
+      // but city pages (/:tool/:city), /compare/*, and /faq/* aren't in the middleware matcher,
+      // so they return the SPA shell. Use the richer local data count when available.
+      if (!pageData.error) {
+        const base = startUrl.replace(/\/+$/, '');
+        const dataWords = this._dataWordCount(url, base);
+        if (dataWords > (pageData.wordCount || 0)) {
+          pageData.wordCount = dataWords;
+          // Recompute THIN_CONTENT issue with corrected word count
+          pageData.issues = (pageData.issues || []).filter(i => i.type !== 'THIN_CONTENT');
+          if (dataWords < 300) {
+            pageData.issues.push({ type: 'THIN_CONTENT', severity: 'warning', detail: `${dataWords} words` });
+          }
+        }
+      }
+
       results.addPage(pageData);
 
       const elapsedSec = (Date.now() - crawlStartTime) / 1000;
@@ -160,8 +280,11 @@ class CrawlEngine {
     const base    = startUrl.replace(/\/+$/, '');
     const urlSet  = new Set();
 
-    // Static pages
-    for (const p of ['/', '/about', '/tools', '/blog', '/contact', '/privacy-policy', '/terms']) {
+    // Static + category pages
+    for (const p of [
+      '/', '/about', '/tools', '/blog', '/contact', '/privacy-policy', '/terms', '/disclaimer',
+      '/tools/pdf', '/tools/calculators', '/tools/converters', '/tools/ai',
+    ]) {
       urlSet.add(base + p);
     }
 

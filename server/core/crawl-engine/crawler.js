@@ -20,7 +20,9 @@ async function crawlPage(url, allowedHost) {
         signal:   controller.signal,
         redirect: 'follow',
         headers:  {
-          'User-Agent':    'AWE-OS Crawler/1.0',
+          // Use Googlebot UA so Vercel Edge Middleware returns prerendered HTML
+          // (matching SEARCH_BOT_UA regex in client/middleware.js)
+          'User-Agent':    'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
           'Accept':        'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
           'Cache-Control': 'no-cache, no-store',
           'Pragma':        'no-cache',
@@ -72,9 +74,28 @@ async function crawlPage(url, allowedHost) {
       hreflang.push({ lang: $(el).attr('hreflang'), href: $(el).attr('href') });
     });
 
-    // Word count — strip chrome elements first
+    // Extract prerendered SEO content BEFORE stripping it.
+    // #root > div[aria-hidden="true"] holds prerendered React content in the SPA
+    // (hidden via CSS for regular users; crawlers may see it via Edge Middleware).
+    const prerenderText = $('[aria-hidden="true"]')
+      .filter((_, el) => {
+        const style = $(el).attr('style') || '';
+        return style.includes('display:none') || style.includes('display: none');
+      })
+      .text()
+      .replace(/\s+/g, ' ')
+      .trim();
+    const prerenderWords = prerenderText ? prerenderText.split(' ').filter(Boolean).length : 0;
+
+    // Standard word count — strip chrome elements
     $('script, style, nav, header, footer, [aria-hidden="true"]').remove();
-    const wordCount = $('body').text().replace(/\s+/g, ' ').trim().split(' ').filter(Boolean).length;
+    const bodyWords = $('body').text().replace(/\s+/g, ' ').trim().split(' ').filter(Boolean).length;
+
+    // Meta description word count as a floor signal
+    const metaDescWords = (metaDesc || '').split(/\s+/).filter(Boolean).length;
+
+    // Use the richest source available
+    const wordCount = Math.max(prerenderWords, bodyWords, metaDescWords);
 
     // Images
     const images = [];
