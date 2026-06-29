@@ -60,19 +60,26 @@
      crossorigin="anonymous"></script>
     -->
 
+    <!-- FOUC prevention: dark bg before any JS loads; hide root/noscript until React mounts -->
+    <style>
+      body { background-color: #0f172a; margin: 0; padding: 0; }
+      #root > div[aria-hidden="true"] { display: none !important; }
+      #root:not(.mounted) { visibility: hidden; }
+      noscript { display: none; }
+    </style>
 
-    <script type="module" crossorigin src="/assets/index-_ukS_SdA.js"></script>
+    <script type="module" crossorigin src="/assets/index-BH3ejpFM.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/vendor-react-rjNMuUpz.js">
     <link rel="modulepreload" crossorigin href="/assets/vendor-helmet-CdMLZp-7.js">
     <link rel="modulepreload" crossorigin href="/assets/vendor-jspdf-BoPeIjwG.js">
     <link rel="modulepreload" crossorigin href="/assets/vendor-axios-DZ_Kha3d.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-BgHBNE1i.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-CCHrVNwg.css">
     <link rel="canonical" href="https://www.awe-os.com/" />
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"AWE-OS","url":"https://www.awe-os.com","description":"50+ free browser-based tools. No sign-up required.","potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://www.awe-os.com/tools?q={search_term_string}"},"query-input":"required name=search_term_string"}}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"AWE-OS","url":"https://www.awe-os.com","logo":"https://www.awe-os.com/og-image.svg","sameAs":["https://twitter.com/awe_os"]}</script>
 </head>
   <body>
-    <div id="root">
+    <div id="root"><div style="display:none" aria-hidden="true">
 <main>
 <h1>49+ Free Tools. No Signup. Just Works.</h1>
 <p>PDF tools, calculators, converters, and AI tools — all free, all in your browser.</p>
@@ -104,7 +111,7 @@
 <ul><li><a href="/tools/resume-builder">AI Resume Builder</a> — Create professional, ATS-friendly resumes with AI assistance in minutes.</li><li><a href="/tools/ai-content-writer">AI Content Writer</a> — Generate blog posts, social captions, and ad copy with GPT-powered AI.</li></ul>
 </section>
 </main>
-</div>
+</div></div>
     <noscript>
       <style>
         body { font-family: system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #1f2937; }

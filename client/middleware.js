@@ -578,6 +578,20 @@ const STATIC_PAGES = {
   <h2>PDF and File Tools</h2>
   <p>File processing tools operate in your browser. While we test our tools thoroughly, we recommend keeping a backup of any important file before processing it.</p>`,
   },
+  '/tools/free': {
+    title:       'Free Tools — No Sign-Up Required | AWE-OS',
+    description: 'All free tools on AWE-OS require no account, no payment, and no software. PDF, calculators, converters, AI tools — 100% free in your browser.',
+    h1:          'All Free Tools',
+    bodyHtml:    `<p>Every tool on AWE-OS is free. No account, no payment, no software installation. 100+ tools across PDF, calculators, converters, and AI — all running in your browser.</p>
+  <ul>
+    <li><a href="${SITE_URL}/tools/pdf">PDF Tools</a> — merge, split, compress, rotate, convert and secure PDFs</li>
+    <li><a href="${SITE_URL}/tools/calculators">Calculators</a> — BMI, loan EMI, GPA, age, percentage and more</li>
+    <li><a href="${SITE_URL}/tools/converters">Converters</a> — unit, text, file and image conversion</li>
+    <li><a href="${SITE_URL}/tools/ai">AI Tools</a> — resume builder, content writer, and AI-powered utilities</li>
+    <li><a href="${SITE_URL}/tools/productivity">Productivity Tools</a> — invoice generator, contract generator</li>
+  </ul>
+  <p><a href="${SITE_URL}/tools">Browse all tools</a> — no sign-up required.</p>`,
+  },
 };
 
 // ── Category page data ────────────────────────────────────────────────────────
@@ -655,6 +669,19 @@ const CATEGORIES = {
   <ul>
     <li><a href="${SITE_URL}/tools/resume-builder">AI Resume Builder</a> — ATS-optimised resumes in minutes</li>
     <li><a href="${SITE_URL}/tools/ai-content-writer">AI Content Writer</a> — blog posts, captions, and ad copy</li>
+  </ul>`,
+  },
+  productivity: {
+    title:       'Free Productivity Tools — Invoice Generator & More | AWE-OS',
+    description: 'Free productivity tools for freelancers and businesses. Create GST invoices, manage clients, and export PDFs — no subscription required.',
+    h1:          'Free Productivity Tools',
+    bodyHtml:    `<p>AWE-OS productivity tools help freelancers and small businesses work smarter. Create professional GST invoices, generate legal contracts, and manage client billing — all free, all in your browser.</p>
+  <h2>Available Productivity Tools</h2>
+  <ul>
+    <li><a href="${SITE_URL}/tools/invoice">Invoice Generator</a> — create GST-compliant invoices with live PDF preview</li>
+    <li><a href="${SITE_URL}/tools/contract-generator">Contract Generator</a> — generate NDA, service agreements and employment contracts</li>
+    <li><a href="${SITE_URL}/tools/resume-builder">AI Resume Builder</a> — build ATS-optimised resumes in minutes</li>
+    <li><a href="${SITE_URL}/tools/ai-content-writer">AI Content Writer</a> — generate blog posts, captions, and ad copy</li>
   </ul>`,
   },
 };
@@ -975,7 +1002,7 @@ export default function middleware(req) {
   }
 
   // ── Category pages: /tools/pdf, /tools/calculators, etc. ─────────────────
-  const catMatch = pathname.match(/^\/tools\/(pdf|calculators|converters|ai)$/);
+  const catMatch = pathname.match(/^\/tools\/(pdf|calculators|converters|ai|productivity)$/);
   if (catMatch) {
     const cat     = CATEGORIES[catMatch[1]];
     const pageUrl = `${SITE_URL}${pathname}`;
