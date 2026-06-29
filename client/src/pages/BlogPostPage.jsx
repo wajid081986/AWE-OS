@@ -138,8 +138,16 @@ export default function BlogPostPage() {
 
   const toISO = (d) => (d && !d.includes('T') ? `${d}T00:00:00Z` : d)
 
+  const contentBlocks = Array.isArray(post.content)
+    ? post.content
+    : typeof post.content === 'string'
+      ? [{ type: 'p', text: post.content }]
+      : []
+
+  const faqList = Array.isArray(post.faqs) ? post.faqs : []
+
   // Extract plain text from content blocks for articleBody / wordCount
-  const plainText = (post.content || [])
+  const plainText = contentBlocks
     .map(b => b.text || (b.items || []).join(' '))
     .join(' ')
     .trim()
@@ -259,17 +267,17 @@ export default function BlogPostPage() {
 
           {/* Article body */}
           <article className="bg-white rounded-2xl border border-gray-200 p-8 mb-6 prose-sm">
-            {post.content.map((block, i) => (
+            {contentBlocks.map((block, i) => (
               <ContentBlock key={i} block={block} />
             ))}
           </article>
 
           {/* FAQ section */}
-          {post.faqs && post.faqs.length > 0 && (
+          {faqList.length > 0 && (
             <div className="bg-white rounded-2xl border border-gray-200 p-8 mb-6">
               <h2 className="text-lg font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
               <div className="space-y-3">
-                {post.faqs.map(({ q, a }, i) => (
+                {faqList.map(({ q, a }, i) => (
                   <details key={i} className="group border border-gray-200 rounded-xl overflow-hidden">
                     <summary className="flex items-center justify-between px-5 py-4 cursor-pointer select-none bg-white hover:bg-gray-50 transition-colors">
                       <span className="text-sm font-medium text-gray-900 pr-4">{q}</span>
