@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import api from '../../../services/api.service'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -197,10 +197,18 @@ export default function CrawlEngine() {
   const [issueModal,    setIssueModal]    = useState(null)
   const [prevSnap,      setPrevSnap]      = useState(null)
   const [gscMsg,        setGscMsg]        = useState(null)
+  const [crawlHistory,  setCrawlHistory]  = useState([])
+  const [historyErr,    setHistoryErr]    = useState(null)
 
   const timerRef  = useRef(null)
   const pollRef   = useRef(null)
   const cancelRef = useRef(false)
+
+  useEffect(() => {
+    api.get('/api/admin/seo/crawl-history')
+      .then(r => setCrawlHistory(r.data?.history || []))
+      .catch(e => setHistoryErr(e.response?.data?.error || e.message))
+  }, [])
 
   // ── Start crawl ─────────────────────────────────────────────────────────────
 
@@ -282,6 +290,21 @@ export default function CrawlEngine() {
     } catch (err) {
       setGscMsg(`❌ ${err.response?.data?.error || err.message}`)
     }
+  }
+
+  function exportCSV() {
+    const cols = ['URL', 'Status', 'Words', 'Issues', 'Schema', 'InternalLinks', 'Score', 'AdSense', 'CrawlTime(ms)']
+    const rows = pages.map(p => [
+      p.url, p.status ?? '', p.wordCount ?? 0, p.issues ?? 0,
+      p.hasSchema ? 'Yes' : 'No', p.internalLinks ?? 0,
+      p.pageScore ?? 0, p.adsenseSafe ? 'Pass' : 'Fail', p.crawlTime ?? 0,
+    ])
+    const csv = [cols, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const a    = document.createElement('a')
+    a.href     = URL.createObjectURL(blob)
+    a.download = `crawl-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
   }
 
   // ── Derived state ────────────────────────────────────────────────────────────
@@ -631,6 +654,10 @@ export default function CrawlEngine() {
                   Crawled Pages ({pages.length}) — sorted by score ↑
                 </h2>
                 <div className="flex gap-2 flex-wrap">
+                  <button onClick={exportCSV}
+                    className="text-xs px-3 py-1 rounded-full border border-green-700 text-green-400 hover:bg-green-900/30 transition-colors">
+                    Export CSV
+                  </button>
                   {[
                     { key: 'all',      label: `All (${pages.length})` },
                     { key: 'critical', label: `🔴 Critical <50 (${criticalCount})` },
@@ -657,6 +684,7 @@ export default function CrawlEngine() {
                       <th className="px-4 py-2.5 text-right text-gray-400 font-medium text-xs">Issues</th>
                       <th className="px-4 py-2.5 text-center text-gray-400 font-medium text-xs">Schema</th>
                       <th className="px-4 py-2.5 text-right text-gray-400 font-medium text-xs">Links</th>
+                      <th className="px-4 py-2.5 text-center text-gray-400 font-medium text-xs">AdSense</th>
                       <th className="px-4 py-2.5 text-right text-gray-400 font-medium text-xs">Score</th>
                       <th className="px-4 py-2.5 text-right text-gray-400 font-medium text-xs">Time</th>
                     </tr>
@@ -691,6 +719,11 @@ export default function CrawlEngine() {
                               {page.internalLinks ?? '—'}
                             </span>
                           </td>
+                          <td className="px-4 py-2.5 text-center text-xs">
+                            {page.adsenseSafe
+                              ? <span className="text-green-400">Pass</span>
+                              : <span className="text-red-400">Fail</span>}
+                          </td>
                           <td className="px-4 py-2.5 text-right">
                             <span className={`text-xs font-bold ${scoreColor}`}>{ps}</span>
                           </td>
@@ -715,6 +748,53 @@ export default function CrawlEngine() {
           </p>
         </>
       )}
+
+      {/* Crawl History */}
+      <div className="mt-6 bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+        <div className="px-5 py-3 border-b border-gray-700">
+          <h2 className="text-sm font-semibold text-white">Crawl History (last 10 runs)</h2>
+        </div>
+        {historyErr ? (
+          <p className="p-4 text-xs text-red-400">Could not load history: {historyErr}</p>
+        ) : crawlHistory.length === 0 ? (
+          <p className="p-4 text-xs text-gray-500">No crawl history yet — run your first crawl above.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-900/50">
+                  <th className="px-4 py-2.5 text-left text-gray-400 font-medium text-xs">Date</th>
+                  <th className="px-4 py-2.5 text-right text-gray-400 font-medium text-xs">Pages</th>
+                  <th className="px-4 py-2.5 text-right text-gray-400 font-medium text-xs">Avg Words</th>
+                  <th className="px-4 py-2.5 text-center text-gray-400 font-medium text-xs">Grade</th>
+                  <th className="px-4 py-2.5 text-right text-gray-400 font-medium text-xs">Score</th>
+                  <th className="px-4 py-2.5 text-right text-gray-400 font-medium text-xs">Errors</th>
+                  <th className="px-4 py-2.5 text-right text-gray-400 font-medium text-xs">Thin</th>
+                </tr>
+              </thead>
+              <tbody>
+                {crawlHistory.map(h => (
+                  <tr key={h.id} className="border-t border-gray-700/50 hover:bg-gray-700/30">
+                    <td className="px-4 py-2.5 text-gray-300 text-xs">
+                      {new Date(h.crawl_date).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-white text-xs font-mono">{h.total_pages}</td>
+                    <td className="px-4 py-2.5 text-right text-gray-400 text-xs font-mono">{h.avg_words}</td>
+                    <td className="px-4 py-2.5 text-center">
+                      <span className="text-xs font-bold" style={{ color: GRADE_COLOR[h.grade] || '#6b7280' }}>
+                        {h.grade}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-gray-300 text-xs font-mono">{h.score}/100</td>
+                    <td className="px-4 py-2.5 text-right text-red-400 text-xs font-mono">{h.errors}</td>
+                    <td className="px-4 py-2.5 text-right text-yellow-400 text-xs font-mono">{h.thin_content}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* Issue detail modal — Upgrade 3 */}
       {issueModal && (

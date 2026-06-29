@@ -733,9 +733,27 @@ router.post('/crawl-start', requireAuth, requireAdmin, async (req, res) => {
         goodCount: (job.progress.goodCount || 0) + (p.isGood  ? 1 : 0),
       }
     },
-  }).then(report => {
+  }).then(async report => {
     job.status = 'done'
     job.report = report
+    // Save to crawl_history table
+    try {
+      const supabase = require('../db/supabase')
+      const thinCount = (report.issues || []).find(i => i.type === 'THIN_CONTENT')?.count || 0
+      await supabase.from('crawl_history').insert({
+        crawl_date:   new Date().toISOString(),
+        total_pages:  report.summary.totalPages,
+        avg_words:    report.averages?.words || 0,
+        score:        report.summary.score,
+        grade:        report.summary.grade,
+        errors:       report.summary.errorCount,
+        warnings:     report.summary.warningCount,
+        thin_content: thinCount,
+        results:      report,
+      })
+    } catch (dbErr) {
+      console.warn('[crawl] DB save to crawl_history failed:', dbErr.message)
+    }
   }).catch(err => {
     job.status = 'error'
     job.error  = err.message
@@ -1247,6 +1265,24 @@ router.get('/city-pages-status', requireAuth, requireAdmin, (req, res) => {
     res.json({ success: true, status })
   } catch (err) {
     console.error('[admin-seo/city-pages-status]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── GET /crawl-history — last 10 crawl runs ───────────────────────────────────
+
+router.get('/crawl-history', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const supabase = require('../db/supabase')
+    const { data, error } = await supabase
+      .from('crawl_history')
+      .select('id, crawl_date, total_pages, avg_words, score, grade, errors, warnings, thin_content, created_at')
+      .order('created_at', { ascending: false })
+      .limit(10)
+    if (error) throw error
+    res.json({ success: true, history: data || [] })
+  } catch (err) {
+    console.error('[admin-seo/crawl-history]', err.message)
     res.status(500).json({ success: false, error: err.message })
   }
 })

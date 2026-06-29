@@ -1,5 +1,9 @@
 'use strict';
 
+const fs   = require('fs');
+const path = require('path');
+const vm   = require('vm');
+
 const { CrawlQueue }   = require('./queue');
 const { robotsParser } = require('./robots');
 const { parseSitemap } = require('./sitemap');
@@ -50,6 +54,10 @@ class CrawlEngine {
       sitemapFound    = seed.found;
       sitemapUrlCount = seed.count;
     }
+
+    // Seed from local data files — ensures ALL known pages are crawled
+    // even if not in sitemap or not linked from other pages
+    await this._seedFromDataFiles(startUrl, allowedHost, queue, maxPages);
 
     // Always include the start URL
     const normStart = normalizeUrl(startUrl, startUrl);
@@ -130,6 +138,79 @@ class CrawlEngine {
     };
 
     return report;
+  }
+
+  // Seed queue from local client data files — guarantees all known routes are crawled
+  async _seedFromDataFiles(startUrl, allowedHost, queue, maxPages) {
+    function evalFile(filePath) {
+      try {
+        const src = fs.readFileSync(filePath, 'utf8');
+        const cjs = src
+          .replace(/export\s+default\s+/g, 'var __default__ = ')
+          .replace(/export\s+(const|let|var)\s+/g, 'var ')
+          .replace(/\bexport\s+function\b/g, 'function')
+          .replace(/\bexport\s+class\b/g, 'class');
+        const ctx = {};
+        vm.runInNewContext(cjs, ctx, { timeout: 5000 });
+        return ctx;
+      } catch { return {}; }
+    }
+
+    const dataDir = path.resolve(__dirname, '../../../client/src/data');
+    const base    = startUrl.replace(/\/+$/, '');
+    const urlSet  = new Set();
+
+    // Static pages
+    for (const p of ['/', '/about', '/tools', '/blog', '/contact', '/privacy-policy', '/terms']) {
+      urlSet.add(base + p);
+    }
+
+    // Tool pages
+    try {
+      const ctx = evalFile(path.join(dataDir, 'toolRegistry.js'));
+      for (const t of (ctx.TOOL_REGISTRY || [])) {
+        if (!t.comingSoon && t.slug) urlSet.add(`${base}/tools/${t.slug}`);
+      }
+    } catch {}
+
+    // Blog posts (skip noindex)
+    try {
+      const ctx = evalFile(path.join(dataDir, 'blogPosts.js'));
+      for (const p of (ctx.BLOG_POSTS || [])) {
+        if (!p.noindex && p.slug) urlSet.add(`${base}/blog/${p.slug}`);
+      }
+    } catch {}
+
+    // City pages — slug format is e.g. "bmi-calculator/mumbai"
+    try {
+      const ctx = evalFile(path.join(dataDir, 'cityPages.js'));
+      for (const c of (ctx.CITY_PAGES || [])) {
+        if (c.slug) urlSet.add(`${base}/${c.slug}`);
+      }
+    } catch {}
+
+    // Comparison pages — /compare/:slug
+    try {
+      const ctx = evalFile(path.join(dataDir, 'comparisonPages.js'));
+      for (const c of (ctx.COMPARISON_PAGES || [])) {
+        if (c.slug) urlSet.add(`${base}/compare/${c.slug}`);
+      }
+    } catch {}
+
+    // FAQ pages — /faq/:slug
+    try {
+      const ctx = evalFile(path.join(dataDir, 'faqPages.js'));
+      for (const f of (ctx.FAQ_PAGES || [])) {
+        if (f.slug) urlSet.add(`${base}/faq/${f.slug}`);
+      }
+    } catch {}
+
+    let seeded = 0;
+    for (const url of urlSet) {
+      if (queue.visitedCount + queue.size >= maxPages) break;
+      if (isCrawlable(url, allowedHost) && queue.enqueue(url, 1)) seeded++;
+    }
+    return seeded;
   }
 
   // Seed queue with ALL sitemap URLs (up to maxPages, not 30%)

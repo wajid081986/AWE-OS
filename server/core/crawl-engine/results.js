@@ -115,6 +115,7 @@ class CrawlResults {
           hasSchema,
           internalLinks: intLinksCount,
           pageScore:    wScore + sScore + lScore + iScore,
+          adsenseSafe:  wordCount > 300,
         };
       }),
     };
