@@ -89,6 +89,9 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// Constant-time dummy hash — prevents timing attacks when user is not found
+const DUMMY_HASH = '$2b$10$abcdefghijklmnopqrstuvuuuuuuuuuuuuuuuuuuuuuuuuuuuuuO';
+
 // ── POST /api/auth/login ────────────────────────────────────
 router.post('/login', async (req, res) => {
   const parsed = LoginSchema.safeParse(req.body);
@@ -106,9 +109,8 @@ router.post('/login', async (req, res) => {
       .eq('email', email)
       .maybeSingle();
 
-    const passwordMatch = user
-      ? await bcrypt.compare(password, user.password_hash)
-      : false;
+    // Always run bcrypt regardless of whether user exists — prevents timing attacks
+    const passwordMatch = await bcrypt.compare(password, user?.password_hash ?? DUMMY_HASH);
 
     if (!user || !passwordMatch) {
       return res.status(401).json({ success: false, error: 'Invalid email or password' });
