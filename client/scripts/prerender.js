@@ -742,11 +742,13 @@ ${featured ? `<ul>${featured}</ul>` : ''}
 </main>`
 }
 
-/** Replace the empty <div id="root"></div> with our static body HTML. */
+/** Replace the empty <div id="root"></div> with our static body HTML.
+ *  The content is hidden from the browser so crawlers (which read raw HTML)
+ *  still see it, but users never see raw unstyled text before React mounts. */
 function injectBody(html, bodyHTML) {
   return html.replace(
     /<div\s+id="root"\s*><\/div>/,
-    `<div id="root">\n${bodyHTML}\n</div>`
+    `<div id="root"><div style="display:none" aria-hidden="true">\n${bodyHTML}\n</div></div>`
   )
 }
 
