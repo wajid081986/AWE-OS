@@ -16,10 +16,16 @@ if (import.meta.env.DEV) {
   validateEnv()
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+const rootEl = document.getElementById('root');
+const root   = ReactDOM.createRoot(rootEl);
+
+root.render(
   <React.StrictMode>
     <ErrorBoundary>
       <AppProviders />
     </ErrorBoundary>
   </React.StrictMode>
 );
+
+// Remove visibility:hidden guard — React has begun rendering
+rootEl.classList.add('mounted');

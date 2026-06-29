@@ -63,7 +63,8 @@
     <!-- FOUC prevention: dark bg before any JS loads; hide root/noscript until React mounts -->
     <style>
       body { background-color: #0f172a; margin: 0; padding: 0; }
-      #root:empty { display: none; }
+      #root > div[aria-hidden="true"] { display: none !important; }
+      #root:not(.mounted) { visibility: hidden; }
       noscript { display: none; }
     </style>
 
