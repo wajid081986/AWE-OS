@@ -373,7 +373,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'p',
-        text: "The \"Income Tax Calculator India 2025-26\' is a digital tool developed to assist taxpayers in accurately calculating their tax liabilities for the financial year 2025-26. It is an essential resource for both individuals and businesses who need to understand their tax obligations under the current tax regime. This calculator simplifies the process by incorporating the latest tax slabs and rules announced by the government. By using this tool, you can quickly determine your tax dues and plan your finances accordingly.'
+        text: 'The "Income Tax Calculator India 2025-26" is a digital tool developed to assist taxpayers in accurately calculating their tax liabilities for the financial year 2025-26. It is an essential resource for both individuals and businesses who need to understand their tax obligations under the current tax regime. This calculator simplifies the process by incorporating the latest tax slabs and rules announced by the government. By using this tool, you can quickly determine your tax dues and plan your finances accordingly.'
       },
       {
         type: 'p',
@@ -381,7 +381,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'p',
-        text: "The calculator is designed to be user-friendly, with a simple interface that can be used by individuals with varying levels of financial literacy. Whether you are a salaried employee, a freelancer, or a business owner, the \"Income Tax Calculator India 2025-26\' is tailored to meet your specific needs. It is an invaluable tool for anyone looking to gain clarity on their tax situation and make informed financial decisions.'
+        text: 'The calculator is designed to be user-friendly, with a simple interface that can be used by individuals with varying levels of financial literacy. Whether you are a salaried employee, a freelancer, or a business owner, the "Income Tax Calculator India 2025-26" is tailored to meet your specific needs. It is an invaluable tool for anyone looking to gain clarity on their tax situation and make informed financial decisions.'
       },
       {
         type: 'h2',
@@ -389,7 +389,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'p',
-        text: "Understanding how the \"Income Tax Calculator India 2025-26\' works is crucial for accurately calculating your taxes. The calculator considers various factors such as income from salary, business, capital gains, and other sources. It also factors in deductions under sections like 80C, 80D, and 10(14). Using this tool, you can assess your total taxable income and apply the appropriate tax slab rates to compute your tax liability. Below is a sample table demonstrating tax calculations for different income levels.'
+        text: 'Understanding how the "Income Tax Calculator India 2025-26" works is crucial for accurately calculating your taxes. The calculator considers various factors such as income from salary, business, capital gains, and other sources. It also factors in deductions under sections like 80C, 80D, and 10(14). Using this tool, you can assess your total taxable income and apply the appropriate tax slab rates to compute your tax liability. Below is a sample table demonstrating tax calculations for different income levels.'
       },
       {
         type: 'table',
@@ -443,7 +443,7 @@ export const BLOG_POSTS = [
       {
         type: 'ul',
         items: [
-          "Salaried individuals who want to easily calculate their taxes and understand their tax liability for the year 2025-26 should use the \"Income Tax Calculator India 2025-26.\'',
+          'Salaried individuals who want to easily calculate their taxes and understand their tax liability for the year 2025-26 should use the "Income Tax Calculator India 2025-26."',
           'Freelancers and self-employed professionals who have varied income sources and seek a simple method to compute their taxes accurately will find this tool very beneficial.',
           'Business owners looking to calculate their corporate taxes and plan their financial strategies can greatly benefit from the calculator’s comprehensive features.',
           'Tax consultants and financial advisors who need a reliable tool to provide precise tax calculations to their clients can use this calculator to enhance their services.',
