@@ -256,6 +256,9 @@ function AIBlogWriterTab({ onPreFill }) {
         read_time:       finalPost.readTime,
         faqs:            finalPost.faqs,
         related_tools:   finalPost.relatedTools,
+        image_url:       finalPost.imageUrl,
+        image_credit:    finalPost.imageCredit,
+        image_credit_url: finalPost.imageCreditUrl,
       })
       setPubDbResult(res.data)
     } catch (err) {
@@ -361,6 +364,15 @@ function AIBlogWriterTab({ onPreFill }) {
               return <span className="text-xs text-red-400 font-medium">❌ Generated: {wc} words (target: {target})</span>
             })()}
           </div>
+
+          {post.imageUrl && (
+            <div className="rounded-lg overflow-hidden border border-gray-700">
+              <img src={post.imageUrl} alt="Featured" className="w-full h-32 object-cover" />
+              {post.imageCredit && (
+                <p className="text-[10px] text-gray-500 px-2 py-1 bg-gray-900">Photo by {post.imageCredit} on Unsplash</p>
+              )}
+            </div>
+          )}
 
           <Field label="Title">
             <Input value={meta.title || ''} onChange={v => setMeta(m => ({ ...m, title: v }))} />

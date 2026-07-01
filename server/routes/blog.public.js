@@ -20,6 +20,9 @@ function normalise(row) {
     faqs:            row.faqs         || [],
     relatedTools:    row.related_tools || [],
     tags:            row.tags         || [],
+    imageUrl:        row.image_url        || null,
+    imageCredit:     row.image_credit     || null,
+    imageCreditUrl:  row.image_credit_url || null,
   }
 }
 
@@ -28,7 +31,7 @@ router.get('/posts', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('blog_posts')
-      .select('id, slug, title, date, category, author, read_time, excerpt, meta_title, meta_description, related_tools')
+      .select('id, slug, title, date, category, author, read_time, excerpt, meta_title, meta_description, related_tools, image_url, image_credit, image_credit_url')
       .eq('status', 'published')
       .order('date', { ascending: false })
     if (error) throw error

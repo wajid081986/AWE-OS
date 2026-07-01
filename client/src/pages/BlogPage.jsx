@@ -27,6 +27,14 @@ function PostCard({ post }) {
       to={`/blog/${post.slug}`}
       className="group flex flex-col bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg hover:border-blue-200 transition-all duration-200"
     >
+      {post.imageUrl && (
+        <img
+          src={post.imageUrl}
+          alt={post.title}
+          className="w-full h-40 object-cover"
+          loading="lazy"
+        />
+      )}
       <div className="p-6 flex flex-col flex-1">
         <div className="flex items-center justify-between mb-3">
           <CategoryBadge category={post.category} />

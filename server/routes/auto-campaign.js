@@ -3,6 +3,7 @@ const Anthropic    = require('@anthropic-ai/sdk')
 const { TwitterApi } = require('twitter-api-v2')
 const requireAuth  = require('../middleware/auth')
 const supabase     = require('../db/supabase')
+const fetchFeaturedImage = require('../services/unsplashImage')
 
 const router = express.Router()
 
@@ -142,6 +143,7 @@ Generate all content for this tool. Keep it authentic and helpful.`,
         .join(' ')
         .split(/\s+/)
         .filter(Boolean).length
+      const featuredImage = await fetchFeaturedImage(toolName)
       const row = {
         slug:             cleanSlug,
         title:            content.blogTitle,
@@ -156,6 +158,9 @@ Generate all content for this tool. Keep it authentic and helpful.`,
         faqs:             content.blogFaqs     || [],
         related_tools:    [{ slug: toolSlug, label: toolName, icon: '🔧' }],
         tags:             [toolName, toolCategory || 'tools', 'AWE-OS', 'free online'],
+        image_url:        featuredImage?.url       || null,
+        image_credit:     featuredImage?.credit    || null,
+        image_credit_url: featuredImage?.creditUrl || null,
         status:           'published',
         updated_at:       new Date().toISOString(),
       }

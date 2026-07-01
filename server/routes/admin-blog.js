@@ -5,6 +5,7 @@ const { getOpenAI }         = require('../core/ai-engine')
 const parseAIJson           = require('../services/parseAIJson')
 const { pushBlogPost }      = require('../core/github-service')
 const { contentStudio }     = require('../core/content-studio')
+const fetchFeaturedImage    = require('../services/unsplashImage')
 
 const router = express.Router()
 
@@ -105,6 +106,9 @@ router.post('/generate', requireAuth, requireAdmin, async (req, res) => {
   const indianCtx = indianContext
     ? 'Yes — use ₹ symbol, Indian number format (₹12,75,000), SEBI/RBI/ICMR context where relevant'
     : 'No'
+
+  // Kick off in parallel with the OpenAI calls below — awaited once content is ready.
+  const imagePromise = fetchFeaturedImage(kw)
 
   // ── Internal link pool — the promoted tool first, then curated real tools ───
   const internalLinkPool = [
@@ -320,7 +324,8 @@ Return the JSON object with "blocks" and "faqs" keys as specified in the system 
     const faqs         = secondData.faqs || []
 
     // ── Merge into final post ─────────────────────────────────────────────────
-    const allContent = [...firstBlocks, ...secondBlocks]
+    const allContent    = [...firstBlocks, ...secondBlocks]
+    const featuredImage = await imagePromise
 
     const post = {
       slug:            metadata.slug            || topic.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
@@ -335,6 +340,9 @@ Return the JSON object with "blocks" and "faqs" keys as specified in the system 
       relatedTools:    metadata.relatedTools     || [],
       content:         allContent,
       faqs,
+      imageUrl:        featuredImage?.url       || null,
+      imageCredit:     featuredImage?.credit    || null,
+      imageCreditUrl:  featuredImage?.creditUrl || null,
     }
 
     // ── Word count validation ─────────────────────────────────────────────────
@@ -390,6 +398,7 @@ router.post('/publish', requireAuth, requireAdmin, async (req, res) => {
       relatedTools:    post.relatedTools    || [],
       content:         post.content         || [],
       ...(Array.isArray(post.faqs) && post.faqs.length ? { faqs: post.faqs } : {}),
+      ...(post.imageUrl ? { imageUrl: post.imageUrl, imageCredit: post.imageCredit || null, imageCreditUrl: post.imageCreditUrl || null } : {}),
     }
 
     const result = await publishToGitHub(cleanPost)
@@ -1341,7 +1350,7 @@ Return ONLY the improved article text. No JSON, no extra text.`,
 //   );
 
 router.post('/publish-db', requireAuth, requireAdmin, async (req, res) => {
-  const { title, slug, content, meta_title, meta_description, category, excerpt, read_time, faqs, related_tools, tags } = req.body
+  const { title, slug, content, meta_title, meta_description, category, excerpt, read_time, faqs, related_tools, tags, image_url, image_credit, image_credit_url } = req.body
   if (!title || !slug) return res.status(400).json({ success: false, error: 'title and slug are required' })
 
   const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
@@ -1359,6 +1368,9 @@ router.post('/publish-db', requireAuth, requireAdmin, async (req, res) => {
     faqs:             faqs             || [],
     related_tools:    related_tools    || [],
     tags:             tags             || [],
+    image_url:        image_url        || null,
+    image_credit:     image_credit     || null,
+    image_credit_url: image_credit_url || null,
     status:           'published',
     updated_at:       new Date().toISOString(),
   }

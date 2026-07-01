@@ -171,6 +171,12 @@ export default function BlogPostPage() {
     width:   1200,
     height:  630,
   }
+  const heroImage = {
+    '@type': 'ImageObject',
+    url:     post.imageUrl || OG_IMAGE.url,
+    width:   1200,
+    height:  630,
+  }
   const postUrl = `https://www.awe-os.com/blog/${post.slug}`
 
   const articleSchema = {
@@ -178,7 +184,7 @@ export default function BlogPostPage() {
     '@type':     'Article',
     headline:    post.title,
     description: post.excerpt,
-    image:       OG_IMAGE,
+    image:       heroImage,
     datePublished:  new Date(post.date).toISOString(),
     dateModified:   new Date(post.updatedDate || post.date).toISOString(),
     author: {
@@ -222,6 +228,7 @@ export default function BlogPostPage() {
         <meta property="og:title" content={post.metaTitle} />
         <meta property="og:description" content={post.metaDescription} />
         <meta property="og:type" content="article" />
+        <meta property="og:image" content={heroImage.url} />
         <meta property="article:published_time" content={toISO(post.date)} />
         <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
@@ -249,6 +256,29 @@ export default function BlogPostPage() {
             </svg>
             Back to Blog
           </Link>
+
+          {/* Featured image */}
+          {post.imageUrl && (
+            <div className="mb-6 rounded-2xl overflow-hidden border border-gray-200">
+              <img
+                src={post.imageUrl}
+                alt={post.title}
+                className="w-full h-64 sm:h-80 object-cover"
+                loading="eager"
+              />
+              {post.imageCredit && (
+                <p className="text-[11px] text-gray-400 px-3 py-1.5 bg-white">
+                  Photo by{' '}
+                  {post.imageCreditUrl ? (
+                    <a href={post.imageCreditUrl} target="_blank" rel="noopener noreferrer" className="hover:text-gray-600 underline">
+                      {post.imageCredit}
+                    </a>
+                  ) : post.imageCredit}
+                  {' '}on Unsplash
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Article header */}
           <div className="bg-white rounded-2xl border border-gray-200 p-8 mb-6">
