@@ -75,6 +75,17 @@ REQUIRED STRUCTURE:
 
 Include at least 2 tables and 1 callout block.`
 
+// ── Curated tools for inline internal-link suggestions (real slugs only) ──────
+const LINKABLE_TOOLS = [
+  { name: 'SIP Calculator',        slug: 'sip-calculator'   },
+  { name: 'GST Calculator',        slug: 'gst-calculator'   },
+  { name: 'Merge PDF',             slug: 'merge-pdf'        },
+  { name: 'AI Resume Builder',     slug: 'resume-builder'   },
+  { name: 'Income Tax Calculator', slug: 'tax-calculator'   },
+  { name: 'Loan EMI Calculator',   slug: 'loan-calculator'  },
+  { name: 'Compress PDF',          slug: 'compress-pdf'     },
+]
+
 // ── POST /generate — word-count-targeted three-call approach ─────────────────
 
 router.post('/generate', requireAuth, requireAdmin, async (req, res) => {
@@ -94,6 +105,13 @@ router.post('/generate', requireAuth, requireAdmin, async (req, res) => {
   const indianCtx = indianContext
     ? 'Yes — use ₹ symbol, Indian number format (₹12,75,000), SEBI/RBI/ICMR context where relevant'
     : 'No'
+
+  // ── Internal link pool — the promoted tool first, then curated real tools ───
+  const internalLinkPool = [
+    { name: toolRef, slug: toolSlug || '' },
+    ...LINKABLE_TOOLS,
+  ].filter((t, i, arr) => t.slug && arr.findIndex(x => x.slug === t.slug) === i).slice(0, 6)
+  const internalLinkList = internalLinkPool.map(t => `- ${t.name} → /tools/${t.slug}`).join('\n')
 
   // ── Word count config — adjust tokens and section targets per length ────────
   let call2MaxTokens, call3MaxTokens, call2Target, call3Target, call2SectionGuide, call3SectionGuide
@@ -225,6 +243,12 @@ Topic: "${topic}" | Keyword: "${kw}" | Tool: ${toolRef} (${toolUrl})
 Indian Context: ${indianCtx} | Tone: ${toneGuide}
 
 Rules: bold key numbers (**₹5,000**), short paragraphs (max 3 lines), Indian number format.
+
+INTERNAL LINKS: Naturally weave 2-3 internal links into "p" block text (not just headings) using this exact HTML format: <a href='/tools/tool-slug'>Tool Name</a>
+Only link to these real AWE-OS tools — never invent a slug:
+${internalLinkList}
+Spread the links across different paragraphs, one link per sentence maximum.
+
 Return as a raw JSON array of content blocks (no wrapping object).`
 
     const call2 = await getOpenAI().chat.completions.create({
@@ -277,6 +301,11 @@ Return format:
 
 Topic: "${topic}" | Keyword: "${kw}" | Tool: ${toolRef} (${toolUrl})
 Indian Context: ${indianCtx} | Tone: ${toneGuide}
+
+INTERNAL LINKS: Naturally weave 1-2 more internal links into "p" block text using this exact HTML format: <a href='/tools/tool-slug'>Tool Name</a>
+Only link to these real AWE-OS tools — never invent a slug:
+${internalLinkList}
+(the callout block link does not count towards this — these must be inline links inside paragraph text)
 
 Return the JSON object with "blocks" and "faqs" keys as specified in the system prompt.`
 
