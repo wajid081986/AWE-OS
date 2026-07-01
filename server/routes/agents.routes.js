@@ -169,6 +169,11 @@ router.post('/:agentName/trigger', requireAuth, (req, res) => {
 
 // GET /api/agents/status
 router.get('/status', requireAuth, async (req, res) => {
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+  });
   try {
     const results = await Promise.all(AGENT_NAMES.map(getAgentStatus));
     const agents = {};
@@ -182,6 +187,11 @@ router.get('/status', requireAuth, async (req, res) => {
 
 // GET /api/agents/:agentName/status
 router.get('/:agentName/status', requireAuth, async (req, res) => {
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+  });
   const { agentName } = req.params;
   if (!AGENT_HANDLERS[agentName]) {
     return res.status(404).json({ success: false, error: `Unknown agent: ${agentName}` });
@@ -198,6 +208,11 @@ router.get('/:agentName/status', requireAuth, async (req, res) => {
 
 // GET /api/agents/:agentName/logs?limit=20
 router.get('/:agentName/logs', requireAuth, async (req, res) => {
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+  });
   const { agentName } = req.params;
   if (!AGENT_HANDLERS[agentName]) {
     return res.status(404).json({ success: false, error: `Unknown agent: ${agentName}` });
