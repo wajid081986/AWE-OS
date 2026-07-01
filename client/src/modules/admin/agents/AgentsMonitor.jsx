@@ -13,6 +13,15 @@ const AGENTS = [
   { id: 'optimization',  name: 'Optimization Agent', icon: '⚡' },
 ]
 
+// Maps frontend agent ids to the keys AGENT_HANDLERS exposes in
+// server/routes/agents.routes.js — most ids match directly, but a
+// couple of cards use different naming.
+const AGENT_TRIGGER_ID = { 'idea-pipeline': 'idea' }
+
+// 'auto-debug' has no handler in agents.routes.js — it's only wired up
+// in admin.routes.js's own TRIGGERS map, so it must keep using that route.
+const ADMIN_ONLY_TRIGGERS = new Set(['auto-debug'])
+
 function fmtTime(iso) {
   if (!iso) return 'Never'
   return new Date(iso).toLocaleString()
@@ -160,7 +169,10 @@ export default function AgentsMonitor() {
   const triggerAgent = async (agentId) => {
     setTriggering(p => ({ ...p, [agentId]: true }))
     try {
-      await api.post(`/api/admin/agents/trigger/${agentId}`)
+      const url = ADMIN_ONLY_TRIGGERS.has(agentId)
+        ? `/api/admin/agents/trigger/${agentId}`
+        : `/api/agents/${AGENT_TRIGGER_ID[agentId] || agentId}/trigger`
+      await api.post(url)
       setTimeout(fetchData, 2500)
     } catch (_) {}
     setTimeout(() => setTriggering(p => ({ ...p, [agentId]: false })), 4000)

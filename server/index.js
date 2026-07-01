@@ -93,7 +93,7 @@ if (missingOptional.length > 0) {
 // ✅ Naya code — ENV se read karta hai
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
-  : ['https://awe-os.vercel.app', 'http://localhost:5173'];
+  : ['https://awe-os.vercel.app', 'https://www.awe-os.com', 'https://awe-os.com', 'http://localhost:5173'];
 
 // ── OG bot meta — before request-id so bots exit early ──────
 app.use(ogMiddleware);
