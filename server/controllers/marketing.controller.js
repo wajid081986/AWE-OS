@@ -71,7 +71,7 @@ Return ONLY valid JSON array:
 
 // ── Constants ─────────────────────────────────────────────────
 
-const BLOG_STATUSES     = ['draft', 'review', 'approved', 'published', 'archived'];
+const BLOG_STATUSES     = ['draft', 'review', 'approved', 'published', 'rejected', 'archived'];
 const BLOG_TYPES        = ['how_to_guide', 'listicle', 'case_study', 'comparison',
                            'thought_leadership', 'product_update', 'press_release', 'tutorial'];
 const SEGMENTS          = ['all_users', 'free_users', 'premium_users', 'inactive_users', 'new_users'];
