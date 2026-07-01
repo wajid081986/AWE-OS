@@ -170,21 +170,25 @@ STOP at exactly ${call3Target} words. Count carefully.`
   } else {
     // Long-form, 2000+ words — introduction + 5-7 H2 sections (with H3 sub-headings
     // where a section has distinct sub-topics) + conclusion + 5-question FAQ.
+    // NOTE: models reliably undershoot "exact word count" instructions (observed
+    // ~45-65% compliance in testing) — targets below are deliberately inflated
+    // to compensate, and each section spells out per-paragraph minimums instead
+    // of relying on a single total-word instruction.
     call2MaxTokens = 4000; call3MaxTokens = 4000
-    call2Target = 1100;    call3Target = 1100
-    call2SectionGuide = `Write sections 1-5 only (introduction + 4 H2 sections). EXACT TARGET: ${call2Target} words total.
-- Opening hook paragraph (no heading): exactly 150 words
-- H2: What is [topic]? — exactly 220 words across 2-3 paragraphs. Add 1-2 H3 sub-headings if the topic has distinct sub-parts (e.g. "H3: Key Features", "H3: How It Differs From X")
-- H2: Main comparison / explanation — exactly 250 words + 1 complete data table with real Indian ₹ figures
-- H2: Real examples with ₹ calculations — exactly 250 words, 3 fully worked examples
-- H2: Who should use this — exactly 230 words, 5 detailed bullet points
-STOP at exactly ${call2Target} words. Count carefully. Use H3 sub-headings inside H2 sections where it improves scannability.`
-    call3SectionGuide = `Write sections 6-7 + FAQ + conclusion (2-3 more H2 sections). EXACT TARGET: ${call3Target} words total (blocks only, FAQ answers are separate).
-- H2: Step by step guide — exactly 280 words, 5-6 numbered steps, add H3 sub-headings for distinct phases if useful
-- H2: Common mistakes to avoid — exactly 200 words, 5 bullet points, each explaining what and why
+    call2Target = 1500;    call3Target = 1600
+    call2SectionGuide = `Write sections 1-5 only (introduction + 4 H2 sections). MINIMUM TARGET: ${call2Target} words total — treat this as a hard floor, not a suggestion. If you are unsure whether you've hit the target, write MORE, not less.
+- Opening hook paragraph (no heading): minimum 180 words, 2 paragraphs
+- H2: What is [topic]? — minimum 280 words across 3 paragraphs. Add 1-2 H3 sub-headings if the topic has distinct sub-parts (e.g. "H3: Key Features", "H3: How It Differs From X")
+- H2: Main comparison / explanation — minimum 320 words (excluding table) + 1 complete data table with real Indian ₹ figures
+- H2: Real examples with ₹ calculations — minimum 320 words, 3 fully worked examples explained in detail
+- H2: Who should use this — minimum 300 words, 5 detailed bullet points (25+ words each)
+Do not stop until every section above meets its minimum. Use H3 sub-headings inside H2 sections where it improves scannability.`
+    call3SectionGuide = `Write sections 6-7 + FAQ + conclusion (2-3 more H2 sections). MINIMUM TARGET: ${call3Target} words total for blocks — treat this as a hard floor, not a suggestion (FAQ answers are separate and also have their own minimum below).
+- H2: Step by step guide — minimum 450 words, 6 numbered steps each explained in 2-3 sentences, add H3 sub-headings for distinct phases
+- H2: Common mistakes to avoid — minimum 350 words, 5 bullet points (30+ words each) explaining what and why
 - H2: Frequently Asked Questions — heading only, no body text (the 5 FAQs go in the "faqs" array)
-- Conclusion with CTA — exactly 200 words across 2 paragraphs, ending with a callout block linking to ${toolRef}
-STOP at exactly ${call3Target} words for blocks. Count carefully. Every FAQ answer must be 100+ words — no exceptions.`
+- Conclusion with CTA — minimum 300 words across 3 paragraphs, ending with a callout block linking to ${toolRef}
+Do not stop until every section above meets its minimum — if you are unsure, write more. Every FAQ answer must be 100+ words — no exceptions.`
   }
 
   try {
@@ -223,13 +227,11 @@ Write the first half of a long-form blog post about "${topic}".
 Return ONLY a valid JSON array of content blocks. No extra text.
 
 STRICT RULES:
-- TOTAL TARGET: ${call2Target} words across all blocks
+- MINIMUM TARGET: ${call2Target} words across all blocks — this is a floor, not a ceiling. Exceeding it is fine; falling short is not.
 - Each paragraph block: minimum 60 words
 - Tables: include complete rows with real Indian ₹ figures
 - Bullet items: full sentences, 20+ words each
-- CRITICAL: Count your words as you write. Target is exactly ${call2Target} words.
-  Write to hit the target — not more, not less.
-  If you reach the target mid-sentence, finish that sentence and stop.
+- CRITICAL: Count your words as you write. If you're below the target when you reach the end of a section, add another paragraph rather than moving on.
 
 Content block types:
 {"type":"p","text":"paragraph text here"}
@@ -272,12 +274,12 @@ Return ONLY a valid JSON object with two keys: blocks and faqs.
 No extra text outside the JSON.
 
 STRICT RULES:
-- TOTAL TARGET: ${call3Target} words in blocks + 100+ words per FAQ answer
+- MINIMUM TARGET: ${call3Target} words in blocks — this is a floor, not a ceiling. Exceeding it is fine; falling short is not.
 - Each step in step-by-step: full sentence with detail, 20+ words
 - Each mistake bullet: 25+ words explaining what and why
-- Conclusion: 2 full paragraphs, 60+ words each
-- EACH FAQ ANSWER: minimum 100 words, explain thoroughly
-- CRITICAL: Count your words as you write. Target is exactly ${call3Target} words for blocks.
+- Conclusion: 3 full paragraphs, 80+ words each
+- EACH FAQ ANSWER: minimum 100 words, explain thoroughly — this is also a floor, not a ceiling
+- CRITICAL: Count your words as you write. If you're below the target when you reach the end of a section, add more detail rather than moving on.
 
 Return format:
 {
