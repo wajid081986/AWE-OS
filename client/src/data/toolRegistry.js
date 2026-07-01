@@ -877,8 +877,8 @@ export const TOOL_REGISTRY = [
     tags: ['qr code generator', 'qr code maker', 'create qr code', 'free qr code', 'qr barcode'],
     relatedSlugs: ['image-compressor', 'password-generator', 'jpg-to-pdf'],
     seo: {
-      title: 'QR Code Generator — Create QR Codes Free Online | AWE-OS',
-      description: 'Generate QR codes for URLs, text, WiFi, contacts, and more. Download as PNG. 100% free QR code creator.',
+      title: 'QR Code Generator Free — UPI, WhatsApp, Business Cards India | AWE-OS',
+      description: 'Generate QR codes free for UPI payment, WhatsApp, URL, text and business cards. Download as PNG instantly. No signup, works in browser.',
     },
   },
   {
@@ -895,8 +895,8 @@ export const TOOL_REGISTRY = [
     tags: ['image compressor', 'compress image', 'reduce image size', 'jpg compressor', 'png optimizer'],
     relatedSlugs: ['jpg-to-pdf', 'qr-code-generator', 'color-picker'],
     seo: {
-      title: 'Image Compressor — Compress JPG & PNG Free Online | AWE-OS',
-      description: 'Compress images without losing quality. Reduce JPG, PNG, WEBP file sizes instantly in your browser.',
+      title: 'Image Compressor — Compress JPG, PNG Free Online India | AWE-OS',
+      description: 'Compress JPG, PNG and WEBP images free online. Reduce file size without losing quality. No upload to server, works in browser. Free, no signup.',
     },
   },
   {
