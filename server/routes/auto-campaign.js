@@ -89,12 +89,21 @@ Return ONLY valid JSON, no markdown, no explanation:
   "blogTitle": "string (60-70 chars, SEO-optimized, includes primary keyword)",
   "blogSlug": "string (kebab-case, 4-6 words, no numbers or years)",
   "blogMetaDescription": "string (max 155 chars, includes target keyword and value prop)",
-  "blogSections": [{"h2": "string", "content": "string (150-200 words each)"}],
-  "blogFaqs": [{"q": "string", "a": "string (2-3 sentences, clear and helpful)"}],
+  "blogBlocks": [
+    {"type": "h2", "text": "Section heading"},
+    {"type": "p", "text": "Paragraph, 120-150 words"},
+    {"type": "p", "text": "Paragraph, 120-150 words"},
+    {"type": "ul", "items": ["Full sentence bullet point", "Another full sentence bullet point"]}
+  ],
+  "blogFaqs": [{"q": "string", "a": "string (80-120 words, thorough and specific)"}],
   "redditPost": {"subreddit": "string", "title": "string (compelling, not spammy)", "body": "string (200-250 words, value-first, tool mentioned once naturally)"},
   "quoraAnswer": {"question": "string (realistic question a user would ask)", "answer": "string (250-300 words, expert tone, Indian context, tool mentioned once)"}
 }
-Exactly 4 blogSections and 4 blogFaqs. Write as a genuine Indian professional sharing useful info, not marketing copy.`,
+Blog structure rules:
+- blogBlocks must contain exactly 7 sections, each an {"type":"h2"} block followed by 2 {"type":"p"} paragraph blocks (~250-300 words per section, ~2000 words total across all sections). Add a {"type":"ul"} block to 2-3 sections where a bullet list fits naturally.
+- Exactly 5 blogFaqs, each answer 80-120 words.
+- Naturally weave exactly one inline internal link into one paragraph's text using this exact HTML format: <a href='/tools/${toolSlug}'>${toolName}</a>
+- Write as a genuine Indian professional sharing useful info, not marketing copy.`,
       messages: [{
         role: 'user',
         content: `Tool: ${toolName}
@@ -127,19 +136,25 @@ Generate all content for this tool. Keep it authentic and helpful.`,
     try {
       const rawSlug   = content.blogSlug || `${toolSlug}-guide`
       const cleanSlug = rawSlug.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
+      const blogBlocks = content.blogBlocks || []
+      const blogWordCount = blogBlocks
+        .map(b => b.text || (b.items || []).join(' '))
+        .join(' ')
+        .split(/\s+/)
+        .filter(Boolean).length
       const row = {
         slug:             cleanSlug,
         title:            content.blogTitle,
         date:             new Date().toISOString().split('T')[0],
         category:         toolCategory || 'General',
         author:           'AWE-OS Team',
-        read_time:        '5 min read',
+        read_time:        `${Math.max(1, Math.ceil(blogWordCount / 200))} min read`,
         excerpt:          content.blogMetaDescription || '',
         meta_title:       content.blogTitle,
         meta_description: content.blogMetaDescription || '',
-        content:          content.blogSections || [],
+        content:          blogBlocks,
         faqs:             content.blogFaqs     || [],
-        related_tools:    [toolSlug],
+        related_tools:    [{ slug: toolSlug, label: toolName, icon: '🔧' }],
         tags:             [toolName, toolCategory || 'tools', 'AWE-OS', 'free online'],
         status:           'published',
         updated_at:       new Date().toISOString(),

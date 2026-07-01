@@ -14,14 +14,27 @@ const CATEGORY_COLORS = {
   'Converters':  'bg-yellow-100 text-yellow-700',
 }
 
-// Converts **bold** markers to <strong> elements
+// Converts **bold** markers to <strong>, and inline <a href='..'>label</a>
+// tags (as produced by the AI blog generator) into real Link/anchor elements —
+// without this, AI-generated internal links render as literal HTML text.
+const INLINE_LINK_RE = /^<a\s+href=(['"])([^'"]+)\1[^>]*>([^<]*)<\/a>$/i
+
 function renderInline(text) {
-  if (typeof text !== 'string' || !text.includes('**')) return text
-  return text.split(/(\*\*[^*]+\*\*)/).map((part, i) =>
-    part.startsWith('**') && part.endsWith('**')
-      ? <strong key={i} className="font-semibold text-gray-900">{part.slice(2, -2)}</strong>
-      : part
-  )
+  if (typeof text !== 'string' || (!text.includes('**') && !text.includes('<a '))) return text
+  return text.split(/(\*\*[^*]+\*\*|<a\s+href=(?:'[^']+'|"[^"]+")[^>]*>[^<]*<\/a>)/gi).map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-semibold text-gray-900">{part.slice(2, -2)}</strong>
+    }
+    const linkMatch = part.match(INLINE_LINK_RE)
+    if (linkMatch) {
+      const [, , href, label] = linkMatch
+      const cls = 'text-blue-600 hover:text-blue-700 font-medium underline underline-offset-2'
+      return href.startsWith('/')
+        ? <Link key={i} to={href} className={cls}>{label}</Link>
+        : <a key={i} href={href} target="_blank" rel="noopener noreferrer" className={cls}>{label}</a>
+    }
+    return part
+  })
 }
 
 function ContentBlock({ block }) {
