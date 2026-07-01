@@ -47,3 +47,4 @@ credentials.txt
 *.pem
 *.p12
 .vercel
+.env*.local
