@@ -261,21 +261,13 @@ router.post('/agents/trigger/:agentName', requireAuth, requireAdmin, async (req,
   };
 
   const trigger = TRIGGERS[agentName];
-  if (trigger) {
-    // Fire-and-forget — respond immediately
-    trigger().catch(e => console.error(`[ADMIN TRIGGER] ${agentName} error:`, e?.message));
-    return res.json({ success: true, message: `Agent "${agentName}" triggered` });
+  if (!trigger) {
+    return res.status(404).json({ success: false, error: `Unknown agent: ${agentName}` });
   }
 
-  // For other agents without a direct import: log the trigger and return success
-  await supabase.from('agent_logs').insert({
-    agent_name: agentName,
-    level:      'info',
-    message:    `Manual trigger requested by admin`,
-    metadata:   { triggered_by: 'admin' },
-  }).catch(() => {});
-
-  res.json({ success: true, message: `Trigger signal sent to "${agentName}"` });
+  // Fire-and-forget — respond immediately
+  trigger().catch(e => console.error(`[ADMIN TRIGGER] ${agentName} error:`, e?.message));
+  res.json({ success: true, message: `Agent "${agentName}" triggered` });
 });
 
 // ── Pipeline runtime endpoints ──────────────────────────────────────────────
