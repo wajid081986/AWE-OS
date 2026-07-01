@@ -45,7 +45,7 @@ const CATEGORIES = ['Finance', 'PDF Tools', 'Calculators', 'AI Tools', 'Health',
 
 const IDEA_CATS = ['All', 'Finance', 'PDF Tools', 'Calculators', 'AI Tools', 'Health']
 
-const WORD_COUNTS = [800, 1200, 1500]
+const WORD_COUNTS = [800, 1200, 1500, 2000]
 
 const TABS = [
   { id: 'write',               label: '✍️ AI Blog Writer'       },
@@ -153,7 +153,7 @@ function DiffBadge({ level }) {
 // ── TAB 1: AI Blog Writer ─────────────────────────────────────────────────────
 
 const DEFAULT_FORM = {
-  topic: '', keyword: '', toolSlug: '', wordCount: 1200,
+  topic: '', keyword: '', toolSlug: '', wordCount: 2000,
   tone: 'beginner', category: 'Finance', indianContext: true,
 }
 

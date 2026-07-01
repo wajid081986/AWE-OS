@@ -78,7 +78,7 @@ Include at least 2 tables and 1 callout block.`
 // ── POST /generate — word-count-targeted three-call approach ─────────────────
 
 router.post('/generate', requireAuth, requireAdmin, async (req, res) => {
-  const { topic, keyword, toolSlug, toolName, wordCount = 1200, tone = 'beginner', category = 'Finance', indianContext = true } = req.body
+  const { topic, keyword, toolSlug, toolName, wordCount = 2000, tone = 'beginner', category = 'Finance', indianContext = true } = req.body
   if (!topic) return res.status(400).json({ success: false, error: 'topic is required' })
 
   const toneGuide = {
@@ -129,7 +129,7 @@ STOP at ${call2Target} words. Do not write beyond this.`
 - H2: FAQ — exactly 250 words total across 4 FAQs (60 words each answer)
 - Conclusion with CTA: exactly 100 words
 STOP at ${call3Target} words. Do not write beyond this.`
-  } else {
+  } else if (wordCount <= 1600) {
     call2MaxTokens = 2500; call3MaxTokens = 2500
     call2Target = 750;     call3Target = 750
     call2SectionGuide = `Write sections 1-5 only. EXACT TARGET: ${call2Target} words total.
@@ -145,6 +145,24 @@ STOP at exactly ${call2Target} words. Count carefully.`
 - H2: FAQ — exactly 350 words total across 5 FAQs (70 words each answer)
 - Conclusion with CTA: exactly 100 words
 STOP at exactly ${call3Target} words. Count carefully.`
+  } else {
+    // Long-form, 2000+ words — introduction + 5-7 H2 sections (with H3 sub-headings
+    // where a section has distinct sub-topics) + conclusion + 5-question FAQ.
+    call2MaxTokens = 4000; call3MaxTokens = 4000
+    call2Target = 1100;    call3Target = 1100
+    call2SectionGuide = `Write sections 1-5 only (introduction + 4 H2 sections). EXACT TARGET: ${call2Target} words total.
+- Opening hook paragraph (no heading): exactly 150 words
+- H2: What is [topic]? — exactly 220 words across 2-3 paragraphs. Add 1-2 H3 sub-headings if the topic has distinct sub-parts (e.g. "H3: Key Features", "H3: How It Differs From X")
+- H2: Main comparison / explanation — exactly 250 words + 1 complete data table with real Indian ₹ figures
+- H2: Real examples with ₹ calculations — exactly 250 words, 3 fully worked examples
+- H2: Who should use this — exactly 230 words, 5 detailed bullet points
+STOP at exactly ${call2Target} words. Count carefully. Use H3 sub-headings inside H2 sections where it improves scannability.`
+    call3SectionGuide = `Write sections 6-7 + FAQ + conclusion (2-3 more H2 sections). EXACT TARGET: ${call3Target} words total (blocks only, FAQ answers are separate).
+- H2: Step by step guide — exactly 280 words, 5-6 numbered steps, add H3 sub-headings for distinct phases if useful
+- H2: Common mistakes to avoid — exactly 200 words, 5 bullet points, each explaining what and why
+- H2: Frequently Asked Questions — heading only, no body text (the 5 FAQs go in the "faqs" array)
+- Conclusion with CTA — exactly 200 words across 2 paragraphs, ending with a callout block linking to ${toolRef}
+STOP at exactly ${call3Target} words for blocks. Count carefully. Every FAQ answer must be 100+ words — no exceptions.`
   }
 
   try {
