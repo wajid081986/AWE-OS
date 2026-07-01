@@ -207,7 +207,7 @@ router.get('/agents/status', requireAuth, requireAdmin, async (req, res) => {
       .limit(20);
 
     const rows = logs || [];
-    const agentNames = ['autonomous', 'auto-debug', 'testing', 'learning', 'idea-pipeline',
+    const agentNames = ['autonomous', 'auto-debug', 'builder', 'testing', 'learning', 'idea-pipeline',
                         'decision', 'revenue', 'deployment', 'marketing', 'support', 'optimization'];
 
     const agents = {};
@@ -215,7 +215,10 @@ router.get('/agents/status', requireAuth, requireAdmin, async (req, res) => {
       const agentRows   = rows.filter(r => r.agent_name === name);
       const errorRows   = agentRows.filter(r => r.level === 'error');
       const lastEntry   = agentRows[0] || null;
-      const totalRuns   = agentRows.filter(r => r.message?.includes('complete') || r.message?.includes('started')).length;
+      const totalRuns   = agentRows.filter(r => {
+        const msg = r.message?.toLowerCase() || '';
+        return msg.includes('complet') || msg.includes('start');
+      }).length;
       const successRate = totalRuns > 0 ? Math.max(0, (totalRuns - errorRows.length) / totalRuns) : 0;
 
       agents[name] = {

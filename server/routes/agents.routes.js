@@ -41,19 +41,28 @@ const AGENT_HANDLERS = {
 
 const AGENT_NAMES = Object.keys(AGENT_HANDLERS);
 
+// Some AGENT_HANDLERS keys don't match the agent_name the dashboard expects
+// in agent_logs (the dashboard's status/logs queries use the frontend's card
+// id). Translate before writing so triggered runs are actually visible.
+const AGENT_LOG_NAMES = { idea: 'idea-pipeline' };
+function logAgentName(agentName) {
+  return AGENT_LOG_NAMES[agentName] || agentName;
+}
+
 // ── Status helper ─────────────────────────────────────────────────
 async function getAgentStatus(agentName) {
   const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const logName  = logAgentName(agentName);
 
   const [lastRunRes, runs24hRes, totalRes, infoRes] = await Promise.all([
-    supabase.from('agent_logs').select('created_at').eq('agent_name', agentName)
+    supabase.from('agent_logs').select('created_at').eq('agent_name', logName)
       .order('created_at', { ascending: false }).limit(1).maybeSingle(),
     supabase.from('agent_logs').select('id', { count: 'exact', head: true })
-      .eq('agent_name', agentName).gte('created_at', since24h),
+      .eq('agent_name', logName).gte('created_at', since24h),
     supabase.from('agent_logs').select('id', { count: 'exact', head: true })
-      .eq('agent_name', agentName),
+      .eq('agent_name', logName),
     supabase.from('agent_logs').select('id', { count: 'exact', head: true })
-      .eq('agent_name', agentName).eq('level', 'info'),
+      .eq('agent_name', logName).eq('level', 'info'),
   ]);
 
   const totalCount = totalRes.count || 0;
@@ -155,15 +164,16 @@ router.post('/:agentName/trigger', requireAuth, (req, res) => {
   });
 
   const triggeredBy = req.user?.userId || 'unknown';
-  logToAgentLogs(agentName, 'info', `Manual trigger started by ${triggeredBy}`).catch(() => {});
+  const logName = logAgentName(agentName);
+  logToAgentLogs(logName, 'info', `Manual trigger started by ${triggeredBy}`).catch(() => {});
 
   handler()
     .then((result) => {
-      logToAgentLogs(agentName, 'info', 'Manual trigger completed', { result }).catch(() => {});
+      logToAgentLogs(logName, 'info', 'Manual trigger completed', { result }).catch(() => {});
     })
     .catch((err) => {
       console.error(`[agents/trigger] ${agentName} failed:`, err.message);
-      logToAgentLogs(agentName, 'error', `Manual trigger failed: ${err.message}`).catch(() => {});
+      logToAgentLogs(logName, 'error', `Manual trigger failed: ${err.message}`).catch(() => {});
     });
 });
 
@@ -224,7 +234,7 @@ router.get('/:agentName/logs', requireAuth, async (req, res) => {
     const { data, error } = await supabase
       .from('agent_logs')
       .select('*')
-      .eq('agent_name', agentName)
+      .eq('agent_name', logAgentName(agentName))
       .order('created_at', { ascending: false })
       .limit(limit);
 

@@ -6,6 +6,7 @@ const AGENTS = [
   { id: 'idea-pipeline', name: 'Idea Pipeline',      icon: '💡' },
   { id: 'decision',      name: 'Decision Engine',    icon: '🧠' },
   { id: 'auto-debug',    name: 'Builder & Debug',    icon: '🔧' },
+  { id: 'builder',       name: 'Builder Agent',      icon: '🏗️' },
   { id: 'revenue',       name: 'Revenue Agent',      icon: '💰' },
   { id: 'deployment',    name: 'Deployment Agent',   icon: '🚀' },
   { id: 'marketing',     name: 'Marketing Agent',    icon: '📣' },
