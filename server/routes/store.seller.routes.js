@@ -252,6 +252,7 @@ router.put('/seller/products/:id', requireAuth, requireSeller, upload.single('fi
     if (needsReapproval) {
       updates.status = 'pending';
       updates.is_published = false;
+      updates.rejection_reason = null;
     }
 
     const { data, error } = await supabase
