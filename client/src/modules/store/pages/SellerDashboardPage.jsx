@@ -90,8 +90,8 @@ export default function SellerDashboardPage() {
 
   const togglePublish = async (product) => {
     try {
-      await api.put(`/api/store/seller/products/${product.id}`, { is_published: !product.is_published })
-      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, is_published: !p.is_published } : p))
+      const { data } = await api.put(`/api/store/seller/products/${product.id}`, { is_published: !product.is_published })
+      setProducts(prev => prev.map(p => p.id === product.id ? data.product : p))
     } catch (err) {
       alert(err.response?.data?.error || 'Update failed')
     }
