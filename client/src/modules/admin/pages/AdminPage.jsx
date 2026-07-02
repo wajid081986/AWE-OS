@@ -19,6 +19,8 @@ const QUICK_ITEMS = [
   { icon: '🛠️', label: 'Tool Builder',     to: '/admin/tools/builder'  },
   { icon: '🔄', label: 'Pipeline Control', to: '/admin/pipeline'       },
   { icon: '📦', label: 'Products',         to: '/admin/products'       },
+  { icon: '🛍️', label: 'Store Approvals', to: '/admin/store/approvals' },
+  { icon: '💸', label: 'Store Payouts',   to: '/admin/store/payouts'  },
   { icon: '🧮', label: 'Calculators',      to: '/admin/calculators'    },
   { icon: '👥', label: 'Users',            to: '/admin/users'          },
   { icon: '💰', label: 'Revenue',          to: '/admin/revenue'        },

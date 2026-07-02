@@ -5,7 +5,10 @@ import { useAuth } from '../../modules/auth/context/AuthContext'
 const NAV_LINKS = [
   { to: '/dashboard/marketplace', label: '🏪 Marketplace' },
   { to: '/dashboard/store',       label: '🛠️ My Tools'    },
+  { to: '/store',                 label: '🛍️ Store'       },
   { to: '/dashboard/downloads',   label: '📥 Downloads'   },
+  { to: '/dashboard/store/wishlist', label: '♡ Wishlist'  },
+  { to: '/dashboard/store/seller',   label: '💼 Sell'     },
   { to: '/dashboard/analytics',   label: '📊 Analytics'   },
 ]
 

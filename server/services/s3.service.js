@@ -9,7 +9,9 @@ const s3Client = new S3Client({
   },
 })
 
-const BUCKET = process.env.AWS_S3_BUCKET
+// .env defines AWS_BUCKET_NAME; AWS_S3_BUCKET is kept as a fallback in case any
+// deployment still sets the old key name.
+const BUCKET = process.env.AWS_BUCKET_NAME || process.env.AWS_S3_BUCKET
 
 const uploadFile = async (buffer, key, mimetype) => {
   await s3Client.send(new PutObjectCommand({
@@ -21,8 +23,12 @@ const uploadFile = async (buffer, key, mimetype) => {
   return key
 }
 
-const generatePresignedUrl = async (key, expirySeconds = 86400) => {
-  const command = new GetObjectCommand({ Bucket: BUCKET, Key: key })
+const generatePresignedUrl = async (key, expirySeconds = 86400, filename = null) => {
+  const command = new GetObjectCommand({
+    Bucket: BUCKET,
+    Key:    key,
+    ...(filename ? { ResponseContentDisposition: `attachment; filename="${filename.replace(/"/g, '')}"` } : {}),
+  })
   return getSignedUrl(s3Client, command, { expiresIn: expirySeconds })
 }
 

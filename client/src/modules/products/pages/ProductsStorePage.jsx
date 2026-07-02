@@ -58,13 +58,13 @@ export default function ProductsStorePage() {
         amount,
         currency,
         name:        'AWE-OS',
-        description: `Buy ${buying.name}`,
+        description: `Buy ${buying.title}`,
         order_id:    orderId,
         handler: async (response) => {
           try {
             await api.post('/api/products/verify', { ...response, productId: buying.id })
             setPurchases(prev => new Set([...prev, buying.id]))
-            showToast(`${buying.name} purchased!`)
+            showToast(`${buying.title} purchased!`)
             setBuying(null)
           } catch {
             showToast('Verification failed. Contact support.', 'error')
@@ -114,7 +114,7 @@ export default function ProductsStorePage() {
                 {product.thumbnail_url ? (
                   <img
                     src={product.thumbnail_url}
-                    alt={product.name}
+                    alt={product.title}
                     className="w-full h-40 object-cover"
                   />
                 ) : (
@@ -125,7 +125,7 @@ export default function ProductsStorePage() {
 
                 <div className="p-5">
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="text-white font-semibold text-sm leading-tight">{product.name}</h3>
+                    <h3 className="text-white font-semibold text-sm leading-tight">{product.title}</h3>
                     <span className="text-xs bg-indigo-900 text-indigo-300 px-2 py-0.5 rounded-full shrink-0">
                       {product.category}
                     </span>
@@ -159,7 +159,7 @@ export default function ProductsStorePage() {
       {buying && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-800 rounded-xl border border-gray-700 p-6 w-full max-w-sm">
-            <h3 className="text-lg font-semibold text-white mb-1">{buying.name}</h3>
+            <h3 className="text-lg font-semibold text-white mb-1">{buying.title}</h3>
             <p className="text-gray-400 text-sm mb-1">One-time purchase</p>
             <p className="text-3xl font-bold text-indigo-400 mb-6">₹{buying.price}</p>
             <div className="flex gap-3">

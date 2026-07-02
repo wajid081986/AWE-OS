@@ -53,8 +53,8 @@ export default function DownloadsPage() {
             <h3 className="text-xl font-bold text-white mb-2">No purchases yet</h3>
             <p className="text-gray-400 text-sm">
               Head to the{' '}
-              <a href="/dashboard/marketplace" className="text-indigo-400 hover:underline">
-                Marketplace
+              <a href="/store" className="text-indigo-400 hover:underline">
+                Store
               </a>{' '}
               to find digital products.
             </p>
@@ -72,7 +72,7 @@ export default function DownloadsPage() {
                   {product.thumbnail_url ? (
                     <img
                       src={product.thumbnail_url}
-                      alt={product.name}
+                      alt={product.title}
                       className="w-16 h-16 object-cover rounded-lg shrink-0"
                     />
                   ) : (
@@ -82,7 +82,7 @@ export default function DownloadsPage() {
                   )}
 
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-white font-semibold truncate">{product.name}</h3>
+                    <h3 className="text-white font-semibold truncate">{product.title}</h3>
                     <p className="text-gray-400 text-xs mt-0.5">
                       {product.category} · Purchased {new Date(p.purchased_at).toLocaleDateString()}
                     </p>
@@ -92,7 +92,7 @@ export default function DownloadsPage() {
                   </div>
 
                   <button
-                    onClick={() => handleDownload(product.id, product.name)}
+                    onClick={() => handleDownload(product.id, product.title)}
                     disabled={downloading === product.id}
                     className="shrink-0 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
                   >

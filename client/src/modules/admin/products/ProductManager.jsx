@@ -5,7 +5,7 @@ function Spinner() {
   return <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
 }
 
-const EMPTY_FORM = { name: '', description: '', category: 'General', price: '', preview_url: '', thumbnail_url: '' }
+const EMPTY_FORM = { title: '', description: '', category: 'General', price: '', thumbnail_url: '' }
 
 export default function ProductManager() {
   const [products, setProducts]   = useState([])
@@ -37,19 +37,18 @@ export default function ProductManager() {
 
   const handleUpload = async (e) => {
     e.preventDefault()
-    if (!form.name || !form.price) { setError('Name and price are required'); return }
-    if (!file)                     { setError('Please select a file');         return }
+    if (!form.title || !form.price) { setError('Title and price are required'); return }
+    if (!file)                      { setError('Please select a file');          return }
 
     setSaving(true)
     setError(null)
     try {
       const fd = new FormData()
       fd.append('file',          file)
-      fd.append('name',          form.name)
+      fd.append('title',         form.title)
       fd.append('description',   form.description)
       fd.append('category',      form.category)
       fd.append('price',         form.price)
-      fd.append('preview_url',   form.preview_url)
       fd.append('thumbnail_url', form.thumbnail_url)
 
       await api.post('/api/products', fd, {
@@ -121,7 +120,7 @@ export default function ProductManager() {
               {products.map(p => (
                 <tr key={p.id} className="text-gray-300">
                   <td className="py-3 pr-4">
-                    <div className="font-medium text-white">{p.name}</div>
+                    <div className="font-medium text-white">{p.title}</div>
                     <div className="text-gray-500 text-xs line-clamp-1">{p.description}</div>
                   </td>
                   <td className="py-3 pr-4">
@@ -169,11 +168,11 @@ export default function ProductManager() {
 
             <form onSubmit={handleUpload} className="space-y-4">
               <div>
-                <label className="block text-sm text-gray-300 mb-1">Name <span className="text-red-400">*</span></label>
+                <label className="block text-sm text-gray-300 mb-1">Title <span className="text-red-400">*</span></label>
                 <input
                   className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  value={form.name}
-                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  value={form.title}
+                  onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                 />
               </div>
 
@@ -216,16 +215,6 @@ export default function ProductManager() {
                   placeholder="https://..."
                   value={form.thumbnail_url}
                   onChange={e => setForm(f => ({ ...f, thumbnail_url: e.target.value }))}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-300 mb-1">Preview URL</label>
-                <input
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="https://..."
-                  value={form.preview_url}
-                  onChange={e => setForm(f => ({ ...f, preview_url: e.target.value }))}
                 />
               </div>
 

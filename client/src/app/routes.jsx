@@ -58,6 +58,15 @@ const MarketplacePage   = lazy(() => import('../modules/store/pages/MarketplaceP
 const ProductsStorePage = lazy(() => import('../modules/products/pages/ProductsStorePage'))
 const DownloadsPage     = lazy(() => import('../modules/products/pages/DownloadsPage'))
 const UserAnalyticsPage = lazy(() => import('../modules/user/pages/UserAnalyticsPage'))
+
+// ── Multi-vendor store marketplace ────────────────────────────────────────────
+const StoreListingPage       = lazy(() => import('../modules/store/pages/StoreListingPage'))
+const StoreProductDetailPage = lazy(() => import('../modules/store/pages/StoreProductDetailPage'))
+const SellerOnboardingPage   = lazy(() => import('../modules/store/pages/SellerOnboardingPage'))
+const SellerDashboardPage    = lazy(() => import('../modules/store/pages/SellerDashboardPage'))
+const WishlistPage           = lazy(() => import('../modules/store/pages/WishlistPage'))
+const StoreApprovalQueue     = lazy(() => import('../modules/admin/store/StoreApprovalQueue'))
+const StorePayoutQueue       = lazy(() => import('../modules/admin/store/StorePayoutQueue'))
 const ToolPage          = lazy(() => import('../modules/tools/pages/ToolPage'))
 
 // ── Invoice tools ─────────────────────────────────────────────────────────────
@@ -179,6 +188,12 @@ export default function AppRoutes() {
             MUST be before /:toolSlug/:city to prevent wildcard capture. */}
         <Route path="/faq/:slug" element={lazy$(<FaqCategoryPage />)} />
 
+        {/* Multi-vendor store — /store, /store/:slug, /store/sell
+            MUST be before /:toolSlug/:city to prevent wildcard capture. */}
+        <Route path="/store"      element={lazy$(<StoreListingPage />)} />
+        <Route path="/store/sell" element={lazy$(<SellerOnboardingPage />)} />
+        <Route path="/store/:slug" element={lazy$(<StoreProductDetailPage />)} />
+
         {/* City-specific tool pages — /:toolSlug/:city (e.g. /gst-calculator/mumbai).
             RR6 ranks static segments higher, so /blog/:slug, /tools/:slug etc. all
             win over this. Guard inside CityToolPage validates toolSlug vs TOOL_REGISTRY. */}
@@ -203,6 +218,8 @@ export default function AppRoutes() {
         <Route path="/dashboard/downloads"   element={lazy$(<DownloadsPage />)} />
         <Route path="/dashboard/marketplace" element={lazy$(<MarketplacePage />)} />
         <Route path="/dashboard/analytics"   element={lazy$(<UserAnalyticsPage />)} />
+        <Route path="/dashboard/store/seller"   element={lazy$(<SellerDashboardPage />)} />
+        <Route path="/dashboard/store/wishlist" element={lazy$(<WishlistPage />)} />
 
         {/* Invoice tools */}
         <Route path="/tools/invoice"          element={lazy$(<InvoiceDashboard />)} />
@@ -215,6 +232,8 @@ export default function AppRoutes() {
           <Route path="/admin"               element={lazy$(<Admin />)} />
           <Route path="/admin/tools/builder" element={lazy$(<ToolBuilder />)} />
           <Route path="/admin/products"      element={lazy$(<ProductManager />)} />
+          <Route path="/admin/store/approvals" element={lazy$(<StoreApprovalQueue />)} />
+          <Route path="/admin/store/payouts"   element={lazy$(<StorePayoutQueue />)} />
           <Route path="/admin/calculators"   element={lazy$(<CalculatorBuilder />)} />
           <Route path="/admin/users"         element={lazy$(<UserManager />)} />
           <Route path="/admin/revenue"       element={lazy$(<RevenuePage />)} />

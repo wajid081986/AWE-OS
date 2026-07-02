@@ -46,8 +46,8 @@ router.get('/', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('digital_products')
-      .select('id, name, description, category, price, preview_url, thumbnail_url, created_at')
-      .eq('approved', true)
+      .select('id, title, description, category, price, thumbnail_url, created_at')
+      .eq('is_published', true)
       .order('created_at', { ascending: false })
     if (error) throw error
     res.json({ products: data })
@@ -75,9 +75,9 @@ router.get('/admin', requireAuth, requireAdmin, async (req, res) => {
 // ── Admin: upload new product ───────────────────────────────────
 router.post('/', requireAuth, requireAdmin, upload.single('file'), async (req, res) => {
   try {
-    const { name, description, category, price, preview_url, thumbnail_url } = req.body
-    if (!name || !price) return res.status(400).json({ error: 'name and price are required' })
-    if (!req.file)       return res.status(400).json({ error: 'file is required' })
+    const { title, description, category, price, thumbnail_url } = req.body
+    if (!title || !price) return res.status(400).json({ error: 'title and price are required' })
+    if (!req.file)        return res.status(400).json({ error: 'file is required' })
 
     const ext     = req.file.originalname.split('.').pop()
     const fileKey = `products/${crypto.randomBytes(16).toString('hex')}.${ext}`
@@ -86,14 +86,15 @@ router.post('/', requireAuth, requireAdmin, upload.single('file'), async (req, r
     const { data, error } = await supabase
       .from('digital_products')
       .insert({
-        name,
+        title,
         description: description || '',
         category:    category    || 'General',
         price:       parseFloat(price),
         file_key:    fileKey,
-        preview_url:   preview_url   || null,
+        file_type:   req.file.mimetype,
+        file_size:   req.file.size,
         thumbnail_url: thumbnail_url || null,
-        approved: false,
+        is_published: false,
       })
       .select()
       .single()
@@ -108,15 +109,14 @@ router.post('/', requireAuth, requireAdmin, upload.single('file'), async (req, r
 // ── Admin: update product ───────────────────────────────────────
 router.put('/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
-    const { name, description, category, price, preview_url, thumbnail_url, approved } = req.body
+    const { title, description, category, price, thumbnail_url, is_published } = req.body
     const updates = {}
-    if (name          !== undefined) updates.name          = name
+    if (title         !== undefined) updates.title         = title
     if (description   !== undefined) updates.description   = description
     if (category      !== undefined) updates.category      = category
     if (price         !== undefined) updates.price         = parseFloat(price)
-    if (preview_url   !== undefined) updates.preview_url   = preview_url
     if (thumbnail_url !== undefined) updates.thumbnail_url = thumbnail_url
-    if (approved  !== undefined) updates.approved  = approved
+    if (is_published  !== undefined) updates.is_published  = is_published
 
     const { data, error } = await supabase
       .from('digital_products')
@@ -163,9 +163,10 @@ router.get('/my-purchases', requireAuth, async (req, res) => {
       .from('purchases')
       .select(`
         id, purchased_at, amount,
-        digital_products (id, name, description, category, thumbnail_url)
+        digital_products (id, title, description, category, thumbnail_url)
       `)
       .eq('user_id', req.user.userId)
+      .eq('type', 'digital_product')
       .order('purchased_at', { ascending: false })
     if (error) throw error
     res.json({ purchases: data })
@@ -184,6 +185,7 @@ router.get('/:id/download', requireAuth, async (req, res) => {
       .select('id')
       .eq('user_id', req.user.userId)
       .eq('product_id', req.params.id)
+      .eq('type', 'digital_product')
       .maybeSingle()
     if (purchaseErr) throw purchaseErr
     if (!purchase) return res.status(403).json({ error: 'Purchase required' })
@@ -211,11 +213,11 @@ router.post('/purchase', requireAuth, async (req, res) => {
 
     const { data: product, error } = await supabase
       .from('digital_products')
-      .select('id, name, price, approved')
+      .select('id, title, price, is_published')
       .eq('id', productId)
       .single()
     if (error || !product) return res.status(404).json({ error: 'Product not found' })
-    if (!product.approved) return res.status(400).json({ error: 'Product not available' })
+    if (!product.is_published) return res.status(400).json({ error: 'Product not available' })
 
     // Check not already purchased
     const { data: existing } = await supabase
@@ -223,6 +225,7 @@ router.post('/purchase', requireAuth, async (req, res) => {
       .select('id')
       .eq('user_id', req.user.userId)
       .eq('product_id', productId)
+      .eq('type', 'digital_product')
       .maybeSingle()
     if (existing) return res.status(400).json({ error: 'Already purchased' })
 
@@ -233,7 +236,7 @@ router.post('/purchase', requireAuth, async (req, res) => {
       notes:    { userId: req.user.userId, productId },
     })
 
-    res.json({ orderId: order.id, amount: order.amount, currency: order.currency, productName: product.name })
+    res.json({ orderId: order.id, amount: order.amount, currency: order.currency, productName: product.title })
   } catch (err) {
     console.error('POST /products/purchase error:', err.message)
     res.status(500).json({ error: 'Failed to create order' })
@@ -263,8 +266,8 @@ router.post('/verify', requireAuth, async (req, res) => {
     const { error } = await supabase.from('purchases').insert({
       user_id:    req.user.userId,
       product_id: productId,
-      order_id:   razorpay_order_id,
-      payment_id: razorpay_payment_id,
+      type:       'digital_product',
+      ref_id:     razorpay_order_id,
       amount:     order.amount / 100,
     })
     if (error) throw error

@@ -35,6 +35,13 @@ const invoiceRoutes                  = require('./routes/invoice.routes');
 const paymentRoutes                  = require('./routes/payment.routes');
 const razorpayRoutes                 = require('./routes/razorpay.routes');
 const productsRoutes                 = require('./routes/products.routes');
+const storePublicRoutes              = require('./routes/store.public.routes');
+const storeOrdersRoutes              = require('./routes/store.orders.routes');
+const storeDownloadsRoutes           = require('./routes/store.downloads.routes');
+const storeReviewsRoutes             = require('./routes/store.reviews.routes');
+const storeWishlistRoutes            = require('./routes/store.wishlist.routes');
+const storeSellerRoutes              = require('./routes/store.seller.routes');
+const storeAdminRoutes               = require('./routes/store.admin.routes');
 const calculatorsRoutes              = require('./routes/calculators.routes');
 const factoryRoutes                  = require('./routes/factory.routes');
 const analyticsRoutes                = require('./routes/analytics.routes');
@@ -127,6 +134,7 @@ const globalLimiter  = rateLimit({ windowMs: 15*60*1000, max: 100, standardHeade
 const authLimiter    = rateLimit({ windowMs: 15*60*1000, max: 20,  standardHeaders: true, legacyHeaders: false, message: { success: false, error: 'Too many auth attempts, try again later.' } });
 const paymentLimiter = rateLimit({ windowMs: 60*60*1000, max: 10,  standardHeaders: true, legacyHeaders: false, message: { success: false, error: 'Too many payment attempts.' } });
 const adminLimiter   = rateLimit({ windowMs: 15*60*1000, max: 60,  standardHeaders: true, legacyHeaders: false, message: { success: false, error: 'Too many admin requests.' } });
+const storeDownloadLimiter = rateLimit({ windowMs: 15*60*1000, max: 20, standardHeaders: true, legacyHeaders: false, message: { success: false, error: 'Too many download attempts.' } });
 
 app.use(globalLimiter);
 
@@ -275,6 +283,13 @@ app.use('/api/invoices',       invoiceRoutes);
 app.use('/api/payments',       paymentRoutes);
 app.use('/api/payment',        paymentLimiter, razorpayRoutes);
 app.use('/api/products',       productsRoutes);
+app.use('/api/store',          storePublicRoutes);
+app.use('/api/store',          storeOrdersRoutes);
+app.use('/api/store',          storeDownloadLimiter, storeDownloadsRoutes);
+app.use('/api/store',          storeReviewsRoutes);
+app.use('/api/store',          storeWishlistRoutes);
+app.use('/api/store',          storeSellerRoutes);
+app.use('/api/store',          adminLimiter, storeAdminRoutes);
 app.use('/api/calculators',    calculatorsRoutes);
 app.use('/api/factory',        factoryRoutes);
 app.use('/api/analytics',      analyticsRoutes);
