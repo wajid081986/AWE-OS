@@ -274,12 +274,15 @@ router.delete('/seller/products/:id', requireAuth, requireSeller, async (req, re
   try {
     const { data: existing, error: fetchErr } = await supabase
       .from('digital_products')
-      .select('id, seller_id, file_key')
+      .select('id, seller_id, file_key, sales_count')
       .eq('id', req.params.id)
       .maybeSingle();
     if (fetchErr) throw fetchErr;
     if (!existing || existing.seller_id !== req.seller.id) {
       return res.status(403).json({ error: 'You do not own this product' });
+    }
+    if (existing.sales_count > 0) {
+      return res.status(400).json({ error: 'Cannot delete a product that has sales. Unpublish it instead.' });
     }
 
     if (existing.file_key) await deleteFile(existing.file_key).catch(e => console.warn('S3 delete failed:', e.message));
