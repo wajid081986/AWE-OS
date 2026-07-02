@@ -1,9 +1,9 @@
 const express      = require('express')
-const Anthropic    = require('@anthropic-ai/sdk')
 const { TwitterApi } = require('twitter-api-v2')
 const requireAuth  = require('../middleware/auth')
 const supabase     = require('../db/supabase')
 const fetchFeaturedImage = require('../services/unsplashImage')
+const { getOpenAI } = require('../core/ai-engine')
 
 const router = express.Router()
 
@@ -74,13 +74,12 @@ router.post('/run', requireAuth, requireAdmin, async (req, res) => {
     send({ step: 2, total: 6, status: 'running', label: 'Generating Quora answer...' })
     send({ step: 3, total: 6, status: 'running', label: 'Generating blog article...' })
 
-    if (!process.env.ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY not configured')
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-
-    const msg = await anthropic.messages.create({
-      model:      'claude-sonnet-4-6',
+    const completion = await getOpenAI().chat.completions.create({
+      model:      'gpt-4o-mini',
       max_tokens: 4000,
-      system: `You are a content creator for AWE-OS (https://www.awe-os.com), a free online tools platform for Indian users.
+      messages: [{
+        role: 'system',
+        content: `You are a content creator for AWE-OS (https://www.awe-os.com), a free online tools platform for Indian users.
 Generate complete marketing content for a given tool in a single structured response.
 Return ONLY valid JSON, no markdown, no explanation:
 {
@@ -105,7 +104,7 @@ Blog structure rules:
 - Exactly 5 blogFaqs, each answer 80-120 words.
 - Naturally weave exactly one inline internal link into one paragraph's text using this exact HTML format: <a href='/tools/${toolSlug}'>${toolName}</a>
 - Write as a genuine Indian professional sharing useful info, not marketing copy.`,
-      messages: [{
+      }, {
         role: 'user',
         content: `Tool: ${toolName}
 Tool URL: ${toolUrl}
@@ -120,9 +119,9 @@ Generate all content for this tool. Keep it authentic and helpful.`,
 
     if (aborted) return res.end()
 
-    const raw   = msg.content[0]?.text || ''
+    const raw   = completion.choices[0]?.message?.content || ''
     const match = raw.match(/\{[\s\S]*\}/)
-    if (!match) throw new Error('Claude returned unexpected format — no JSON found')
+    if (!match) throw new Error('AI returned unexpected format — no JSON found')
     const content = JSON.parse(match[0])
 
     send({ step: 1, total: 6, status: 'done',    label: 'Reddit post ready',    data: content.redditPost  })
