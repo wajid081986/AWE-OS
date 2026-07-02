@@ -17,7 +17,7 @@ router.post('/downloads/:purchaseId/token', requireAuth, async (req, res) => {
       .from('purchases')
       .select('id, user_id, status, product_id, digital_products ( file_key )')
       .eq('id', req.params.purchaseId)
-      .eq('type', 'digital_product')
+      .eq('type', 'product')
       .maybeSingle();
     if (error) throw error;
     if (!purchase || purchase.user_id !== req.user.userId) {

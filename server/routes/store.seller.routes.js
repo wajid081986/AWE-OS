@@ -130,7 +130,7 @@ router.get('/seller/dashboard', requireAuth, requireSeller, async (req, res) => 
         .from('purchases')
         .select('amount, seller_earnings_amount, purchased_at')
         .eq('seller_id', sellerId)
-        .eq('type', 'digital_product')
+        .eq('type', 'product')
         .eq('status', 'completed')
         .gte('purchased_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()),
     ]);
@@ -301,7 +301,7 @@ router.get('/seller/orders', requireAuth, requireSeller, async (req, res) => {
       .from('purchases')
       .select('id, amount, seller_earnings_amount, payout_status, purchased_at, digital_products ( id, title, slug )')
       .eq('seller_id', req.seller.id)
-      .eq('type', 'digital_product')
+      .eq('type', 'product')
       .eq('status', 'completed')
       .order('purchased_at', { ascending: false });
     if (error) throw error;
@@ -320,7 +320,7 @@ router.get('/seller/earnings', requireAuth, requireSeller, async (req, res) => {
       .from('purchases')
       .select('seller_earnings_amount, payout_status')
       .eq('seller_id', req.seller.id)
-      .eq('type', 'digital_product')
+      .eq('type', 'product')
       .eq('status', 'completed');
     if (error) throw error;
 
@@ -346,7 +346,7 @@ router.post('/seller/payouts', requireAuth, requireSeller, async (req, res) => {
       .from('purchases')
       .select('id, seller_earnings_amount')
       .eq('seller_id', req.seller.id)
-      .eq('type', 'digital_product')
+      .eq('type', 'product')
       .eq('status', 'completed')
       .eq('payout_status', 'unpaid');
     if (fetchErr) throw fetchErr;

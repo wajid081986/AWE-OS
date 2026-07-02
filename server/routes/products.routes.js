@@ -166,7 +166,7 @@ router.get('/my-purchases', requireAuth, async (req, res) => {
         digital_products (id, title, description, category, thumbnail_url)
       `)
       .eq('user_id', req.user.userId)
-      .eq('type', 'digital_product')
+      .eq('type', 'product')
       .order('purchased_at', { ascending: false })
     if (error) throw error
     res.json({ purchases: data })
@@ -185,7 +185,7 @@ router.get('/:id/download', requireAuth, async (req, res) => {
       .select('id')
       .eq('user_id', req.user.userId)
       .eq('product_id', req.params.id)
-      .eq('type', 'digital_product')
+      .eq('type', 'product')
       .maybeSingle()
     if (purchaseErr) throw purchaseErr
     if (!purchase) return res.status(403).json({ error: 'Purchase required' })
@@ -225,7 +225,7 @@ router.post('/purchase', requireAuth, async (req, res) => {
       .select('id')
       .eq('user_id', req.user.userId)
       .eq('product_id', productId)
-      .eq('type', 'digital_product')
+      .eq('type', 'product')
       .maybeSingle()
     if (existing) return res.status(400).json({ error: 'Already purchased' })
 
@@ -266,7 +266,7 @@ router.post('/verify', requireAuth, async (req, res) => {
     const { error } = await supabase.from('purchases').insert({
       user_id:    req.user.userId,
       product_id: productId,
-      type:       'digital_product',
+      type:       'product',
       ref_id:     razorpay_order_id,
       amount:     order.amount / 100,
     })

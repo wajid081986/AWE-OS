@@ -247,7 +247,7 @@ export default function StoreProductDetailPage() {
                   <div key={r.id} className="border-b border-gray-800 pb-4">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-yellow-400 text-sm">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
-                      <span className="text-gray-500 text-xs">{r.users?.name || 'Anonymous'}</span>
+                      <span className="text-gray-500 text-xs">Anonymous</span>
                     </div>
                     {r.title && <p className="text-white text-sm font-medium">{r.title}</p>}
                     {r.body && <p className="text-gray-400 text-sm">{r.body}</p>}

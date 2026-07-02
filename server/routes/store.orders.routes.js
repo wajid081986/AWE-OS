@@ -43,7 +43,7 @@ router.post('/orders', requireAuth, orderLimiter, async (req, res) => {
       .select('id')
       .eq('user_id', req.user.userId)
       .eq('product_id', productId)
-      .eq('type', 'digital_product')
+      .eq('type', 'product')
       .eq('status', 'completed')
       .maybeSingle();
     if (existing) return res.status(400).json({ error: 'Already purchased' });
@@ -72,7 +72,7 @@ router.post('/orders', requireAuth, orderLimiter, async (req, res) => {
       user_id:                req.user.userId,
       product_id:             productId,
       seller_id:               product.seller_id,
-      type:                    'digital_product',
+      type:                    'product',
       ref_id:                  order.id,
       amount:                  product.price,
       status:                  'created',
@@ -110,7 +110,7 @@ router.post('/orders/verify', requireAuth, orderLimiter, async (req, res) => {
       .select('id, status')
       .eq('ref_id', razorpay_order_id)
       .eq('user_id', req.user.userId)
-      .eq('type', 'digital_product')
+      .eq('type', 'product')
       .maybeSingle();
     if (purchaseErr) throw purchaseErr;
     if (!purchase) return res.status(404).json({ error: 'Order not found' });
@@ -136,7 +136,7 @@ router.get('/orders/my', requireAuth, async (req, res) => {
       .from('purchases')
       .select('id, amount, status, purchased_at, digital_products ( id, title, slug, thumbnail_url, category )')
       .eq('user_id', req.user.userId)
-      .eq('type', 'digital_product')
+      .eq('type', 'product')
       .eq('status', 'completed')
       .order('purchased_at', { ascending: false });
     if (error) throw error;

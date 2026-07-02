@@ -201,7 +201,7 @@ router.get('/admin/analytics', requireAuth, requireAdmin, async (_req, res) => {
     const { data: orders, error } = await supabase
       .from('purchases')
       .select('amount, platform_fee_amount, seller_earnings_amount, seller_id, product_id, purchased_at')
-      .eq('type', 'digital_product')
+      .eq('type', 'product')
       .eq('status', 'completed');
     if (error) throw error;
 

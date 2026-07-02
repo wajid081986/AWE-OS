@@ -141,7 +141,7 @@ router.get('/products/:slug/reviews', async (req, res) => {
 
     const { data, error, count } = await supabase
       .from('store_reviews')
-      .select('id, rating, title, body, created_at, users ( name )', { count: 'exact' })
+      .select('id, rating, title, body, created_at', { count: 'exact' })
       .eq('product_id', product.id)
       .eq('status', 'published')
       .order('created_at', { ascending: false })

@@ -22,7 +22,7 @@ router.post('/products/:id/reviews', requireAuth, async (req, res) => {
       .select('id')
       .eq('user_id', req.user.userId)
       .eq('product_id', productId)
-      .eq('type', 'digital_product')
+      .eq('type', 'product')
       .eq('status', 'completed')
       .order('purchased_at', { ascending: false })
       .maybeSingle();
