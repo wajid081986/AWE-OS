@@ -21,6 +21,14 @@ function sanitizeSearch(q) {
   return String(q || '').replace(/[,()%_]/g, ' ').trim().slice(0, 100);
 }
 
+// Platform-owned products have seller_id = NULL and are always eligible; only
+// exclude products belonging to a currently-suspended seller.
+async function excludeSuspendedSellers(query) {
+  const { data: suspended } = await supabase.from('store_sellers').select('id').eq('status', 'suspended');
+  const ids = (suspended || []).map(s => s.id);
+  return ids.length ? query.not('seller_id', 'in', `(${ids.join(',')})`) : query;
+}
+
 // ── GET /api/store/products ──────────────────────────────────────────────────
 router.get('/products', async (req, res) => {
   try {
@@ -35,6 +43,7 @@ router.get('/products', async (req, res) => {
       .select(PUBLIC_LIST_COLUMNS, { count: 'exact' })
       .eq('status', 'approved')
       .eq('is_published', true);
+    query = await excludeSuspendedSellers(query);
 
     if (category) query = query.eq('category', category);
     if (minPrice) query = query.gte('price', Number(minPrice));
@@ -59,11 +68,14 @@ router.get('/products', async (req, res) => {
 // ── GET /api/store/categories ─────────────────────────────────────────────────
 router.get('/categories', async (_req, res) => {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('digital_products')
       .select('category')
       .eq('status', 'approved')
       .eq('is_published', true);
+    query = await excludeSuspendedSellers(query);
+
+    const { data, error } = await query;
     if (error) throw error;
 
     const counts = {};
@@ -80,14 +92,15 @@ router.get('/categories', async (_req, res) => {
 // ── GET /api/store/featured ────────────────────────────────────────────────────
 router.get('/featured', async (_req, res) => {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('digital_products')
       .select(PUBLIC_LIST_COLUMNS)
       .eq('status', 'approved')
-      .eq('is_published', true)
-      .order('sales_count', { ascending: false })
-      .order('rating_avg', { ascending: false })
-      .limit(12);
+      .eq('is_published', true);
+    query = await excludeSuspendedSellers(query);
+    query = query.order('sales_count', { ascending: false }).order('rating_avg', { ascending: false }).limit(12);
+
+    const { data, error } = await query;
     if (error) throw error;
 
     res.json({ products: data });
@@ -102,7 +115,7 @@ router.get('/featured', async (_req, res) => {
 // separate segment (/products/:slug) so no ordering conflict with /products above.
 router.get('/products/:slug', async (req, res) => {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('digital_products')
       .select(
         'id, title, slug, description, category, price, thumbnail_url, tags, ' +
@@ -111,8 +124,10 @@ router.get('/products/:slug', async (req, res) => {
       )
       .eq('slug', req.params.slug)
       .eq('status', 'approved')
-      .eq('is_published', true)
-      .maybeSingle();
+      .eq('is_published', true);
+    query = await excludeSuspendedSellers(query);
+
+    const { data, error } = await query.maybeSingle();
     if (error) throw error;
     if (!data) return res.status(404).json({ error: 'Product not found' });
 
@@ -131,13 +146,15 @@ router.get('/products/:slug/reviews', async (req, res) => {
     const from  = (page - 1) * limit;
     const to    = from + limit - 1;
 
-    const { data: product, error: productErr } = await supabase
+    let productQuery = supabase
       .from('digital_products')
       .select('id')
       .eq('slug', req.params.slug)
       .eq('status', 'approved')
-      .eq('is_published', true)
-      .maybeSingle();
+      .eq('is_published', true);
+    productQuery = await excludeSuspendedSellers(productQuery);
+
+    const { data: product, error: productErr } = await productQuery.maybeSingle();
     if (productErr) throw productErr;
     if (!product) return res.status(404).json({ error: 'Product not found' });
 
