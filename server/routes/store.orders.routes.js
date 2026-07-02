@@ -38,6 +38,20 @@ router.post('/orders', requireAuth, orderLimiter, async (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
 
+    let seller = null;
+    if (product.seller_id) {
+      const { data } = await supabase
+        .from('store_sellers')
+        .select('id, status, commission_pct')
+        .eq('id', product.seller_id)
+        .maybeSingle();
+      seller = data;
+      // Suspended sellers keep their existing listings but can't take new sales.
+      if (!seller || seller.status !== 'approved') {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+    }
+
     const { data: existing } = await supabase
       .from('purchases')
       .select('id')
@@ -47,16 +61,6 @@ router.post('/orders', requireAuth, orderLimiter, async (req, res) => {
       .eq('status', 'completed')
       .maybeSingle();
     if (existing) return res.status(400).json({ error: 'Already purchased' });
-
-    let seller = null;
-    if (product.seller_id) {
-      const { data } = await supabase
-        .from('store_sellers')
-        .select('id, commission_pct')
-        .eq('id', product.seller_id)
-        .maybeSingle();
-      seller = data;
-    }
 
     const commissionPct = resolveCommissionPct(product, seller);
     const { platformFeeAmount, sellerEarningsAmount } = splitAmount(product.price, commissionPct);
