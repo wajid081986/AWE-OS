@@ -135,6 +135,8 @@ router.get('/products/:slug/reviews', async (req, res) => {
       .from('digital_products')
       .select('id')
       .eq('slug', req.params.slug)
+      .eq('status', 'approved')
+      .eq('is_published', true)
       .maybeSingle();
     if (productErr) throw productErr;
     if (!product) return res.status(404).json({ error: 'Product not found' });
