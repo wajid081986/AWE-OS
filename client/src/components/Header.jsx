@@ -213,6 +213,17 @@ export default function Header() {
             </div>
 
             <Link
+              to="/store"
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                location.pathname.startsWith('/store')
+                  ? 'text-blue-600 bg-blue-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              Store
+            </Link>
+
+            <Link
               to="/blog"
               className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                 location.pathname === '/blog'
@@ -348,6 +359,15 @@ export default function Header() {
             {Object.entries(TOOL_CATALOGUE).map(([key, cat]) => (
               <MobileAccordion key={key} catKey={key} data={cat} onClose={() => setMobileOpen(false)} />
             ))}
+
+            <Link
+              to="/store"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center justify-between py-4 text-sm font-semibold text-gray-900 border-b border-gray-100"
+            >
+              <span>🛍️ Store</span>
+              <span className="text-gray-400 text-xs">Marketplace →</span>
+            </Link>
 
             <Link
               to="/blog"

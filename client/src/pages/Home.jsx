@@ -226,6 +226,12 @@ export default function Home() {
             PDF tools, calculators, converters, and AI tools — all free, all in your browser.
           </p>
           <HomeSearch />
+          <Link
+            to="/store"
+            className="inline-flex items-center gap-2 mt-6 px-6 py-2.5 bg-white text-blue-700 rounded-lg font-medium hover:bg-blue-50 transition-colors"
+          >
+            🛍️ Visit Store
+          </Link>
         </div>
       </section>
 
