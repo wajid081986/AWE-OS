@@ -80,6 +80,23 @@ async function callOpenAI(prompt, options = {}) {
  * @param {string} raw - Raw string from AI
  * @returns {object} Parsed JSON
  */
+// LLMs frequently emit a trailing comma before a closing ] or } (valid in
+// JS object/array literals, invalid in strict JSON) — strip it as a repair
+// pass rather than failing the whole generation over one stray character.
+function stripTrailingCommas(str) {
+  return str.replace(/,(\s*[}\]])/g, '$1');
+}
+
+function tryParseJSON(candidate) {
+  try {
+    return JSON.parse(candidate);
+  } catch (_) {}
+  try {
+    return JSON.parse(stripTrailingCommas(candidate));
+  } catch (_) {}
+  return undefined;
+}
+
 function parseJSONResponse(raw) {
   // 1. Strip markdown backtick fences before attempting to parse
   const stripped = raw
@@ -87,17 +104,15 @@ function parseJSONResponse(raw) {
     .replace(/```/gi, '')
     .trim();
 
-  // 2. Attempt direct parse of the stripped candidate
-  try {
-    return JSON.parse(stripped);
-  } catch (_) {}
+  // 2. Attempt direct parse of the stripped candidate (with trailing-comma repair)
+  const direct = tryParseJSON(stripped);
+  if (direct !== undefined) return direct;
 
   // 3. Last-resort: find the first { or [ and parse from there
   const firstBrace = stripped.search(/[{[]/);
   if (firstBrace !== -1) {
-    try {
-      return JSON.parse(stripped.slice(firstBrace));
-    } catch (_) {}
+    const fromBrace = tryParseJSON(stripped.slice(firstBrace));
+    if (fromBrace !== undefined) return fromBrace;
   }
 
   // 4. All attempts failed — log raw response and surface a clear error
