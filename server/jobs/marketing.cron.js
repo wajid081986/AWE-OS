@@ -89,10 +89,15 @@ async function fetchActiveTools() {
 }
 
 async function hasRecentBlogPost(toolId, since) {
+  // Only a *published* post counts as "already covered this week" — a
+  // draft (e.g. from a manual admin-panel generation that was never
+  // approved) must not permanently block the tool from ever being
+  // auto-published by the weekly cron.
   const { data, error } = await supabase
     .from('blog_posts')
     .select('id')
     .eq('tool_id', toolId)
+    .eq('status', 'published')
     .gte('created_at', since)
     .limit(1)
     .maybeSingle();
