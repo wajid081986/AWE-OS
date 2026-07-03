@@ -203,15 +203,15 @@ export default function Home() {
     <>
       <Helmet>
         <title>AWE-OS — Free Online Tools. No Signup Required.</title>
-        <meta name="description" content={`${totalTools}+ free online tools — PDF, calculators, converters, and AI tools. No account needed. Works directly in your browser.`} />
+        <meta name="description" content={`${totalTools}+ online tools — PDF, calculators, converters, and AI tools. Most need no account and work directly in your browser.`} />
         <link rel="canonical" href={SITE_URL} />
         <meta property="og:title"       content="AWE-OS — Free Online Tools. No Signup Required." />
-        <meta property="og:description" content={`${totalTools}+ free online tools — PDF, calculators, converters, and AI tools. No account needed.`} />
+        <meta property="og:description" content={`${totalTools}+ online tools — PDF, calculators, converters, and AI tools. Most need no account.`} />
         <meta property="og:url"         content={SITE_URL} />
         <meta property="og:type"        content="website" />
         <meta name="twitter:card"        content="summary" />
         <meta name="twitter:title"       content="AWE-OS — Free Online Tools. No Signup Required." />
-        <meta name="twitter:description" content={`${totalTools}+ free online tools. No signup required.`} />
+        <meta name="twitter:description" content={`${totalTools}+ online tools. Most need no signup.`} />
         <script type="application/ld+json">{JSON.stringify(WEBSITE_SCHEMA)}</script>
         <script type="application/ld+json">{JSON.stringify(ORG_SCHEMA)}</script>
       </Helmet>
@@ -220,10 +220,10 @@ export default function Home() {
       <section className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl sm:text-5xl font-bold mb-4 tracking-tight leading-tight">
-            {totalTools}+ Free Tools.<br className="hidden sm:block" /> No Signup. Just Works.
+            {totalTools}+ Tools.<br className="hidden sm:block" /> No Signup for Most. Just Works.
           </h1>
           <p className="text-blue-100 text-lg mb-8 max-w-xl mx-auto">
-            PDF tools, calculators, converters, and AI tools — all free, all in your browser.
+            PDF tools, calculators, converters, and AI tools — most are free and run right in your browser.
           </p>
           <HomeSearch />
           <Link
@@ -240,9 +240,9 @@ export default function Home() {
         <div className="max-w-6xl mx-auto flex flex-wrap justify-center gap-x-8 gap-y-1">
           <span>{totalTools}+ Tools</span>
           <span>·</span>
-          <span>100% Free</span>
+          <span>Mostly Free</span>
           <span>·</span>
-          <span>No Signup</span>
+          <span>No Signup for Most</span>
           <span>·</span>
           <span>Works in Browser</span>
         </div>

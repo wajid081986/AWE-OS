@@ -381,13 +381,13 @@ function buildHomeBody() {
   }).join('\n')
 
   return `<main>
-<h1>${totalTools}+ Free Tools. No Signup. Just Works.</h1>
-<p>PDF tools, calculators, converters, and AI tools — all free, all in your browser.</p>
+<h1>${totalTools}+ Tools. No Signup for Most. Just Works.</h1>
+<p>PDF tools, calculators, converters, and AI tools — most are free and run right in your browser.</p>
 <p>Search tools — PDF, calculator, currency...</p>
 <div aria-label="Platform statistics">
   <span>${totalTools}+ Tools</span>
-  <span>100% Free</span>
-  <span>No Signup</span>
+  <span>Mostly Free</span>
+  <span>No Signup for Most</span>
   <span>Works in Browser</span>
 </div>
 ${categorySections}
@@ -406,7 +406,7 @@ function buildStaticBody(route) {
 function buildAboutBody() {
   const values = [
     { title: 'Always Free',       desc: 'Core tools are free forever. No hidden fees, no paywalls on essential features. We believe utility should not be gated by your budget.' },
-    { title: 'Fast & Simple',     desc: 'Every tool is designed to deliver results in seconds. No sign-ups, no bloated interfaces — just paste, click, done.' },
+    { title: 'Fast & Simple',     desc: 'Every tool is designed to deliver results in seconds. Most need no sign-up and no bloated interfaces — just paste, click, done.' },
     { title: 'Private & Safe',    desc: 'We never sell your data. Files you process in our PDF tools are never stored on our servers. Your inputs stay yours.' },
     { title: 'AI-Powered',        desc: 'Cutting-edge language models and machine learning algorithms work behind every AI tool to deliver smarter, more accurate results.' },
     { title: 'Mobile First',      desc: 'Every tool works perfectly on your phone, tablet or desktop. No app download needed — just open your browser and start.' },
@@ -431,7 +431,7 @@ function buildAboutBody() {
     },
     {
       title: 'Productivity & AI Tools', href: '/tools/productivity',
-      desc: 'Our AI-powered tools tap into state-of-the-art language models to help you write, create and produce better content faster. Build a polished resume in minutes, generate marketing copy, or create invoices and contracts.',
+      desc: 'Our AI-powered tools tap into state-of-the-art language models to help you write, create and produce better content faster. Build a polished resume in minutes, write content with AI, or create invoices and contracts.',
       tools: ['AI Resume Builder', 'AI Content Writer', 'Invoice Generator', 'Contract Generator'],
     },
   ]
@@ -439,7 +439,7 @@ function buildAboutBody() {
   const team = [
     { name: 'Wajid',     role: 'Founder & CEO',       bio: 'Passionate about democratising AI and making powerful software tools accessible to people who need them most.' },
     { name: 'AI Team',   role: 'Engineering & Models', bio: 'Our AI agents continuously discover, design and deploy new tools based on real user needs.' },
-    { name: 'Community', role: 'Users & Contributors', bio: 'Over 50,000 users across 120+ countries who shape what we build next.' },
+    { name: 'Community', role: 'Users & Contributors', bio: 'Everyone who uses AWE-OS and shares feedback helps shape what we build next.' },
   ]
 
   const catHTML = categories.map(c => `
@@ -463,18 +463,18 @@ function buildAboutBody() {
 
 <section aria-label="Platform statistics">
   <ul>
-    <li>100+ Free Tools</li>
-    <li>50K+ Monthly Users</li>
-    <li>99.9% Uptime</li>
-    <li>Zero cost to you</li>
+    <li>55+ Tools</li>
+    <li>53+ No-Signup Tools</li>
+    <li>0 Files Stored</li>
+    <li>0 Cost for Core Tools</li>
   </ul>
 </section>
 
 <section aria-label="Our Mission">
   <h2>Our Mission</h2>
-  <p>AWE-OS was built to give everyone access to tools that usually cost money or require accounts. PDF tools, financial calculators, AI tools — all free, all private, all in the browser. Whether you're a student in Mumbai, a freelancer in Lagos, or a small business owner in London, you deserve the same powerful tools as any Fortune 500 company.</p>
+  <p>AWE-OS was built to give everyone access to tools that usually cost money or require accounts. PDF tools, financial calculators, and converters are free and run entirely in your browser — no account needed. Whether you're a student in Mumbai, a freelancer in Lagos, or a small business owner in London, you deserve the same powerful tools as any Fortune 500 company.</p>
   <p>Privacy is not an afterthought — it's our foundation. No data is sent to any server. Everything runs locally in your browser. When you compress a PDF, calculate your BMI, or generate a QR code, your data never leaves your device. We have no access to it, and we never will.</p>
-  <p>We live in an era where AI and browser technology are powerful enough to run sophisticated tools entirely on your device — with zero uploads, zero accounts, and zero cost. AWE-OS is our commitment to that future: a free, open platform that grows with what users actually need.</p>
+  <p>We live in an era where browser technology is powerful enough to run sophisticated tools entirely on your device — with zero uploads, zero accounts, and zero cost. Most of AWE-OS works exactly that way. A small number of advanced AI tools run on server-side models and require a free account, with an optional paid plan for heavy use. AWE-OS is our commitment to keeping as much as possible free, fast, and open.</p>
 </section>
 
 <section aria-label="What you can do on AWE-OS">
@@ -485,7 +485,7 @@ function buildAboutBody() {
 <section aria-label="Why we built this">
   <h2>Why We Built This</h2>
   <p>Most online tool sites are cluttered with ads, require sign-ups, or upload your files to foreign servers. A simple PDF compression sends your private documents to a server you know nothing about. A basic calculator is buried under pop-ups asking you to subscribe. We built AWE-OS to fix that.</p>
-  <p>The goal was simple: clean UI, zero signup, browser-only processing. Every tool on AWE-OS runs entirely inside your browser. Your files never travel over the network. Your calculations are never logged. You never have to create an account just to convert a PDF or check your BMI.</p>
+  <p>The goal was simple: clean UI, no signup, browser-only processing wherever possible. Most tools on AWE-OS — PDF tools, calculators, and converters — run entirely inside your browser. Your files never travel over the network. Your calculations are never logged. You never have to create an account just to convert a PDF or check your BMI.</p>
 </section>
 
 <section aria-label="Our Values">
