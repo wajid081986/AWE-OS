@@ -151,7 +151,10 @@ function aggregateAdStats(rows) {
 // ── Job 1 — Weekly content ─────────────────────────────────────────────────────
 async function executeWeeklyContent() {
   const JOB = 'weeklyContent';
-  if (running[JOB]) { log('warn', JOB, 'Skipping — previous run still in progress'); return; }
+  if (running[JOB]) {
+    log('warn', JOB, 'Skipping — previous run still in progress');
+    return { skipped: true, reason: 'already_running' };
+  }
 
   running[JOB] = true;
   const startedAt  = Date.now();
@@ -247,6 +250,11 @@ async function executeWeeklyContent() {
     await logToAgentLogs(AGENT_LOG_NAME, 'info', 'Weekly content run complete', {
       generated, published, tweeted, skipped, failed, newsletter_sent: newsletterSent, duration_ms,
     });
+    return {
+      skipped: false, post_type: postType,
+      generated, published, tweeted, blog_skipped: skipped, failed,
+      newsletter_sent: newsletterSent, duration_ms,
+    };
   } catch (err) {
     const duration_ms = Date.now() - startedAt;
     log('error', JOB, 'Run threw an unexpected error', {
@@ -258,6 +266,7 @@ async function executeWeeklyContent() {
     await logToAgentLogs(AGENT_LOG_NAME, 'error', `Weekly content run failed: ${err?.message || String(err)}`, {
       duration_ms,
     });
+    return { skipped: false, error: err?.message || String(err), duration_ms };
   } finally {
     running[JOB] = false;
   }

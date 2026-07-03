@@ -1,11 +1,13 @@
 'use strict';
 
-const express     = require('express');
-const rateLimit   = require('express-rate-limit');
-const requireAuth = require('../middleware/auth');
+const express                     = require('express');
+const rateLimit                   = require('express-rate-limit');
+const requireAuth                 = require('../middleware/auth');
+const { requireAdmin }            = require('../middleware/admin.middleware');
 const {
   getDashboard,
   generateBlog,
+  triggerWeeklyContent,
   getBlogs,
   updateBlogStatus,
   generateNewsletter,
@@ -61,6 +63,15 @@ const calendarLimiter = rateLimit({
   message: { success: false, error: 'Generation limit reached. Try again in an hour.', code: 'RATE_LIMITED' },
 });
 
+// This one loops over every active tool, publishes live, and tweets — cap tight.
+const weeklyContentTriggerLimiter = rateLimit({
+  windowMs:        60 * 60 * 1000,
+  max:             3,
+  standardHeaders: true,
+  legacyHeaders:   false,
+  message: { success: false, error: 'Trigger limit reached. Max 3/hour.', code: 'RATE_LIMITED' },
+});
+
 // ── Public routes (no JWT) ────────────────────────────────────
 
 router.post('/referral/:code/click', trackReferralClick);
@@ -72,6 +83,9 @@ router.use(requireAuth);
 router.get('/dashboard',             getDashboard);
 
 router.post('/blog/generate',        generateLimiter,    generateBlog);
+// Manually fires the exact weekly-content cron job (auto-publish + auto-tweet) —
+// admin-only since it publishes live and posts to the company Twitter account.
+router.post('/weekly-content/trigger', weeklyContentTriggerLimiter, requireAdmin, triggerWeeklyContent);
 router.get('/blogs',                 getBlogs);
 router.patch('/blog/:id/status',     updateBlogStatus);
 

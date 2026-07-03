@@ -125,6 +125,21 @@ async function generateBlog(req, res) {
   }
 }
 
+// Runs the exact same weekly-content job the Monday cron fires — real
+// auto-publish + auto-tweet, not a dry run — so admins can verify the
+// autonomous pipeline without waiting for the schedule. The job's own
+// overlap guard (running['weeklyContent']) makes concurrent calls safe.
+async function triggerWeeklyContent(req, res) {
+  try {
+    const { executeWeeklyContent } = require('../jobs/marketing.cron');
+    const result = await executeWeeklyContent();
+    return res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('[MARKETING CTRL] triggerWeeklyContent error:', err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
 async function getBlogs(req, res) {
   try {
     const { status, tool_id, content_type } = req.query;
@@ -542,6 +557,7 @@ async function generateCalendar(req, res) {
 module.exports = {
   getDashboard,
   generateBlog,
+  triggerWeeklyContent,
   getBlogs,
   updateBlogStatus,
   generateNewsletter,
