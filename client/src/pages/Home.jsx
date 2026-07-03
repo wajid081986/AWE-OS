@@ -202,15 +202,15 @@ export default function Home() {
   return (
     <>
       <Helmet>
-        <title>AWE-OS — Free Online Tools. No Signup Required.</title>
+        <title>AWE-OS — Mostly Free Online Tools. No Signup for Most.</title>
         <meta name="description" content={`${totalTools}+ online tools — PDF, calculators, converters, and AI tools. Most need no account and work directly in your browser.`} />
         <link rel="canonical" href={SITE_URL} />
-        <meta property="og:title"       content="AWE-OS — Free Online Tools. No Signup Required." />
+        <meta property="og:title"       content="AWE-OS — Mostly Free Online Tools. No Signup for Most." />
         <meta property="og:description" content={`${totalTools}+ online tools — PDF, calculators, converters, and AI tools. Most need no account.`} />
         <meta property="og:url"         content={SITE_URL} />
         <meta property="og:type"        content="website" />
         <meta name="twitter:card"        content="summary" />
-        <meta name="twitter:title"       content="AWE-OS — Free Online Tools. No Signup Required." />
+        <meta name="twitter:title"       content="AWE-OS — Mostly Free Online Tools. No Signup for Most." />
         <meta name="twitter:description" content={`${totalTools}+ online tools. Most need no signup.`} />
         <script type="application/ld+json">{JSON.stringify(WEBSITE_SCHEMA)}</script>
         <script type="application/ld+json">{JSON.stringify(ORG_SCHEMA)}</script>

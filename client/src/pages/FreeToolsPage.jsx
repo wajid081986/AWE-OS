@@ -5,13 +5,17 @@ import { getAllTools, CATEGORY_META } from '../data/toolRegistry'
 
 const SITE_URL = 'https://www.awe-os.com'
 
-const CATEGORY_ORDER = ['pdf', 'calculators', 'converters', 'ai']
+const CATEGORY_ORDER = ['pdf', 'calculators', 'converters']
+
+// AI tools require a login and, beyond a free plan, payment — they don't belong
+// on a page that promises "no account, no fees, ever."
+const PAID_TOOL_SLUGS = ['resume-builder', 'ai-content-writer']
 
 export default function FreeToolsPage() {
   const [search, setSearch] = useState('')
 
   const tools = useMemo(
-    () => getAllTools().filter(t => t.slug !== 'test-ai-tool'),
+    () => getAllTools().filter(t => t.slug !== 'test-ai-tool' && !PAID_TOOL_SLUGS.includes(t.slug)),
     [],
   )
 
@@ -139,7 +143,7 @@ export default function FreeToolsPage() {
           <section className="mb-10 bg-white rounded-2xl border border-gray-200 p-8">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Why Are AWE-OS Tools Free?</h2>
             <div className="space-y-4 text-gray-600 text-sm leading-relaxed">
-              <p>AWE-OS was built with a simple belief: professional-grade tools should be accessible to everyone in India — students, freelancers, teachers, homemakers, and small business owners — regardless of their income or technical background. Every tool on AWE-OS is 100% free with no hidden fees, no subscription tiers, and no features locked behind a paywall.</p>
+              <p>AWE-OS was built with a simple belief: professional-grade tools should be accessible to everyone in India — students, freelancers, teachers, homemakers, and small business owners — regardless of their income or technical background. Every tool on this page is 100% free with no hidden fees, no subscription tiers, and no features locked behind a paywall. (Our AI-powered tools, like the Resume Builder and Content Writer, are the exception — they require a free account and, for heavy use, a paid plan.)</p>
               <p>Unlike most "free" tool sites that limit you to 3 downloads per day or watermark your output files, AWE-OS tools have no such restrictions. Merge 50 PDFs, calculate your EMI 100 times, generate unlimited QR codes — everything runs without usage counters or artificial limits. The tools process your files entirely in your browser using JavaScript, which means no server costs are passed on to you and your files never leave your device.</p>
               <p>We sustain AWE-OS through non-intrusive advertising and optional premium features for power users who want cloud storage and priority support. The core tools — all {tools.length} of them — will always remain free for everyday use by individuals and small businesses across India.</p>
               <div>
@@ -247,7 +251,7 @@ export default function FreeToolsPage() {
         <div className="bg-blue-600 rounded-2xl p-8 text-center mt-4">
           <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">New tools added every week</h2>
           <p className="text-blue-100 text-sm mb-6">
-            Create a free account to save your work, access history, and unlock 100+ AI-powered tools.
+            Create a free account to save your work, access history, and unlock our AI-powered tools.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3">
             <Link
