@@ -25,6 +25,7 @@ const supabase = require('../db/supabase');
 const { generateBlogPost, generateNewsletter } = require('../agents/marketing-agent');
 const { recordCronRun } = require('../services/cron-health');
 const { logToAgentLogs } = require('../db/agent-logger');
+const { postTweet }      = require('../services/twitter.service');
 
 // agent_name under which all three scheduled jobs log — matches the single
 // "Marketing Agent" card in the admin dashboard (agents.routes.js AGENT_HANDLERS.marketing)
@@ -47,6 +48,8 @@ const LOW_CTR_THRESHOLD  = 1.5;    // percent — warn if engagement below this
 
 // A/B test: rotate blog post types each weekly run
 const BLOG_POST_TYPES = ['how_to_guide', 'case_study', 'comparison', 'tutorial'];
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // ── State ──────────────────────────────────────────────────────────────────────
 const running = { weeklyContent: false, monthlyCalendar: false, weeklyReport: false };
@@ -181,7 +184,7 @@ async function executeWeeklyContent() {
     }
 
     const since = new Date(Date.now() - SEVEN_DAYS_MS).toISOString();
-    let generated = 0, skipped = 0, failed = 0, published = 0;
+    let generated = 0, skipped = 0, failed = 0, published = 0, tweeted = 0;
 
     for (const tool of tools) {
       try {
@@ -192,10 +195,26 @@ async function executeWeeklyContent() {
         }
         const post = await generateBlogPost(tool.id, postType, `${tool.name} free online`, { autoPublish: true });
         generated++;
-        if (post.status === 'published') published++;
         log('info', JOB, 'Blog post generated', {
           tool_id: tool.id, tool_name: tool.name, post_type: postType, status: post.status,
         });
+
+        if (post.status === 'published' && post.live_url) {
+          published++;
+          try {
+            const tweetText = `${post.title}\n\n${post.excerpt || ''}`.trim();
+            const { tweetUrl } = await postTweet(tweetText, post.live_url);
+            tweeted++;
+            log('info', JOB, 'Tweeted new post', { tool_id: tool.id, tweet_url: tweetUrl });
+          } catch (tweetErr) {
+            // Social amplification is best-effort — a Twitter failure must
+            // never roll back or block the blog publish that already succeeded.
+            log('warn', JOB, 'Tweet failed for published post', {
+              tool_id: tool.id, live_url: post.live_url, error: tweetErr?.message || String(tweetErr),
+            });
+          }
+          await sleep(2000); // be gentle on Twitter's rate limit across multiple posts/run
+        }
       } catch (err) {
         failed++;
         log('error', JOB, 'Blog post generation failed', {
@@ -206,7 +225,7 @@ async function executeWeeklyContent() {
       }
     }
 
-    log('info', JOB, 'Blog generation complete', { generated, published, skipped, failed, post_type: postType });
+    log('info', JOB, 'Blog generation complete', { generated, published, tweeted, skipped, failed, post_type: postType });
 
     // Weekend-aware newsletter delivery
     let newsletterSent = false;
@@ -226,7 +245,7 @@ async function executeWeeklyContent() {
     log('info', JOB, 'Run complete', { duration_ms });
     await recordCronRun('marketing-weekly-content', 'success', null, { records_processed: generated });
     await logToAgentLogs(AGENT_LOG_NAME, 'info', 'Weekly content run complete', {
-      generated, published, skipped, failed, newsletter_sent: newsletterSent, duration_ms,
+      generated, published, tweeted, skipped, failed, newsletter_sent: newsletterSent, duration_ms,
     });
   } catch (err) {
     const duration_ms = Date.now() - startedAt;
