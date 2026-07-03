@@ -2,6 +2,7 @@
 
 const supabase                          = require('../db/supabase');
 const { callOpenAI, parseJSONResponse } = require('../services/ai.service');
+const { sendEmail }                     = require('../services/email.service');
 
 // ── Private helpers ───────────────────────────────────────────────────────────
 
@@ -26,6 +27,21 @@ function todayRange() {
   const start = new Date(); start.setHours(0, 0, 0, 0);
   const end   = new Date(); end.setHours(23, 59, 59, 999);
   return { start: start.toISOString(), end: end.toISOString() };
+}
+
+function escapeHtml(str) {
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function buildTicketReplyHtml(ticket, approved_text) {
+  const bodyHtml = escapeHtml(approved_text).replace(/\n/g, '<br>');
+  return `
+    <div style="font-family:sans-serif;max-width:520px;margin:0 auto;line-height:1.5;">
+      <p>Hi${ticket.user_name ? ' ' + escapeHtml(ticket.user_name) : ''},</p>
+      <p>${bodyHtml}</p>
+      <p style="color:#888;font-size:12px;">Ticket ${escapeHtml(ticket.ticket_number)} — reply to this email if you need anything else.</p>
+    </div>
+  `;
 }
 
 // ── 1. createTicket ───────────────────────────────────────────────────────────
@@ -383,7 +399,22 @@ async function approveAndSendResponse(ticket_id, approved_text, agent_email) {
     });
     if (msgErr) throw new Error('[SUPPORT] DB error: ' + msgErr.message);
 
-    // STEP 3+4 — UPDATE ticket status (combine both steps into one write)
+    // STEP 3 — Email the customer. Best-effort: a failed send must not
+    // undo the approval that already happened — it's surfaced via
+    // email_sent on the return value instead so the admin UI can retry.
+    let email_sent = false;
+    try {
+      await sendEmail({
+        to:      ticket.user_email,
+        subject: `Re: ${ticket.subject} [${ticket.ticket_number}]`,
+        html:    buildTicketReplyHtml(ticket, approved_text),
+      });
+      email_sent = true;
+    } catch (emailErr) {
+      console.error(`[SUPPORT] Reply email failed | ticket=${ticket.ticket_number}:`, emailErr.message);
+    }
+
+    // STEP 4+5 — UPDATE ticket status (combine both steps into one write)
     const newStatus = (ticket.category === 'how_to_question' && ticket.ai_confidence > 80)
       ? 'waiting_user'
       : 'ai_responded';
@@ -393,14 +424,14 @@ async function approveAndSendResponse(ticket_id, approved_text, agent_email) {
       .update({
         status:            newStatus,
         first_response_at: new Date().toISOString(),
-        ai_response_sent:  true,
+        ai_response_sent:  email_sent,
       })
       .eq('id', ticket_id)
       .select()
       .single();
 
     if (updErr) throw new Error('[SUPPORT] DB error: ' + updErr.message);
-    return updated;
+    return { ...updated, email_sent };
   } catch (err) {
     console.error('[SUPPORT] approveAndSendResponse error:', err.message);
     throw err;
