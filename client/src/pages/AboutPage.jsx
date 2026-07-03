@@ -12,7 +12,7 @@ const ORG_SCHEMA = {
 
 const VALUES = [
   { icon: '🆓', title: 'Always Free',       desc: 'Core tools are free forever. No hidden fees, no paywalls on essential features. We believe utility should not be gated by your budget.' },
-  { icon: '⚡', title: 'Fast & Simple',     desc: 'Every tool is designed to deliver results in seconds. No sign-ups, no bloated interfaces — just paste, click, done.' },
+  { icon: '⚡', title: 'Fast & Simple',     desc: 'Every tool is designed to deliver results in seconds. Most need no sign-up and no bloated interfaces — just paste, click, done.' },
   { icon: '🔒', title: 'Private & Safe',    desc: 'We never sell your data. Files you process in our PDF tools are never stored on our servers. Your inputs stay yours.' },
   { icon: '🤖', title: 'AI-Powered',        desc: 'Cutting-edge language models and machine learning algorithms work behind every AI tool to deliver smarter, more accurate results.' },
   { icon: '📱', title: 'Mobile First',      desc: 'Every tool works perfectly on your phone, tablet or desktop. No app download needed — just open your browser and start.' },
@@ -49,22 +49,22 @@ const CATEGORIES = [
     title: 'Productivity & AI Tools',
     count: '',
     href: '/tools/productivity',
-    desc: 'Our AI-powered tools tap into state-of-the-art language models to help you write, create and produce better content faster. Build a polished resume in minutes, generate marketing copy, or create invoices and contracts.',
+    desc: 'Our AI-powered tools tap into state-of-the-art language models to help you write, create and produce better content faster. Build a polished resume in minutes, write content with AI, or create invoices and contracts.',
     tools: ['AI Resume Builder', 'AI Content Writer', 'Invoice Generator', 'Contract Generator'],
   },
 ]
 
 const STATS = [
-  { value: '100+',   label: 'Free Tools' },
-  { value: '50K+',   label: 'Monthly Users' },
-  { value: '99.9%',  label: 'Uptime' },
-  { value: '0',      label: 'Cost to You' },
+  { value: '55+',    label: 'Tools' },
+  { value: '53+',    label: 'No-Signup Tools' },
+  { value: '0',      label: 'Files Stored' },
+  { value: '0',      label: 'Cost for Core Tools' },
 ]
 
 const TEAM = [
   { name: 'Wajid',      role: 'Founder & CEO',        avatar: '👨‍💼', bio: 'Passionate about democratising AI and making powerful software tools accessible to people who need them most.' },
   { name: 'AI Team',    role: 'Engineering & Models',  avatar: '👩‍💻', bio: 'Our AI agents continuously discover, design and deploy new tools based on real user needs.' },
-  { name: 'Community',  role: 'Users & Contributors',  avatar: '🌍', bio: 'Over 50,000 users across 120+ countries who shape what we build next.' },
+  { name: 'Community',  role: 'Users & Contributors',  avatar: '🌍', bio: 'Everyone who uses AWE-OS and shares feedback helps shape what we build next.' },
 ]
 
 export default function AboutPage() {
@@ -125,9 +125,9 @@ export default function AboutPage() {
           <div className="text-gray-600 leading-relaxed space-y-4">
             <p>
               AWE-OS was built to give everyone access to tools that usually cost money or require accounts.
-              PDF tools, financial calculators, AI tools — all free, all private, all in the browser. Whether
-              you&apos;re a student in Mumbai, a freelancer in Lagos, or a small business owner in London, you
-              deserve the same powerful tools as any Fortune 500 company.
+              PDF tools, financial calculators, and converters are free and run entirely in your browser — no
+              account needed. Whether you&apos;re a student in Mumbai, a freelancer in Lagos, or a small business
+              owner in London, you deserve the same powerful tools as any Fortune 500 company.
             </p>
             <p>
               <strong>Privacy is not an afterthought — it&apos;s our foundation.</strong> No data is sent to any
@@ -135,14 +135,16 @@ export default function AboutPage() {
               generate a QR code, your data never leaves your device. We have no access to it, and we never will.
             </p>
             <p>
-              We live in an era where AI and browser technology are powerful enough to run sophisticated tools
-              entirely on your device — with zero uploads, zero accounts, and zero cost. AWE-OS is our commitment
-              to that future: a free, open platform that grows with what users actually need.
+              We live in an era where browser technology is powerful enough to run sophisticated tools entirely on
+              your device — with zero uploads, zero accounts, and zero cost. Most of AWE-OS works exactly that way.
+              A small number of advanced AI tools run on server-side models and require a free account, with an
+              optional paid plan for heavy use. AWE-OS is our commitment to keeping as much as possible free, fast,
+              and open.
             </p>
             <p>
-              Today, AWE-OS serves users every month across 49+ free tools — from resume builders and PDF
-              converters to AI content writers and financial calculators. Every tool is built with the same
-              philosophy: make it fast, make it accurate, and keep it free.
+              Today, AWE-OS offers 55+ tools — from PDF converters and financial calculators to an AI resume
+              builder and AI content writer. Every tool is built with the same philosophy: make it fast, make it
+              accurate, and keep as much of it free as possible.
             </p>
           </div>
         </div>
@@ -153,7 +155,7 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold text-gray-900 mb-3 text-center">What You Can Do on AWE-OS</h2>
           <p className="text-gray-500 text-center text-sm mb-10 max-w-2xl mx-auto">
-            Four powerful categories covering the tools you reach for every day — all free, all browser-based.
+            Four powerful categories covering the tools you reach for every day — mostly free, mostly browser-based.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {CATEGORIES.map(({ icon, title, count, href, desc, tools }) => (
@@ -195,10 +197,10 @@ export default function AboutPage() {
               A basic calculator is buried under pop-ups asking you to subscribe. We built AWE-OS to fix that.
             </p>
             <p>
-              The goal was simple: <strong>clean UI, zero signup, browser-only processing.</strong> Every tool
-              on AWE-OS runs entirely inside your browser. Your files never travel over the network. Your
-              calculations are never logged. You never have to create an account just to convert a PDF or check
-              your BMI.
+              The goal was simple: <strong>clean UI, no signup, browser-only processing wherever possible.</strong>{' '}
+              Most tools on AWE-OS — PDF tools, calculators, and converters — run entirely inside your browser.
+              Your files never travel over the network. Your calculations are never logged. You never have to
+              create an account just to convert a PDF or check your BMI.
             </p>
             <p>
               We also believe the internet should be more equitable. Students in India should have the same
@@ -231,7 +233,7 @@ export default function AboutPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-8">How AWE-OS Works</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[
-              { step: '01', title: 'Open Any Tool', desc: 'Browse 100+ tools by category or use the search bar. No sign-up required for most tools.' },
+              { step: '01', title: 'Open Any Tool', desc: 'Browse 55+ tools by category or use the search bar. No sign-up required for most tools.' },
               { step: '02', title: 'Add Your Input',  desc: 'Upload a file, enter your data, or type your text. Our tools are designed to be self-explanatory.' },
               { step: '03', title: 'Get Your Result', desc: 'Download your output, copy text, or share a link in seconds. No waiting, no queues.' },
             ].map(({ step, title, desc }) => (
