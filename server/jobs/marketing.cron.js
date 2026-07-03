@@ -24,6 +24,11 @@ const cron     = require('node-cron');
 const supabase = require('../db/supabase');
 const { generateBlogPost, generateNewsletter } = require('../agents/marketing-agent');
 const { recordCronRun } = require('../services/cron-health');
+const { logToAgentLogs } = require('../db/agent-logger');
+
+// agent_name under which all three scheduled jobs log — matches the single
+// "Marketing Agent" card in the admin dashboard (agents.routes.js AGENT_HANDLERS.marketing)
+const AGENT_LOG_NAME = 'marketing';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 // IST = UTC+5:30   Mon 07:00 IST = Mon 01:30 UTC
@@ -156,6 +161,10 @@ async function executeWeeklyContent() {
     predicted_ctr:   lastWeekAvgCtr,
     engagement_risk: lastWeekAvgCtr !== null && lastWeekAvgCtr < LOW_CTR_THRESHOLD,
   });
+  await logToAgentLogs(AGENT_LOG_NAME, 'info', 'Weekly content run started', {
+    post_type: postType,
+    triggered_by: 'cron',
+  });
 
   if (lastWeekAvgCtr !== null && lastWeekAvgCtr < LOW_CTR_THRESHOLD) {
     log('warn', JOB, 'Low engagement predicted — last week avg CTR below threshold', {
@@ -197,26 +206,36 @@ async function executeWeeklyContent() {
     log('info', JOB, 'Blog generation complete', { generated, skipped, failed, post_type: postType });
 
     // Weekend-aware newsletter delivery
+    let newsletterSent = false;
     if (isWeekend()) {
       log('warn', JOB, 'Weekend detected — newsletter delivery deferred (cron schedule is Mon-only; manual trigger suspected)');
     } else {
       try {
         await generateNewsletter(NEWSLETTER_SEGMENT, { tip_of_week: 'Check your latest tools on AWE-OS' });
+        newsletterSent = true;
         log('info', JOB, 'Newsletter sent', { segment: NEWSLETTER_SEGMENT });
       } catch (err) {
         log('error', JOB, 'Newsletter generation failed', { error: err?.message || String(err) });
       }
     }
 
-    log('info', JOB, 'Run complete', { duration_ms: Date.now() - startedAt });
+    const duration_ms = Date.now() - startedAt;
+    log('info', JOB, 'Run complete', { duration_ms });
     await recordCronRun('marketing-weekly-content', 'success', null, { records_processed: generated });
+    await logToAgentLogs(AGENT_LOG_NAME, 'info', 'Weekly content run complete', {
+      generated, skipped, failed, newsletter_sent: newsletterSent, duration_ms,
+    });
   } catch (err) {
+    const duration_ms = Date.now() - startedAt;
     log('error', JOB, 'Run threw an unexpected error', {
       error:       err?.message || String(err),
       code:        err?.code    || null,
-      duration_ms: Date.now() - startedAt,
+      duration_ms,
     });
     await recordCronRun('marketing-weekly-content', 'error', err?.message || String(err));
+    await logToAgentLogs(AGENT_LOG_NAME, 'error', `Weekly content run failed: ${err?.message || String(err)}`, {
+      duration_ms,
+    });
   } finally {
     running[JOB] = false;
   }
@@ -230,6 +249,7 @@ async function executeMonthlyCalendar() {
   running[JOB] = true;
   const startedAt = Date.now();
   log('info', JOB, 'Run starting');
+  await logToAgentLogs(AGENT_LOG_NAME, 'info', 'Monthly calendar run started', { triggered_by: 'cron' });
 
   try {
     const tools = await fetchActiveTools();
@@ -237,6 +257,7 @@ async function executeMonthlyCalendar() {
     if (tools.length === 0) {
       log('warn', JOB, 'No active tools — skipping calendar generation');
       await recordCronRun('marketing-monthly-calendar', 'skipped');
+      await logToAgentLogs(AGENT_LOG_NAME, 'warn', 'Monthly calendar run skipped — no active tools');
       return;
     }
 
@@ -244,21 +265,29 @@ async function executeMonthlyCalendar() {
     const nextMonth   = now.getMonth() + 2;
     const targetMonth = nextMonth > 12 ? nextMonth - 12 : nextMonth;
     const targetYear  = nextMonth > 12 ? now.getFullYear() + 1 : now.getFullYear();
+    const duration_ms = Date.now() - startedAt;
 
     log('info', JOB, 'Content calendar placeholder — generateContentCalendar not yet implemented', {
       target_month: targetMonth,
       target_year:  targetYear,
       tool_count:   tools.length,
-      duration_ms:  Date.now() - startedAt,
+      duration_ms,
     });
 
     await recordCronRun('marketing-monthly-calendar', 'success', null, { records_processed: tools.length });
+    await logToAgentLogs(AGENT_LOG_NAME, 'info', 'Monthly calendar run complete (placeholder — generateContentCalendar not yet implemented)', {
+      target_month: targetMonth, target_year: targetYear, tool_count: tools.length, duration_ms,
+    });
   } catch (err) {
+    const duration_ms = Date.now() - startedAt;
     log('error', JOB, 'Run threw an unexpected error', {
       error:       err?.message || String(err),
-      duration_ms: Date.now() - startedAt,
+      duration_ms,
     });
     await recordCronRun('marketing-monthly-calendar', 'error', err?.message || String(err));
+    await logToAgentLogs(AGENT_LOG_NAME, 'error', `Monthly calendar run failed: ${err?.message || String(err)}`, {
+      duration_ms,
+    });
   } finally {
     running[JOB] = false;
   }
@@ -272,6 +301,7 @@ async function executeWeeklyReport() {
   running[JOB] = true;
   const startedAt = Date.now();
   log('info', JOB, 'Run starting');
+  await logToAgentLogs(AGENT_LOG_NAME, 'info', 'Weekly report run started', { triggered_by: 'cron' });
 
   try {
     const { referralData, adData } = await fetchReportData();
@@ -291,21 +321,29 @@ async function executeWeeklyReport() {
       });
     }
 
+    const duration_ms = Date.now() - startedAt;
     log('info', JOB, 'Weekly report compiled', {
       referral_stats,
       ad_stats,
-      duration_ms: Date.now() - startedAt,
+      duration_ms,
     });
 
     await recordCronRun('marketing-weekly-report', 'success', null, {
       records_processed: referralData.length + adData.length,
     });
+    await logToAgentLogs(AGENT_LOG_NAME, 'info', 'Weekly report run complete', {
+      referral_stats, ad_stats, duration_ms,
+    });
   } catch (err) {
+    const duration_ms = Date.now() - startedAt;
     log('error', JOB, 'Run threw an unexpected error', {
       error:       err?.message || String(err),
-      duration_ms: Date.now() - startedAt,
+      duration_ms,
     });
     await recordCronRun('marketing-weekly-report', 'error', err?.message || String(err));
+    await logToAgentLogs(AGENT_LOG_NAME, 'error', `Weekly report run failed: ${err?.message || String(err)}`, {
+      duration_ms,
+    });
   } finally {
     running[JOB] = false;
   }
