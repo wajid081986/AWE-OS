@@ -112,11 +112,19 @@ async function executeDecisionRun() {
       kill:            summary.kill            ?? 0,
       improve:         summary.improve         ?? 0,
       observe:         summary.observe         ?? 0,
+      auto_hidden:     result?.auto_hidden     ?? 0,
       errors:          result?.errors?.length  ?? 0,
       confidence_pct:  confidence,
       decisions_changed_vs_cache: changed,
       duration_ms,
     });
+
+    if ((result?.auto_hidden ?? 0) > 0) {
+      log('warn', 'Tools auto-hidden this run — critically low usage after observation window', {
+        auto_hidden: result.auto_hidden,
+        tool_ids: (result.results || []).filter(r => r.action_taken === 'auto_hidden').map(r => r.tool_id),
+      });
+    }
 
     const reasoning = buildReasoningChain(result);
     if (reasoning.length > 0) {

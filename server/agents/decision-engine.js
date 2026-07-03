@@ -253,10 +253,23 @@ async function evaluateAllTools({ dry_run = false, limit = BATCH_LIMIT_MAX } = {
   };
 }
 
+// A tool needs at least this many days of live traffic before the engine
+// trusts its usage/revenue signal enough to auto-hide it — protects
+// brand-new launches from being killed before anyone has found them.
+const MIN_AGE_DAYS_FOR_AUTO_HIDE = 30;
+
 /**
  * Batch-evaluate all published tools using tool_usage_events + revenue_logs.
  * Called by decision.cron.js every 24 hours.
  * Does NOT use the 'tools' internal pipeline table.
+ *
+ * Unlike evaluateAllTools (the idea-pipeline's internal table), a 'kill'
+ * verdict here is not purely advisory: once a tool has had
+ * MIN_AGE_DAYS_FOR_AUTO_HIDE days to gather real traffic and still shows
+ * critically low usage, it is automatically unpublished (approved: false)
+ * so it stops eating SEO/crawl budget and confusing users — reversible by
+ * flipping approved back to true, and skipped entirely for any tool with
+ * manual_override set.
  *
  * @param {object}  [options]
  * @param {boolean} [options.dry_run=false]
@@ -267,7 +280,7 @@ async function evaluateAllSaasTools({ dry_run = false } = {}) {
 
   const { data: tools, error: fetchErr } = await supabase
     .from('tools')
-    .select('id, name, slug, approved')
+    .select('id, name, slug, approved, manual_override, approved_at, created_at')
     .eq('approved', true)
     .limit(BATCH_LIMIT_MAX);
 
@@ -301,6 +314,27 @@ async function evaluateAllSaasTools({ dry_run = false } = {}) {
 
       const { decision, reason, recommended_action } = applyRules(metrics);
 
+      // ── Real action: auto-hide confidently-dead tools ────────────
+      const goLiveAt = tool.approved_at || tool.created_at;
+      const ageDays  = goLiveAt ? (Date.now() - new Date(goLiveAt).getTime()) / 86400000 : null;
+      const eligibleForAutoHide = decision === 'kill'
+        && !tool.manual_override
+        && ageDays !== null && ageDays >= MIN_AGE_DAYS_FOR_AUTO_HIDE;
+
+      let action_taken = 'logged_only';
+      if (eligibleForAutoHide && !dry_run) {
+        const { error: hideErr } = await supabase
+          .from('tools')
+          .update({ approved: false })
+          .eq('id', tool.id);
+        if (hideErr) {
+          console.error(`[DECISION ENGINE] auto-hide failed for ${tool.name}:`, hideErr.message);
+        } else {
+          action_taken = 'auto_hidden';
+          console.warn(`[DECISION ENGINE] AUTO-HIDDEN — ${tool.name} | age=${Math.round(ageDays)}d | ${reason}`);
+        }
+      }
+
       // Persist decision log
       if (!dry_run) {
         const { error: logErr } = await supabase.from('decision_logs').insert({
@@ -308,7 +342,7 @@ async function evaluateAllSaasTools({ dry_run = false } = {}) {
           decision,
           reason,
           recommended_action,
-          metrics_snapshot: metrics,
+          metrics_snapshot: { ...metrics, action_taken, age_days: ageDays !== null ? Math.round(ageDays) : null },
           dry_run:          false,
         });
         if (logErr) {
@@ -318,7 +352,7 @@ async function evaluateAllSaasTools({ dry_run = false } = {}) {
 
       console.log(`[DECISION ENGINE] ${tool.name} | ${decision.toUpperCase()} | ${reason}${dry_run ? ' [DRY RUN]' : ''}`);
       summary[decision]++;
-      results.push({ tool_id: tool.id, tool_name: tool.name, decision, reason, metrics });
+      results.push({ tool_id: tool.id, tool_name: tool.name, decision, reason, metrics, action_taken });
 
     } catch (err) {
       console.error(`[DECISION ENGINE] evaluateSaasTool failed | tool=${tool.name}:`, err.message);
@@ -326,13 +360,16 @@ async function evaluateAllSaasTools({ dry_run = false } = {}) {
     }
   }
 
+  const auto_hidden = results.filter(r => r.action_taken === 'auto_hidden').length;
+
   console.log(
     `[DECISION ENGINE] tools batch complete | evaluated=${results.length} | ` +
-    `scale=${summary.scale} kill=${summary.kill} improve=${summary.improve} observe=${summary.observe}` +
+    `scale=${summary.scale} kill=${summary.kill} improve=${summary.improve} observe=${summary.observe} | ` +
+    `auto_hidden=${auto_hidden}` +
     (dry_run ? ' [DRY RUN]' : '')
   );
 
-  return { total_evaluated: results.length, summary, results, errors, dry_run, executed_at };
+  return { total_evaluated: results.length, summary, results, errors, auto_hidden, dry_run, executed_at };
 }
 
 module.exports = { evaluateTool, evaluateAllTools, evaluateAllSaasTools, applyRules };
