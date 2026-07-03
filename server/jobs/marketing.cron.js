@@ -181,7 +181,7 @@ async function executeWeeklyContent() {
     }
 
     const since = new Date(Date.now() - SEVEN_DAYS_MS).toISOString();
-    let generated = 0, skipped = 0, failed = 0;
+    let generated = 0, skipped = 0, failed = 0, published = 0;
 
     for (const tool of tools) {
       try {
@@ -190,9 +190,12 @@ async function executeWeeklyContent() {
           skipped++;
           continue;
         }
-        await generateBlogPost(tool.id, postType, `${tool.name} free online`);
+        const post = await generateBlogPost(tool.id, postType, `${tool.name} free online`, { autoPublish: true });
         generated++;
-        log('info', JOB, 'Blog post generated', { tool_id: tool.id, tool_name: tool.name, post_type: postType });
+        if (post.status === 'published') published++;
+        log('info', JOB, 'Blog post generated', {
+          tool_id: tool.id, tool_name: tool.name, post_type: postType, status: post.status,
+        });
       } catch (err) {
         failed++;
         log('error', JOB, 'Blog post generation failed', {
@@ -203,7 +206,7 @@ async function executeWeeklyContent() {
       }
     }
 
-    log('info', JOB, 'Blog generation complete', { generated, skipped, failed, post_type: postType });
+    log('info', JOB, 'Blog generation complete', { generated, published, skipped, failed, post_type: postType });
 
     // Weekend-aware newsletter delivery
     let newsletterSent = false;
@@ -223,7 +226,7 @@ async function executeWeeklyContent() {
     log('info', JOB, 'Run complete', { duration_ms });
     await recordCronRun('marketing-weekly-content', 'success', null, { records_processed: generated });
     await logToAgentLogs(AGENT_LOG_NAME, 'info', 'Weekly content run complete', {
-      generated, skipped, failed, newsletter_sent: newsletterSent, duration_ms,
+      generated, published, skipped, failed, newsletter_sent: newsletterSent, duration_ms,
     });
   } catch (err) {
     const duration_ms = Date.now() - startedAt;

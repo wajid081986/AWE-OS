@@ -2,6 +2,7 @@
 
 const supabase                          = require('../db/supabase');
 const { callOpenAI, parseJSONResponse } = require('../services/ai.service');
+const fetchFeaturedImage                = require('../services/unsplashImage');
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -24,7 +25,27 @@ function addDays(n) {
 
 // ── 1. generateBlogPost ───────────────────────────────────────
 
-async function generateBlogPost(tool_id, content_type, target_keyword) {
+// Minimum bar a generated post must clear before it is allowed to go
+// live unattended. Anything short of this is saved as 'draft' instead —
+// the cron never publishes low-signal AI output without a human look.
+const MIN_PUBLISH_WORD_COUNT = 800;
+const MIN_PUBLISH_BLOCKS     = 4;
+
+function meetsPublishQuality(parsed) {
+  const blocks = Array.isArray(parsed.content_blocks) ? parsed.content_blocks : [];
+  return (parsed.word_count || 0) >= MIN_PUBLISH_WORD_COUNT && blocks.length >= MIN_PUBLISH_BLOCKS;
+}
+
+/**
+ * Generate a blog post and save it to blog_posts.
+ *
+ * By default the post is saved as 'draft' (existing behaviour, used by the
+ * manual admin "Generate" button). Pass { autoPublish: true } to let the
+ * post go live immediately (status: 'published') when it clears the
+ * quality gate — used by the weekly cron so generated content actually
+ * reaches blog.public.js / the live site instead of sitting unread.
+ */
+async function generateBlogPost(tool_id, content_type, target_keyword, { autoPublish = false } = {}) {
   try {
     const { data: tool, error: toolErr } = await supabase
       .from('tools')
@@ -39,22 +60,24 @@ async function generateBlogPost(tool_id, content_type, target_keyword) {
       .eq('slug', tool.name.toLowerCase().replace(/\s+/g, '-'))
       .maybeSingle();
 
-    const prompt = `You are an expert SaaS content marketer and SEO writer.
-Write a comprehensive, high-ranking blog post.
+    const toolSlug = tool.slug || tool.name.toLowerCase().replace(/\s+/g, '-');
+    const toolUrl  = `https://www.awe-os.com/tools/${toolSlug}`;
+
+    const prompt = `You are an expert SaaS content marketer and SEO writer for AWE-OS (awe-os.com), a free online tools website for Indian users.
 
 Tool: ${tool.name}
 Type: ${content_type}
 Target Keyword: ${target_keyword}
-Tool URL: https://awe-os.vercel.app
+Tool URL: ${toolUrl}
 ${seoMeta ? `Existing meta description: ${seoMeta.meta_description}` : ''}
 
 SEO Rules:
 - Title: Include keyword + power word
 - H2s: Include keyword variations
-- Word count: 1200-1800 words
+- Word count: 1200-1800 words across all content_blocks
 - Keyword density: 1-2%
-- Include 3 internal link suggestions
-- End with strong CTA
+- Naturally weave one inline link to the tool into a paragraph's text using: <a href='/tools/${toolSlug}'>${tool.name}</a>
+- End with a callout block linking to the tool
 
 Content type rules:
 IF how_to_guide: Step-by-step with numbered H3 headings
@@ -67,18 +90,23 @@ Return ONLY valid JSON (no markdown fences):
   "title": string,
   "slug": string (URL-safe, no spaces),
   "excerpt": string (2-3 sentences),
-  "content": string (full markdown),
+  "content_blocks": [
+    { "type": "p", "text": string },
+    { "type": "h2", "text": string },
+    { "type": "h3", "text": string },
+    { "type": "ul", "items": string[] },
+    { "type": "table", "headers": string[], "rows": string[][] },
+    { "type": "callout", "title": string, "text": string, "links": [{ "href": string, "label": string }] }
+  ],
+  "faqs": [{ "q": string, "a": string }] (5 items, 80+ words each answer),
   "meta_title": string (max 60 chars),
   "meta_description": string (max 160 chars),
   "focus_keyword": string,
   "secondary_keywords": string[],
+  "tags": string[],
   "word_count": number,
-  "read_time_minutes": number,
   "seo_score": number (0-100),
-  "readability_score": number (0-100),
-  "internal_links": [{ "anchor_text": string, "suggested_url": string }],
-  "cta_text": string,
-  "cta_url": string
+  "readability_score": number (0-100)
 }`;
 
     let parsed;
@@ -103,10 +131,14 @@ Return ONLY valid JSON (no markdown fences):
     }
     parsed.slug = slug;
 
-    // Guard content length
-    if (parsed.content && parsed.content.length > 50000) {
-      parsed.content = parsed.content.slice(0, 50000);
-    }
+    const contentBlocks = Array.isArray(parsed.content_blocks) ? parsed.content_blocks : [];
+    const wordCount      = parsed.word_count || 0;
+    const readTimeMin    = Math.max(1, Math.ceil(wordCount / 200));
+    const canAutoPublish = autoPublish && meetsPublishQuality(parsed);
+    const status         = canAutoPublish ? 'published' : 'draft';
+
+    // Featured image is a nice-to-have — never blocks publishing.
+    const featuredImage = await fetchFeaturedImage(target_keyword || tool.name).catch(() => null);
 
     const { data: savedPost, error: insertErr } = await supabase
       .from('blog_posts')
@@ -115,21 +147,29 @@ Return ONLY valid JSON (no markdown fences):
         tool_name:          tool.name,
         title:              parsed.title,
         slug:               parsed.slug,
+        date:               todayISO(),
+        category:           tool.category || 'General',
+        author:             'AWE-OS Team',
+        read_time:          `${readTimeMin} min read`,
         excerpt:            parsed.excerpt,
-        content:            parsed.content,
+        content:            contentBlocks,
+        faqs:               parsed.faqs             || [],
+        related_tools:      [{ slug: toolSlug, label: tool.name, icon: '🔧' }],
+        tags:               parsed.tags              || [tool.name, content_type, 'AWE-OS'],
         meta_title:         parsed.meta_title,
         meta_description:   parsed.meta_description,
         focus_keyword:      parsed.focus_keyword,
-        secondary_keywords: parsed.secondary_keywords  || [],
+        secondary_keywords: parsed.secondary_keywords || [],
         content_type,
-        word_count:         parsed.word_count          || 0,
-        read_time_minutes:  parsed.read_time_minutes   || 0,
+        word_count:         wordCount,
+        read_time_minutes:  readTimeMin,
         seo_score:          parsed.seo_score           || 0,
         readability_score:  parsed.readability_score   || 0,
-        internal_links:     parsed.internal_links      || [],
-        cta_text:           parsed.cta_text,
-        cta_url:            parsed.cta_url,
-        status:             'draft',
+        image_url:          featuredImage?.url        || null,
+        image_credit:       featuredImage?.credit     || null,
+        image_credit_url:   featuredImage?.creditUrl  || null,
+        status,
+        ...(status === 'published' ? { published_at: new Date().toISOString() } : {}),
       })
       .select()
       .single();
@@ -148,8 +188,11 @@ Return ONLY valid JSON (no markdown fences):
       });
     if (calErr) console.error('[MARKETING] content_calendar insert failed:', calErr.message);
 
-    console.log('[MARKETING] Blog generated:', savedPost.title);
-    return savedPost;
+    console.log(`[MARKETING] Blog ${status === 'published' ? 'published' : 'generated (draft)'}:`, savedPost.title);
+    return {
+      ...savedPost,
+      live_url: status === 'published' ? `https://www.awe-os.com/blog/${savedPost.slug}` : null,
+    };
   } catch (err) {
     console.error('[MARKETING] generateBlogPost error:', err.message);
     throw err;
