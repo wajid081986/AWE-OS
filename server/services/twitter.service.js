@@ -37,6 +37,7 @@ function classifyTwitterError(err) {
   const status = err.data?.status || err.code;
   if (status === 429 || msg.includes('rate limit'))   return 'Twitter rate limit reached. Try again in 15 minutes.';
   if (status === 401 || msg.includes('unauthorized'))  return 'Twitter auth error. Check API credentials.';
+  if (status === 402 || err.data?.title === 'CreditsDepleted') return 'X API credits depleted — top up credits in the X Developer Portal.';
   if (msg.includes('duplicate'))                       return 'Duplicate tweet. Twitter does not allow identical tweets.';
   return err.message || 'Twitter post failed';
 }
