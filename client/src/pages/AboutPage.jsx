@@ -55,8 +55,8 @@ const CATEGORIES = [
 ]
 
 const STATS = [
-  { value: '55+',    label: 'Tools' },
-  { value: '53+',    label: 'No-Signup Tools' },
+  { value: '49+',    label: 'Tools' },
+  { value: '47+',    label: 'No-Signup Tools' },
   { value: '0',      label: 'Files Stored' },
   { value: '0',      label: 'Cost for Core Tools' },
 ]
@@ -142,7 +142,7 @@ export default function AboutPage() {
               and open.
             </p>
             <p>
-              Today, AWE-OS offers 55+ tools — from PDF converters and financial calculators to an AI resume
+              Today, AWE-OS offers 49+ tools — from PDF converters and financial calculators to an AI resume
               builder and AI content writer. Every tool is built with the same philosophy: make it fast, make it
               accurate, and keep as much of it free as possible.
             </p>
@@ -233,7 +233,7 @@ export default function AboutPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-8">How AWE-OS Works</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[
-              { step: '01', title: 'Open Any Tool', desc: 'Browse 55+ tools by category or use the search bar. No sign-up required for most tools.' },
+              { step: '01', title: 'Open Any Tool', desc: 'Browse 49+ tools by category or use the search bar. No sign-up required for most tools.' },
               { step: '02', title: 'Add Your Input',  desc: 'Upload a file, enter your data, or type your text. Our tools are designed to be self-explanatory.' },
               { step: '03', title: 'Get Your Result', desc: 'Download your output, copy text, or share a link in seconds. No waiting, no queues.' },
             ].map(({ step, title, desc }) => (

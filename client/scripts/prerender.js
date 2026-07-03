@@ -463,8 +463,8 @@ function buildAboutBody() {
 
 <section aria-label="Platform statistics">
   <ul>
-    <li>55+ Tools</li>
-    <li>53+ No-Signup Tools</li>
+    <li>49+ Tools</li>
+    <li>47+ No-Signup Tools</li>
     <li>0 Files Stored</li>
     <li>0 Cost for Core Tools</li>
   </ul>
@@ -737,7 +737,7 @@ function buildToolsIndexBody() {
     .join('')
   return `<main>
 <h1>Online Tools — PDF, Calculators, AI &amp; Converters</h1>
-<p>Browse 55+ tools, most free with no signup: PDF merger, compressor &amp; converter; BMI &amp; loan EMI calculators; QR code generator; AI-powered tools. Works in browser.</p>
+<p>Browse 49+ tools, most free with no signup: PDF merger, compressor &amp; converter; BMI &amp; loan EMI calculators; QR code generator; AI-powered tools. Works in browser.</p>
 ${featured ? `<ul>${featured}</ul>` : ''}
 </main>`
 }
@@ -783,14 +783,14 @@ const STATIC_ROUTES = [
   {
     path: '/',
     title: 'AWE-OS — Mostly Free Online Tools: PDF, Calculators, AI & More',
-    description: '55+ browser-based tools, most free with no signup. Merge, compress & convert PDFs; BMI, loan EMI & SIP calculators; QR code generator, and AI-powered tools.',
+    description: '49+ browser-based tools, most free with no signup. Merge, compress & convert PDFs; BMI, loan EMI & SIP calculators; QR code generator, and AI-powered tools.',
     schemas: [
       {
         '@context': 'https://schema.org',
         '@type': 'WebSite',
         name: 'AWE-OS',
         url: SITE_URL,
-        description: '55+ browser-based tools, most free with no signup required.',
+        description: '49+ browser-based tools, most free with no signup required.',
         potentialAction: {
           '@type': 'SearchAction',
           target: {
@@ -813,12 +813,12 @@ const STATIC_ROUTES = [
   {
     path: '/tools',
     title: 'Online Tools — PDF, Calculators, AI & Converters | AWE-OS',
-    description: 'Browse 55+ tools, most free with no signup: PDF merger, compressor & converter; BMI & loan EMI calculators; QR code generator; AI-powered tools. Works in browser.',
+    description: 'Browse 49+ tools, most free with no signup: PDF merger, compressor & converter; BMI & loan EMI calculators; QR code generator; AI-powered tools. Works in browser.',
     schema: {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
       name: 'Online Tools — AWE-OS',
-      description: 'Browse 55+ tools, most free with no signup: PDF merger, compressor & converter; BMI & loan EMI calculators; QR code generator; AI-powered tools. Works in browser.',
+      description: 'Browse 49+ tools, most free with no signup: PDF merger, compressor & converter; BMI & loan EMI calculators; QR code generator; AI-powered tools. Works in browser.',
       url: `${SITE_URL}/tools`,
       isPartOf: { '@type': 'WebSite', name: 'AWE-OS', url: SITE_URL },
     },
@@ -826,12 +826,12 @@ const STATIC_ROUTES = [
   {
     path: '/tools/free',
     title: 'Free Tools — No Sign-Up Required | AWE-OS',
-    description: 'All free tools on AWE-OS require no account, no payment, and no software. PDF, calculators, converters, AI tools — 100% free in your browser.',
+    description: 'All free tools on AWE-OS require no account, no payment, and no software. PDF, calculators, and converters — 100% free in your browser.',
     schema: {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
       name: 'Free Tools — No Sign-Up Required',
-      description: 'All free tools on AWE-OS require no account, no payment, and no software. PDF, calculators, converters, AI tools — 100% free in your browser.',
+      description: 'All free tools on AWE-OS require no account, no payment, and no software. PDF, calculators, and converters — 100% free in your browser.',
       url: `${SITE_URL}/tools/free`,
       isPartOf: { '@type': 'WebSite', name: 'AWE-OS', url: SITE_URL },
     },
@@ -839,12 +839,12 @@ const STATIC_ROUTES = [
   {
     path: '/about',
     title: 'About AWE-OS — Mostly Free, AI-Powered Tools for Everyone',
-    description: 'AWE-OS provides 55+ browser-based tools for everyone, most free and no signup. Learn about our mission to make powerful tools accessible.',
+    description: 'AWE-OS provides 49+ browser-based tools for everyone, most free and no signup. Learn about our mission to make powerful tools accessible.',
     schema: {
       '@context': 'https://schema.org',
       '@type': 'AboutPage',
       name: 'About AWE-OS',
-      description: 'AWE-OS provides 55+ browser-based tools for everyone, most free and no signup. Learn about our mission to make powerful tools accessible.',
+      description: 'AWE-OS provides 49+ browser-based tools for everyone, most free and no signup. Learn about our mission to make powerful tools accessible.',
       url: `${SITE_URL}/about`,
       isPartOf: { '@type': 'WebSite', name: 'AWE-OS', url: SITE_URL },
     },
