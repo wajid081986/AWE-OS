@@ -2,6 +2,7 @@
 
 const supabase                    = require('../db/supabase');
 const { callOpenAI, parseJSONResponse } = require('../services/ai.service');
+const { sendEmail }               = require('../services/email.service');
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -14,6 +15,28 @@ function maskEmail(email) {
   const [local, domain] = email.split('@');
   const visible = local.slice(0, 3);
   return `${visible}***@${domain}`;
+}
+
+const UPSELL_SUBJECTS = {
+  free_to_paid: "You're getting a lot out of AWE-OS — here's an upgrade offer",
+  re_engage:    'We miss you — a re-engagement offer from AWE-OS',
+  cross_sell:   'Unlock the full AWE-OS tool suite',
+};
+
+function buildUpsellEmailHtml(opp) {
+  return `
+    <div style="font-family:sans-serif;max-width:520px;margin:0 auto;line-height:1.5;">
+      <p>Hi,</p>
+      <p>${opp.ai_message}</p>
+      <p>
+        <a href="https://www.awe-os.com/pricing"
+           style="display:inline-block;background:#2563eb;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">
+          View Plans
+        </a>
+      </p>
+      <p style="color:#888;font-size:12px;">You're receiving this because you're an AWE-OS user. This is a one-time offer email for this opportunity.</p>
+    </div>
+  `;
 }
 
 // ── generateRevenueInsights ───────────────────────────────────
@@ -367,6 +390,7 @@ async function findUpsellOpportunities() {
       opportunities.push({
         user_id:          user.id,
         user_email:       maskEmail(user.email),
+        real_email:       user.email,
         opportunity_type: 'free_to_paid',
         current_plan:     'free',
         suggested_plan:   'premium',
@@ -408,6 +432,7 @@ async function findUpsellOpportunities() {
     opportunities.push({
       user_id:          payer.user_id,
       user_email:       maskEmail(userRow.email),
+      real_email:       userRow.email,
       opportunity_type: 're_engage',
       current_plan:     'free',
       suggested_plan:   'premium',
@@ -446,6 +471,7 @@ async function findUpsellOpportunities() {
     opportunities.push({
       user_id,
       user_email:       maskEmail(userRow.email),
+      real_email:       userRow.email,
       opportunity_type: 'cross_sell',
       current_plan:     'premium',
       suggested_plan:   'premium_plus',
@@ -457,8 +483,10 @@ async function findUpsellOpportunities() {
     });
   }
 
-  // STEP 4 — Save opportunities (skip existing ones for same user+type)
-  let saved = 0;
+  // STEP 4 — Save opportunities (skip existing ones for same user+type), then
+  // email only the newly-identified ones — re-running this job daily must
+  // never re-email a user for an opportunity we already told them about.
+  let saved = 0, emailed = 0, emailFailed = 0;
   for (const opp of opportunities) {
     const { data: exists } = await supabase
       .from('upsell_opportunities')
@@ -470,8 +498,23 @@ async function findUpsellOpportunities() {
 
     if (exists && exists.length > 0) continue;
 
-    await supabase.from('upsell_opportunities').insert(opp);
+    const { real_email, ...oppForInsert } = opp;
+    await supabase.from('upsell_opportunities').insert(oppForInsert);
     saved++;
+
+    if (real_email) {
+      try {
+        await sendEmail({
+          to:      real_email,
+          subject: UPSELL_SUBJECTS[opp.opportunity_type] || 'A special offer from AWE-OS',
+          html:    buildUpsellEmailHtml(opp),
+        });
+        emailed++;
+      } catch (err) {
+        emailFailed++;
+        console.error(`[REVENUE AGENT] Upsell email failed | user_id=${opp.user_id}:`, err.message);
+      }
+    }
   }
 
   const byType = opportunities.reduce((acc, o) => {
@@ -481,13 +524,15 @@ async function findUpsellOpportunities() {
 
   const estimatedRevenue = opportunities.reduce((s, o) => s + safe(o.suggested_price), 0);
 
-  console.log(`[REVENUE AGENT] Upsells found: ${opportunities.length} (saved ${saved} new)`);
+  console.log(`[REVENUE AGENT] Upsells found: ${opportunities.length} (saved ${saved} new, emailed ${emailed}, email failures ${emailFailed})`);
 
   return {
     total_found:          opportunities.length,
     by_type:              byType,
     top_opportunities:    opportunities.sort((a, b) => b.score - a.score).slice(0, 5),
     estimated_revenue:    round2(estimatedRevenue),
+    emails_sent:          emailed,
+    emails_failed:        emailFailed,
   };
 }
 
