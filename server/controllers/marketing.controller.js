@@ -1,6 +1,8 @@
 'use strict';
 
+const jwt      = require('jsonwebtoken');
 const supabase = require('../db/supabase');
+const { sendNewsletter, UNSUBSCRIBE_PURPOSE } = require('../services/newsletter-sender.service');
 const {
   generateBlogPost,
   generateNewsletter    : agentGenerateNewsletter,
@@ -10,6 +12,7 @@ const {
   generateCampaignBrief,
   createReferralProgram,
   getMarketingDashboard,
+  SITE_URL,
 } = require('../agents/marketing-agent');
 
 // ── Stub (will move to agent once finalized) ──────────────────
@@ -229,6 +232,68 @@ async function getNewsletters(req, res) {
   }
 }
 
+// Sends a single preview copy to an admin-supplied address. Newsletter
+// status/sent_at is untouched — this is a preview, not a real send.
+async function sendNewsletterTest(req, res) {
+  try {
+    const { id }    = req.params;
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'email is required' });
+
+    const result = await sendNewsletter(id, { testEmail: email });
+    return res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('[MARKETING CTRL] sendNewsletterTest error:', err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// Real send to every opted-in user with an email. Requires an explicit
+// { confirm: true } in the body as a guard against an accidental blast —
+// there is no cron path that can reach this, only a deliberate admin call.
+async function sendNewsletterConfirm(req, res) {
+  try {
+    const { id }      = req.params;
+    const { confirm } = req.body;
+    if (confirm !== true) {
+      return res.status(400).json({ error: 'Refusing to send — request body must include { confirm: true }' });
+    }
+
+    const result = await sendNewsletter(id);
+    return res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('[MARKETING CTRL] sendNewsletterConfirm error:', err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// Public (no auth) — the link a recipient clicks from inside the email itself.
+async function unsubscribeNewsletter(req, res) {
+  const { token } = req.query;
+  const failHtml = `<!DOCTYPE html><html><body style="font-family:sans-serif;text-align:center;padding:60px;">
+    <h2>Link invalid or expired</h2><p>We couldn't process your unsubscribe request.</p>
+  </body></html>`;
+
+  if (!token) return res.status(400).send(failHtml);
+
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
+    if (payload.purpose !== UNSUBSCRIBE_PURPOSE || !payload.uid) {
+      throw new Error('Invalid token purpose');
+    }
+
+    await supabase.from('users').update({ email_opt_out: true }).eq('id', payload.uid);
+
+    return res.status(200).send(`<!DOCTYPE html><html><body style="font-family:sans-serif;text-align:center;padding:60px;">
+      <h2>You've been unsubscribed</h2>
+      <p>You will no longer receive AWE-OS newsletter emails.</p>
+    </body></html>`);
+  } catch (err) {
+    console.error('[MARKETING CTRL] unsubscribeNewsletter error:', err.message);
+    return res.status(400).send(failHtml);
+  }
+}
+
 // ── Ad Copy ───────────────────────────────────────────────────
 
 async function generateAdCopy(req, res) {
@@ -370,7 +435,7 @@ async function trackReferralClick(req, res) {
         status:         'clicked',
       });
 
-    return res.json({ success: true, referral_url: 'https://awe-os.vercel.app' });
+    return res.json({ success: true, referral_url: SITE_URL });
   } catch (err) {
     console.error('[MARKETING CTRL] trackReferralClick error:', err.message);
     return res.status(500).json({ error: err.message });
@@ -502,6 +567,35 @@ async function getCampaigns(req, res) {
   }
 }
 
+// ── Social post retry queue ───────────────────────────────────
+
+async function getSocialQueue(req, res) {
+  try {
+    const [{ data: recent, error }, pendingRes, postedRes, failedRes] = await Promise.all([
+      supabase.from('social_post_queue').select('*').order('created_at', { ascending: false }).limit(20),
+      supabase.from('social_post_queue').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabase.from('social_post_queue').select('id', { count: 'exact', head: true }).eq('status', 'posted'),
+      supabase.from('social_post_queue').select('id', { count: 'exact', head: true }).eq('status', 'failed_permanent'),
+    ]);
+    if (error) throw error;
+
+    return res.json({
+      success: true,
+      data: {
+        counts: {
+          pending:          pendingRes.count || 0,
+          posted:           postedRes.count  || 0,
+          failed_permanent: failedRes.count  || 0,
+        },
+        recent,
+      },
+    });
+  } catch (err) {
+    console.error('[MARKETING CTRL] getSocialQueue error:', err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
 // ── Content Calendar ──────────────────────────────────────────
 
 async function getCalendar(req, res) {
@@ -575,4 +669,8 @@ module.exports = {
   getCampaigns,
   getCalendar,
   generateCalendar,
+  getSocialQueue,
+  sendNewsletterTest,
+  sendNewsletterConfirm,
+  unsubscribeNewsletter,
 };

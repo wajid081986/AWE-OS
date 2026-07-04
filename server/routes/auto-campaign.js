@@ -1,9 +1,10 @@
 const express      = require('express')
-const { TwitterApi } = require('twitter-api-v2')
 const requireAuth  = require('../middleware/auth')
 const supabase     = require('../db/supabase')
 const fetchFeaturedImage = require('../services/unsplashImage')
 const { getOpenAI } = require('../core/ai-engine')
+const { postTweet }  = require('../services/twitter.service')
+const { createPin }  = require('../services/pinterest.service')
 
 const router = express.Router()
 
@@ -28,16 +29,6 @@ function requireAdmin(req, res, next) {
     return res.status(403).json({ success: false, error: 'Admin access required' })
   }
   next()
-}
-
-function buildTweetText(text, linkUrl) {
-  if (linkUrl && !text.includes(linkUrl)) {
-    const suffix = ` ${linkUrl}`
-    text = (text.length + suffix.length) <= 280
-      ? text + suffix
-      : text.slice(0, 280 - suffix.length - 3) + '...' + suffix
-  }
-  return text.length > 280 ? text.slice(0, 277) + '...' : text
 }
 
 // ── POST /api/auto-campaign/run ───────────────────────────────────────────────
@@ -181,23 +172,10 @@ Generate all content for this tool. Keep it authentic and helpful.`,
 
     let tweetUrl = null
     try {
-      const { X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_TOKEN_SECRET } = process.env
-      if (!X_API_KEY || !X_API_SECRET || !X_ACCESS_TOKEN || !X_ACCESS_TOKEN_SECRET) {
-        throw new Error('Twitter credentials not configured')
-      }
       const linkToUse = blogUrl || toolUrl
-      const tweetText = buildTweetText(
-        content.twitterText || `${toolName} — free on AWE-OS! No signup needed.`,
-        linkToUse
-      )
-      const twitter = new TwitterApi({
-        appKey:      X_API_KEY,
-        appSecret:   X_API_SECRET,
-        accessToken: X_ACCESS_TOKEN,
-        accessSecret: X_ACCESS_TOKEN_SECRET,
-      })
-      const tweet  = await twitter.v2.tweet(tweetText)
-      tweetUrl     = `https://twitter.com/i/web/status/${tweet.data.id}`
+      const tweetText = content.twitterText || `${toolName} — free on AWE-OS! No signup needed.`
+      const posted    = await postTweet(tweetText, linkToUse)
+      tweetUrl        = posted.tweetUrl
       send({ step: 5, total: 6, status: 'done',   label: 'Tweet posted',    url: tweetUrl })
     } catch (err) {
       console.error('[auto-campaign/twitter]', err.message)
@@ -210,32 +188,12 @@ Generate all content for this tool. Keep it authentic and helpful.`,
 
     let pinUrl = null
     try {
-      const token = process.env.PINTEREST_ACCESS_TOKEN
-      if (!token) throw new Error('PINTEREST_ACCESS_TOKEN not configured')
-      const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-
-      const boardsRes = await fetch('https://api.pinterest.com/v5/boards?page_size=5', { headers })
-      if (!boardsRes.ok) throw new Error(`Pinterest boards error: ${boardsRes.status}`)
-      const boards = (await boardsRes.json()).items || []
-      if (!boards.length) throw new Error('No Pinterest boards found')
-
-      const pinRes = await fetch('https://api.pinterest.com/v5/pins', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          board_id:    boards[0].id,
-          title:       (content.pinterestTitle || `Free ${toolName} Online — AWE-OS`).slice(0, 100),
-          description: (content.pinterestDescription || '').slice(0, 500),
-          link:        blogUrl || toolUrl,
-          media_source: { source_type: 'image_url', url: 'https://www.awe-os.com/og-image.png' },
-        }),
+      const pin = await createPin({
+        title:       content.pinterestTitle || `Free ${toolName} Online — AWE-OS`,
+        description: content.pinterestDescription,
+        link:        blogUrl || toolUrl,
       })
-      if (!pinRes.ok) {
-        const errData = await pinRes.json().catch(() => ({}))
-        throw new Error(errData.message || `Pinterest pin error: ${pinRes.status}`)
-      }
-      const pin = await pinRes.json()
-      pinUrl    = `https://pinterest.com/pin/${pin.id}`
+      pinUrl = pin.pinUrl
       send({ step: 6, total: 6, status: 'done',   label: 'Pinterest pin created', url: pinUrl })
     } catch (err) {
       console.error('[auto-campaign/pinterest]', err.message)

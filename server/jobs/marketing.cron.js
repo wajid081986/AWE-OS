@@ -14,6 +14,11 @@
  * Schedule 3 — Weekly report    : Every Friday 17:00 IST (11:30 UTC)
  *   · Referral + ad performance stats · engagement trend analysis
  *
+ * Schedule 4 — Social queue retry: Every 6 hours
+ *   · Retries tweets that failed during the weekly-content run (e.g. X API
+ *     CreditsDepleted — an account billing/tier issue, not something a code
+ *     retry fixes immediately, hence the long backoff) instead of dropping them.
+ *
  * Safety    : Per-job overlap guards · structured JSON logging · Promise.allSettled()
  *             · recordCronRun() telemetry · graceful shutdown · never crashes
  *
@@ -36,9 +41,10 @@ const AGENT_LOG_NAME = 'marketing';
 //                  1st  09:00 IST = 1st 03:30 UTC
 //                  Fri  17:00 IST = Fri 11:30 UTC
 const EXPRESSIONS = Object.freeze({
-  weeklyContent:   '30 1 * * 1',
-  monthlyCalendar: '30 3 1 * *',
-  weeklyReport:    '30 11 * * 5',
+  weeklyContent:    '30 1 * * 1',
+  monthlyCalendar:  '30 3 1 * *',
+  weeklyReport:     '30 11 * * 5',
+  socialQueueRetry: '0 */6 * * *',
 });
 
 const AGENT              = 'marketing-cron';
@@ -49,10 +55,16 @@ const LOW_CTR_THRESHOLD  = 1.5;    // percent — warn if engagement below this
 // A/B test: rotate blog post types each weekly run
 const BLOG_POST_TYPES = ['how_to_guide', 'case_study', 'comparison', 'tutorial'];
 
+// Social post retry queue — root cause of a failed post (e.g. CreditsDepleted)
+// is usually account-level, not transient, so backoff is deliberately long.
+const SOCIAL_QUEUE_MAX_ATTEMPTS  = 5;
+const SOCIAL_QUEUE_BATCH_LIMIT   = 20;
+const SOCIAL_QUEUE_BACKOFF_HOURS = [6, 12, 24]; // attempt 1 -> 6h, 2 -> 12h, 3+ -> 24h
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // ── State ──────────────────────────────────────────────────────────────────────
-const running = { weeklyContent: false, monthlyCalendar: false, weeklyReport: false };
+const running = { weeklyContent: false, monthlyCalendar: false, weeklyReport: false, socialQueueRetry: false };
 let activeTasks      = [];
 let blogPostTypeIdx  = 0;    // rotates through BLOG_POST_TYPES
 let lastWeekAvgCtr   = null; // updated by weeklyReport — used for engagement prediction
@@ -153,6 +165,42 @@ function aggregateAdStats(rows) {
   return { active_count: rows.length, avg_ctr };
 }
 
+// ── Social post retry queue helpers ────────────────────────────────────────────
+function socialQueueBackoffMs(attempts, errorCode) {
+  // CreditsDepleted is an account billing/tier issue — retrying inside a day
+  // won't fix it, so always wait the full 24h regardless of attempt count.
+  if (errorCode === 'CREDITS_DEPLETED') return 24 * 60 * 60 * 1000;
+  const idx = Math.min(attempts - 1, SOCIAL_QUEUE_BACKOFF_HOURS.length - 1);
+  return SOCIAL_QUEUE_BACKOFF_HOURS[idx] * 60 * 60 * 1000;
+}
+
+// Called when a tweet fails during the weekly-content run — persists the post
+// so the socialQueueRetry job can retry it later instead of it being dropped.
+// Returns true if the row was queued, false if even the queue insert failed.
+async function enqueueSocialPost({ platform, payload, blogPostId, errorCode }) {
+  try {
+    const attempts      = 1;
+    const next_retry_at = new Date(Date.now() + socialQueueBackoffMs(attempts, errorCode)).toISOString();
+    const { error } = await supabase.from('social_post_queue').insert({
+      platform,
+      payload,
+      blog_post_id:  blogPostId || null,
+      status:        'pending',
+      error_code:    errorCode || 'UNKNOWN',
+      attempts,
+      next_retry_at,
+    });
+    if (error) {
+      log('error', 'weeklyContent', 'Failed to enqueue social post for retry', { error: error.message });
+      return false;
+    }
+    return true;
+  } catch (err) {
+    log('error', 'weeklyContent', 'Unexpected error enqueueing social post', { error: err?.message || String(err) });
+    return false;
+  }
+}
+
 // ── Job 1 — Weekly content ─────────────────────────────────────────────────────
 async function executeWeeklyContent() {
   const JOB = 'weeklyContent';
@@ -192,7 +240,7 @@ async function executeWeeklyContent() {
     }
 
     const since = new Date(Date.now() - SEVEN_DAYS_MS).toISOString();
-    let generated = 0, skipped = 0, failed = 0, published = 0, tweeted = 0;
+    let generated = 0, skipped = 0, failed = 0, published = 0, tweeted = 0, queuedTweets = 0, failedTweets = 0;
 
     for (const tool of tools) {
       try {
@@ -209,17 +257,26 @@ async function executeWeeklyContent() {
 
         if (post.status === 'published' && post.live_url) {
           published++;
+          const tweetText = `${post.title}\n\n${post.excerpt || ''}`.trim();
           try {
-            const tweetText = `${post.title}\n\n${post.excerpt || ''}`.trim();
             const { tweetUrl } = await postTweet(tweetText, post.live_url);
             tweeted++;
             log('info', JOB, 'Tweeted new post', { tool_id: tool.id, tweet_url: tweetUrl });
           } catch (tweetErr) {
             // Social amplification is best-effort — a Twitter failure must
             // never roll back or block the blog publish that already succeeded.
-            log('warn', JOB, 'Tweet failed for published post', {
-              tool_id: tool.id, live_url: post.live_url, error: tweetErr?.message || String(tweetErr),
+            // Instead of dropping it, enqueue for the socialQueueRetry cron.
+            const errorCode = tweetErr?.code || 'UNKNOWN';
+            log('warn', JOB, 'Tweet failed for published post — enqueueing for retry', {
+              tool_id: tool.id, live_url: post.live_url, error: tweetErr?.message || String(tweetErr), error_code: errorCode,
             });
+            const queuedOk = await enqueueSocialPost({
+              platform:   'twitter',
+              payload:    { text: tweetText, url: post.live_url },
+              blogPostId: post.id,
+              errorCode,
+            });
+            if (queuedOk) queuedTweets++; else failedTweets++;
           }
           await sleep(2000); // be gentle on Twitter's rate limit across multiple posts/run
         }
@@ -233,7 +290,9 @@ async function executeWeeklyContent() {
       }
     }
 
-    log('info', JOB, 'Blog generation complete', { generated, published, tweeted, skipped, failed, post_type: postType });
+    log('info', JOB, 'Blog generation complete', {
+      generated, published, tweeted, queued_tweets: queuedTweets, failed_tweets: failedTweets, skipped, failed, post_type: postType,
+    });
 
     // Weekend-aware newsletter delivery
     let newsletterSent = false;
@@ -253,11 +312,13 @@ async function executeWeeklyContent() {
     log('info', JOB, 'Run complete', { duration_ms });
     await recordCronRun('marketing-weekly-content', 'success', null, { records_processed: generated });
     await logToAgentLogs(AGENT_LOG_NAME, 'info', 'Weekly content run complete', {
-      generated, published, tweeted, skipped, failed, newsletter_sent: newsletterSent, duration_ms,
+      generated, published, tweeted, queued_tweets: queuedTweets, failed_tweets: failedTweets,
+      skipped, failed, newsletter_sent: newsletterSent, duration_ms,
     });
     return {
       skipped: false, post_type: postType,
-      generated, published, tweeted, blog_skipped: skipped, failed,
+      generated, published, tweeted, queued_tweets: queuedTweets, failed_tweets: failedTweets,
+      blog_skipped: skipped, failed,
       newsletter_sent: newsletterSent, duration_ms,
     };
   } catch (err) {
@@ -385,6 +446,96 @@ async function executeWeeklyReport() {
   }
 }
 
+// ── Job 4 — Social post queue retry ────────────────────────────────────────────
+async function executeSocialQueueRetry() {
+  const JOB = 'socialQueueRetry';
+  if (running[JOB]) { log('warn', JOB, 'Skipping — previous run still in progress'); return { skipped: true, reason: 'already_running' }; }
+
+  running[JOB] = true;
+  const startedAt = Date.now();
+  log('info', JOB, 'Run starting');
+  await logToAgentLogs(AGENT_LOG_NAME, 'info', 'Social queue retry run started', { triggered_by: 'cron' });
+
+  let processed = 0, posted = 0, requeued = 0, permanentlyFailed = 0;
+
+  try {
+    const nowIso = new Date().toISOString();
+    const { data: pending, error } = await supabase
+      .from('social_post_queue')
+      .select('*')
+      .eq('status', 'pending')
+      .lte('next_retry_at', nowIso)
+      .order('next_retry_at', { ascending: true })
+      .limit(SOCIAL_QUEUE_BATCH_LIMIT);
+
+    if (error) throw Object.assign(
+      new Error(`Queue fetch failed: ${error.message}`),
+      { code: 'QUEUE_FETCH_FAILED' }
+    );
+
+    for (const item of pending || []) {
+      processed++;
+
+      if (item.platform !== 'twitter') {
+        // Only Twitter is wired today — leave other platforms pending rather
+        // than guessing at how to post them.
+        log('warn', JOB, 'Skipping queued item for unsupported platform', { id: item.id, platform: item.platform });
+        continue;
+      }
+
+      try {
+        const { text, url } = item.payload || {};
+        const { tweetUrl } = await postTweet(text, url);
+        await supabase.from('social_post_queue')
+          .update({ status: 'posted', posted_at: new Date().toISOString() })
+          .eq('id', item.id);
+        posted++;
+        log('info', JOB, 'Queued tweet posted', { id: item.id, blog_post_id: item.blog_post_id, tweet_url: tweetUrl });
+      } catch (err) {
+        const attempts   = (item.attempts || 0) + 1;
+        const errorCode  = err?.code || 'UNKNOWN';
+
+        if (attempts >= SOCIAL_QUEUE_MAX_ATTEMPTS) {
+          await supabase.from('social_post_queue')
+            .update({ status: 'failed_permanent', attempts, error_code: errorCode })
+            .eq('id', item.id);
+          permanentlyFailed++;
+          log('error', JOB, 'Queued tweet permanently failed — max attempts reached', {
+            id: item.id, attempts, error_code: errorCode,
+          });
+        } else {
+          const next_retry_at = new Date(Date.now() + socialQueueBackoffMs(attempts, errorCode)).toISOString();
+          await supabase.from('social_post_queue')
+            .update({ attempts, error_code: errorCode, next_retry_at })
+            .eq('id', item.id);
+          requeued++;
+          log('warn', JOB, 'Queued tweet retry failed — rescheduled', {
+            id: item.id, attempts, next_retry_at, error_code: errorCode,
+          });
+        }
+      }
+
+      await sleep(2000); // be gentle on Twitter's rate limit across multiple retries/run
+    }
+
+    const duration_ms = Date.now() - startedAt;
+    log('info', JOB, 'Run complete', { processed, posted, requeued, permanently_failed: permanentlyFailed, duration_ms });
+    await recordCronRun('marketing-social-queue', 'success', null, { records_processed: processed });
+    await logToAgentLogs(AGENT_LOG_NAME, 'info', 'Social queue retry run complete', {
+      processed, posted, requeued, permanently_failed: permanentlyFailed, duration_ms,
+    });
+    return { skipped: false, processed, posted, requeued, permanently_failed: permanentlyFailed, duration_ms };
+  } catch (err) {
+    const duration_ms = Date.now() - startedAt;
+    log('error', JOB, 'Run threw an unexpected error', { error: err?.message || String(err), duration_ms });
+    await recordCronRun('marketing-social-queue', 'error', err?.message || String(err));
+    await logToAgentLogs(AGENT_LOG_NAME, 'error', `Social queue retry run failed: ${err?.message || String(err)}`, { duration_ms });
+    return { skipped: false, error: err?.message || String(err), duration_ms };
+  } finally {
+    running[JOB] = false;
+  }
+}
+
 // ── Scheduler registration ─────────────────────────────────────────────────────
 function assertValidExpression(expression, label) {
   if (!cron.validate(expression)) {
@@ -393,21 +544,24 @@ function assertValidExpression(expression, label) {
 }
 
 function startMarketingCrons() {
-  assertValidExpression(EXPRESSIONS.weeklyContent,   'weeklyContent');
-  assertValidExpression(EXPRESSIONS.monthlyCalendar, 'monthlyCalendar');
-  assertValidExpression(EXPRESSIONS.weeklyReport,    'weeklyReport');
+  assertValidExpression(EXPRESSIONS.weeklyContent,    'weeklyContent');
+  assertValidExpression(EXPRESSIONS.monthlyCalendar,  'monthlyCalendar');
+  assertValidExpression(EXPRESSIONS.weeklyReport,     'weeklyReport');
+  assertValidExpression(EXPRESSIONS.socialQueueRetry, 'socialQueueRetry');
 
   activeTasks = [
-    cron.schedule(EXPRESSIONS.weeklyContent,   executeWeeklyContent,   { scheduled: true, timezone: 'UTC' }),
-    cron.schedule(EXPRESSIONS.monthlyCalendar, executeMonthlyCalendar, { scheduled: true, timezone: 'UTC' }),
-    cron.schedule(EXPRESSIONS.weeklyReport,    executeWeeklyReport,    { scheduled: true, timezone: 'UTC' }),
+    cron.schedule(EXPRESSIONS.weeklyContent,    executeWeeklyContent,    { scheduled: true, timezone: 'UTC' }),
+    cron.schedule(EXPRESSIONS.monthlyCalendar,  executeMonthlyCalendar,  { scheduled: true, timezone: 'UTC' }),
+    cron.schedule(EXPRESSIONS.weeklyReport,     executeWeeklyReport,     { scheduled: true, timezone: 'UTC' }),
+    cron.schedule(EXPRESSIONS.socialQueueRetry, executeSocialQueueRetry, { scheduled: true, timezone: 'UTC' }),
   ];
 
   log('info', 'startup', 'All marketing crons registered', {
-    weeklyContent:   EXPRESSIONS.weeklyContent,
-    monthlyCalendar: EXPRESSIONS.monthlyCalendar,
-    weeklyReport:    EXPRESSIONS.weeklyReport,
-    blog_post_types: BLOG_POST_TYPES,
+    weeklyContent:    EXPRESSIONS.weeklyContent,
+    monthlyCalendar:  EXPRESSIONS.monthlyCalendar,
+    weeklyReport:     EXPRESSIONS.weeklyReport,
+    socialQueueRetry: EXPRESSIONS.socialQueueRetry,
+    blog_post_types:  BLOG_POST_TYPES,
   });
 
   return activeTasks;
@@ -425,4 +579,5 @@ module.exports = {
   executeWeeklyContent,
   executeMonthlyCalendar,
   executeWeeklyReport,
+  executeSocialQueueRetry,
 };

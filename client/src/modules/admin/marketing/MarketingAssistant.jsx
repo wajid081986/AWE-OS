@@ -2,29 +2,9 @@ import { useState } from 'react'
 import api from '../../../services/api.service'
 
 // ── Data ──────────────────────────────────────────────────────────────────────
-
-const AWE_TOOLS = [
-  { slug: 'pdf-to-word',           name: 'PDF to Word Converter',     desc: 'Convert PDF files to editable Word documents instantly'   },
-  { slug: 'merge-pdf',             name: 'Merge PDF',                  desc: 'Combine multiple PDF files into one'                      },
-  { slug: 'image-to-pdf',          name: 'Image to PDF',               desc: 'Convert images to PDF documents instantly'                },
-  { slug: 'image-compressor',      name: 'Image Compressor',           desc: 'Compress images without losing quality'                   },
-  { slug: 'word-counter',          name: 'Word Counter',               desc: 'Count words, characters and sentences in any text'        },
-  { slug: 'qr-code-generator',     name: 'QR Code Generator',          desc: 'Generate QR codes for any URL or text instantly'          },
-  { slug: 'password-generator',    name: 'Password Generator',         desc: 'Create strong, secure passwords instantly'                },
-  { slug: 'text-case-converter',   name: 'Text Case Converter',        desc: 'Convert text between uppercase, lowercase and more'       },
-  { slug: 'color-picker',          name: 'Color Picker',               desc: 'Pick colors and get HEX, RGB, HSL values'                 },
-  { slug: 'unit-converter',        name: 'Unit Converter',             desc: 'Convert between hundreds of units easily'                 },
-  { slug: 'tax-calculator',        name: 'Income Tax Calculator',      desc: 'Calculate income tax for FY 2025-26 (old vs new regime)'  },
-  { slug: 'sip-calculator',        name: 'SIP Calculator',             desc: 'Plan mutual fund investments with SIP returns'            },
-  { slug: 'fd-calculator',         name: 'FD Calculator',              desc: 'Calculate fixed deposit returns and maturity amount'      },
-  { slug: 'ppf-calculator',        name: 'PPF Calculator',             desc: 'Plan PPF investments and calculate returns'               },
-  { slug: 'emi-calculator',        name: 'EMI Calculator',             desc: 'Calculate loan EMIs for home, car, or personal loans'     },
-  { slug: 'bmi-calculator',        name: 'BMI Calculator',             desc: 'Calculate body mass index and health status'              },
-  { slug: 'age-calculator',        name: 'Age Calculator',             desc: 'Calculate exact age in years, months, and days'           },
-  { slug: 'percentage-calculator', name: 'Percentage Calculator',      desc: 'Calculate percentages, increases, and differences'        },
-  { slug: 'ai-content-writer',     name: 'AI Content Writer',          desc: 'Generate professional content with AI assistance'         },
-  { slug: 'resume-builder',        name: 'AI Resume Builder',          desc: 'Create ATS-friendly resumes with AI assistance'           },
-]
+// Tool list is fetched live from /api/tools (same endpoint AgentControlPage's
+// OptimizationTab uses) instead of a hardcoded array — a hardcoded list here
+// previously drifted out of sync with the actual tools table.
 
 const PLATFORMS = ['Twitter/X', 'LinkedIn', 'Instagram', 'Facebook', 'WhatsApp', 'Telegram']
 const LANGUAGES = ['English', 'Hindi', 'Hinglish']
@@ -177,17 +157,29 @@ function PostResults({ posts, onSave }) {
 
 // ── Tab 1: Tool Promoter ──────────────────────────────────────────────────────
 
-const DEFAULT_TOOL_FORM = { toolSlug: AWE_TOOLS[0].slug, platform: 'LinkedIn', tone: 'funny', language: 'English', postType: 'problem-solution' }
+const DEFAULT_TOOL_FORM = { toolSlug: '', platform: 'LinkedIn', tone: 'funny', language: 'English', postType: 'problem-solution' }
 
 function ToolPromoterTab() {
+  const [tools,   setTools]   = useState([])
   const [form,    setForm]    = useState(DEFAULT_TOOL_FORM)
   const [posts,   setPosts]   = useState([])
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState(null)
 
-  const tool = AWE_TOOLS.find(t => t.slug === form.toolSlug)
+  useEffect(() => {
+    api.get('/api/tools')
+      .then(res => {
+        const list = (res.data?.tools || []).map(t => ({ slug: t.slug, name: t.name, desc: t.description || '' }))
+        setTools(list)
+        setForm(f => (f.toolSlug || !list.length) ? f : { ...f, toolSlug: list[0].slug })
+      })
+      .catch(() => setTools([]))
+  }, [])
+
+  const tool = tools.find(t => t.slug === form.toolSlug)
 
   async function handleGenerate() {
+    if (!tool) { setError('Pick a tool first.'); return }
     setLoading(true)
     setError(null)
     try {
@@ -220,9 +212,11 @@ function ToolPromoterTab() {
           <select
             value={form.toolSlug}
             onChange={e => setForm(f => ({ ...f, toolSlug: e.target.value }))}
-            className="w-full bg-gray-900 border border-gray-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
+            disabled={!tools.length}
+            className="w-full bg-gray-900 border border-gray-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500 disabled:opacity-50"
           >
-            {AWE_TOOLS.map(t => <option key={t.slug} value={t.slug}>{t.name}</option>)}
+            {tools.length === 0 && <option value="">Loading tools…</option>}
+            {tools.map(t => <option key={t.slug} value={t.slug}>{t.name}</option>)}
           </select>
           {tool && <p className="text-xs text-gray-500 mt-1">{tool.desc}</p>}
         </div>

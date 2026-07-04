@@ -32,19 +32,37 @@ function buildTweetText(text, url) {
   return text;
 }
 
-function classifyTwitterError(err) {
+// Stable machine-readable codes — callers (e.g. the social post retry queue)
+// branch on these rather than parsing the human-readable message.
+const TWITTER_ERROR_CODES = Object.freeze({
+  CREDITS_DEPLETED: 'CREDITS_DEPLETED',
+  RATE_LIMIT:       'RATE_LIMIT',
+  AUTH:             'AUTH',
+  UNKNOWN:          'UNKNOWN',
+});
+
+function classifyTwitterErrorCode(err) {
   const msg    = (err.message || '').toLowerCase();
   const status = err.data?.status || err.code;
-  if (status === 429 || msg.includes('rate limit'))   return 'Twitter rate limit reached. Try again in 15 minutes.';
-  if (status === 401 || msg.includes('unauthorized'))  return 'Twitter auth error. Check API credentials.';
-  if (status === 402 || err.data?.title === 'CreditsDepleted') return 'X API credits depleted — top up credits in the X Developer Portal.';
-  if (msg.includes('duplicate'))                       return 'Duplicate tweet. Twitter does not allow identical tweets.';
+  if (status === 402 || err.data?.title === 'CreditsDepleted') return TWITTER_ERROR_CODES.CREDITS_DEPLETED;
+  if (status === 429 || msg.includes('rate limit'))            return TWITTER_ERROR_CODES.RATE_LIMIT;
+  if (status === 401 || msg.includes('unauthorized'))          return TWITTER_ERROR_CODES.AUTH;
+  return TWITTER_ERROR_CODES.UNKNOWN;
+}
+
+function classifyTwitterError(err) {
+  const code = classifyTwitterErrorCode(err);
+  if (code === TWITTER_ERROR_CODES.CREDITS_DEPLETED) return 'X API credits depleted — top up credits in the X Developer Portal.';
+  if (code === TWITTER_ERROR_CODES.RATE_LIMIT)       return 'Twitter rate limit reached. Try again in 15 minutes.';
+  if (code === TWITTER_ERROR_CODES.AUTH)             return 'Twitter auth error. Check API credentials.';
+  if ((err.message || '').toLowerCase().includes('duplicate')) return 'Duplicate tweet. Twitter does not allow identical tweets.';
   return err.message || 'Twitter post failed';
 }
 
 /**
- * Post a tweet. Throws with a classified, human-readable message on failure —
- * callers are expected to catch and log rather than let it crash a cron run.
+ * Post a tweet. Throws a classified error on failure — the thrown Error has
+ * a `.code` (one of TWITTER_ERROR_CODES) so callers can decide whether/when
+ * to retry rather than just parsing the message string.
  */
 async function postTweet(text, url) {
   const client   = getTwitterClient();
@@ -54,8 +72,17 @@ async function postTweet(text, url) {
     const tweetId = tweet.data.id;
     return { tweetId, tweetUrl: `https://twitter.com/i/web/status/${tweetId}` };
   } catch (err) {
-    throw new Error(classifyTwitterError(err));
+    const classified = new Error(classifyTwitterError(err));
+    classified.code = classifyTwitterErrorCode(err);
+    throw classified;
   }
 }
 
-module.exports = { postTweet, buildTweetText, classifyTwitterError, getTwitterClient };
+module.exports = {
+  postTweet,
+  buildTweetText,
+  classifyTwitterError,
+  classifyTwitterErrorCode,
+  getTwitterClient,
+  TWITTER_ERROR_CODES,
+};

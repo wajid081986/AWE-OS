@@ -5,7 +5,9 @@ const { VALID_EVENT_TYPES } = require('../services/event.service');
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const TrackEventSchema = z.object({
-  tool_id:    z.string().regex(UUID_REGEX, 'tool_id must be a valid UUID v4'),
+  // Optional — 'blog_viewed' events identify the post via metadata.blog_post_id
+  // instead of tool_id (see the .refine() below).
+  tool_id:    z.string().regex(UUID_REGEX, 'tool_id must be a valid UUID v4').nullish(),
   user_id:    z.string().regex(UUID_REGEX, 'user_id must be a valid UUID v4').nullish(),
   event_type: z.enum([...VALID_EVENT_TYPES], {
     errorMap: () => ({ message: `event_type must be one of: ${[...VALID_EVENT_TYPES].join(', ')}` }),
@@ -24,7 +26,10 @@ const TrackEventSchema = z.object({
       }
       return safe;
     }),
-});
+}).refine(
+  (data) => data.event_type === 'blog_viewed' ? !!data.metadata?.blog_post_id : !!data.tool_id,
+  { message: 'tool_id is required (or metadata.blog_post_id for blog_viewed events)' }
+);
 
 const LogRevenueSchema = z.object({
   tool_id:  z.string().regex(UUID_REGEX, 'tool_id must be a valid UUID v4'),

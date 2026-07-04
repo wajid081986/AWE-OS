@@ -19,6 +19,7 @@ import ToolContent    from './ToolContent'
 import ToolSidebar    from './ToolSidebar'
 import ToolFooter     from './ToolFooter'
 import AdContainer    from './AdContainer'
+import { useTrackToolView } from '../../hooks/useTrackToolView'
 
 export default function ToolLayout({
   tool,          // registry tool object (preferred)
@@ -42,6 +43,8 @@ export default function ToolLayout({
   const seoTitle    = toolMeta?.seo?.title       || `${toolName} — Free Online Tool | AWE-OS`
   const seoDesc     = toolMeta?.seo?.description || `Free online ${toolName}. ${toolDesc} No sign-up required, works instantly in your browser.`
   const appCategory = getApplicationCategory(toolMeta)
+
+  useTrackToolView(resolvedSlug)
 
   const breadcrumbItems = [
     { name: 'Home',  url: SITE_URL },

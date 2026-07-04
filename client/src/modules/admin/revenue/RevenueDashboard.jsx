@@ -537,7 +537,7 @@ export default function RevenueDashboard() {
                           <tr className="text-gray-500 border-b border-gray-800">
                             <th className="text-left pb-2 font-medium">Tool</th>
                             <th className="text-right pb-2 font-medium">MRR</th>
-                            <th className="text-right pb-2 font-medium">Uses</th>
+                            <th className="text-right pb-2 font-medium">Uses*</th>
                             <th className="text-left pb-2 font-medium pl-4">Issue</th>
                           </tr>
                         </thead>
@@ -555,6 +555,11 @@ export default function RevenueDashboard() {
                           ))}
                         </tbody>
                       </table>
+                      <p className="text-[10px] text-gray-600 mt-2">
+                        * usage_count is not verified live traffic for every tool — tools that were
+                        never actually launched may carry an estimated-demand figure seeded at
+                        idea stage rather than tracked usage.
+                      </p>
                     </div>
                   )}
                 </div>

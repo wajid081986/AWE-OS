@@ -3,6 +3,9 @@ import { Link, useParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { getBlogPostBySlug, BLOG_POSTS } from '../data/blogPosts'
 import api from '../services/api.service'
+import { useAnalytics } from '../hooks/useAnalytics'
+
+const VIEWED_SESSION_PREFIX = 'awe_viewed_blog_'
 
 const CATEGORY_COLORS = {
   'AI Tools':    'bg-purple-100 text-purple-700',
@@ -102,6 +105,7 @@ function ContentBlock({ block }) {
 export default function BlogPostPage() {
   const { slug } = useParams()
   const staticPost = getBlogPostBySlug(slug)
+  const { trackEvent } = useAnalytics()
 
   const [dbPost,   setDbPost]   = useState(null)
   const [loading,  setLoading]  = useState(!staticPost)
@@ -119,6 +123,15 @@ export default function BlogPostPage() {
   const relatedPosts = post
     ? BLOG_POSTS.filter(p => !p.noindex && p.slug !== post.slug && p.category === post.category).slice(0, 3)
     : []
+
+  // Fire once per browser session per post — fire-and-forget, never blocks render.
+  useEffect(() => {
+    if (!post?.id) return
+    const sessionKey = VIEWED_SESSION_PREFIX + (post.slug || slug)
+    if (sessionStorage.getItem(sessionKey)) return
+    sessionStorage.setItem(sessionKey, '1')
+    trackEvent('blog_viewed', { blog_post_id: post.id })
+  }, [post, slug, trackEvent])
 
   if (loading) {
     return (

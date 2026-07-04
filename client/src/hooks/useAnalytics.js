@@ -23,6 +23,7 @@ const SERVER_EVENT_TYPES = new Set([
   'user_signup',
   'tool_shared',
   'feature_clicked',
+  'blog_viewed',
 ])
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://awe-os.onrender.com'

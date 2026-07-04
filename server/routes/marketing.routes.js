@@ -25,6 +25,10 @@ const {
   getCampaigns,
   getCalendar,
   generateCalendar,
+  getSocialQueue,
+  sendNewsletterTest,
+  sendNewsletterConfirm,
+  unsubscribeNewsletter,
 } = require('../controllers/marketing.controller');
 
 const router = express.Router();
@@ -75,6 +79,9 @@ const weeklyContentTriggerLimiter = rateLimit({
 // ── Public routes (no JWT) ────────────────────────────────────
 
 router.post('/referral/:code/click', trackReferralClick);
+// The link a recipient clicks from inside a newsletter email itself —
+// necessarily unauthenticated, gated only by the signed token in the URL.
+router.get('/newsletter/unsubscribe', unsubscribeNewsletter);
 
 // ── JWT-protected routes ──────────────────────────────────────
 
@@ -91,6 +98,9 @@ router.patch('/blog/:id/status',     updateBlogStatus);
 
 router.post('/newsletter/generate',  newsletterLimiter,  generateNewsletter);
 router.get('/newsletters',           getNewsletters);
+// Real sends are admin-only and human-triggered — no cron path reaches these.
+router.post('/newsletter/:id/send-test', requireAdmin, sendNewsletterTest);
+router.post('/newsletter/:id/send',      requireAdmin, sendNewsletterConfirm);
 
 router.post('/ads/generate',         adLimiter,          generateAdCopy);
 router.get('/ads',                   getAdCopy);
@@ -109,5 +119,9 @@ router.get('/campaigns',             getCampaigns);
 
 router.get('/calendar',              getCalendar);
 router.post('/calendar/generate',    calendarLimiter,    generateCalendar);
+
+// Operational visibility into the tweet retry queue — admin-only, same
+// requireAuth (JWT) chain as the rest of this router.
+router.get('/social-queue',          requireAdmin,       getSocialQueue);
 
 module.exports = router;

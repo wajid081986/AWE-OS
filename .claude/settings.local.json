@@ -40,7 +40,13 @@
       "Skill(update-config)",
       "Bash(Get-ChildItem *)",
       "Bash(Select-Object Name, Mode)",
-      "Bash(pm2 restart *)"
+      "Bash(pm2 restart *)",
+      "Bash(curl -s \"http://localhost:5000/api/blog/posts/zz-verify-test-migrations-022-023\")",
+      "Bash(curl -s -X POST http://localhost:5000/api/auth/register -H 'Content-Type: application/json' -d '{\"email\":\"verify-seller-__TRACKED_VAR__@test.awe-os.local\",\"password\":\"TestPass123!\"}')",
+      "Bash(tee /tmp/admin_reg.json)",
+      "Bash(export SCRATCH=\"/c/Users/ADMIN/AppData/Local/Temp/claude/D--MyProjects-AWE-OS/521b3f6e-53e9-41f2-9f47-7c5b506db073/scratchpad\")",
+      "Read(//c/Users/ADMIN/AppData/Local/Temp/claude/D--MyProjects-AWE-OS/521b3f6e-53e9-41f2-9f47-7c5b506db073/scratchpad/**)",
+      "WebFetch(domain:www.awe-os.com)"
     ]
   }
 }

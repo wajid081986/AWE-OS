@@ -29,6 +29,7 @@ import {
   getApplicationCategory,
 } from '../../data/toolRegistry'
 import { TOOL_GUIDE } from '../../data/toolGuideContent'
+import { useTrackToolView } from '../../hooks/useTrackToolView'
 
 const SITE_URL  = 'https://www.awe-os.com'
 const OG_IMAGE  = 'https://www.awe-os.com/og-image.svg'
@@ -117,6 +118,8 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
   const toolMeta = getToolBySlug(slug)
   const catMeta  = toolMeta ? getCategoryMeta(toolMeta.category) : null
   const guide    = TOOL_GUIDE[slug] || null
+
+  useTrackToolView(slug)
 
   useEffect(() => {
     window.scrollTo(0, 0)

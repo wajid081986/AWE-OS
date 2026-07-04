@@ -49,6 +49,255 @@ function Toast({ msg, type = 'success', onDone }) {
   )
 }
 
+// ── Marketing Agent card (Overview) — richer than the generic agent card:
+// shows blog/tweet/queue/newsletter state so failures (e.g. tweeted:0,
+// queue backlog) are visible without querying the DB manually.
+function fmtDateTime(iso) {
+  return iso ? new Date(iso).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'short', timeStyle: 'short' }) : '—'
+}
+
+function MarketingWarnBadge({ show }) {
+  if (!show) return null
+  return (
+    <span className="ml-2 text-[10px] font-bold bg-red-900/60 text-red-300 px-1.5 py-0.5 rounded-full border border-red-700/50">
+      ⚠ needs attention
+    </span>
+  )
+}
+
+function SocialQueueModal({ onClose }) {
+  const [rows, setRows]       = useState([])
+  const [counts, setCounts]   = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    api.get('/api/marketing/social-queue')
+      .then(res => {
+        setRows(res.data?.data?.recent || [])
+        setCounts(res.data?.data?.counts || null)
+      })
+      .catch(() => { setRows([]); setCounts(null) })
+      .finally(() => setLoading(false))
+  }, [])
+
+  const statusBadge = (s) => {
+    const map = {
+      posted:           'bg-green-800 text-green-300',
+      failed_permanent: 'bg-red-800 text-red-300',
+      pending:          'bg-yellow-800 text-yellow-300',
+    }
+    return <span className={`text-xs px-2 py-0.5 rounded ${map[s] || map.pending}`}>{s}</span>
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4" onClick={onClose}>
+      <div className="bg-gray-800 border border-gray-700 rounded-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6" onClick={e => e.stopPropagation()}>
+        <div className="flex justify-between items-start mb-4">
+          <h3 className="text-white font-semibold">Social Post Queue</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl">×</button>
+        </div>
+
+        {counts && (
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="bg-gray-900 rounded-lg p-3 text-center">
+              <p className="text-yellow-400 text-lg font-bold">{counts.pending}</p>
+              <p className="text-gray-500 text-xs">Pending</p>
+            </div>
+            <div className="bg-gray-900 rounded-lg p-3 text-center">
+              <p className="text-green-400 text-lg font-bold">{counts.posted}</p>
+              <p className="text-gray-500 text-xs">Posted</p>
+            </div>
+            <div className="bg-gray-900 rounded-lg p-3 text-center">
+              <p className="text-red-400 text-lg font-bold">{counts.failed_permanent}</p>
+              <p className="text-gray-500 text-xs">Failed</p>
+            </div>
+          </div>
+        )}
+
+        {loading ? <Spinner /> : rows.length === 0 ? (
+          <p className="text-gray-500 text-center py-6 text-sm">Queue is empty.</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="border-b border-gray-700">
+              <tr>
+                {['Platform', 'Status', 'Attempts', 'Error', 'Next Retry'].map(h => (
+                  <th key={h} className="text-left text-gray-400 px-2 py-2 font-medium">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(r => (
+                <tr key={r.id} className="border-b border-gray-700/50 last:border-0">
+                  <td className="px-2 py-2 text-gray-300 text-xs">{r.platform}</td>
+                  <td className="px-2 py-2">{statusBadge(r.status)}</td>
+                  <td className="px-2 py-2 text-gray-400 text-xs">{r.attempts}</td>
+                  <td className="px-2 py-2 text-gray-400 text-xs">{r.error_code || '—'}</td>
+                  <td className="px-2 py-2 text-gray-400 text-xs">{fmtDateTime(r.next_retry_at)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function MarketingAgentCard({ agent, triggering, trigger }) {
+  const [expanded, setExpanded]           = useState(false)
+  const [data, setData]                   = useState(null)
+  const [newsletters, setNewsletters]     = useState([])
+  const [loading, setLoading]             = useState(false)
+  const [toast, setToast]                 = useState(null)
+  const [showQueue, setShowQueue]         = useState(false)
+  const [sendingTestId, setSendingTestId] = useState(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const [dashRes, nlRes] = await Promise.allSettled([
+        api.get('/api/marketing/dashboard'),
+        api.get('/api/marketing/newsletters'),
+      ])
+      setData(dashRes.value?.data?.data || null)
+      setNewsletters((nlRes.value?.data?.data || []).slice(0, 5))
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { if (expanded && !data) load() }, [expanded, data, load])
+
+  const sendTest = async (id) => {
+    const email = window.prompt('Send a test copy to which email address?')
+    if (!email) return
+    setSendingTestId(id)
+    try {
+      await api.post(`/api/marketing/newsletter/${id}/send-test`, { email })
+      setToast({ msg: `Test sent to ${email}`, type: 'success' })
+    } catch (err) {
+      setToast({ msg: err.response?.data?.error || 'Send test failed', type: 'error' })
+    } finally {
+      setSendingTestId(null)
+    }
+  }
+
+  const wc = data?.last_run?.weekly_content
+  const sq = data?.social_queue
+  const nl = data?.newsletter
+
+  const needsAttention = !!data && (
+    (sq?.failed_permanent > 0) ||
+    (sq?.pending > 5) ||
+    (wc?.published > 0 && wc?.tweeted === 0)
+  )
+
+  return (
+    <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
+      {toast && <Toast msg={toast.msg} type={toast.type} onDone={() => setToast(null)} />}
+      {showQueue && <SocialQueueModal onClose={() => setShowQueue(false)} />}
+
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-2xl">{agent.icon}</span>
+        <div>
+          <p className="text-white font-medium text-sm flex items-center">
+            {agent.name}
+            <MarketingWarnBadge show={needsAttention} />
+          </p>
+          <p className="text-gray-500 text-xs">{agent.cron}</p>
+        </div>
+        <span className="ml-auto w-2 h-2 rounded-full bg-green-400 shrink-0" title="Active" />
+      </div>
+
+      <button
+        onClick={() => setExpanded(e => !e)}
+        className="w-full text-xs text-gray-400 hover:text-white mb-2 text-left"
+      >
+        {expanded ? '▲ Hide details' : '▼ Show details'}
+      </button>
+
+      {expanded && (
+        loading ? <Spinner /> : !data ? (
+          <p className="text-gray-500 text-xs mb-3">Couldn't load marketing stats.</p>
+        ) : (
+          <div className="space-y-3 mb-3">
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="bg-gray-900 rounded-lg p-2">
+                <p className="text-gray-500">Blog posts (month)</p>
+                <p className="text-white font-semibold">{data.blog?.published_this_month ?? 0}</p>
+              </div>
+              <div className="bg-gray-900 rounded-lg p-2">
+                <p className="text-gray-500">Tweets (last run)</p>
+                <p className="font-semibold">
+                  <span className="text-green-400">{wc?.tweeted ?? 0} posted</span>
+                  {' · '}
+                  <span className="text-yellow-400">{wc?.queued_tweets ?? 0} queued</span>
+                  {' · '}
+                  <span className="text-red-400">{wc?.failed_tweets ?? 0} failed</span>
+                </p>
+              </div>
+              <div className="bg-gray-900 rounded-lg p-2">
+                <p className="text-gray-500">Social queue</p>
+                <p className="text-white font-semibold">
+                  {sq?.pending ?? 0} pending · {sq?.failed_permanent ?? 0} dead
+                </p>
+              </div>
+              <div className="bg-gray-900 rounded-lg p-2">
+                <p className="text-gray-500">Newsletters</p>
+                <p className="text-white font-semibold">
+                  {nl?.drafts ?? 0} draft · {nl?.sent ?? 0} sent · {nl?.archived ?? 0} archived
+                </p>
+              </div>
+            </div>
+
+            <div className="text-xs text-gray-400 space-y-0.5">
+              <p>Weekly content: {wc?.status || '—'} · {fmtDateTime(wc?.last_run_at)}</p>
+              <p>Monthly calendar: {data.last_run?.monthly_calendar?.status || '—'} · {fmtDateTime(data.last_run?.monthly_calendar?.last_run_at)}</p>
+              <p>Weekly report: {data.last_run?.weekly_report?.status || '—'} · {fmtDateTime(data.last_run?.weekly_report?.last_run_at)}</p>
+              <p>Social queue retry: {data.last_run?.social_queue_retry?.status || '—'} · {fmtDateTime(data.last_run?.social_queue_retry?.last_run_at)}</p>
+            </div>
+
+            {newsletters.length > 0 && (
+              <div>
+                <p className="text-gray-500 text-xs mb-1">Recent newsletters</p>
+                <div className="space-y-1">
+                  {newsletters.map(n => (
+                    <div key={n.id} className="flex items-center justify-between gap-2 bg-gray-900 rounded-lg px-2 py-1.5">
+                      <span className="text-gray-300 text-xs truncate">{n.subject_line}</span>
+                      <button
+                        onClick={() => sendTest(n.id)}
+                        disabled={sendingTestId === n.id}
+                        className="text-[10px] shrink-0 bg-indigo-700 hover:bg-indigo-600 disabled:opacity-40 text-white px-2 py-1 rounded"
+                      >
+                        {sendingTestId === n.id ? '...' : 'Send test'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={() => setShowQueue(true)}
+              className="w-full text-xs bg-gray-700 hover:bg-gray-600 text-white py-1.5 rounded-lg transition-colors"
+            >
+              View social queue
+            </button>
+          </div>
+        )
+      )}
+
+      <button
+        onClick={() => trigger(agent)}
+        disabled={triggering === agent.key}
+        className="w-full mt-1 text-xs bg-indigo-700 hover:bg-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed text-white py-1.5 rounded-lg transition-colors font-medium"
+      >
+        {triggering === agent.key ? 'Running...' : 'Trigger Now'}
+      </button>
+    </div>
+  )
+}
+
 // ── Tab 1: Overview ────────────────────────────────────────────
 function OverviewTab() {
   const [triggering, setTriggering]   = useState(null)
@@ -81,7 +330,9 @@ function OverviewTab() {
     <div>
       {toast && <Toast msg={toast.msg} type={toast.type} onDone={() => setToast(null)} />}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {AGENTS.map(agent => (
+        {AGENTS.map(agent => agent.key === 'marketing' ? (
+          <MarketingAgentCard key={agent.key} agent={agent} triggering={triggering} trigger={trigger} />
+        ) : (
           <div key={agent.key} className="bg-gray-800 border border-gray-700 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-2xl">{agent.icon}</span>

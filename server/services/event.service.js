@@ -8,18 +8,21 @@ const VALID_EVENT_TYPES = new Set([
   'user_signup',
   'tool_shared',
   'feature_clicked',
+  'blog_viewed',
 ]);
 
 /**
- * Track a single event for a tool.
+ * Track a single event — for a tool, or for a blog post via
+ * metadata.blog_post_id (event_type 'blog_viewed', no tool_id needed).
  *
  * Increments tools.usage_count atomically via DB function when
- * event_type === 'tool_used' — avoids read-then-write race conditions.
+ * event_type === 'tool_used', and blog_posts.views when 'blog_viewed' —
+ * avoids read-then-write race conditions in both cases.
  *
- * @param {string}  tool_id    - UUID of the tool
+ * @param {string|null} tool_id - UUID of the tool, or null for blog_viewed
  * @param {string|null} user_id - UUID of user, or null for anonymous
  * @param {string}  event_type - Must be in VALID_EVENT_TYPES
- * @param {object}  metadata   - Arbitrary JSONB payload
+ * @param {object}  metadata   - Arbitrary JSONB payload (blog_post_id for blog_viewed)
  * @param {object}  req        - Express request (for ip/user-agent)
  * @returns {object} Saved event row
  */
@@ -56,6 +59,12 @@ async function trackEvent(tool_id, user_id, event_type, metadata = {}, req = {})
   if (event_type === 'tool_used') {
     const { error: rpcErr } = await supabase.rpc('increment_usage_count', { p_tool_id: tool_id });
     if (rpcErr) console.error('[event.service] usage_count increment failed:', rpcErr.message);
+  }
+
+  // blog_viewed has no tool_id — the post is identified via metadata.blog_post_id
+  if (event_type === 'blog_viewed' && metadata?.blog_post_id) {
+    const { error: rpcErr } = await supabase.rpc('increment_blog_post_views', { p_blog_post_id: metadata.blog_post_id });
+    if (rpcErr) console.error('[event.service] blog view increment failed:', rpcErr.message);
   }
 
   if (process.env.NODE_ENV !== 'production') {

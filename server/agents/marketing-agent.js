@@ -4,6 +4,12 @@ const supabase                          = require('../db/supabase');
 const { callOpenAI, parseJSONResponse } = require('../services/ai.service');
 const fetchFeaturedImage                = require('../services/unsplashImage');
 
+// Single source of truth for the public site domain — some functions here
+// used to hardcode https://awe-os.vercel.app (a stale/wrong domain) while
+// others hardcoded https://www.awe-os.com directly. Reused wherever this
+// file builds a public-facing URL.
+const SITE_URL = process.env.SITE_URL || 'https://www.awe-os.com';
+
 // ── Helpers ───────────────────────────────────────────────────
 
 function todayISO() {
@@ -61,7 +67,7 @@ async function generateBlogPost(tool_id, content_type, target_keyword, { autoPub
       .maybeSingle();
 
     const toolSlug = tool.slug || tool.name.toLowerCase().replace(/\s+/g, '-');
-    const toolUrl  = `https://www.awe-os.com/tools/${toolSlug}`;
+    const toolUrl  = `${SITE_URL}/tools/${toolSlug}`;
 
     const prompt = `You are an expert SaaS content marketer and SEO writer for AWE-OS (awe-os.com), a free online tools website for Indian users.
 
@@ -191,7 +197,7 @@ Return ONLY valid JSON (no markdown fences):
     console.log(`[MARKETING] Blog ${status === 'published' ? 'published' : 'generated (draft)'}:`, savedPost.title);
     return {
       ...savedPost,
-      live_url: status === 'published' ? `https://www.awe-os.com/blog/${savedPost.slug}` : null,
+      live_url: status === 'published' ? `${SITE_URL}/blog/${savedPost.slug}` : null,
     };
   } catch (err) {
     console.error('[MARKETING] generateBlogPost error:', err.message);
@@ -295,6 +301,9 @@ Return ONLY valid JSON:
 
 // ── 3. generateAdCopy ─────────────────────────────────────────
 
+/** STATUS: built, not scheduled — no cron calls this; only reachable via
+ *  POST /api/marketing/ads/generate. Last real usage: a single manual batch
+ *  on 2026-04-26 (5 rows, still 'draft'). Do not wire to a cron in this step. */
 async function generateAdCopy(tool_id, platform, count = 5) {
   try {
     const { data: tool, error: toolErr } = await supabase
@@ -385,6 +394,9 @@ Return ONLY a valid JSON array:
 
 // ── 4. generateInfluencerOutreach ────────────────────────────
 
+/** STATUS: built, not scheduled — no cron calls this; only reachable via
+ *  POST /api/marketing/influencers/generate. Zero rows in influencer_outreach
+ *  in production. Do not wire to a cron in this step. */
 async function generateInfluencerOutreach(niche, platform, follower_range) {
   try {
     const profilePrompt = `Generate 5 realistic influencer profiles for:
@@ -471,6 +483,9 @@ Return ONLY valid JSON:
 
 // ── 5. generateCompetitorComparison ──────────────────────────
 
+/** STATUS: built, not scheduled — no cron calls this; only reachable via
+ *  POST /api/marketing/comparison/generate. Zero rows in
+ *  competitor_comparisons in production. Do not wire to a cron in this step. */
 async function generateCompetitorComparison(tool_id, competitor_name) {
   try {
     const { data: tool, error: toolErr } = await supabase
@@ -484,7 +499,7 @@ async function generateCompetitorComparison(tool_id, competitor_name) {
 Write an HONEST competitor comparison page. Build trust with accuracy.
 
 Our Tool: ${tool.name}
-Our URL: https://awe-os.vercel.app
+Our URL: ${SITE_URL}
 Competitor: ${competitor_name}
 
 Rules:
@@ -553,6 +568,9 @@ Return ONLY valid JSON:
 
 // ── 6. generateCampaignBrief ──────────────────────────────────
 
+/** STATUS: built, not scheduled — no cron calls this; only reachable via
+ *  POST /api/marketing/campaign/generate. Zero rows in marketing_campaigns
+ *  in production. Do not wire to a cron in this step. */
 async function generateCampaignBrief(tool_id, campaign_type, goal_type, goal_target, duration_days) {
   try {
     const { data: tool, error: toolErr } = await supabase
@@ -637,6 +655,9 @@ Return ONLY valid JSON:
 
 // ── 7. createReferralProgram ──────────────────────────────────
 
+/** STATUS: built, not scheduled — no cron calls this; only reachable via
+ *  POST /api/marketing/referral. Zero rows in referral_program in
+ *  production. Do not wire to a cron in this step. */
 async function createReferralProgram(user_email, reward_type) {
   try {
     const { data: existing, error: checkErr } = await supabase
@@ -651,7 +672,7 @@ async function createReferralProgram(user_email, reward_type) {
     if (existing) {
       return {
         referral_code:    existing.referral_code,
-        referral_url:     `https://awe-os.vercel.app?ref=${existing.referral_code}`,
+        referral_url:     `${SITE_URL}?ref=${existing.referral_code}`,
         referrer_reward:  existing.referrer_reward,
         referee_reward:   existing.referee_reward,
         expires_at:       existing.expires_at,
@@ -677,7 +698,7 @@ async function createReferralProgram(user_email, reward_type) {
 
     return {
       referral_code:   saved.referral_code,
-      referral_url:    `https://awe-os.vercel.app?ref=${saved.referral_code}`,
+      referral_url:    `${SITE_URL}?ref=${saved.referral_code}`,
       referrer_reward: saved.referrer_reward,
       referee_reward:  saved.referee_reward,
       expires_at:      saved.expires_at,
@@ -766,6 +787,39 @@ async function getMarketingDashboard() {
     const sum = (rows, key) => (rows || []).reduce((a, r) => a + (Number(r[key]) || 0), 0);
     const distinct = (rows, key) => [...new Set((rows || []).map(r => r[key]).filter(Boolean))];
 
+    // ── Social queue + newsletter lifetime stats + per-cron last-run ──────
+    // These queries degrade gracefully (counts fall back to 0/null) if
+    // social_post_queue or the newsletter columns from migrations 028/029
+    // haven't been applied yet — supabase-js returns an error field rather
+    // than throwing when a table/column doesn't exist.
+    const [
+      queuePending, queuePosted, queueFailedPermanent, queueLastError,
+      nlSentTotal, nlArchived, nlLastSent,
+      cronRows, lastWeeklyContentLog,
+    ] = await Promise.all([
+      supabase.from('social_post_queue').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabase.from('social_post_queue').select('id', { count: 'exact', head: true }).eq('status', 'posted'),
+      supabase.from('social_post_queue').select('id', { count: 'exact', head: true }).eq('status', 'failed_permanent'),
+      supabase.from('social_post_queue').select('error_code').order('created_at', { ascending: false }).limit(1).maybeSingle(),
+      supabase.from('newsletters').select('id', { count: 'exact', head: true }).eq('status', 'sent'),
+      supabase.from('newsletters').select('id', { count: 'exact', head: true }).eq('status', 'archived'),
+      supabase.from('newsletters').select('sent_at').eq('status', 'sent').order('sent_at', { ascending: false }).limit(1).maybeSingle(),
+      supabase.from('cron_health').select('cron_name, last_run_at, last_status').in('cron_name', [
+        'marketing-weekly-content', 'marketing-monthly-calendar', 'marketing-weekly-report', 'marketing-social-queue',
+      ]),
+      supabase.from('agent_logs').select('metadata, created_at').eq('agent_name', 'marketing')
+        .eq('message', 'Weekly content run complete').order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    ]);
+
+    const cronByName = {};
+    for (const row of (cronRows.data || [])) cronByName[row.cron_name] = row;
+    const latestRunMeta = lastWeeklyContentLog.data?.metadata || {};
+
+    const cronSummary = (name) => ({
+      last_run_at: cronByName[name]?.last_run_at || null,
+      status:      cronByName[name]?.last_status || null,
+    });
+
     return {
       blog: {
         drafts:               blogDrafts.count       || 0,
@@ -778,6 +832,9 @@ async function getMarketingDashboard() {
         scheduled:        nlScheduled.count  || 0,
         sent_this_month:  nlSent.count       || 0,
         avg_open_rate:    avg(nlOpenAvg.data, 'actual_open_rate'),
+        sent:             nlSentTotal.count  || 0,
+        archived:         nlArchived.count   || 0,
+        last_sent_at:     nlLastSent.data?.sent_at || null,
       },
       referral: {
         active_programs:    refPrograms.count || 0,
@@ -804,6 +861,24 @@ async function getMarketingDashboard() {
         this_week: calWeek.data   || [],
         overdue:   calOverdue.count || 0,
       },
+      social_queue: {
+        pending:          queuePending.count          || 0,
+        posted:           queuePosted.count            || 0,
+        failed_permanent: queueFailedPermanent.count   || 0,
+        last_error_code:  queueLastError.data?.error_code || null,
+      },
+      last_run: {
+        weekly_content: {
+          ...cronSummary('marketing-weekly-content'),
+          published:     latestRunMeta.published     ?? null,
+          tweeted:       latestRunMeta.tweeted        ?? null,
+          queued_tweets: latestRunMeta.queued_tweets  ?? null,
+          failed_tweets: latestRunMeta.failed_tweets  ?? null,
+        },
+        monthly_calendar:   cronSummary('marketing-monthly-calendar'),
+        weekly_report:      cronSummary('marketing-weekly-report'),
+        social_queue_retry: cronSummary('marketing-social-queue'),
+      },
     };
   } catch (err) {
     console.error('[MARKETING] getMarketingDashboard error:', err.message);
@@ -822,4 +897,5 @@ module.exports = {
   generateCampaignBrief,
   createReferralProgram,
   getMarketingDashboard,
+  SITE_URL,
 };
