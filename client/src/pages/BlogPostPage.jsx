@@ -125,13 +125,16 @@ export default function BlogPostPage() {
     : []
 
   // Fire once per browser session per post — fire-and-forget, never blocks render.
+  // Only for DB-backed posts: static posts (data/blogPosts.js) use plain
+  // integer ids with no matching blog_posts row, so increment_blog_post_views
+  // (which expects a UUID) has nothing to increment — skip them silently.
   useEffect(() => {
-    if (!post?.id) return
-    const sessionKey = VIEWED_SESSION_PREFIX + (post.slug || slug)
+    if (!dbPost?.id) return
+    const sessionKey = VIEWED_SESSION_PREFIX + (dbPost.slug || slug)
     if (sessionStorage.getItem(sessionKey)) return
     sessionStorage.setItem(sessionKey, '1')
-    trackEvent('blog_viewed', { blog_post_id: post.id })
-  }, [post, slug, trackEvent])
+    trackEvent('blog_viewed', { blog_post_id: dbPost.id })
+  }, [dbPost, slug, trackEvent])
 
   if (loading) {
     return (

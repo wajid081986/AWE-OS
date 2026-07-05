@@ -1,5 +1,9 @@
 const supabase = require('../db/supabase');
 
+// increment_blog_post_views expects a UUID — static-post ids (plain integers,
+// see client/src/data/blogPosts.js) don't match and would fail the RPC.
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const VALID_EVENT_TYPES = new Set([
   'tool_viewed',
   'tool_used',
@@ -63,8 +67,12 @@ async function trackEvent(tool_id, user_id, event_type, metadata = {}, req = {})
 
   // blog_viewed has no tool_id — the post is identified via metadata.blog_post_id
   if (event_type === 'blog_viewed' && metadata?.blog_post_id) {
-    const { error: rpcErr } = await supabase.rpc('increment_blog_post_views', { p_blog_post_id: metadata.blog_post_id });
-    if (rpcErr) console.error('[event.service] blog view increment failed:', rpcErr.message);
+    if (UUID_REGEX.test(String(metadata.blog_post_id))) {
+      const { error: rpcErr } = await supabase.rpc('increment_blog_post_views', { p_blog_post_id: metadata.blog_post_id });
+      if (rpcErr) console.error('[event.service] blog view increment failed:', rpcErr.message);
+    } else {
+      console.warn('[event.service] blog_viewed: blog_post_id is not a UUID, skipping view increment:', metadata.blog_post_id);
+    }
   }
 
   if (process.env.NODE_ENV !== 'production') {
