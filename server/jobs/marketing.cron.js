@@ -559,8 +559,11 @@ async function executeOpportunityScan() {
   await logToAgentLogs(AGENT_LOG_NAME, 'info', 'Opportunity scan run started', { triggered_by: 'cron' });
 
   try {
-    const snapshotResult  = await snapshotBlogViews();
-    const recommendations = await runDetectors();
+    const snapshotResult = await snapshotBlogViews();
+    const { recommendations, fetchErrors } = await runDetectors();
+
+    const detectorCounts = {};
+    for (const r of recommendations) detectorCounts[r.detector] = (detectorCounts[r.detector] || 0) + 1;
 
     let inserted = 0, skippedDuplicates = 0;
     if (recommendations.length > 0) {
@@ -601,14 +604,22 @@ async function executeOpportunityScan() {
     }
 
     const duration_ms = Date.now() - startedAt;
+    if (fetchErrors.length > 0) {
+      log('warn', JOB, 'One or more detector signals degraded this run — proceeding with partial data', { fetch_errors: fetchErrors });
+    }
     log('info', JOB, 'Run complete', {
-      snapshotted: snapshotResult.snapshotted, detected: recommendations.length, inserted, skipped_duplicates: skippedDuplicates, duration_ms,
+      snapshotted: snapshotResult.snapshotted, detected: recommendations.length, detector_counts: detectorCounts,
+      fetch_errors: fetchErrors, inserted, skipped_duplicates: skippedDuplicates, duration_ms,
     });
-    await recordCronRun('marketing-opportunity-scan', 'success', null, { records_processed: inserted });
+    await recordCronRun('marketing-opportunity-scan', 'success', null, { records_processed: inserted, fetch_errors: fetchErrors });
     await logToAgentLogs(AGENT_LOG_NAME, 'info', 'Opportunity scan run complete', {
-      snapshotted: snapshotResult.snapshotted, detected: recommendations.length, inserted, skipped_duplicates: skippedDuplicates, duration_ms,
+      snapshotted: snapshotResult.snapshotted, detected: recommendations.length, detector_counts: detectorCounts,
+      fetch_errors: fetchErrors, inserted, skipped_duplicates: skippedDuplicates, duration_ms,
     });
-    return { skipped: false, snapshotted: snapshotResult.snapshotted, detected: recommendations.length, inserted, skipped_duplicates: skippedDuplicates, duration_ms };
+    return {
+      skipped: false, snapshotted: snapshotResult.snapshotted, detected: recommendations.length,
+      detector_counts: detectorCounts, fetch_errors: fetchErrors, inserted, skipped_duplicates: skippedDuplicates, duration_ms,
+    };
   } catch (err) {
     const duration_ms = Date.now() - startedAt;
     log('error', JOB, 'Run threw an unexpected error', { error: err?.message || String(err), duration_ms });

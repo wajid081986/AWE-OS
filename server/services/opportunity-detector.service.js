@@ -54,7 +54,7 @@ function daysAgoIso(days) {
 
 // ── Data fetch helpers (impure — degrade to a safe empty value on error) ──
 
-async function fetchSocialQueueSignal() {
+async function fetchSocialQueueSignal(fetchErrors) {
   try {
     const since = daysAgoIso(STALE_QUEUE_LOOKBACK_DAYS);
     const [pendingRes, failedRes] = await Promise.all([
@@ -63,39 +63,51 @@ async function fetchSocialQueueSignal() {
       // failed" — social_post_queue has no separate failed_at column.
       supabase.from('social_post_queue').select('id', { count: 'exact', head: true }).eq('status', 'failed_permanent').gte('created_at', since),
     ]);
-    if (pendingRes.error || failedRes.error) return null;
+    if (pendingRes.error || failedRes.error) {
+      fetchErrors.push(`fetchSocialQueueSignal: ${pendingRes.error?.message || failedRes.error?.message}`);
+      return null;
+    }
     return {
       pendingCount:               pendingRes.count || 0,
       recentFailedPermanentCount: failedRes.count  || 0,
     };
   } catch (err) {
+    fetchErrors.push(`fetchSocialQueueSignal: ${err?.message || String(err)}`);
     console.error('[OPPORTUNITY DETECTOR] fetchSocialQueueSignal failed:', err?.message || String(err));
     return null;
   }
 }
 
-async function fetchNewsletterSignal() {
+async function fetchNewsletterSignal(fetchErrors) {
   try {
     const since = daysAgoIso(NEWSLETTER_PILEUP_LOOKBACK_DAYS);
     const [draftRes, sentRes] = await Promise.all([
       supabase.from('newsletters').select('id', { count: 'exact', head: true }).eq('status', 'draft'),
       supabase.from('newsletters').select('id', { count: 'exact', head: true }).eq('status', 'sent').gte('sent_at', since),
     ]);
-    if (draftRes.error || sentRes.error) return null;
+    if (draftRes.error || sentRes.error) {
+      fetchErrors.push(`fetchNewsletterSignal: ${draftRes.error?.message || sentRes.error?.message}`);
+      return null;
+    }
     return {
       draftCount:        draftRes.count || 0,
       sentInWindowCount: sentRes.count  || 0,
     };
   } catch (err) {
+    fetchErrors.push(`fetchNewsletterSignal: ${err?.message || String(err)}`);
     console.error('[OPPORTUNITY DETECTOR] fetchNewsletterSignal failed:', err?.message || String(err));
     return null;
   }
 }
 
-async function fetchToolTrafficSignals() {
+async function fetchToolTrafficSignals(fetchErrors) {
   try {
     const { data: tools, error: toolsErr } = await supabase.from('tools').select('id, name').eq('status', 'live');
-    if (toolsErr || !tools || tools.length === 0) return [];
+    if (toolsErr) {
+      fetchErrors.push(`fetchToolTrafficSignals: ${toolsErr.message}`);
+      return [];
+    }
+    if (!tools || tools.length === 0) return [];
 
     const toolIds  = tools.map(t => t.id);
     const since14d = daysAgoIso(TOOL_TRAFFIC_WINDOW_DAYS);
@@ -105,7 +117,10 @@ async function fetchToolTrafficSignals() {
       supabase.from('tool_events').select('tool_id').eq('event_type', 'tool_viewed').gte('created_at', since14d).in('tool_id', toolIds),
       supabase.from('blog_posts').select('tool_id').eq('status', 'published').gte('published_at', since30d).in('tool_id', toolIds),
     ]);
-    if (eventsRes.error) return [];
+    if (eventsRes.error) {
+      fetchErrors.push(`fetchToolTrafficSignals: ${eventsRes.error.message}`);
+      return [];
+    }
 
     const viewCounts = {};
     for (const row of eventsRes.data || []) viewCounts[row.tool_id] = (viewCounts[row.tool_id] || 0) + 1;
@@ -118,6 +133,7 @@ async function fetchToolTrafficSignals() {
       has_recent_post: coveredToolIds.has(t.id),
     }));
   } catch (err) {
+    fetchErrors.push(`fetchToolTrafficSignals: ${err?.message || String(err)}`);
     console.error('[OPPORTUNITY DETECTOR] fetchToolTrafficSignals failed:', err?.message || String(err));
     return [];
   }
@@ -133,7 +149,7 @@ function nearestSnapshot(rows, targetMs) {
   return best;
 }
 
-async function fetchPostDecaySignals() {
+async function fetchPostDecaySignals(fetchErrors) {
   try {
     const minAgeDays = POST_DECAY_EARLY_WINDOW_DAYS + POST_DECAY_RECENT_WINDOW_DAYS;
     const cutoff = daysAgoIso(minAgeDays);
@@ -143,7 +159,11 @@ async function fetchPostDecaySignals() {
       .select('id, title, published_at')
       .eq('status', 'published')
       .lte('published_at', cutoff);
-    if (postsErr || !posts || posts.length === 0) return [];
+    if (postsErr) {
+      fetchErrors.push(`fetchPostDecaySignals: ${postsErr.message}`);
+      return [];
+    }
+    if (!posts || posts.length === 0) return [];
 
     const postIds = posts.map(p => p.id);
     const { data: snapshots, error: snapErr } = await supabase
@@ -151,9 +171,13 @@ async function fetchPostDecaySignals() {
       .select('blog_post_id, views, captured_at')
       .in('blog_post_id', postIds)
       .order('captured_at', { ascending: true });
-    // Table may not have any history yet (feature just turned on) — that's
+    if (snapErr) {
+      fetchErrors.push(`fetchPostDecaySignals: ${snapErr.message}`);
+      return [];
+    }
+    // Table may have no history yet (feature just turned on) — that's
     // expected, not an error; just nothing to detect this run.
-    if (snapErr || !snapshots || snapshots.length === 0) return [];
+    if (!snapshots || snapshots.length === 0) return [];
 
     const snapshotsByPost = {};
     for (const row of snapshots) (snapshotsByPost[row.blog_post_id] ||= []).push(row);
@@ -181,18 +205,23 @@ async function fetchPostDecaySignals() {
     }
     return results;
   } catch (err) {
+    fetchErrors.push(`fetchPostDecaySignals: ${err?.message || String(err)}`);
     console.error('[OPPORTUNITY DETECTOR] fetchPostDecaySignals failed:', err?.message || String(err));
     return [];
   }
 }
 
-async function fetchDataGateSignal() {
+async function fetchDataGateSignal(fetchErrors) {
   try {
     const since = daysAgoIso(DATA_GATE_WINDOW_DAYS);
     const { count, error } = await supabase.from('tool_events').select('id', { count: 'exact', head: true }).gte('created_at', since);
-    if (error) return null;
+    if (error) {
+      fetchErrors.push(`fetchDataGateSignal: ${error.message}`);
+      return null;
+    }
     return { recentEventCount: count || 0 };
   } catch (err) {
+    fetchErrors.push(`fetchDataGateSignal: ${err?.message || String(err)}`);
     console.error('[OPPORTUNITY DETECTOR] fetchDataGateSignal failed:', err?.message || String(err));
     return null;
   }
@@ -365,22 +394,29 @@ function safeDetect(fn, arg) {
 }
 
 // ── Entry point ────────────────────────────────────────────────────────────
+// Returns { recommendations, fetchErrors }. fetchErrors lists which fetchXxx()
+// calls degraded to null/[] on this run — degradation stays non-fatal (the
+// run still completes and inserts whatever it could detect) but must be
+// VISIBLE to the caller instead of silently disappearing into an empty result.
 async function runDetectors() {
+  const fetchErrors = [];
   const [socialQueueSignal, newsletterSignal, toolTrafficSignals, postDecaySignals, dataGateSignal] = await Promise.all([
-    fetchSocialQueueSignal(),
-    fetchNewsletterSignal(),
-    fetchToolTrafficSignals(),
-    fetchPostDecaySignals(),
-    fetchDataGateSignal(),
+    fetchSocialQueueSignal(fetchErrors),
+    fetchNewsletterSignal(fetchErrors),
+    fetchToolTrafficSignals(fetchErrors),
+    fetchPostDecaySignals(fetchErrors),
+    fetchDataGateSignal(fetchErrors),
   ]);
 
-  return [
+  const recommendations = [
     ...safeDetect(detectStaleQueue,            socialQueueSignal),
     ...safeDetect(detectNewsletterPileup,       newsletterSignal),
     ...safeDetect(detectToolTrafficNoCoverage,  toolTrafficSignals),
     ...safeDetect(detectPostDecay,              postDecaySignals),
     ...safeDetect(detectDataGateProgress,       dataGateSignal),
   ];
+
+  return { recommendations, fetchErrors };
 }
 
 module.exports = {
