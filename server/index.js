@@ -406,9 +406,12 @@ const server = app.listen(PORT, async () => {
     // writes recommendations only; executes nothing.
     if (process.env.MARKETING_INTELLIGENCE_ENABLED === 'true') {
       try {
-        require('./jobs/marketing.cron').startOpportunityScanCron()
-        console.info('[SERVER] opportunity-scan-cron started')
+        const { startOpportunityScanCron, EXPRESSIONS } = require('./jobs/marketing.cron')
+        startOpportunityScanCron()
+        console.info(`[SERVER] opportunity-scan-cron started (schedule: ${EXPRESSIONS.opportunityScan})`)
       } catch (e) { console.error('[SERVER] opportunity-scan-cron start error:', e?.message) }
+    } else {
+      console.info("[SERVER] Opportunity scan NOT registered (MARKETING_INTELLIGENCE_ENABLED != 'true')")
     }
   }, 30 * 60 * 1_000);
 });

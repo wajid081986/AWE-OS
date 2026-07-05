@@ -685,4 +685,5 @@ module.exports = {
   executeOpportunityScan,
   startOpportunityScanCron,
   stopOpportunityScanCron,
+  EXPRESSIONS,
 };
