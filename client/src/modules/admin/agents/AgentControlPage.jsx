@@ -185,6 +185,7 @@ function MarketingAgentCard({ agent, triggering, trigger }) {
   const wc = data?.last_run?.weekly_content
   const sq = data?.social_queue
   const nl = data?.newsletter
+  const cs = data?.content_strategy
 
   const needsAttention = !!data && (
     (sq?.failed_permanent > 0) ||
@@ -256,6 +257,25 @@ function MarketingAgentCard({ agent, triggering, trigger }) {
               <p>Weekly report: {data.last_run?.weekly_report?.status || '—'} · {fmtDateTime(data.last_run?.weekly_report?.last_run_at)}</p>
               <p>Social queue retry: {data.last_run?.social_queue_retry?.status || '—'} · {fmtDateTime(data.last_run?.social_queue_retry?.last_run_at)}</p>
             </div>
+
+            {cs && (
+              <div className="bg-gray-900 rounded-lg p-2">
+                <p className="text-gray-500 text-xs flex items-center gap-1.5">
+                  Content strategy
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${cs.mode === 'data_driven' ? 'bg-green-900/60 text-green-300' : 'bg-yellow-900/60 text-yellow-300'}`}>
+                    {cs.mode === 'data_driven' ? 'data-driven' : 'rotation fallback'}
+                  </span>
+                </p>
+                <p className="text-gray-400 text-xs mt-1">{cs.rationale}</p>
+                {cs.top_topics?.length > 0 && (
+                  <ul className="text-gray-500 text-[11px] mt-1 space-y-0.5 list-disc list-inside">
+                    {cs.top_topics.map((t, i) => (
+                      <li key={i}>{t.post_type} · priority {t.priority}{t.angle_hint ? ` — ${t.angle_hint}` : ''}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
 
             {newsletters.length > 0 && (
               <div>

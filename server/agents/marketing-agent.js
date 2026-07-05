@@ -795,7 +795,7 @@ async function getMarketingDashboard() {
     const [
       queuePending, queuePosted, queueFailedPermanent, queueLastError,
       nlSentTotal, nlArchived, nlLastSent,
-      cronRows, lastWeeklyContentLog,
+      cronRows, lastWeeklyContentLog, lastStrategyDecision,
     ] = await Promise.all([
       supabase.from('social_post_queue').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       supabase.from('social_post_queue').select('id', { count: 'exact', head: true }).eq('status', 'posted'),
@@ -809,6 +809,9 @@ async function getMarketingDashboard() {
       ]),
       supabase.from('agent_logs').select('metadata, created_at').eq('agent_name', 'marketing')
         .eq('message', 'Weekly content run complete').order('created_at', { ascending: false }).limit(1).maybeSingle(),
+      // Degrades to null until migration 032 (strategy_decisions) is applied.
+      supabase.from('strategy_decisions').select('mode, rationale, plan, decided_at')
+        .order('decided_at', { ascending: false }).limit(1).maybeSingle(),
     ]);
 
     const cronByName = {};
@@ -879,6 +882,12 @@ async function getMarketingDashboard() {
         weekly_report:      cronSummary('marketing-weekly-report'),
         social_queue_retry: cronSummary('marketing-social-queue'),
       },
+      content_strategy: lastStrategyDecision.data ? {
+        mode:        lastStrategyDecision.data.mode,
+        rationale:   lastStrategyDecision.data.rationale,
+        decided_at:  lastStrategyDecision.data.decided_at,
+        top_topics:  (lastStrategyDecision.data.plan || []).slice(0, 3),
+      } : null,
     };
   } catch (err) {
     console.error('[MARKETING] getMarketingDashboard error:', err.message);

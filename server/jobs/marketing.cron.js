@@ -31,6 +31,7 @@ const { generateBlogPost, generateNewsletter } = require('../agents/marketing-ag
 const { recordCronRun } = require('../services/cron-health');
 const { logToAgentLogs } = require('../db/agent-logger');
 const { postTweet }      = require('../services/twitter.service');
+const { getWeeklyContentPlan, BLOG_POST_TYPES } = require('../services/content-strategy.service');
 
 // agent_name under which all three scheduled jobs log — matches the single
 // "Marketing Agent" card in the admin dashboard (agents.routes.js AGENT_HANDLERS.marketing)
@@ -52,9 +53,6 @@ const SEVEN_DAYS_MS      = 7 * 24 * 60 * 60 * 1000;
 const NEWSLETTER_SEGMENT = 'all_users';
 const LOW_CTR_THRESHOLD  = 1.5;    // percent — warn if engagement below this
 
-// A/B test: rotate blog post types each weekly run
-const BLOG_POST_TYPES = ['how_to_guide', 'case_study', 'comparison', 'tutorial'];
-
 // Social post retry queue — root cause of a failed post (e.g. CreditsDepleted)
 // is usually account-level, not transient, so backoff is deliberately long.
 const SOCIAL_QUEUE_MAX_ATTEMPTS  = 5;
@@ -66,7 +64,6 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // ── State ──────────────────────────────────────────────────────────────────────
 const running = { weeklyContent: false, monthlyCalendar: false, weeklyReport: false, socialQueueRetry: false };
 let activeTasks      = [];
-let blogPostTypeIdx  = 0;    // rotates through BLOG_POST_TYPES
 let lastWeekAvgCtr   = null; // updated by weeklyReport — used for engagement prediction
 
 // ── Logger ─────────────────────────────────────────────────────────────────────
@@ -211,17 +208,12 @@ async function executeWeeklyContent() {
 
   running[JOB] = true;
   const startedAt  = Date.now();
-  const postType   = BLOG_POST_TYPES[blogPostTypeIdx % BLOG_POST_TYPES.length];
-  blogPostTypeIdx  = (blogPostTypeIdx + 1) % BLOG_POST_TYPES.length;
 
   log('info', JOB, 'Run starting', {
-    post_type:       postType,
-    ab_variant:      blogPostTypeIdx,
     predicted_ctr:   lastWeekAvgCtr,
     engagement_risk: lastWeekAvgCtr !== null && lastWeekAvgCtr < LOW_CTR_THRESHOLD,
   });
   await logToAgentLogs(AGENT_LOG_NAME, 'info', 'Weekly content run started', {
-    post_type: postType,
     triggered_by: 'cron',
   });
 
@@ -233,26 +225,35 @@ async function executeWeeklyContent() {
   }
 
   try {
-    const tools = await fetchActiveTools();
+    const { mode, rationale, plan } = await getWeeklyContentPlan();
+    log('info', JOB, 'Content strategy plan selected', { mode, rationale, plan_size: plan.length });
+    await logToAgentLogs(AGENT_LOG_NAME, 'info', 'Weekly content plan selected', { mode, rationale, plan });
 
-    if (tools.length === 0) {
-      log('info', JOB, 'No active tools — skipping blog generation');
+    const tools     = await fetchActiveTools();
+    const toolsById = new Map(tools.map(t => [t.id, t]));
+
+    if (plan.length === 0) {
+      log('info', JOB, 'No planned topics this run — skipping blog generation');
     }
 
     const since = new Date(Date.now() - SEVEN_DAYS_MS).toISOString();
     let generated = 0, skipped = 0, failed = 0, published = 0, tweeted = 0, queuedTweets = 0, failedTweets = 0;
 
-    for (const tool of tools) {
+    for (const item of plan) {
+      const tool = toolsById.get(item.tool_id);
+      if (!tool) { skipped++; continue; } // plan item stale (tool no longer live) — defensive skip
+
       try {
         const alreadyPosted = await hasRecentBlogPost(tool.id, since);
         if (alreadyPosted) {
           skipped++;
           continue;
         }
-        const post = await generateBlogPost(tool.id, postType, `${tool.name} free online`, { autoPublish: true });
+        const targetKeyword = item.keyword || `${tool.name} free online`;
+        const post = await generateBlogPost(tool.id, item.post_type, targetKeyword, { autoPublish: true });
         generated++;
         log('info', JOB, 'Blog post generated', {
-          tool_id: tool.id, tool_name: tool.name, post_type: postType, status: post.status,
+          tool_id: tool.id, tool_name: tool.name, post_type: item.post_type, status: post.status,
         });
 
         if (post.status === 'published' && post.live_url) {
@@ -291,7 +292,7 @@ async function executeWeeklyContent() {
     }
 
     log('info', JOB, 'Blog generation complete', {
-      generated, published, tweeted, queued_tweets: queuedTweets, failed_tweets: failedTweets, skipped, failed, post_type: postType,
+      generated, published, tweeted, queued_tweets: queuedTweets, failed_tweets: failedTweets, skipped, failed,
     });
 
     // Weekend-aware newsletter delivery
@@ -312,11 +313,11 @@ async function executeWeeklyContent() {
     log('info', JOB, 'Run complete', { duration_ms });
     await recordCronRun('marketing-weekly-content', 'success', null, { records_processed: generated });
     await logToAgentLogs(AGENT_LOG_NAME, 'info', 'Weekly content run complete', {
-      generated, published, tweeted, queued_tweets: queuedTweets, failed_tweets: failedTweets,
+      mode, generated, published, tweeted, queued_tweets: queuedTweets, failed_tweets: failedTweets,
       skipped, failed, newsletter_sent: newsletterSent, duration_ms,
     });
     return {
-      skipped: false, post_type: postType,
+      skipped: false, mode,
       generated, published, tweeted, queued_tweets: queuedTweets, failed_tweets: failedTweets,
       blog_skipped: skipped, failed,
       newsletter_sent: newsletterSent, duration_ms,
