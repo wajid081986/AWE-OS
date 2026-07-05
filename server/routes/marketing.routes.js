@@ -8,6 +8,7 @@ const {
   getDashboard,
   generateBlog,
   triggerWeeklyContent,
+  triggerOpportunityScan,
   getBlogs,
   updateBlogStatus,
   generateNewsletter,
@@ -130,5 +131,10 @@ router.get('/social-queue',          requireAdmin,       getSocialQueue);
 // suggested_action. Admin-only, same as other write-side marketing actions.
 router.patch('/recommendations/:id/acknowledge', requireAdmin, acknowledgeRecommendation);
 router.patch('/recommendations/:id/dismiss',      requireAdmin, dismissRecommendation);
+
+// Manually fires the exact opportunity-scan cron job (shadow mode — writes
+// recommendations only, never executes suggested_action). Admin-only, same
+// requireAuth (JWT) chain as the rest of this router.
+router.post('/opportunity-scan/trigger', requireAdmin, triggerOpportunityScan);
 
 module.exports = router;

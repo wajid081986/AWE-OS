@@ -143,6 +143,30 @@ async function triggerWeeklyContent(req, res) {
   }
 }
 
+// Manually fires the exact opportunity-scan cron job (shadow mode — writes
+// recommendations only, never executes suggested_action). Lets admins force
+// a scan without waiting for the 02:00 UTC cron, which a free-tier instance
+// may sleep through. Same overlap guard as the cron (running['opportunityScan']).
+async function triggerOpportunityScan(req, res) {
+  try {
+    if (process.env.MARKETING_INTELLIGENCE_ENABLED !== 'true') {
+      return res.status(409).json({ ok: false, error: 'Opportunity scan is disabled (set MARKETING_INTELLIGENCE_ENABLED=true to enable)' });
+    }
+
+    const { executeOpportunityScan } = require('../jobs/marketing.cron');
+    const summary = await executeOpportunityScan();
+
+    if (summary?.skipped) {
+      return res.status(409).json({ ok: false, error: 'Opportunity scan already running', summary });
+    }
+
+    return res.json({ ok: true, summary });
+  } catch (err) {
+    console.error('[MARKETING CTRL] triggerOpportunityScan error:', err.message);
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+}
+
 async function getBlogs(req, res) {
   try {
     const { status, tool_id, content_type } = req.query;
@@ -684,6 +708,7 @@ module.exports = {
   getDashboard,
   generateBlog,
   triggerWeeklyContent,
+  triggerOpportunityScan,
   getBlogs,
   updateBlogStatus,
   generateNewsletter,

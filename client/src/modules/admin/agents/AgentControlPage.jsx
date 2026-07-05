@@ -166,6 +166,7 @@ function MarketingAgentCard({ agent, triggering, trigger }) {
   const [showQueue, setShowQueue]         = useState(false)
   const [sendingTestId, setSendingTestId] = useState(null)
   const [recActing, setRecActing]         = useState(null)
+  const [scanRunning, setScanRunning]     = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -207,6 +208,20 @@ function MarketingAgentCard({ agent, triggering, trigger }) {
       setToast({ msg: err.response?.data?.error || `Failed to ${action}`, type: 'error' })
     } finally {
       setRecActing(null)
+    }
+  }
+
+  const runScanNow = async () => {
+    setScanRunning(true)
+    try {
+      const res = await api.post('/api/marketing/opportunity-scan/trigger')
+      const s = res.data?.summary
+      setToast({ msg: `Scan complete: ${s?.detected ?? 0} detected, ${s?.inserted ?? 0} new`, type: 'success' })
+      load()
+    } catch (err) {
+      setToast({ msg: err.response?.data?.error || 'Scan failed', type: 'error' })
+    } finally {
+      setScanRunning(false)
     }
   }
 
@@ -306,14 +321,26 @@ function MarketingAgentCard({ agent, triggering, trigger }) {
               </div>
             )}
 
-            {rec && rec.open_count > 0 && (
+            {rec && (
               <div className="bg-gray-900 rounded-lg p-2">
-                <p className="text-gray-500 text-xs flex items-center gap-1.5">
-                  Recommendations
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold bg-indigo-900/60 text-indigo-300">
-                    {rec.open_count} open
-                  </span>
-                </p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-gray-500 text-xs flex items-center gap-1.5">
+                    Recommendations
+                    {rec.open_count > 0 && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold bg-indigo-900/60 text-indigo-300">
+                        {rec.open_count} open
+                      </span>
+                    )}
+                  </p>
+                  <button
+                    onClick={runScanNow}
+                    disabled={scanRunning}
+                    className="text-[10px] shrink-0 bg-indigo-700 hover:bg-indigo-600 disabled:opacity-40 text-white px-2 py-0.5 rounded"
+                  >
+                    {scanRunning ? 'Scanning...' : 'Run scan now'}
+                  </button>
+                </div>
+                {rec.open_count > 0 && (
                 <div className="space-y-1 mt-1.5">
                   {rec.latest.map(r => {
                     const acting = recActing === `${r.id}_acknowledge` || recActing === `${r.id}_dismiss`
@@ -346,6 +373,7 @@ function MarketingAgentCard({ agent, triggering, trigger }) {
                     )
                   })}
                 </div>
+                )}
               </div>
             )}
 
