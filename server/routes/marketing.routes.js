@@ -26,6 +26,8 @@ const {
   getCalendar,
   generateCalendar,
   getSocialQueue,
+  acknowledgeRecommendation,
+  dismissRecommendation,
   sendNewsletterTest,
   sendNewsletterConfirm,
   unsubscribeNewsletter,
@@ -123,5 +125,10 @@ router.post('/calendar/generate',    calendarLimiter,    generateCalendar);
 // Operational visibility into the tweet retry queue — admin-only, same
 // requireAuth (JWT) chain as the rest of this router.
 router.get('/social-queue',          requireAdmin,       getSocialQueue);
+
+// Opportunity Detector recommendations — status change only, never executes
+// suggested_action. Admin-only, same as other write-side marketing actions.
+router.patch('/recommendations/:id/acknowledge', requireAdmin, acknowledgeRecommendation);
+router.patch('/recommendations/:id/dismiss',      requireAdmin, dismissRecommendation);
 
 module.exports = router;

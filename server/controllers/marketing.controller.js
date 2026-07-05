@@ -596,6 +596,38 @@ async function getSocialQueue(req, res) {
   }
 }
 
+// ── Recommendations (Opportunity Detector — shadow mode) ──────
+// Status-change only — never executes suggested_action. See
+// server/services/opportunity-detector.service.js.
+
+async function setRecommendationStatus(req, res, status) {
+  try {
+    const { id } = req.params;
+    const { data: updated, error } = await supabase
+      .from('recommendations')
+      .update({ status })
+      .eq('id', id)
+      .eq('status', 'open')
+      .select()
+      .maybeSingle();
+    if (error) throw error;
+    if (!updated) return res.status(404).json({ error: 'Recommendation not found or already resolved' });
+
+    return res.json({ success: true, data: updated });
+  } catch (err) {
+    console.error(`[MARKETING CTRL] setRecommendationStatus(${status}) error:`, err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+async function acknowledgeRecommendation(req, res) {
+  return setRecommendationStatus(req, res, 'acknowledged');
+}
+
+async function dismissRecommendation(req, res) {
+  return setRecommendationStatus(req, res, 'dismissed');
+}
+
 // ── Content Calendar ──────────────────────────────────────────
 
 async function getCalendar(req, res) {
@@ -670,6 +702,8 @@ module.exports = {
   getCalendar,
   generateCalendar,
   getSocialQueue,
+  acknowledgeRecommendation,
+  dismissRecommendation,
   sendNewsletterTest,
   sendNewsletterConfirm,
   unsubscribeNewsletter,

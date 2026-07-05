@@ -795,7 +795,7 @@ async function getMarketingDashboard() {
     const [
       queuePending, queuePosted, queueFailedPermanent, queueLastError,
       nlSentTotal, nlArchived, nlLastSent,
-      cronRows, lastWeeklyContentLog, lastStrategyDecision,
+      cronRows, lastWeeklyContentLog, lastStrategyDecision, openRecommendations,
     ] = await Promise.all([
       supabase.from('social_post_queue').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       supabase.from('social_post_queue').select('id', { count: 'exact', head: true }).eq('status', 'posted'),
@@ -812,6 +812,13 @@ async function getMarketingDashboard() {
       // Degrades to null until migration 032 (strategy_decisions) is applied.
       supabase.from('strategy_decisions').select('mode, rationale, plan, decided_at')
         .order('decided_at', { ascending: false }).limit(1).maybeSingle(),
+      // Degrades to [] until migration 033 (recommendations) is applied, or
+      // until MARKETING_INTELLIGENCE_ENABLED is turned on and the shadow-mode
+      // opportunity scan has actually run.
+      // id included alongside the spec'd display fields — the admin panel's
+      // acknowledge/dismiss buttons need it to address PATCH /recommendations/:id/*.
+      supabase.from('recommendations').select('id, title, risk, detector, created_at')
+        .eq('status', 'open').order('created_at', { ascending: false }),
     ]);
 
     const cronByName = {};
@@ -888,6 +895,20 @@ async function getMarketingDashboard() {
         decided_at:  lastStrategyDecision.data.decided_at,
         top_topics:  (lastStrategyDecision.data.plan || []).slice(0, 3),
       } : null,
+      recommendations: {
+        open_count: (openRecommendations.data || []).length,
+        by_risk: (openRecommendations.data || []).reduce((acc, r) => {
+          acc[r.risk] = (acc[r.risk] || 0) + 1;
+          return acc;
+        }, { low: 0, medium: 0, high: 0 }),
+        latest: (openRecommendations.data || []).slice(0, 5).map(r => ({
+          id:         r.id,
+          title:      r.title,
+          risk:       r.risk,
+          detector:   r.detector,
+          created_at: r.created_at,
+        })),
+      },
     };
   } catch (err) {
     console.error('[MARKETING] getMarketingDashboard error:', err.message);

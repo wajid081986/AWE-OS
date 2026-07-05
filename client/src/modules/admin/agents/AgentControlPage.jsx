@@ -65,6 +65,20 @@ function MarketingWarnBadge({ show }) {
   )
 }
 
+// Opportunity Detector risk badge — low/medium/high per recommendations.risk
+function RiskBadge({ risk }) {
+  const map = {
+    low:    'bg-blue-900/60 text-blue-300 border-blue-700/50',
+    medium: 'bg-yellow-900/60 text-yellow-300 border-yellow-700/50',
+    high:   'bg-red-900/60 text-red-300 border-red-700/50',
+  }
+  return (
+    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border shrink-0 ${map[risk] || map.low}`}>
+      {risk}
+    </span>
+  )
+}
+
 function SocialQueueModal({ onClose }) {
   const [rows, setRows]       = useState([])
   const [counts, setCounts]   = useState(null)
@@ -151,6 +165,7 @@ function MarketingAgentCard({ agent, triggering, trigger }) {
   const [toast, setToast]                 = useState(null)
   const [showQueue, setShowQueue]         = useState(false)
   const [sendingTestId, setSendingTestId] = useState(null)
+  const [recActing, setRecActing]         = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -182,10 +197,24 @@ function MarketingAgentCard({ agent, triggering, trigger }) {
     }
   }
 
-  const wc = data?.last_run?.weekly_content
-  const sq = data?.social_queue
-  const nl = data?.newsletter
-  const cs = data?.content_strategy
+  const setRecStatus = async (id, action) => {
+    setRecActing(`${id}_${action}`)
+    try {
+      await api.patch(`/api/marketing/recommendations/${id}/${action}`)
+      setToast({ msg: `Recommendation ${action === 'acknowledge' ? 'acknowledged' : 'dismissed'}.`, type: 'success' })
+      load()
+    } catch (err) {
+      setToast({ msg: err.response?.data?.error || `Failed to ${action}`, type: 'error' })
+    } finally {
+      setRecActing(null)
+    }
+  }
+
+  const wc  = data?.last_run?.weekly_content
+  const sq  = data?.social_queue
+  const nl  = data?.newsletter
+  const cs  = data?.content_strategy
+  const rec = data?.recommendations
 
   const needsAttention = !!data && (
     (sq?.failed_permanent > 0) ||
@@ -274,6 +303,49 @@ function MarketingAgentCard({ agent, triggering, trigger }) {
                     ))}
                   </ul>
                 )}
+              </div>
+            )}
+
+            {rec && rec.open_count > 0 && (
+              <div className="bg-gray-900 rounded-lg p-2">
+                <p className="text-gray-500 text-xs flex items-center gap-1.5">
+                  Recommendations
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold bg-indigo-900/60 text-indigo-300">
+                    {rec.open_count} open
+                  </span>
+                </p>
+                <div className="space-y-1 mt-1.5">
+                  {rec.latest.map(r => {
+                    const acting = recActing === `${r.id}_acknowledge` || recActing === `${r.id}_dismiss`
+                    return (
+                      <div key={r.id} className="bg-gray-800 rounded-lg px-2 py-1.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-gray-300 text-xs truncate">{r.title}</span>
+                          <RiskBadge risk={r.risk} />
+                        </div>
+                        <div className="flex items-center justify-between gap-2 mt-1">
+                          <span className="text-gray-500 text-[10px]">{r.detector}</span>
+                          <div className="flex gap-1 shrink-0">
+                            <button
+                              onClick={() => setRecStatus(r.id, 'acknowledge')}
+                              disabled={acting}
+                              className="text-[10px] bg-green-800 hover:bg-green-700 disabled:opacity-40 text-white px-2 py-0.5 rounded"
+                            >
+                              {recActing === `${r.id}_acknowledge` ? '...' : 'Acknowledge'}
+                            </button>
+                            <button
+                              onClick={() => setRecStatus(r.id, 'dismiss')}
+                              disabled={acting}
+                              className="text-[10px] bg-gray-700 hover:bg-gray-600 disabled:opacity-40 text-white px-2 py-0.5 rounded"
+                            >
+                              {recActing === `${r.id}_dismiss` ? '...' : 'Dismiss'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             )}
 

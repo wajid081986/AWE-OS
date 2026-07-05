@@ -400,6 +400,16 @@ const server = app.listen(PORT, async () => {
         console.info('[SERVER] auto-generation-cron started')
       } catch (e) { console.error('[SERVER] auto-generation-cron start error:', e?.message) }
     }
+
+    // Opportunity Detector (shadow mode) — DISABLED by default. Set
+    // MARKETING_INTELLIGENCE_ENABLED=true to activate. Observes signals and
+    // writes recommendations only; executes nothing.
+    if (process.env.MARKETING_INTELLIGENCE_ENABLED === 'true') {
+      try {
+        require('./jobs/marketing.cron').startOpportunityScanCron()
+        console.info('[SERVER] opportunity-scan-cron started')
+      } catch (e) { console.error('[SERVER] opportunity-scan-cron start error:', e?.message) }
+    }
   }, 30 * 60 * 1_000);
 });
 

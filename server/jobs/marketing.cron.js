@@ -19,6 +19,12 @@
  *     CreditsDepleted — an account billing/tier issue, not something a code
  *     retry fixes immediately, hence the long backoff) instead of dropping them.
  *
+ * Schedule 5 — Opportunity scan  : Daily 02:00 UTC — SHADOW MODE, disabled by
+ *   default. Only registered when MARKETING_INTELLIGENCE_ENABLED=true (see
+ *   startOpportunityScanCron(), called from index.js, not startMarketingCrons()).
+ *   · Snapshots published-post views, runs opportunity-detector.service.js's
+ *     deterministic detectors, and writes recommendations. Executes nothing.
+ *
  * Safety    : Per-job overlap guards · structured JSON logging · Promise.allSettled()
  *             · recordCronRun() telemetry · graceful shutdown · never crashes
  *
@@ -32,6 +38,7 @@ const { recordCronRun } = require('../services/cron-health');
 const { logToAgentLogs } = require('../db/agent-logger');
 const { postTweet }      = require('../services/twitter.service');
 const { getWeeklyContentPlan, BLOG_POST_TYPES } = require('../services/content-strategy.service');
+const { runDetectors, snapshotBlogViews } = require('../services/opportunity-detector.service');
 
 // agent_name under which all three scheduled jobs log — matches the single
 // "Marketing Agent" card in the admin dashboard (agents.routes.js AGENT_HANDLERS.marketing)
@@ -46,6 +53,7 @@ const EXPRESSIONS = Object.freeze({
   monthlyCalendar:  '30 3 1 * *',
   weeklyReport:     '30 11 * * 5',
   socialQueueRetry: '0 */6 * * *',
+  opportunityScan:  '0 2 * * *',
 });
 
 const AGENT              = 'marketing-cron';
@@ -62,9 +70,10 @@ const SOCIAL_QUEUE_BACKOFF_HOURS = [6, 12, 24]; // attempt 1 -> 6h, 2 -> 12h, 3+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // ── State ──────────────────────────────────────────────────────────────────────
-const running = { weeklyContent: false, monthlyCalendar: false, weeklyReport: false, socialQueueRetry: false };
-let activeTasks      = [];
-let lastWeekAvgCtr   = null; // updated by weeklyReport — used for engagement prediction
+const running = { weeklyContent: false, monthlyCalendar: false, weeklyReport: false, socialQueueRetry: false, opportunityScan: false };
+let activeTasks         = [];
+let opportunityScanTask = null;
+let lastWeekAvgCtr      = null; // updated by weeklyReport — used for engagement prediction
 
 // ── Logger ─────────────────────────────────────────────────────────────────────
 function log(level, job, message, data = {}) {
@@ -537,6 +546,80 @@ async function executeSocialQueueRetry() {
   }
 }
 
+// ── Job 5 — Opportunity scan (shadow mode) ─────────────────────────────────────
+// Reads signals, runs deterministic detectors, writes recommendations.
+// EXECUTES NOTHING — see server/services/opportunity-detector.service.js.
+async function executeOpportunityScan() {
+  const JOB = 'opportunityScan';
+  if (running[JOB]) { log('warn', JOB, 'Skipping — previous run still in progress'); return { skipped: true, reason: 'already_running' }; }
+
+  running[JOB] = true;
+  const startedAt = Date.now();
+  log('info', JOB, 'Run starting');
+  await logToAgentLogs(AGENT_LOG_NAME, 'info', 'Opportunity scan run started', { triggered_by: 'cron' });
+
+  try {
+    const snapshotResult  = await snapshotBlogViews();
+    const recommendations = await runDetectors();
+
+    let inserted = 0, skippedDuplicates = 0;
+    if (recommendations.length > 0) {
+      const dedupeKeys = recommendations.map(r => r.dedupe_key).filter(Boolean);
+      const { data: existing, error: existingErr } = await supabase
+        .from('recommendations')
+        .select('dedupe_key')
+        .eq('status', 'open')
+        .in('dedupe_key', dedupeKeys);
+      if (existingErr) {
+        log('warn', JOB, 'Failed to check existing open recommendations — proceeding without dedupe', { error: existingErr.message });
+      }
+
+      const existingKeys = new Set((existing || []).map(r => r.dedupe_key));
+      const toInsert      = recommendations.filter(r => !existingKeys.has(r.dedupe_key));
+      skippedDuplicates    = recommendations.length - toInsert.length;
+
+      if (toInsert.length > 0) {
+        const { error: insertErr } = await supabase.from('recommendations').insert(
+          toInsert.map(r => ({
+            detector:         r.detector,
+            risk:             r.risk,
+            title:            r.title,
+            detail:           r.detail,
+            evidence:         r.evidence,
+            suggested_action: r.suggested_action,
+            status:           'open',
+            dedupe_key:       r.dedupe_key,
+            expires_at:       r.expires_at || null,
+          }))
+        );
+        if (insertErr) throw Object.assign(
+          new Error(`Recommendations insert failed: ${insertErr.message}`),
+          { code: 'RECOMMENDATIONS_INSERT_FAILED' }
+        );
+        inserted = toInsert.length;
+      }
+    }
+
+    const duration_ms = Date.now() - startedAt;
+    log('info', JOB, 'Run complete', {
+      snapshotted: snapshotResult.snapshotted, detected: recommendations.length, inserted, skipped_duplicates: skippedDuplicates, duration_ms,
+    });
+    await recordCronRun('marketing-opportunity-scan', 'success', null, { records_processed: inserted });
+    await logToAgentLogs(AGENT_LOG_NAME, 'info', 'Opportunity scan run complete', {
+      snapshotted: snapshotResult.snapshotted, detected: recommendations.length, inserted, skipped_duplicates: skippedDuplicates, duration_ms,
+    });
+    return { skipped: false, snapshotted: snapshotResult.snapshotted, detected: recommendations.length, inserted, skipped_duplicates: skippedDuplicates, duration_ms };
+  } catch (err) {
+    const duration_ms = Date.now() - startedAt;
+    log('error', JOB, 'Run threw an unexpected error', { error: err?.message || String(err), duration_ms });
+    await recordCronRun('marketing-opportunity-scan', 'error', err?.message || String(err));
+    await logToAgentLogs(AGENT_LOG_NAME, 'error', `Opportunity scan run failed: ${err?.message || String(err)}`, { duration_ms });
+    return { skipped: false, error: err?.message || String(err), duration_ms };
+  } finally {
+    running[JOB] = false;
+  }
+}
+
 // ── Scheduler registration ─────────────────────────────────────────────────────
 function assertValidExpression(expression, label) {
   if (!cron.validate(expression)) {
@@ -574,6 +657,24 @@ function stopMarketingCrons() {
   log('info', 'shutdown', 'All marketing cron tasks stopped');
 }
 
+// Registered separately from startMarketingCrons() — index.js only calls this
+// when MARKETING_INTELLIGENCE_ENABLED=true, so the flag being off means the
+// cron never even registers (not just "registered but skips itself").
+function startOpportunityScanCron() {
+  assertValidExpression(EXPRESSIONS.opportunityScan, 'opportunityScan');
+  opportunityScanTask = cron.schedule(EXPRESSIONS.opportunityScan, executeOpportunityScan, { scheduled: true, timezone: 'UTC' });
+  log('info', 'startup', 'Opportunity scan cron registered', { opportunityScan: EXPRESSIONS.opportunityScan });
+  return opportunityScanTask;
+}
+
+function stopOpportunityScanCron() {
+  if (opportunityScanTask) {
+    opportunityScanTask.stop();
+    opportunityScanTask = null;
+    log('info', 'shutdown', 'Opportunity scan cron task stopped');
+  }
+}
+
 module.exports = {
   startMarketingCrons,
   stopMarketingCrons,
@@ -581,4 +682,7 @@ module.exports = {
   executeMonthlyCalendar,
   executeWeeklyReport,
   executeSocialQueueRetry,
+  executeOpportunityScan,
+  startOpportunityScanCron,
+  stopOpportunityScanCron,
 };
