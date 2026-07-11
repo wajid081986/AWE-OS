@@ -17,6 +17,8 @@ server/node_modules/
 # BUILD
 dist/
 client/dist/
+client/dist-ssg/
+client/.ssg-server/
 build/
 
 # LOGS

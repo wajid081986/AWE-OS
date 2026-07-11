@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
   const [user,      setUser]      = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const navigate                  = useNavigate()
-  const tokenRef                  = useRef(localStorage.getItem(TOKEN_KEY))
+  const tokenRef                  = useRef(typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null)
 
   const storeToken = (token) => {
     tokenRef.current = token
