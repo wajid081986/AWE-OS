@@ -1,0 +1,66 @@
+/**
+ * design-system/tokens.css — AWE-OS Design Tokens (Batch 1)
+ *
+ * Source: docs/reference/ux-blueprint.md §4 (color), §5 (tokens),
+ * §9 (spacing scale), §20 (motion). Named by role, not appearance
+ * (CLAUDE.md §4) — components should consume role-level aliases
+ * (--color-action) where blueprint §5 calls for them, falling back to
+ * the palette name only where no role alias exists yet.
+ *
+ * Additive only: this file defines custom properties on :root and does
+ * not touch any existing selector. See docs/batches/batch-1-plan.md
+ * risk #1 for why (App.css collision / byte-diff requirement).
+ */
+
+:root {
+  /* Color — Blueprint §4 */
+  --ink: #131A2E;
+  --ink-soft: #3B4463;
+  --paper: #F6F7FB;
+  --card: #FFFFFF;
+  --cobalt: #2742D6;
+  --cobalt-deep: #1B2FA0;
+  --cobalt-tint: #EDF0FE;
+  --marigold: #E8850C;
+  --mint: #0E9F6E;
+  --line: #E4E7F0;
+
+  /* Color — role aliases (Blueprint §5) */
+  --color-action: var(--cobalt);
+  --color-action-hover: var(--cobalt-deep);
+
+  /* Radius — Blueprint §5 */
+  --radius-s: 10px;
+  --radius-m: 14px;
+  --radius-l: 18px;
+
+  /* Shadow — Blueprint §5 (soft, low-opacity ink; never pure black) */
+  --shadow-card: 0 1px 2px rgba(19, 26, 46, 0.06), 0 4px 12px rgba(19, 26, 46, 0.06);
+  --shadow-float: 0 8px 24px rgba(19, 26, 46, 0.12);
+
+  /* Borders — Blueprint §5 */
+  --border-standard: 1.5px solid var(--line);
+  --border-dropzone: 2px dashed var(--cobalt);
+  --border-ledger: 1.5px dashed var(--line);
+
+  /* Z-index — Blueprint §5 */
+  --z-header: 50;
+  --z-modal: 100;
+  --z-toast: 150;
+
+  /* Spacing — Blueprint §9 (8-point base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 72px;
+
+  /* Motion — Blueprint §20 */
+  --ease: cubic-bezier(.2, .7, .3, 1);
+  --duration-micro: 150ms;
+  --duration-structural: 300ms;
+  --duration-ambient: 600ms;
+}
