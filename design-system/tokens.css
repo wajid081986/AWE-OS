@@ -22,7 +22,13 @@
   --cobalt-deep: #1B2FA0;
   --cobalt-tint: #EDF0FE;
   --marigold: #E8850C;
+  --marigold-tint: #FEF3E2;
+  --marigold-border: #F5D9AE;
+  --marigold-text-strong: #7A4A08;
   --mint: #0E9F6E;
+  --mint-tint: #E6F7F0;
+  --mint-border: #BFE8D6;
+  --mint-text-strong: #14543C;
   --line: #E4E7F0;
 
   /* Color — role aliases (Blueprint §5) */
@@ -33,10 +39,14 @@
   --radius-s: 10px;
   --radius-m: 14px;
   --radius-l: 18px;
+  /* Radius — component-specific (Batch 2, sourced from reference HTML) */
+  --radius-ledger: 11px;
+  --radius-callout: 12px;
 
   /* Shadow — Blueprint §5 (soft, low-opacity ink; never pure black) */
   --shadow-card: 0 1px 2px rgba(19, 26, 46, 0.06), 0 4px 12px rgba(19, 26, 46, 0.06);
   --shadow-float: 0 8px 24px rgba(19, 26, 46, 0.12);
+  --shadow-button: 0 4px 14px rgba(39, 66, 214, 0.28);
 
   /* Borders — Blueprint §5 */
   --border-standard: 1.5px solid var(--line);
@@ -57,6 +67,30 @@
   --space-6: 32px;
   --space-7: 48px;
   --space-8: 72px;
+  /* Spacing — component-specific (Batch 2, sourced from reference HTML) */
+  --space-section-mobile: 52px;
+
+  /* Layout — Blueprint §6 (Batch 2, sourced from reference HTML .wrap/.narrow) */
+  --content-width: 1120px;
+  --content-width-narrow: 760px;
+
+  /* Button padding — Blueprint §12 (Batch 2, sourced from reference HTML .btn) */
+  --btn-padding-y: 11px;
+  --btn-padding-x: 22px;
+  --btn-padding-y-compact: 9px;
+  --btn-padding-x-compact: 18px;
+
+  /* Chip/Badge padding (Batch 2, sourced from reference HTML .chip/.badge) */
+  --chip-padding-y: 7px;
+  --chip-padding-x: 13px;
+  --badge-padding-y: 6px;
+  --badge-padding-x: 12px;
+
+  /* Ledger/Callout padding (Batch 2, sourced from reference HTML .ledger/.callout/.promise) */
+  --ledger-padding-x: 18px;
+  --callout-padding-y: 18px;
+  --callout-padding-x: 20px;
+  --callout-padding-y-success: 22px;
 
   /* Motion — Blueprint §20 */
   --ease: cubic-bezier(.2, .7, .3, 1);
