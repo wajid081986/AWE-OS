@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWE-OS — Free Privacy-First Online Tools: PDF, Indian Tax & Finance Calculators, Converters</title>
+<meta name="description" content="49+ free browser tools that never upload your files. Merge & compress PDFs, calculate GST, income tax, SIP & EMI for India, generate invoices and more — all processed on your device.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#131A2E;
+  --ink-soft:#3B4463;
+  --paper:#F6F7FB;
+  --card:#FFFFFF;
+  --cobalt:#2742D6;
+  --cobalt-deep:#1B2FA0;
+  --cobalt-tint:#EDF0FE;
+  --marigold:#E8850C;
+  --marigold-tint:#FEF3E2;
+  --mint:#0E9F6E;
+  --mint-tint:#E6F7F0;
+  --line:#E4E7F0;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(19,26,46,.05),0 8px 24px rgba(19,26,46,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+body{
+  font-family:'Instrument Sans',system-ui,sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  line-height:1.65;
+  font-size:16.5px;
+}
+h1,h2,h3{font-family:'Bricolage Grotesque',sans-serif;line-height:1.12;letter-spacing:-.015em}
+.mono{font-family:'JetBrains Mono',monospace}
+a{color:var(--cobalt);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:3px solid var(--cobalt);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--cobalt);
+  display:inline-flex;align-items:center;gap:8px;margin-bottom:14px;
+}
+.eyebrow::before{content:"";width:22px;height:2px;background:var(--marigold)}
+section{padding:72px 0}
+.section-head{max-width:640px;margin-bottom:40px}
+.section-head h2{font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:700;margin-bottom:12px}
+.section-head p{color:var(--ink-soft)}
+
+/* ---------- header ---------- */
+header{
+  position:sticky;top:0;z-index:50;background:rgba(246,247,251,.85);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+}
+.nav{display:flex;align-items:center;gap:28px;height:64px}
+.logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:1.25rem;color:var(--ink);display:flex;align-items:center;gap:9px}
+.logo:hover{text-decoration:none}
+.logo-mark{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--cobalt),var(--cobalt-deep));display:grid;place-items:center;color:#fff;font-size:.8rem;font-weight:700}
+.nav-links{display:flex;gap:22px;margin-left:auto;align-items:center}
+.nav-links a{color:var(--ink-soft);font-weight:500;font-size:.95rem}
+.nav-links a:hover{color:var(--ink);text-decoration:none}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:.95rem;
+  padding:11px 22px;border-radius:10px;border:none;cursor:pointer;transition:transform .15s,box-shadow .15s;
+}
+.btn:hover{text-decoration:none;transform:translateY(-1px)}
+.btn-primary{background:var(--cobalt);color:#fff;box-shadow:0 4px 14px rgba(39,66,214,.28)}
+.btn-primary:hover{background:var(--cobalt-deep)}
+.btn-ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn-ghost:hover{border-color:var(--ink-soft)}
+
+/* ---------- hero ---------- */
+.hero{padding:76px 0 64px;position:relative;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+.hero h1{font-size:clamp(2.1rem,4.6vw,3.3rem);font-weight:800;margin-bottom:20px}
+.hero h1 .u{box-shadow:inset 0 -.32em 0 var(--marigold-tint);border-bottom:3px solid var(--marigold)}
+.hero-sub{font-size:1.13rem;color:var(--ink-soft);max-width:33rem;margin-bottom:28px}
+.searchbar{
+  display:flex;align-items:center;background:var(--card);border:1.5px solid var(--line);
+  border-radius:12px;padding:4px 4px 4px 18px;max-width:32rem;box-shadow:var(--shadow);margin-bottom:22px;
+}
+.searchbar svg{flex:none;color:var(--ink-soft)}
+.searchbar input{flex:1;border:none;outline:none;font:inherit;padding:12px 12px;background:transparent;color:var(--ink);min-width:0}
+.searchbar .btn{border-radius:9px}
+.hero-chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{
+  font-family:'JetBrains Mono',monospace;font-size:.74rem;font-weight:500;
+  padding:7px 13px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--ink-soft);
+}
+.chip strong{color:var(--mint);font-weight:700}
+
+/* signature: local-processing browser frame */
+.browser{
+  background:var(--card);border:1.5px solid var(--line);border-radius:16px;
+  box-shadow:0 24px 60px rgba(19,26,46,.12);overflow:hidden;
+}
+.browser-bar{
+  display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);background:#FBFBFE;
+}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.browser-url{
+  flex:1;font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--ink-soft);
+  background:var(--paper);border-radius:6px;padding:5px 12px;display:flex;align-items:center;gap:7px;
+}
+.lock{color:var(--mint)}
+.browser-body{padding:26px 24px 24px}
+.flow{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:24px}
+.flow-node{text-align:center;flex:1}
+.flow-icon{
+  width:52px;height:52px;border-radius:13px;margin:0 auto 9px;display:grid;place-items:center;
+  background:var(--cobalt-tint);color:var(--cobalt);font-size:1.3rem;
+}
+.flow-node.gold .flow-icon{background:var(--marigold-tint);color:var(--marigold)}
+.flow-node.green .flow-icon{background:var(--mint-tint);color:var(--mint)}
+.flow-label{font-size:.78rem;font-weight:600;color:var(--ink)}
+.flow-sub{font-size:.7rem;color:var(--ink-soft)}
+.flow-arrow{color:var(--line);font-size:1.15rem;flex:none;padding-bottom:26px}
+.ledger{
+  border:1.5px dashed var(--line);border-radius:11px;padding:16px 18px;
+  font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--ink-soft);
+}
+.ledger-row{display:flex;justify-content:space-between;padding:5px 0}
+.ledger-row + .ledger-row{border-top:1px dotted var(--line)}
+.ledger-val{font-weight:700;color:var(--ink)}
+.ledger-val.zero{color:var(--mint)}
+
+/* ---------- stats strip ---------- */
+.strip{background:var(--ink);color:#fff;padding:34px 0}
+.strip-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.stat .mono{font-size:1.7rem;font-weight:700;color:#fff;display:block}
+.stat .mono em{font-style:normal;color:var(--marigold)}
+.stat span{font-size:.83rem;color:rgba(255,255,255,.65)}
+
+/* ---------- tools ---------- */
+.tabs{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:28px}
+.tab{
+  font-weight:600;font-size:.9rem;padding:9px 18px;border-radius:999px;cursor:pointer;
+  background:var(--card);border:1.5px solid var(--line);color:var(--ink-soft);transition:all .15s;
+}
+.tab:hover{border-color:var(--cobalt)}
+.tab.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tool-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.tool-card{
+  background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);
+  padding:20px;display:block;color:inherit;transition:transform .15s,box-shadow .15s,border-color .15s;
+}
+.tool-card:hover{text-decoration:none;transform:translateY(-3px);box-shadow:var(--shadow);border-color:var(--cobalt)}
+.tool-icon{
+  width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-size:1.1rem;margin-bottom:13px;
+  background:var(--cobalt-tint);
+}
+.tool-card h3{font-size:1rem;font-weight:700;margin-bottom:5px;font-family:'Instrument Sans',sans-serif}
+.tool-card p{font-size:.84rem;color:var(--ink-soft);line-height:1.5}
+.tool-tag{
+  display:inline-block;margin-top:12px;font-family:'JetBrains Mono',monospace;
+  font-size:.63rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--mint);background:var(--mint-tint);padding:3px 9px;border-radius:5px;
+}
+.tools-cta{text-align:center;margin-top:34px}
+
+/* ---------- categories ---------- */
+.cat-list{display:grid;gap:14px}
+.cat{
+  background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);
+  padding:26px 28px;display:grid;grid-template-columns:170px 1fr auto;gap:26px;align-items:start;
+}
+.cat-name{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:1.1rem}
+.cat-count{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--marigold);font-weight:700;display:block;margin-top:5px}
+.cat-desc{color:var(--ink-soft);font-size:.95rem}
+.cat-desc a{font-weight:600}
+.cat-link{white-space:nowrap;font-weight:600;font-size:.9rem;align-self:center}
+
+/* ---------- how it works / privacy ---------- */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}
+.steps{display:grid;gap:0;counter-reset:step}
+.step{display:flex;gap:18px;padding:20px 0;border-bottom:1px dashed var(--line)}
+.step:last-child{border-bottom:none}
+.step-num{
+  counter-increment:step;flex:none;width:38px;height:38px;border-radius:10px;
+  background:var(--ink);color:#fff;display:grid;place-items:center;
+  font-family:'JetBrains Mono',monospace;font-size:.85rem;font-weight:700;
+}
+.step-num::before{content:counter(step)}
+.step h3{font-size:1.02rem;font-weight:700;margin-bottom:4px;font-family:'Instrument Sans',sans-serif}
+.step p{font-size:.92rem;color:var(--ink-soft)}
+.prose p{color:var(--ink-soft);margin-bottom:16px}
+.prose p strong{color:var(--ink)}
+.promise{
+  background:var(--mint-tint);border:1.5px solid #BFE8D6;border-radius:var(--radius);
+  padding:22px 24px;margin-top:8px;
+}
+.promise h3{font-size:1rem;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.promise p{font-size:.92rem;color:#14543C;margin:0}
+
+/* ---------- blog ---------- */
+.blog-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.post{
+  background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);
+  overflow:hidden;display:block;color:inherit;transition:transform .15s,box-shadow .15s;
+}
+.post:hover{text-decoration:none;transform:translateY(-3px);box-shadow:var(--shadow)}
+.post-band{height:7px;background:linear-gradient(90deg,var(--cobalt),var(--marigold))}
+.post-body{padding:22px}
+.post-meta{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;display:flex;gap:10px}
+.post h3{font-size:1.05rem;font-weight:700;margin-bottom:8px;font-family:'Instrument Sans',sans-serif}
+.post p{font-size:.88rem;color:var(--ink-soft)}
+.post-author{display:flex;align-items:center;gap:9px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--cobalt-tint);color:var(--cobalt);display:grid;place-items:center;font-size:.7rem;font-weight:700}
+.post-author span{font-size:.8rem;color:var(--ink-soft)}
+.post-author b{color:var(--ink);font-weight:600}
+
+/* ---------- FAQ ---------- */
+.faq{max-width:780px}
+details{
+  background:var(--card);border:1.5px solid var(--line);border-radius:12px;
+  padding:0 22px;margin-bottom:10px;
+}
+details[open]{border-color:var(--cobalt)}
+summary{
+  cursor:pointer;font-weight:600;padding:17px 0;list-style:none;
+  display:flex;justify-content:space-between;align-items:center;gap:16px;
+}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:'JetBrains Mono',monospace;font-size:1.1rem;color:var(--cobalt);flex:none}
+details[open] summary::after{content:"–"}
+details p{padding:0 0 18px;color:var(--ink-soft);font-size:.95rem}
+
+/* ---------- about / trust ---------- */
+.trust{background:var(--card);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.trust-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:56px}
+.policy-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.policy-list a{
+  display:flex;align-items:center;gap:10px;padding:13px 16px;border:1.5px solid var(--line);
+  border-radius:10px;font-weight:500;font-size:.9rem;color:var(--ink);background:var(--paper);
+}
+.policy-list a:hover{border-color:var(--cobalt);text-decoration:none}
+.policy-list a::before{content:"→";color:var(--marigold);font-weight:700}
+
+/* ---------- footer ---------- */
+footer{background:var(--ink);color:rgba(255,255,255,.7);padding:56px 0 32px;font-size:.9rem}
+.foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
+footer h4{color:#fff;font-size:.8rem;font-family:'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase;margin-bottom:16px}
+footer a{color:rgba(255,255,255,.7);display:block;margin-bottom:9px}
+footer a:hover{color:#fff}
+.foot-bottom{border-top:1px solid rgba(255,255,255,.12);padding-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:.82rem;color:rgba(255,255,255,.45)}
+
+/* ---------- responsive ---------- */
+@media(max-width:960px){
+  .hero-grid,.split,.trust-grid{grid-template-columns:1fr;gap:40px}
+  .tool-grid{grid-template-columns:repeat(2,1fr)}
+  .blog-grid{grid-template-columns:1fr}
+  .strip-grid{grid-template-columns:repeat(2,1fr)}
+  .cat{grid-template-columns:1fr;gap:10px}
+  .foot-grid{grid-template-columns:1fr 1fr}
+  .nav-links{display:none}
+}
+@media(max-width:560px){
+  .tool-grid{grid-template-columns:1fr}
+  section{padding:52px 0}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="/"><span class="logo-mark">A</span>AWE-OS</a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="/tools">All Tools</a>
+      <a href="/blog">Guides & Blog</a>
+      <a href="/about">About</a>
+      <a href="/contact">Contact</a>
+      <a class="btn btn-primary" href="/tools" style="padding:9px 18px">Browse 49 Tools</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">Free · No signup for most · Made for India</span>
+      <h1>Online tools that <span class="u">never upload</span> your files.</h1>
+      <p class="hero-sub">49+ free utilities for PDFs, Indian taxes and investments, images, and documents — all processed directly in your browser. Your files stay on your device, always.</p>
+      <form class="searchbar" role="search" onsubmit="return false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="tool-search" type="search" placeholder="Try “merge pdf”, “GST”, “SIP”, “resume”…" aria-label="Search 49 tools">
+        <button class="btn btn-primary" type="submit">Search</button>
+      </form>
+      <div class="hero-chips">
+        <span class="chip"><strong>✓</strong> 100% browser-based</span>
+        <span class="chip"><strong>✓</strong> No file uploads</span>
+        <span class="chip"><strong>✓</strong> India-first calculators</span>
+        <span class="chip"><strong>✓</strong> Works offline*</span>
+      </div>
+    </div>
+
+    <!-- signature element: the local-processing browser frame -->
+    <div class="browser" aria-label="How AWE-OS processes your files locally">
+      <div class="browser-bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="browser-url"><span class="lock">🔒</span> awe-os.com/tools/merge-pdf — running locally</span>
+      </div>
+      <div class="browser-body">
+        <div class="flow">
+          <div class="flow-node">
+            <div class="flow-icon">📄</div>
+            <div class="flow-label">Your file</div>
+            <div class="flow-sub">opens on your device</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node gold">
+            <div class="flow-icon">⚙️</div>
+            <div class="flow-label">Processed in-browser</div>
+            <div class="flow-sub">JavaScript, on your CPU</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node green">
+            <div class="flow-icon">⬇️</div>
+            <div class="flow-label">Instant download</div>
+            <div class="flow-sub">never touched a server</div>
+          </div>
+        </div>
+        <div class="ledger">
+          <div class="ledger-row"><span>Tools available</span><span class="ledger-val">49</span></div>
+          <div class="ledger-row"><span>Signup required (most tools)</span><span class="ledger-val zero">NO</span></div>
+          <div class="ledger-row"><span>Your files stored on our servers</span><span class="ledger-val zero">0 — ever</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STATS ============ -->
+<div class="strip">
+  <div class="wrap strip-grid">
+    <div class="stat"><span class="mono">49<em>+</em></span><span>free tools across 5 categories</span></div>
+    <div class="stat"><span class="mono">21</span><span>PDF utilities — merge to sign</span></div>
+    <div class="stat"><span class="mono">13</span><span>calculators built for Indian finance</span></div>
+    <div class="stat"><span class="mono">0</span><span>files ever uploaded to our servers</span></div>
+  </div>
+</div>
+
+<!-- ============ POPULAR TOOLS ============ -->
+<section id="tools">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Most used this month</span>
+      <h2>Start with the tools people rely on daily</h2>
+      <p>Every tool is free to use, opens instantly, and runs entirely in your browser. No account needed for most, no watermarks, no artificial limits.</p>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Tool categories">
+      <button class="tab active">Popular</button>
+      <button class="tab">PDF Tools</button>
+      <button class="tab">Calculators</button>
+      <button class="tab">Converters</button>
+      <button class="tab">Productivity</button>
+      <button class="tab">AI Tools</button>
+    </div>
+    <div class="tool-grid">
+      <a class="tool-card" href="/tools/merge-pdf">
+        <div class="tool-icon">📎</div>
+        <h3>Merge PDF</h3>
+        <p>Combine multiple PDFs into one document. Drag to reorder pages before merging — done in seconds, offline-capable.</p>
+        <span class="tool-tag">No upload</span>
+      </a>
+      <a class="tool-card" href="/tools/compress-pdf">
+        <div class="tool-icon">🗜️</div>
+        <h3>Compress PDF</h3>
+        <p>Shrink PDFs to email-friendly sizes without visible quality loss. Ideal for government portals with 2 MB limits.</p>
+        <span class="tool-tag">No upload</span>
+      </a>
+      <a class="tool-card" href="/tools/loan-calculator">
+        <div class="tool-icon">🏠</div>
+        <h3>Loan EMI Calculator</h3>
+        <p>Monthly EMI for home, car, and personal loans with a full amortization schedule and prepayment impact.</p>
+        <span class="tool-tag">India-ready</span>
+      </a>
+      <a class="tool-card" href="/tools/sip-calculator">
+        <div class="tool-icon">📈</div>
+        <h3>SIP Calculator</h3>
+        <p>Project mutual fund SIP returns at 8–18% CAGR, plan goal-based investing, and compare with lumpsum growth.</p>
+        <span class="tool-tag">India-ready</span>
+      </a>
+      <a class="tool-card" href="/tools/gst-calculator">
+        <div class="tool-icon">🧾</div>
+        <h3>GST Calculator</h3>
+        <p>Add or extract GST at any rate with automatic CGST, SGST, and IGST breakdown for Indian businesses.</p>
+        <span class="tool-tag">India-ready</span>
+      </a>
+      <a class="tool-card" href="/tools/tax-calculator">
+        <div class="tool-icon">💰</div>
+        <h3>Income Tax Calculator</h3>
+        <p>Compare India's old vs new regime side by side with slab-wise breakdown, effective rate, and TDS estimate.</p>
+        <span class="tool-tag">FY 2026-27</span>
+      </a>
+      <a class="tool-card" href="/tools/resume-builder">
+        <div class="tool-icon">🤖</div>
+        <h3>AI Resume Builder</h3>
+        <p>Build a professional, ATS-friendly resume with AI assistance. Export a polished PDF in minutes.</p>
+        <span class="tool-tag">AI-assisted</span>
+      </a>
+      <a class="tool-card" href="/tools/invoice">
+        <div class="tool-icon">📋</div>
+        <h3>GST Invoice Generator</h3>
+        <p>Create GST-compliant invoices with live preview and PDF export — built for Indian freelancers and MSMEs.</p>
+        <span class="tool-tag">No upload</span>
+      </a>
+    </div>
+    <div class="tools-cta">
+      <a class="btn btn-ghost" href="/tools">Browse all 49 tools →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CATEGORIES ============ -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Five categories</span>
+      <h2>Everything is organized around real jobs, not features</h2>
+      <p>Each category solves a specific everyday problem — from shrinking a PDF for a visa application to figuring out whether the new tax regime saves you money.</p>
+    </div>
+    <div class="cat-list">
+      <div class="cat">
+        <div><span class="cat-name">PDF Tools</span><span class="cat-count">21 TOOLS</span></div>
+        <p class="cat-desc">Merge, split, compress, rotate, watermark, protect, and convert PDFs to and from Word, Excel, PowerPoint, and images. Because processing happens on your device, even confidential documents — contracts, Aadhaar copies, salary slips — never leave your computer. Start with <a href="/tools/merge-pdf">Merge PDF</a> or <a href="/tools/pdf-editor">PDF Editor</a>.</p>
+        <a class="cat-link" href="/tools#pdf">View PDF tools →</a>
+      </div>
+      <div class="cat">
+        <div><span class="cat-name">Calculators</span><span class="cat-count">13 TOOLS</span></div>
+        <p class="cat-desc">Financial calculators built specifically for India: <a href="/tools/sip-calculator">SIP</a>, <a href="/tools/ppf-calculator">PPF</a>, <a href="/tools/fd-calculator">FD with bank-wise rates</a>, income tax with old/new regime comparison, GST, and loan EMI — plus everyday tools like BMI, age, percentage, and GPA calculators.</p>
+        <a class="cat-link" href="/tools#calculators">View calculators →</a>
+      </div>
+      <div class="cat">
+        <div><span class="cat-name">Converters & Generators</span><span class="cat-count">10 TOOLS</span></div>
+        <p class="cat-desc">Convert units, currencies, number bases, and CSV to JSON. Generate QR codes and strong passwords, compress images, pick colors, count words, and format JSON — the small utilities developers, students, and creators reach for daily.</p>
+        <a class="cat-link" href="/tools#converters">View converters →</a>
+      </div>
+      <div class="cat">
+        <div><span class="cat-name">Productivity</span><span class="cat-count">3 TOOLS</span></div>
+        <p class="cat-desc">Generate GST-compliant invoices with CGST/SGST/IGST breakdown and professional contracts — NDAs, service agreements, employment letters — with GST and TDS compliance checks. Made for Indian freelancers and small businesses.</p>
+        <a class="cat-link" href="/tools#productivity">View productivity →</a>
+      </div>
+      <div class="cat">
+        <div><span class="cat-name">AI Tools</span><span class="cat-count">2 TOOLS</span></div>
+        <p class="cat-desc">An <a href="/tools/resume-builder">AI Resume Builder</a> that produces ATS-friendly resumes and an <a href="/tools/ai-content-writer">AI Content Writer</a> for blog posts and ad copy. We're deliberately growing this category slowly — every AI tool must clear our <a href="/ai-content-policy">AI content policy</a> before launch.</p>
+        <a class="cat-link" href="/tools#ai">View AI tools →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS + PRIVACY ============ -->
+<section class="trust" id="privacy">
+  <div class="wrap trust-grid" style="padding-top:0;padding-bottom:0">
+    <div class="prose">
+      <span class="eyebrow">Why AWE-OS is different</span>
+      <h2 style="font-size:clamp(1.6rem,3.4vw,2.2rem);margin-bottom:18px">Most “free” tool sites upload your files. We architected AWE-OS so we can't.</h2>
+      <p>When you use a typical online PDF tool, your file travels to a server, gets processed there, and a download link comes back. That means your bank statement, offer letter, or ID proof sits — even briefly — on someone else's machine, subject to their retention policy and their security.</p>
+      <p><strong>AWE-OS works differently by design.</strong> Our tools are built with WebAssembly and modern browser APIs, so the processing happens on <em>your</em> CPU, inside <em>your</em> browser tab. There is no upload step to skip — it simply doesn't exist. Close the tab and every trace of your file is gone.</p>
+      <p>This architecture also makes the tools fast (no upload/download round-trip), lets many of them work offline once loaded, and means they keep working even for very large files that server-based sites reject.</p>
+      <p>The second thing we do differently: our calculators are <strong>built for India first</strong>. Generic EMI calculators don't know about CGST vs IGST, old vs new tax regimes, PPF's 15-year lock-in, or TDS on FD interest. Ours do — because that's what our users actually need to calculate.</p>
+      <div class="promise">
+        <h3>🔒 Our privacy promise</h3>
+        <p>Files processed by our browser-based tools are never transmitted to, stored on, or readable by our servers. We can't see your documents even if we wanted to. Read the full <a href="/privacy">privacy policy</a>.</p>
+      </div>
+    </div>
+    <div>
+      <span class="eyebrow">How every tool works</span>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num" aria-hidden="true"></div>
+          <div><h3>Open a tool — nothing to install</h3><p>Every tool is a web page. It loads in about a second and asks for no account, no email, and no payment for core features.</p></div>
+        </div>
+        <div class="step">
+          <div class="step-num" aria-hidden="true"></div>
+          <div><h3>Add your file or numbers</h3><p>Drop in a PDF or type your figures. File tools read your document locally using your browser's own file API — the network tab stays silent.</p></div>
+        </div>
+        <div class="step">
+          <div class="step-num" aria-hidden="true"></div>
+          <div><h3>Process on your device</h3><p>Merging, compressing, converting, calculating — all of it runs as code in your browser tab, on your hardware.</p></div>
+        </div>
+        <div class="step">
+          <div class="step-num" aria-hidden="true"></div>
+          <div><h3>Download the result instantly</h3><p>Your output file is generated in memory and saved straight to your device. No queue, no link expiry, no watermark.</p></div>
+        </div>
+      </div>
+      <p style="font-size:.85rem;color:var(--ink-soft);margin-top:14px">Every tool is manually tested on Chrome, Firefox, Edge, and Safari before release, and re-tested after updates. See our <a href="/tool-testing-policy">tool testing policy</a>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BLOG ============ -->
+<section id="blog">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Guides & explainers</span>
+      <h2>Learn the “why” behind the tools</h2>
+      <p>Our editorial team writes practical guides on PDF workflows, Indian personal finance, and productivity — reviewed, dated, and updated when the rules change.</p>
+    </div>
+    <div class="blog-grid">
+      <a class="post" href="/blog/old-vs-new-tax-regime">
+        <div class="post-band"></div>
+        <div class="post-body">
+          <div class="post-meta"><span>Personal Finance</span><span>·</span><span>Updated Jul 2026</span></div>
+          <h3>Old vs New Tax Regime in FY 2026-27: Which One Actually Saves You Money?</h3>
+          <p>A worked comparison across five income levels, with the exact deductions that flip the answer — and a calculator to check your own case.</p>
+          <div class="post-author"><span class="avatar">AK</span><span><b>Team AWE-OS</b> · 9 min read</span></div>
+        </div>
+      </a>
+      <a class="post" href="/blog/compress-pdf-government-portals">
+        <div class="post-band"></div>
+        <div class="post-body">
+          <div class="post-meta"><span>PDF Guides</span><span>·</span><span>Updated Jun 2026</span></div>
+          <h3>How to Compress a PDF Under 2 MB for Government Portals (Without Ruining It)</h3>
+          <p>Passport Seva, EPFO, and university portals all have strict size limits. Here's how compression really works and how to keep documents readable.</p>
+          <div class="post-author"><span class="avatar">AK</span><span><b>Team AWE-OS</b> · 6 min read</span></div>
+        </div>
+      </a>
+      <a class="post" href="/blog/sip-vs-lumpsum">
+        <div class="post-band"></div>
+        <div class="post-body">
+          <div class="post-meta"><span>Investing</span><span>·</span><span>Updated Jun 2026</span></div>
+          <h3>SIP vs Lumpsum: What 20 Years of Sensex Data Actually Shows</h3>
+          <p>We ran both strategies against historical index data. The result is more nuanced than the usual advice — and depends on one factor most articles skip.</p>
+          <div class="post-author"><span class="avatar">AK</span><span><b>Team AWE-OS</b> · 11 min read</span></div>
+        </div>
+      </a>
+    </div>
+    <div class="tools-cta">
+      <a class="btn btn-ghost" href="/blog">Read all guides →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Common questions</span>
+      <h2>Frequently asked questions</h2>
+    </div>
+    <div class="faq">
+      <details>
+        <summary>Are AWE-OS tools really free? What's the catch?</summary>
+        <p>Most tools are completely free with no usage limits, no watermarks, and no signup. The site is supported by advertising, and a small number of advanced features (like AI-assisted tools) may require an account because they use paid AI services behind the scenes. Core PDF, calculator, and converter tools will stay free.</p>
+      </details>
+      <details>
+        <summary>Do my files get uploaded to your servers?</summary>
+        <p>No. Our file tools (PDF, image, CSV) process everything inside your browser using WebAssembly and browser file APIs. Your file never leaves your device — you can verify this yourself by watching the Network tab in your browser's developer tools while using any tool. See our <a href="/privacy">privacy policy</a> for full details.</p>
+      </details>
+      <details>
+        <summary>Do the tools work offline?</summary>
+        <p>Many do. Once a browser-based tool has loaded, the processing needs no internet connection. Tools that fetch live data — like the currency converter — or that use AI need a connection to work.</p>
+      </details>
+      <details>
+        <summary>Are the Indian tax and investment calculators up to date?</summary>
+        <p>Yes. Tax slabs, GST rates, PPF interest rates, and similar figures are reviewed at every Union Budget and whenever rates change, and each calculator shows the financial year it applies to. Our <a href="/corrections-policy">corrections policy</a> explains how we handle errors if you spot one.</p>
+      </details>
+      <details>
+        <summary>Is there a file size limit?</summary>
+        <p>Because processing happens on your device, the practical limit is your device's memory rather than an arbitrary server cap. Most modern laptops handle PDFs of several hundred MB comfortably — larger than most server-based free tools allow.</p>
+      </details>
+      <details>
+        <summary>Who builds and maintains AWE-OS?</summary>
+        <p>AWE-OS is built by a small independent team. Every tool is designed, tested, and maintained in-house, and every guide on the blog is written or reviewed by the team — you can read more on our <a href="/about">About page</a>, including how we test tools and how the site is funded.</p>
+      </details>
+      <details>
+        <summary>Can I request a new tool?</summary>
+        <p>Yes — and requests genuinely shape the roadmap. Several current tools, including the GST invoice generator, started as user requests. Use the <a href="/request-tool">Request a Tool</a> form and we'll reply with whether and when it's planned.</p>
+      </details>
+      <details>
+        <summary>How is my data handled by the AI tools?</summary>
+        <p>AI tools (Resume Builder, Content Writer) are the exception to fully-local processing: your input text is sent to an AI provider to generate results, then discarded. We never use your content to train models, and we disclose exactly what's sent in each tool. Details are in our <a href="/ai-content-policy">AI content policy</a>.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ABOUT / TRUST ============ -->
+<section class="trust">
+  <div class="wrap trust-grid">
+    <div class="prose">
+      <span class="eyebrow">About AWE-OS</span>
+      <h2 style="font-size:clamp(1.5rem,3vw,2rem);margin-bottom:16px">Built by a small team that got tired of “free” tools with catches</h2>
+      <p>AWE-OS started with a simple frustration: every free PDF site wanted an upload, an email, or a subscription for the third file. Every EMI calculator was built for US mortgages. We believed everyday utilities should be genuinely free, genuinely private, and built for how people in India actually work.</p>
+      <p>Today AWE-OS offers 49 tools used by students, freelancers, and small businesses. We publish who we are, how tools are tested, how content is written and corrected, and how the site earns money — because a tool you trust with your documents should have nothing to hide.</p>
+      <a class="btn btn-primary" href="/about" style="margin-top:6px">Read our full story →</a>
+    </div>
+    <div>
+      <span class="eyebrow">Transparency & policies</span>
+      <div class="policy-list">
+        <a href="/about">About & team</a>
+        <a href="/editorial-policy">Editorial policy</a>
+        <a href="/tool-testing-policy">Tool testing policy</a>
+        <a href="/ai-content-policy">AI content policy</a>
+        <a href="/corrections-policy">Corrections policy</a>
+        <a href="/advertising-policy">Advertising policy</a>
+        <a href="/privacy">Privacy policy</a>
+        <a href="/contact">Contact us</a>
+      </div>
+      <p style="font-size:.85rem;color:var(--ink-soft);margin-top:16px">Found a bug or a wrong figure? Email us and we'll fix it — corrections are logged publicly on the affected page.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="logo" href="/" style="color:#fff;margin-bottom:14px;display:inline-flex"><span class="logo-mark">A</span>AWE-OS</a>
+        <p style="max-width:26rem">Free, privacy-first browser tools for PDFs, Indian finance, and everyday productivity. Your files are processed on your device and never uploaded.</p>
+      </div>
+      <div>
+        <h4>Tools</h4>
+        <a href="/tools#pdf">PDF tools</a>
+        <a href="/tools#calculators">Calculators</a>
+        <a href="/tools#converters">Converters</a>
+        <a href="/tools#ai">AI tools</a>
+        <a href="/request-tool">Request a tool</a>
+      </div>
+      <div>
+        <h4>Resources</h4>
+        <a href="/blog">Guides & blog</a>
+        <a href="/blog/category/pdf">PDF guides</a>
+        <a href="/blog/category/finance">Finance explainers</a>
+        <a href="/about">About us</a>
+        <a href="/contact">Contact</a>
+      </div>
+      <div>
+        <h4>Legal & trust</h4>
+        <a href="/privacy">Privacy policy</a>
+        <a href="/terms">Terms of use</a>
+        <a href="/editorial-policy">Editorial policy</a>
+        <a href="/corrections-policy">Corrections policy</a>
+        <a href="/disclaimer">Disclaimer</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 AWE-OS. All rights reserved.</span>
+      <span class="mono" style="font-size:.75rem">Files uploaded to our servers since launch: 0</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Simple tab visual toggle (wire to your real filtering)
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+  });
+});
+// Search: redirect to tools page with query (replace with your real search)
+document.querySelector('.searchbar').addEventListener('submit',()=>{
+  const q=document.getElementById('tool-search').value.trim();
+  if(q) location.href='/tools?q='+encodeURIComponent(q);
+});
+</script>
+</body>
+</html>
