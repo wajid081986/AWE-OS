@@ -4,6 +4,17 @@ This file is the constitution for all Claude Code work in this repository.
 Read it fully before any task. When any instruction in a prompt conflicts
 with this file, STOP and ask the user instead of proceeding.
 
+## Changelog
+
+- **2026-07-12** — §5 rewritten: replaced Next.js-specific language
+  ("Server components," `"use client"`/`components/islands/`) with the
+  actual stack's model (Vite + React SPA, SSG via
+  `client/src/entry-server.jsx` / `client/scripts/ssg-build.js`).
+  `docs/reference/architecture.md` still describes Next.js App Router —
+  that mismatch is flagged here, not silently resolved, since
+  architecture.md is frozen (§2) and out of scope to edit. Also added §6
+  rule requiring approved plans to be saved under `docs/batches/`.
+
 ---
 
 ## 1. Project Overview
@@ -73,8 +84,12 @@ report it and wait — do not "fix" documents or improvise around them.
   the codebase doesn't already use.
 - No new npm dependencies without stating the package, reason, size cost,
   and getting explicit approval first.
-- Server components by default; `"use client"` only inside
-  `components/islands/`.
+- Pages render via the SSG entry (`client/src/entry-server.jsx`,
+  `client/scripts/ssg-build.js`) into static HTML shells; there are no
+  server components in this stack. Browser-only interactivity lives in
+  components that are SSR-safe (no module-scope browser APIs — no
+  `window`/`document`/`localStorage` reads outside effects or handlers)
+  and hydrate client-side via `client/src/main.jsx`.
 - Content lives in `content/`; pages compose components; components never
   fetch. A new tool is a content file, not a new page design.
 - TypeScript strict; zod-validate all content at build time.
@@ -86,7 +101,10 @@ report it and wait — do not "fix" documents or improvise around them.
 
 1. Read the batch prompt and the relevant Blueprint/architecture sections.
 2. Produce a short implementation plan: files to create/modify, approach,
-   risks. **WAIT for user approval before editing any file.**
+   risks. **WAIT for user approval before editing any file.** Once
+   approved, save it verbatim to `docs/batches/batch-N-plan.md` as the
+   first commit on the batch's branch — plans live in the repo, not just
+   in conversation history that may not survive to the next session.
 3. Implement ONLY the batch scope. Out-of-scope problems you notice go
    into `docs/backlog.md` with one line each — never fix them "while
    you're there."
