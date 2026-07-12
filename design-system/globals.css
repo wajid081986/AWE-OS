@@ -1,0 +1,82 @@
+/**
+ * design-system/globals.css — AWE-OS Typography Foundation (Batch 1)
+ *
+ * Source: docs/reference/ux-blueprint.md §3 (typography).
+ *
+ * Additive only, same as tokens.css: font loading + font-stack custom
+ * properties + a set of `.ds-*` classes that nothing in the current
+ * component tree references yet. No bare element selectors (body, h1,
+ * p, ...) — App.css already owns those for the legacy theme, and
+ * overriding them here would change rendered output and break this
+ * batch's byte-diff verification. See docs/batches/batch-1-plan.md
+ * risk #1. Future batches migrate components onto these classes/vars
+ * and retire the bare-selector rules in App.css at that point.
+ *
+ * Fluid H1/H2 clamp() interpolated between 360px and 1120px viewports
+ * (Blueprint §6/§7's own layout bounds) hitting the exact min/max rem
+ * values §3 specifies at those two widths — the endpoints are from the
+ * blueprint, the interpolation curve between them is an implementation
+ * choice, open to tuning at design review.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Font stacks — Blueprint §3 */
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body: 'Instrument Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Type scale — Blueprint §3 (rem, 1.2 minor-third base) */
+  --text-caption: 0.74rem;
+  --text-small: 0.88rem;
+  --text-body: 1.03rem;
+  --text-h3: 1.1rem;
+  --text-h2: clamp(1.6rem, 1.268rem + 0.092vw, 2.3rem);
+  --text-h1: clamp(2.1rem, 1.532rem + 0.158vw, 3.3rem);
+
+  /* Line height — Blueprint §3 */
+  --leading-body: 1.65;
+  --leading-display: 1.12;
+
+  /* Letter spacing — Blueprint §3 */
+  --tracking-display: -0.015em;
+  --tracking-eyebrow: 0.14em;
+}
+
+.ds-h1,
+.ds-h2,
+.ds-h3 {
+  font-family: var(--font-display);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  font-weight: 700;
+}
+
+.ds-h1 { font-size: var(--text-h1); }
+.ds-h2 { font-size: var(--text-h2); }
+/* Blueprint §3: Bricolage never appears below 1.1rem — this is the floor. */
+.ds-h3 { font-size: var(--text-h3); }
+
+.ds-body {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.ds-small {
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+}
+
+.ds-caption {
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+}
+
+/* Blueprint §3: mono never carries full sentences — eyebrows/badges/dates only. */
+.ds-mono-eyebrow {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+}
