@@ -4,6 +4,7 @@ import ResumeForm   from '../../../../components/ResumeForm'
 import AdBanner     from '../../../../components/AdBanner'
 import AuthModal    from '../../../../components/AuthModal'
 import UpgradeModal from '../../../../components/UpgradeModal'
+import { ADS_ACTIVE } from '../../../../adsense.config'
 
 const BASE_URL  = import.meta.env.VITE_API_URL  || 'https://awe-os.onrender.com'
 const RZP_KEY   = import.meta.env.VITE_RAZORPAY_KEY_ID
@@ -131,7 +132,7 @@ function ResumeBuilderUI({
     <div className="app">
       <AdBanner position="top" />
       <div className="layout">
-        <aside className="sidebar-ad"><AdBanner position="sidebar" /></aside>
+        {ADS_ACTIVE && <aside className="sidebar-ad"><AdBanner position="sidebar" /></aside>}
         <main className="main-content">
           <header className="site-header">
             <div className="site-header-top">
