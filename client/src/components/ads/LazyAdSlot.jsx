@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import AdBanner from '../AdBanner'
 import AdPlaceholder from './AdPlaceholder'
+import { ADS_ACTIVE } from '../../adsense.config'
 
 /**
  * Viewport-triggered ad slot.
@@ -22,6 +23,7 @@ export default function LazyAdSlot({ size = 'leaderboard', className = '', eager
   const ref = useRef(null)
 
   useEffect(() => {
+    if (!ADS_ACTIVE) return
     if (eager || mounted) return
     if (!('IntersectionObserver' in window)) {
       setMounted(true)
@@ -44,6 +46,8 @@ export default function LazyAdSlot({ size = 'leaderboard', className = '', eager
     observer.observe(el)
     return () => observer.disconnect()
   }, [eager, mounted])
+
+  if (!ADS_ACTIVE) return null
 
   return (
     <div ref={ref}>
