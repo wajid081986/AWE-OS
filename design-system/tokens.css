@@ -81,7 +81,10 @@
 
   /* Footer (Batch 3, sourced from reference HTML footer{}/.foot-grid/.foot-bottom) */
   --footer-text: rgba(255, 255, 255, .7);
-  --footer-text-dim: rgba(255, 255, 255, .45);
+  /* .45 (reference literal) measures ~4.43:1 on --ink, under Blueprint
+     §21's WCAG AA floor (4.5:1) — raised to .55 (~5.98:1) per ruling
+     2026-07-13: AA floor wins over reference-value fidelity. */
+  --footer-text-dim: rgba(255, 255, 255, .55);
   --footer-border: rgba(255, 255, 255, .12);
   --footer-padding-top: 56px;
   --footer-padding-bottom: 32px;
