@@ -1,49 +1,53 @@
 import { Link } from 'react-router-dom'
+import { Container } from './primitives'
 
 const COLS = [
   {
-    title: 'Quick Links',
+    title: 'Tools',
     links: [
-      { label: 'Home',      to: '/'          },
-      { label: 'All Tools', to: '/tools'     },
-      { label: 'Blog',      to: '/blog'      },
-      { label: 'About Us',  to: '/about'     },
+      { label: 'PDF Tools',   to: '/tools#pdf' },
+      { label: 'Calculators', to: '/tools#calculators' },
+      { label: 'Converters',  to: '/tools#converters' },
+      { label: 'AI Tools',    to: '/tools#ai' },
     ],
   },
   {
-    title: 'Categories',
+    title: 'Resources',
     links: [
-      { label: 'AI Tools',     to: '/tools?cat=ai_tools'    },
-      { label: 'PDF Tools',    to: '/tools?cat=pdf_tools'   },
-      { label: 'Converters',   to: '/tools?cat=converters'  },
-      { label: 'Calculators',  to: '/calculators'           },
+      { label: 'Guides & Blog', to: '/blog' },
+      { label: 'About Us',      to: '/about' },
+      { label: 'Contact',       to: '/contact' },
     ],
   },
   {
-    title: 'Legal',
+    title: 'Legal & Trust',
     links: [
-      { label: 'Contact Us',      to: '/contact'     },
-      { label: 'Privacy Policy',  to: '/privacy-policy' },
-      { label: 'Terms of Use',    to: '/terms'       },
-      { label: 'Disclaimer',      to: '/disclaimer'  },
+      { label: 'Privacy Policy', to: '/privacy' },
+      { label: 'Terms of Use',   to: '/terms' },
+      { label: 'Disclaimer',     to: '/disclaimer' },
     ],
   },
 ]
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+    <footer className="bg-ink text-[color:var(--footer-text)] text-[length:var(--text-footer-body)]">
+      <Container className="pt-[length:var(--footer-padding-top)] pb-[length:var(--footer-padding-bottom)]">
+        <div className="grid grid-cols-2 md:grid-cols-[2fr_1fr_1fr_1fr] gap-x-8 gap-y-8 md:gap-[length:var(--footer-grid-gap)] mb-[length:var(--footer-grid-gap)]">
 
           {/* Brand column */}
           <div className="col-span-2 md:col-span-1">
-            <Link to="/" className="flex items-center gap-2 mb-3">
-              <span className="text-2xl" aria-hidden="true">🤖</span>
-              <span className="text-white font-bold text-xl">AWE-OS</span>
+            <Link to="/" className="flex items-center gap-2.5 mb-3.5 font-display font-extrabold text-xl text-card">
+              <span
+                className="w-7 h-7 rounded-s grid place-items-center bg-gradient-to-br from-cobalt to-cobalt-deep text-card text-sm font-bold shrink-0"
+                aria-hidden="true"
+              >
+                A
+              </span>
+              AWE-OS
             </Link>
-            <p className="text-sm text-gray-400 leading-relaxed mb-5">
-              Free AI-powered tools for everyone — fast, smart, and easy to use.
+            <p className="max-w-[26rem] mb-5">
+              Free, privacy-first browser tools for PDFs, Indian finance, and everyday productivity. Your files are processed on your device and never uploaded.
             </p>
             {/* Social icons */}
             <div className="flex gap-3">
@@ -58,7 +62,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="w-9 h-9 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center justify-center text-xs text-gray-400 hover:text-white transition-colors"
+                  className="w-9 h-9 bg-cobalt-deep rounded-s flex items-center justify-center text-xs text-[color:var(--footer-text)] hover:text-card hover:bg-cobalt transition-colors"
                 >
                   <span aria-hidden="true">{icon}</span>
                 </a>
@@ -69,13 +73,15 @@ export default function Footer() {
           {/* Link columns */}
           {COLS.map(col => (
             <nav key={col.title} aria-label={col.title}>
-              <h4 className="text-white font-semibold text-sm mb-4">{col.title}</h4>
-              <ul className="space-y-2.5">
+              <h4 className="font-mono text-[length:var(--text-footer-h4)] tracking-[length:var(--tracking-footer-h4)] uppercase text-card mb-4">
+                {col.title}
+              </h4>
+              <ul className="space-y-2">
                 {col.links.map(({ label, to }) => (
                   <li key={label}>
                     <Link
                       to={to}
-                      className="text-sm text-gray-400 hover:text-white transition-colors"
+                      className="text-[color:var(--footer-text)] hover:text-card transition-colors"
                     >
                       {label}
                     </Link>
@@ -87,16 +93,11 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 pt-6 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
+        <div className="pt-[length:var(--space-5)] border-t border-[color:var(--footer-border)] flex flex-col sm:flex-row items-center justify-between gap-3 text-[length:var(--text-footer-bottom)] text-[color:var(--footer-text-dim)]">
           <p>© {new Date().getFullYear()} AWE-OS. All rights reserved.</p>
-          <nav aria-label="Legal links" className="flex gap-4">
-            <Link to="/privacy-policy" className="hover:text-gray-300 transition-colors">Privacy</Link>
-            <Link to="/terms"       className="hover:text-gray-300 transition-colors">Terms</Link>
-            <Link to="/disclaimer"  className="hover:text-gray-300 transition-colors">Disclaimer</Link>
-            <Link to="/contact"     className="hover:text-gray-300 transition-colors">Contact</Link>
-          </nav>
+          <p className="font-mono text-[length:var(--text-footer-mono)]">Files uploaded to our servers since launch: 0</p>
         </div>
-      </div>
+      </Container>
     </footer>
   )
 }

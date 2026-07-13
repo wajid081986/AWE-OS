@@ -28,6 +28,10 @@ export default {
         'mint-border': 'var(--mint-border)',
         'mint-text-strong': 'var(--mint-text-strong)',
         line: 'var(--line)',
+        // Header/footer (Batch 3)
+        'footer-text': 'var(--footer-text)',
+        'footer-text-dim': 'var(--footer-text-dim)',
+        'footer-border': 'var(--footer-border)',
       },
       borderRadius: {
         s: 'var(--radius-s)',
