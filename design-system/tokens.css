@@ -74,6 +74,24 @@
   --content-width: 1120px;
   --content-width-narrow: 760px;
 
+  /* Header (Batch 3, sourced from reference HTML header{}/.nav) */
+  --header-height: 64px;
+  --header-bg: rgba(246, 247, 251, .85);
+  --blur-header: 12px;
+
+  /* Footer (Batch 3, sourced from reference HTML footer{}/.foot-grid/.foot-bottom) */
+  --footer-text: rgba(255, 255, 255, .7);
+  --footer-text-dim: rgba(255, 255, 255, .45);
+  --footer-border: rgba(255, 255, 255, .12);
+  --footer-padding-top: 56px;
+  --footer-padding-bottom: 32px;
+  --footer-grid-gap: 40px;
+  --text-footer-body: .9rem;
+  --text-footer-h4: .8rem;
+  --text-footer-bottom: .82rem;
+  --text-footer-mono: .75rem;
+  --tracking-footer-h4: .12em;
+
   /* Button padding — Blueprint §12 (Batch 2, sourced from reference HTML .btn) */
   --btn-padding-y: 11px;
   --btn-padding-x: 22px;
