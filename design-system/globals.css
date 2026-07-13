@@ -35,6 +35,13 @@
   --text-h2: clamp(1.6rem, 1.268rem + 0.092vw, 2.3rem);
   --text-h1: clamp(2.1rem, 1.532rem + 0.158vw, 3.3rem);
 
+  /* Component-specific type sizes (Batch 2, sourced from reference HTML) */
+  --text-breadcrumb: 0.82rem;
+  --text-ledger: 0.78rem;
+  --text-badge: 0.7rem;
+  --text-callout: 0.94rem;
+  --text-callout-success: 0.92rem;
+
   /* Line height — Blueprint §3 */
   --leading-body: 1.65;
   --leading-display: 1.12;
