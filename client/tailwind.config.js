@@ -44,6 +44,7 @@ export default {
         card: 'var(--shadow-card)',
         float: 'var(--shadow-float)',
         button: 'var(--shadow-button)',
+        'card-hover': 'var(--shadow-card-hover)',
       },
       fontFamily: {
         display: 'var(--font-display)',

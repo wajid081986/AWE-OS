@@ -113,6 +113,46 @@
   --callout-padding-x: 20px;
   --callout-padding-y-success: 22px;
 
+  /* Cards & Strips (Batch 4, sourced from reference HTML .tool-card/.cat/
+     .post/.rel-card/.strip and Blueprint §5's gap between --text-small
+     and --text-body) */
+  --shadow-card-hover: 0 1px 2px rgba(19, 26, 46, 0.05), 0 8px 24px rgba(19, 26, 46, 0.06);
+  --text-md: .95rem;
+
+  /* ToolCard */
+  --text-toolcard-desc: .84rem;
+  --text-toolcard-tag: .63rem;
+  --tracking-toolcard-tag: .08em;
+  --toolcard-icon-size: 40px;
+  --text-toolcard-icon: 1.1rem;
+
+  /* CategoryRow */
+  --text-catrow-name: 1.1rem;
+  --text-catrow-count: .72rem;
+  --catrow-padding-y: 26px;
+  --catrow-padding-x: 28px;
+  --catrow-gap: 26px;
+
+  /* BlogCard */
+  --text-blogcard-meta: .68rem;
+  --tracking-blogcard-meta: .06em;
+  --text-blogcard-title: 1.05rem;
+  --text-blogcard-excerpt: .88rem;
+  --text-blogcard-author: .8rem;
+  --blogcard-band-height: 7px;
+  --blogcard-avatar-size: 28px;
+  --blogcard-padding: 22px;
+
+  /* RelatedToolCard */
+  --text-relcard-desc: .82rem;
+  --relcard-padding: 18px;
+
+  /* StatsStrip */
+  --statsstrip-padding-y: 34px;
+  --text-stat-value: 1.7rem;
+  --text-stat-label: .83rem;
+  --statsstrip-text-dim: rgba(255, 255, 255, .65);
+
   /* Motion — Blueprint §20 */
   --ease: cubic-bezier(.2, .7, .3, 1);
   --duration-micro: 150ms;
