@@ -217,4 +217,19 @@
   --text-step-title: 1.02rem;
   --text-step-body: .92rem;
   --text-step-footnote: .85rem;
+
+  /* FAQ accordion (Batch 5, sourced from reference HTML .faq/details/summary).
+     Native <details>/<summary>, no JS, per Blueprint §19. Border radius
+     (12px) reuses --radius-callout; answer text size reuses --text-md
+     (Batch 4, also .95rem). */
+  --faq-max-width: 780px;
+  --faq-padding-x: 22px;
+  --faq-summary-padding-y: 17px;
+  --faq-answer-padding-bottom: 18px;
+  --text-faq-marker: 1.1rem;
+
+  /* About + policy grid (Batch 5, sourced from reference HTML .policy-list).
+     Link radius (10px) reuses --radius-s; link text size (.9rem) reuses
+     --text-tab (Batch 5, same role: small pill/link label). */
+  --policy-link-padding-y: 13px;
 }
