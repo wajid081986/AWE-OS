@@ -193,9 +193,64 @@ Backlog entry already added: see `docs/backlog.md` (`createRoot` vs
     it was observed before guessing at a target.
 - **Stage 3 (headers):** confirm `vercel.json`'s new headers, CSP in
   Report-Only mode; manually inspect header response on preview.
+
+  **Stage 3 — actual implementation:** added `Strict-Transport-Security`
+  (`max-age=63072000; includeSubDomains; preload`), `Permissions-Policy`
+  (`camera=(), microphone=(), geolocation=()`) per architecture.md §17's
+  exact values. Added `Cross-Origin-Opener-Policy: same-origin-allow-popups`
+  (requested this session, not in architecture.md §17) — checked the
+  codebase for `window.open`/popup usage first (PDF editor new-tab,
+  invoice print preview, Razorpay checkout) — all same-origin or in-page
+  modal (`new window.Razorpay(...)`, not a popup window), so COOP doesn't
+  break any of them; `allow-popups` chosen over strict `same-origin` as
+  the safer default given those same-origin popups exist. Added
+  `Content-Security-Policy-Report-Only` (ruling 1: Report-Only this batch,
+  enforcing flip is separate) scoped to the actual external origins the
+  client code calls: `fonts.googleapis.com`/`fonts.gstatic.com` (fonts),
+  `www.googletagmanager.com`/`www.google-analytics.com` (GA4),
+  `checkout.razorpay.com`/`api.razorpay.com` (payments),
+  `awe-os.onrender.com` (API) — grepped for every external URL in
+  `client/src` and `index.html` rather than guessing. `script-src`/
+  `style-src` include `'unsafe-inline'` (GA4's inline bootstrap script,
+  and the app's extensive use of React inline `style={{}}`) — logged to
+  backlog as the known gap to close before the enforcing flip.
+  No AdSense domains included (architecture.md §17: "post-approval only";
+  CLAUDE.md §7: no ads yet). `vercel.json` validated as syntactically
+  correct JSON; header *behavior* itself can't be verified locally (it's
+  Vercel-platform config, not consumed by `vite preview`) — needs your
+  inspection on the deployed preview.
+
 - **Stage 4 (lazy quick-wins):** build succeeds; confirm `AppShell`/
   `AdminShell`/`ProtectedRoute`/`Guides` are `lazy()`-wrapped; **manually
   verify merge-pdf and the image compressor complete their core task
   end-to-end on the preview** (ruling 2).
+
+  **Stage 4 — actual implementation, one item reverted:**
+  `AppShell`/`AdminShell`/`ProtectedRoute` are now `lazy()`-wrapped in
+  `routes.jsx`. Verified safe: `/dashboard` and `/admin` have no
+  `dist/dashboard/` or `dist/admin/` output at all — they're not part of
+  the 129 SSG routes (internal, SPA-only, consistent with CLAUDE.md §1's
+  "everything behind Login" scoping), so lazy-loading them can't affect
+  any crawler-visible HTML. Confirmed win: `vendor-axios` no longer
+  appears anywhere in the shipped `dist/index.html` (was previously
+  eagerly modulepreloaded on every public page via `AdminShell.jsx`'s
+  static `api.service.js` import).
+
+  `Guides` lazy-loading was **implemented, tested, and reverted**: wrapping
+  it in `<Suspense>` inside `Home.jsx` (a route already lazy-loaded at the
+  router level) causes `ssg-build.js` to bake the Suspense *fallback*
+  into the static HTML instead of Guides' real content — confirmed by
+  grepping the built `dist/index.html` for the "Guides & explainers"
+  heading and the 3 `/blog/:slug` card links: both absent with the lazy
+  wrap in place, both present after reverting to the static import. This
+  is a nested-Suspense-boundary limit in the SSG pipeline (route-level
+  lazy boundaries resolve correctly — proven by `Home` itself already
+  being `lazy()`-wrapped in `routes.jsx` — but a *second*, nested
+  boundary inside an already-lazy page apparently doesn't), same family
+  of issue as Batch 5.6's hydration finding. Reverted rather than ship
+  content invisible to crawlers with JS disabled (Blueprint's core
+  requirement). Logged to backlog — the `blogPosts.js` bundle-size win
+  needs either a data-layer split (already backlogged separately) or
+  Batch 5.6 fixing the SSG pipeline's Suspense handling first.
 - **All stages:** Lighthouse re-run is the user's step (ruling 3) — Claude
   reports what changed and why, not invented scores.
