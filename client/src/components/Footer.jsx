@@ -22,7 +22,7 @@ const COLS = [
   {
     title: 'Legal & Trust',
     links: [
-      { label: 'Privacy Policy', to: '/privacy' },
+      { label: 'Privacy Policy', to: '/privacy-policy' },
       { label: 'Terms of Use',   to: '/terms' },
       { label: 'Disclaimer',     to: '/disclaimer' },
     ],
@@ -73,9 +73,9 @@ export default function Footer() {
           {/* Link columns */}
           {COLS.map(col => (
             <nav key={col.title} aria-label={col.title}>
-              <h4 className="font-mono text-[length:var(--text-footer-h4)] tracking-[length:var(--tracking-footer-h4)] uppercase text-card mb-4">
+              <h3 className="font-mono text-[length:var(--text-footer-h4)] tracking-[length:var(--tracking-footer-h4)] uppercase text-card mb-4">
                 {col.title}
-              </h4>
+              </h3>
               <ul className="space-y-2">
                 {col.links.map(({ label, to }) => (
                   <li key={label}>

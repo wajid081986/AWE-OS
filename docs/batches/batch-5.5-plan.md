@@ -127,6 +127,35 @@ exact failing SEO audit names from your Lighthouse report's Audits panel.
    headers → lazy quick-wins — single merge, each stage pushed for an
    incremental preview.
 
+## CLS resolution — moved to Batch 5.6 (ruling 2026-07-14)
+
+C1's original diagnosis (font-swap reflow) was wrong. Deep investigation this
+session (Vercel-toolbar contamination → stale-bundle console capture →
+render-blocking Inter CSS → the real mechanism) converged on hard evidence:
+`client/src/main.jsx` calls `ReactDOM.createRoot(rootEl).render(...)`, not
+`hydrateRoot`. The client never hydrates the SSG-rendered HTML — it discards
+it and does a fresh client-side render on every load, unmounting and
+remounting the entire tree. A live CDP `PerformanceObserver` probe confirmed
+this directly: the `<footer>` element's rect collapses to exactly
+`{x:0,y:0,width:0,height:0}` (the signature of a full unmount, not a resize)
+at ~1.1-1.4s into every load, both before and after removing the `isLoading`
+auth-gate and the legacy Inter font link — neither fix moved the CLS score
+(0.357, byte-identical, both before and after).
+
+Ruling: this is the true root cause, but the blast radius is all 129 SSG
+routes and every component's hydration-safety assumptions (anything reading
+`window`/`document` outside effects would behave differently once real
+hydration reconciles against server markup instead of a clean client
+render). That's its own batch — **Batch 5.6, SSG hydration fix** — not a
+5.5 stage. Batch 5.5 closes without hitting its CLS target; the two fixes
+that were implemented (Inter link removal, redundant auth-gate removal)
+ship as real, verified wins on their own merits (render-blocking requests
+1→0 for the legacy font, FCP/LCP unaffected, no regressions) but are not
+represented as the CLS fix.
+
+Backlog entry already added: see `docs/backlog.md` (`createRoot` vs
+`hydrateRoot`, and internal-surfaces-lose-Inter accepted tradeoff).
+
 ## Verification per stage
 
 - **Stage 1 (CLS):** build + SSG succeeds; grep built output confirms
@@ -136,6 +165,32 @@ exact failing SEO audit names from your Lighthouse report's Audits panel.
 - **Stage 2 (a11y/SEO):** confirm `Chip.jsx`/`ClosingGrid.jsx` use
   `*-text-strong` tokens; confirm `Footer.jsx` renders `<h3>`; re-check the
   full heading sequence on `/` and at least one other page type for skips.
+
+  **Stage 2 — actual findings (live axe/Lighthouse a11y scan, 2026-07-14),
+  supersedes the plan-time guesses above:**
+  - Contrast: `ClosingGrid.jsx`'s marigold arrow is `aria-hidden="true"` —
+    axe correctly excludes it from AT, not a real violation, not touched.
+    The 2 real failures were both in `Ledger.jsx` (`text-mint` on the
+    highlighted rows, 3.38:1) — fixed with `text-mint-text-strong`.
+    `Chip.jsx`'s icon uses the identical unfixed pattern (plan's original
+    H1 target) — fixed the same way even though it didn't independently
+    surface in this scan. `Badge.jsx` has the same pattern but isn't
+    rendered on the homepage — out of scope, logged to backlog instead.
+  - Heading order: confirmed, `Footer.jsx`'s 3 column `<h4>`s → `<h3>`.
+    Caveat check done: h3→h4-or-deeper is never an a11y violation (only
+    skipping to a *deeper* level is), so no other page type can newly
+    break from this change.
+  - New finding (not in original plan): `identical-links-same-purpose` —
+    `ClosingGrid.jsx`'s "Privacy policy" link (`/privacy-policy`) and
+    `Footer.jsx`'s "Privacy Policy" link (`/privacy`, the legacy redirect
+    shim noted in `routes.jsx`) have the same purpose but different hrefs.
+    Fixed by pointing `Footer.jsx` at the canonical `/privacy-policy`
+    route; the `/privacy` route itself stays for old external backlinks.
+  - New finding (not in original plan): touch-target sizing, flagged by
+    the user's own DevTools session. Lighthouse's `target-size` audit
+    scores 1/1 (zero failing elements) on the homepage in this session's
+    scan — not reproduced. Not fixed; needs the specific page/URL where
+    it was observed before guessing at a target.
 - **Stage 3 (headers):** confirm `vercel.json`'s new headers, CSP in
   Report-Only mode; manually inspect header response on preview.
 - **Stage 4 (lazy quick-wins):** build succeeds; confirm `AppShell`/
