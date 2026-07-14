@@ -87,3 +87,23 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow);
 }
+
+/**
+ * Hero browser-frame ambient loop (Batch 5) — Blueprint §19's one sanctioned
+ * "atmosphere" animation: opacity-only, 6s loop, three flow nodes pulsing in
+ * sequence. Disabled entirely under reduced motion (§20).
+ */
+@keyframes ds-flow-pulse {
+  0%, 100% { opacity: .45; }
+  50%      { opacity: 1; }
+}
+
+.ds-flow-node {
+  animation: ds-flow-pulse var(--duration-hero-loop) var(--ease) infinite;
+}
+.ds-flow-node--2 { animation-delay: calc(var(--duration-hero-loop) / 3); }
+.ds-flow-node--3 { animation-delay: calc(var(--duration-hero-loop) / 3 * 2); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-flow-node { animation: none; }
+}
