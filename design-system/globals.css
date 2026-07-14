@@ -3,14 +3,20 @@
  *
  * Source: docs/reference/ux-blueprint.md §3 (typography).
  *
- * Additive only, same as tokens.css: font loading + font-stack custom
- * properties + a set of `.ds-*` classes that nothing in the current
- * component tree references yet. No bare element selectors (body, h1,
- * p, ...) — App.css already owns those for the legacy theme, and
- * overriding them here would change rendered output and break this
- * batch's byte-diff verification. See docs/batches/batch-1-plan.md
- * risk #1. Future batches migrate components onto these classes/vars
- * and retire the bare-selector rules in App.css at that point.
+ * Additive only, same as tokens.css: font-stack custom properties + a set
+ * of `.ds-*` classes that nothing in the current component tree
+ * references yet. No bare element selectors (body, h1, p, ...) — App.css
+ * already owns those for the legacy theme, and overriding them here would
+ * change rendered output and break this batch's byte-diff verification.
+ * See docs/batches/batch-1-plan.md risk #1. Future batches migrate
+ * components onto these classes/vars and retire the bare-selector rules
+ * in App.css at that point.
+ *
+ * Font loading moved to client/index.html as a <link> (Batch 5.5) — a CSS
+ * @import here was render-blocking on CSSOM construction and invisible to
+ * the browser's preload scanner; a <head> <link> is discovered immediately.
+ * (Stage 1b: the legacy Inter <link> this used to sit alongside was removed
+ * — see index.html and docs/backlog.md.)
  *
  * Fluid H1/H2 clamp() interpolated between 360px and 1120px viewports
  * (Blueprint §6/§7's own layout bounds) hitting the exact min/max rem
@@ -18,8 +24,6 @@
  * blueprint, the interpolation curve between them is an implementation
  * choice, open to tuning at design review.
  */
-
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
   /* Font stacks — Blueprint §3 */

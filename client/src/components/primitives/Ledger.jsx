@@ -10,7 +10,7 @@ export default function Ledger({ title, rows = [], className = '' }) {
           className={`flex justify-between py-[5px] ${i > 0 ? '[border-top:1px_dotted_var(--line)]' : ''}`}
         >
           <span>{label}</span>
-          <span className={`font-bold ${highlight ? 'text-mint' : 'text-ink'}`}>{value}</span>
+          <span className={`font-bold ${highlight ? 'text-mint-text-strong' : 'text-ink'}`}>{value}</span>
         </div>
       ))}
     </div>

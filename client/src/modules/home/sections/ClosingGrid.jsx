@@ -29,10 +29,10 @@ export default function ClosingGrid() {
           <h2 className="ds-h2 text-ink mb-4">
             Built by a small team that got tired of "free" tools with catches
           </h2>
-          <p className="text-[length:var(--text-body)] text-ink-soft mb-4">
+          <p className="font-body text-[length:var(--text-body)] text-ink-soft mb-4">
             AWE-OS started with a simple frustration: every free PDF site wanted an upload, an email, or a subscription for the third file. Every EMI calculator was built for US mortgages. We believed everyday utilities should be genuinely free, genuinely private, and built for how people in India actually work.
           </p>
-          <p className="text-[length:var(--text-body)] text-ink-soft mb-4">
+          <p className="font-body text-[length:var(--text-body)] text-ink-soft mb-4">
             Today AWE-OS offers {totalTools} tools used by students, freelancers, and small businesses. We publish who we are, how tools are tested, how content is written and corrected, and how the site earns money — because a tool you trust with your documents should have nothing to hide.
           </p>
           <Button variant="primary" as={Link} to="/about" className="mt-1.5">Read our full story →</Button>
@@ -55,7 +55,7 @@ export default function ClosingGrid() {
               </Link>
             ))}
           </div>
-          <p className="text-[length:var(--text-step-footnote)] text-ink-soft mt-4">
+          <p className="font-body text-[length:var(--text-step-footnote)] text-ink-soft mt-4">
             Found a bug or a wrong figure? Email us and we'll fix it — corrections are logged publicly on the affected page.
           </p>
         </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { TOOL_REGISTRY, CATEGORY_META } from '../../../data/toolRegistry'
 import { ToolCard } from '../../../components/cards'
@@ -42,12 +42,11 @@ function getCategoryTools(category) {
 }
 
 export default function PopularTools() {
+  // Always starts on "Popular" — the SSG-rendered state. Reading
+  // window.location.hash on mount used to swap the grid post-hydration,
+  // which shifted layout for anyone landing via a /#category link
+  // (Batch 5.5 CLS fix — see docs/batches/batch-5.5-plan.md M1).
   const [activeTab, setActiveTab] = useState('popular')
-
-  useEffect(() => {
-    const hash = window.location.hash.replace('#', '')
-    if (TABS.some(t => t.key === hash)) setActiveTab(hash)
-  }, [])
 
   function selectTab(key) {
     setActiveTab(key)

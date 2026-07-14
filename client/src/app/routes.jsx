@@ -21,9 +21,13 @@
 import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import PublicLayout   from '../components/PublicLayout'
-import AppShell       from '../shared/components/AppShell'
-import AdminShell     from '../shared/components/AdminShell'
-import ProtectedRoute from '../shared/components/ProtectedRoute'
+
+// Lazy — these are internal-only (behind Login), never needed for a public
+// page load. AdminShell eagerly pulls in axios via api.service.js, and none
+// of the three are needed until a route inside ProtectedRoute is visited.
+const AppShell       = lazy(() => import('../shared/components/AppShell'))
+const AdminShell     = lazy(() => import('../shared/components/AdminShell'))
+const ProtectedRoute = lazy(() => import('../shared/components/ProtectedRoute'))
 
 // ── Public pages ──────────────────────────────────────────────────────────────
 const Home           = lazy(() => import('../pages/Home'))
@@ -210,7 +214,7 @@ export default function AppRoutes() {
       <Route path="/calculators/:slug"  element={lazy$(<CalculatorPage />)} />
 
       {/* ── Authenticated (persistent dark AppShell nav) ─────────────────── */}
-      <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
+      <Route element={lazy$(<ProtectedRoute><AppShell /></ProtectedRoute>)}>
         <Route path="/dashboard"             element={lazy$(<Dashboard />)} />
         <Route path="/dashboard/store"       element={lazy$(<StorePage />)} />
         <Route path="/dashboard/tools/:slug" element={lazy$(<ToolPage />)} />
@@ -228,7 +232,7 @@ export default function AppRoutes() {
         <Route path="/tools/invoice/settings" element={lazy$(<InvoiceSettings />)} />
 
         {/* ── Admin (AdminShell sidebar nested in AppShell) ─────────────── */}
-        <Route element={<ProtectedRoute requiredRole="admin"><AdminShell /></ProtectedRoute>}>
+        <Route element={lazy$(<ProtectedRoute requiredRole="admin"><AdminShell /></ProtectedRoute>)}>
           <Route path="/admin"               element={lazy$(<Admin />)} />
           <Route path="/admin/tools/builder" element={lazy$(<ToolBuilder />)} />
           <Route path="/admin/products"      element={lazy$(<ProductManager />)} />

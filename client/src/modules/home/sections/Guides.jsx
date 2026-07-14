@@ -36,7 +36,7 @@ export default function Guides() {
             Guides &amp; explainers
           </span>
           <h2 className="ds-h2 text-ink mb-3">Learn the "why" behind the tools</h2>
-          <p className="text-[length:var(--text-body)] text-ink-soft">
+          <p className="font-body text-[length:var(--text-body)] text-ink-soft">
             Our editorial team writes practical guides on PDF workflows, Indian personal finance, and productivity — reviewed, dated, and updated when the rules change.
           </p>
         </div>
