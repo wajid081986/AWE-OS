@@ -30,11 +30,14 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <!-- Design-system fonts (Batch 5.5) — display=optional avoids the
          fallback->webfont swap reflow that @import + display=swap caused
          (see design-system/globals.css). Moved here (was a CSS @import)
-         so the browser's preload scanner finds it immediately. -->
+         so the browser's preload scanner finds it immediately.
+         Batch 5.5 stage 1b — legacy Inter link (display=swap) removed:
+         it was render-blocking and no public component uses it. Internal
+         surfaces (AppShell/AdminShell/legacy App.css theme) fall back to
+         system-ui now — see docs/backlog.md. -->
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=optional" rel="stylesheet" />
 
     <!-- Favicon (emoji fallback — replace with real PNG once available) -->

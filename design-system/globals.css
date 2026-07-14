@@ -14,8 +14,9 @@
  *
  * Font loading moved to client/index.html as a <link> (Batch 5.5) — a CSS
  * @import here was render-blocking on CSSOM construction and invisible to
- * the browser's preload scanner; a <head> <link> is discovered immediately,
- * matching the existing Inter <link> pattern.
+ * the browser's preload scanner; a <head> <link> is discovered immediately.
+ * (Stage 1b: the legacy Inter <link> this used to sit alongside was removed
+ * — see index.html and docs/backlog.md.)
  *
  * Fluid H1/H2 clamp() interpolated between 360px and 1120px viewports
  * (Blueprint §6/§7's own layout bounds) hitting the exact min/max rem
