@@ -97,7 +97,7 @@ export default function Faq() {
               >
                 {q}
               </summary>
-              <p className="text-[length:var(--text-md)] text-ink-soft pb-[length:var(--faq-answer-padding-bottom)]">{a}</p>
+              <p className="font-body text-[length:var(--text-md)] text-ink-soft pb-[length:var(--faq-answer-padding-bottom)]">{a}</p>
             </details>
           ))}
         </div>

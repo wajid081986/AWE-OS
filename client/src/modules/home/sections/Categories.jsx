@@ -45,7 +45,7 @@ export default function Categories() {
             Five categories
           </span>
           <h2 className="ds-h2 text-ink mb-3">Everything is organized around real jobs, not features</h2>
-          <p className="text-[length:var(--text-body)] text-ink-soft">
+          <p className="font-body text-[length:var(--text-body)] text-ink-soft">
             Each category solves a specific everyday problem — from shrinking a PDF for a visa application to figuring out whether the new tax regime saves you money.
           </p>
         </div>

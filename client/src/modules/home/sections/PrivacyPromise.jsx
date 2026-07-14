@@ -42,7 +42,7 @@ export default function PrivacyPromise() {
             Most "free" tool sites upload your files. We architected AWE-OS so we can't.
           </h2>
 
-          <div className="[&_p]:text-[length:var(--text-body)] [&_p]:text-ink-soft [&_p]:mb-4 [&_strong]:text-ink [&_strong]:font-semibold">
+          <div className="[&_p]:font-body [&_p]:text-[length:var(--text-body)] [&_p]:text-ink-soft [&_p]:mb-4 [&_strong]:text-ink [&_strong]:font-semibold">
             <p>When you use a typical online PDF tool, your file travels to a server, gets processed there, and a download link comes back. That means your bank statement, offer letter, or ID proof sits — even briefly — on someone else's machine, subject to their retention policy and their security.</p>
             <p><strong>AWE-OS works differently by design.</strong> Our tools are built with WebAssembly and modern browser APIs, so the processing happens on <em>your</em> CPU, inside <em>your</em> browser tab. There is no upload step to skip — it simply doesn't exist. Close the tab and every trace of your file is gone.</p>
             <p>This architecture also makes the tools fast (no upload/download round-trip), lets many of them work offline once loaded, and means they keep working even for very large files that server-based sites reject.</p>
@@ -76,7 +76,7 @@ export default function PrivacyPromise() {
               </div>
             ))}
           </div>
-          <p className="text-[length:var(--text-step-footnote)] text-ink-soft mt-3.5">
+          <p className="font-body text-[length:var(--text-step-footnote)] text-ink-soft mt-3.5">
             Every tool is manually tested on Chrome, Firefox, Edge, and Safari before release, and re-tested after updates.
           </p>
         </div>
