@@ -1,0 +1,8 @@
+export { default as Hero }           from './Hero'
+export { default as Stats }          from './Stats'
+export { default as PopularTools }   from './PopularTools'
+export { default as Categories }     from './Categories'
+export { default as PrivacyPromise } from './PrivacyPromise'
+export { default as Guides }         from './Guides'
+export { default as Faq }            from './Faq'
+export { default as ClosingGrid }    from './ClosingGrid'
