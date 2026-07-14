@@ -196,4 +196,25 @@
   --text-flow-sub: .7rem;
   --flow-arrow-padding-bottom: 26px;
   --text-flow-arrow: 1.15rem;
+
+  /* Popular Tools tabs (Batch 5, sourced from reference HTML .tab).
+     Tab padding (9px/18px) reuses the existing --btn-padding-y-compact/
+     --btn-padding-x-compact tokens (Batch 2) rather than duplicating an
+     identical value under a new name. */
+  --text-tab: .9rem;
+  --tools-cta-margin-top: 34px;
+
+  /* Section head (Batch 5, sourced from reference HTML .section-head) —
+     shared by every content section's intro block (Popular Tools,
+     Categories, and 5C's Guides/FAQ), so defined once here rather than
+     per-section. */
+  --section-head-max-width: 640px;
+
+  /* How-it-works Steps (Batch 5, sourced from reference HTML .step/.step-num).
+     step-num's 10px radius reuses --radius-s (Batch 1). */
+  --step-num-size: 38px;
+  --text-step-num: .85rem;
+  --text-step-title: 1.02rem;
+  --text-step-body: .92rem;
+  --text-step-footnote: .85rem;
 }

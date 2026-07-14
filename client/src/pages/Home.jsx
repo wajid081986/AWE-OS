@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async'
 import { TOOL_REGISTRY } from '../data/toolRegistry'
 import { SITE_URL } from '../utils/canonicalUrl'
-import { Hero, Stats } from '../modules/home/sections'
+import { Hero, Stats, PopularTools, Categories, PrivacyPromise } from '../modules/home/sections'
 
 const ALL_TOOLS = TOOL_REGISTRY.filter(t => !t.comingSoon && t.slug !== 'test-ai-tool')
 
@@ -50,6 +50,9 @@ export default function Home() {
 
       <Hero />
       <Stats />
+      <PopularTools />
+      <Categories />
+      <PrivacyPromise />
     </>
   )
 }

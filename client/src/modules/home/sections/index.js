@@ -1,2 +1,5 @@
-export { default as Hero }  from './Hero'
-export { default as Stats } from './Stats'
+export { default as Hero }           from './Hero'
+export { default as Stats }          from './Stats'
+export { default as PopularTools }   from './PopularTools'
+export { default as Categories }     from './Categories'
+export { default as PrivacyPromise } from './PrivacyPromise'
