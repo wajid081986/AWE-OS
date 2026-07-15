@@ -50,6 +50,10 @@ function toRow(tool) {
     category: tool.category || null,
     description: tool.description || null,
     status: 'live',
+    // approved (not status) gates public visibility on /tools — GET /api/tools/public
+    // filters on it. status='live' alone left these tools invisible on the public site
+    // for 12 days (2026-07-03 to 2026-07-15) before this line was added.
+    approved: true,
     is_free: true,
     source: SOURCE_TAG,
   };
