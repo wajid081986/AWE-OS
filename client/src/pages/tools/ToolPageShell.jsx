@@ -112,21 +112,24 @@ function EmbedCode({ url, name }) {
 
 // ── Main shell ────────────────────────────────────────────────────────────────
 export default function ToolPageShell({ slug, name, description, icon, steps, faqs, about, children }) {
-  const [relatedTools, setRelatedTools] = useState([])
-
   // Resolve tool and category metadata from the registry
   const toolMeta = getToolBySlug(slug)
   const catMeta  = toolMeta ? getCategoryMeta(toolMeta.category) : null
   const guide    = TOOL_GUIDE[slug] || null
+  // getRelatedTools is a pure sync lookup over the static registry — computed
+  // directly during render (not via useEffect+setState) so SSR and the first
+  // client render produce identical output. The previous effect-driven
+  // version fired a post-mount setState that raced React's Suspense-boundary
+  // hydration (needed for Batch 5.6's hydrateRoot switch), throwing "This
+  // Suspense boundary received an update before it finished hydrating" and
+  // forcing a full client-only re-render on every tool page. See
+  // docs/batches/batch-5.6-ssg-hydration.md.
+  const relatedTools = toolMeta ? getRelatedTools(toolMeta, 5) : []
 
   useTrackToolView(slug)
 
   useEffect(() => {
     window.scrollTo(0, 0)
-    // Use registry related tools first; fall back to an empty list
-    if (toolMeta) {
-      setRelatedTools(getRelatedTools(toolMeta, 5))
-    }
   }, [slug])
 
   const pageUrl     = `${SITE_URL}/tools/${slug}`

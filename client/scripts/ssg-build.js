@@ -149,7 +149,7 @@ if (existsSync(OUT_DIR) && OUT_DIR !== DIST) rmSync(OUT_DIR, { recursive: true }
 const report = []
 const noHelmetTitle = []
 for (const route of routes) {
-  const { html, helmet } = renderRoute(route)
+  const { html, helmet } = await renderRoute(route)
 
   const shellBase = stripDefaultSeoTags(shellHtml, helmet)
   let out = injectHelmet(shellBase, helmet, route.noindex)
