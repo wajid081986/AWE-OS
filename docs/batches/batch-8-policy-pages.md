@@ -4,7 +4,14 @@ Branch (to be created on approval): `batch-8-policy-pages`, from `origin/main`
 @ `d6749c8` (batch 5.6c merged). Independent of 5.6/5.6c's open items (hydration
 race on tool/blog pages, 16-vs-49 tools gap) — this batch touches neither.
 
-Status: **PLAN ONLY — not yet approved, nothing implemented.**
+Status: **CLOSED — merged and verified live in production, 2026-07-15.**
+PR #11 merged to `main` (`bf09026`). Production verification: all 8 routes
+serve correct SSG'd HTML, all old placeholder text (`contact@awe-os.com`,
+Bengaluru jurisdiction clause, GDPR boilerplate) confirmed gone. Full
+report: `docs/reports/batch-8-production-verification.md`. Follow-up work
+outside this batch's scope tracked separately in
+`docs/batches/batch-8b-contact-about-cleanup.md` (proposed, not yet
+approved).
 
 ---
 
