@@ -137,52 +137,110 @@ only **16** rows in the `tools` table have `status='live'` — a gap of 33.
   `status='live'` at all, and explains why the 16 that made it to `live`
   don't line up with the full registry.
 
-### Not yet confirmed — needs the following read-only query (owner to run)
+### CONFIRMED 2026-07-15 — read-only diagnostic query result
 
-```sql
-SELECT slug, status, approved, source, created_at
-FROM tools
-WHERE slug IN (
-  'merge-pdf','split-pdf','remove-pages-pdf','extract-pages-pdf','organize-pdf',
-  'compress-pdf','jpg-to-pdf','word-to-pdf','excel-to-pdf','powerpoint-to-pdf',
-  'pdf-to-jpg','pdf-to-word','pdf-to-text','pdf-to-ppt','pdf-to-excel',
-  'rotate-pdf','watermark-pdf','page-numbers-pdf','pdf-editor','protect-pdf',
-  'unlock-pdf','fd-calculator','ppf-calculator','sip-calculator','roi-calculator',
-  'tax-calculator','bmi-calculator','age-calculator','loan-calculator',
-  'percentage-calculator','gst-calculator','tip-calculator','discount-calculator',
-  'gpa-calculator','unit-converter','word-counter','password-generator',
-  'color-picker','qr-code-generator','image-compressor','currency-converter',
-  'base-converter','json-formatter','csv-to-json','invoice','invoice-generator',
-  'contract-generator','resume-builder','ai-content-writer'
-)
-ORDER BY slug;
+The read-only query (listing `status`/`approved`/`source`/`created_at` for
+all 49 registry slugs) was run. Result:
 
--- Which registry slugs have NO row in tools at all (never synced, would insert cleanly)
--- — compare the 49-slug list above against this query's `slug` column manually,
--- or count: expect 49 rows back if every slug exists in some form.
+- **Hypothesis confirmed**: the gap is exactly "pre-existing non-live
+  pipeline rows blocking the slug," not a CHECK-constraint rejection or
+  anything else. `sync-tool-registry.js`'s `fetchExistingSlugs()` dedup
+  matches on slug alone (any status), so a stale AI-pipeline row
+  permanently prevents that slug from ever getting a real `status='live'`
+  row inserted.
+- **`resume-builder` has two rows for one slug** — a stale `killed`/`ai`
+  row (2026-05-05) and a `live`/`manual` row. Its `live` row's
+  `created_at` is **2026-04-20**, *before* the 2026-07-03 sync run — so
+  this one tool's `live` status didn't come from `sync-tool-registry.js`
+  at all; it was already `live` via some earlier/separate path, and the
+  sync's dedup left the stale `killed`/`ai` row sitting alongside it,
+  untouched.
+- **`pdf-editor`** is `needs_fix` (source `manual`, same 2026-07-03
+  timestamp as the general sync).
+- **`roi-calculator`** is `idea` (source `manual`, 2026-05-16).
+- **Exact count** (49 unique slugs, 50 rows including `resume-builder`'s
+  duplicate): **15** unique slugs `live`/`approved` (14 from the
+  2026-07-03 sync + `resume-builder`'s pre-existing 2026-04-20 row), **32**
+  unique slugs permanently dedup-blocked by a stale `source=ai` row
+  (`killed` or `building`, all timestamped 2026-04-30 through
+  2026-05-07), plus `pdf-editor` and `roi-calculator` = 15 + 32 + 1 + 1 =
+  **49 ✓**. (This session's earlier estimate — "16 live / ~34 missing" —
+  was off by a small margin; `resume-builder`'s dual-row case is the
+  reason the naive "count of `status='live'` rows" doesn't equal "count
+  of registry slugs with a resolved live path.")
+
+Raw query output:
+
+```csv
+slug,status,approved,source,created_at
+age-calculator,building,false,ai,2026-05-05 15:10:33.824708
+ai-content-writer,killed,false,ai,2026-05-05 15:10:33.824708
+base-converter,live,true,manual,2026-07-03 06:50:24.008875
+bmi-calculator,killed,false,ai,2026-05-05 15:10:33.824708
+color-picker,killed,false,ai,2026-05-05 15:10:33.824708
+compress-pdf,killed,false,ai,2026-05-07 12:35:40.579152
+contract-generator,live,true,manual,2026-07-03 06:50:24.008875
+csv-to-json,killed,false,ai,2026-05-05 15:10:33.824708
+currency-converter,live,true,manual,2026-07-03 06:50:24.008875
+discount-calculator,live,true,manual,2026-07-03 06:50:24.008875
+excel-to-pdf,killed,false,ai,2026-05-07 16:32:40.346101
+extract-pages-pdf,killed,false,ai,2026-05-07 12:35:40.579152
+fd-calculator,live,true,manual,2026-07-03 06:50:24.008875
+gpa-calculator,killed,false,ai,2026-05-05 15:10:33.824708
+gst-calculator,live,true,manual,2026-07-03 06:50:24.008875
+image-compressor,killed,false,ai,2026-05-05 15:10:33.824708
+invoice,live,true,manual,2026-07-03 06:50:24.008875
+invoice-generator,killed,false,ai,2026-04-30 14:42:05.873848
+jpg-to-pdf,killed,false,ai,2026-05-07 12:35:40.579152
+json-formatter,live,true,manual,2026-07-03 06:50:24.008875
+loan-calculator,killed,false,ai,2026-05-05 15:10:33.824708
+merge-pdf,killed,false,ai,2026-05-07 12:35:40.579152
+organize-pdf,killed,false,ai,2026-05-07 12:35:40.579152
+page-numbers-pdf,killed,false,ai,2026-05-07 12:35:40.579152
+password-generator,killed,false,ai,2026-05-05 15:10:33.824708
+pdf-editor,needs_fix,false,manual,2026-07-03 06:50:24.008875
+pdf-to-excel,killed,false,ai,2026-05-07 16:32:40.346101
+pdf-to-jpg,killed,false,ai,2026-05-07 12:35:40.579152
+pdf-to-ppt,live,true,manual,2026-07-03 06:50:24.008875
+pdf-to-text,live,true,manual,2026-07-03 06:50:24.008875
+pdf-to-word,killed,false,ai,2026-05-07 16:32:40.346101
+percentage-calculator,killed,false,ai,2026-05-05 15:10:33.824708
+powerpoint-to-pdf,killed,false,ai,2026-05-07 16:32:40.346101
+ppf-calculator,live,true,manual,2026-07-03 06:50:24.008875
+protect-pdf,killed,false,ai,2026-05-07 12:35:40.579152
+qr-code-generator,killed,false,ai,2026-05-05 15:10:33.824708
+remove-pages-pdf,killed,false,ai,2026-05-07 12:35:40.579152
+resume-builder,killed,false,ai,2026-05-05 15:10:33.824708
+resume-builder,live,true,manual,2026-04-20 14:37:07.267931
+roi-calculator,idea,false,manual,2026-05-16 18:59:05.084663
+rotate-pdf,killed,false,ai,2026-05-07 12:35:40.579152
+sip-calculator,live,true,manual,2026-07-03 06:50:24.008875
+split-pdf,killed,false,ai,2026-05-07 12:35:40.579152
+tax-calculator,live,true,manual,2026-07-03 06:50:24.008875
+tip-calculator,live,true,manual,2026-07-03 06:50:24.008875
+unit-converter,killed,false,ai,2026-05-05 15:10:33.824708
+unlock-pdf,killed,false,ai,2026-05-07 12:35:40.579152
+watermark-pdf,killed,false,ai,2026-05-07 12:35:40.579152
+word-counter,building,false,ai,2026-05-05 15:10:33.824708
+word-to-pdf,killed,false,ai,2026-05-07 16:32:40.346101
 ```
 
-This will show, per registry tool: does a `tools` row exist, and if so what
-`status`/`approved`/`source` it currently has. That tells us definitively
-whether the gap is "pre-existing non-live pipeline rows blocking the slug"
-(as hypothesized above) vs. something else (e.g. a `source` CHECK constraint
-rejection during the original sync, silently producing fewer inserts than
-expected).
+**Confirmed root cause**: the AI pipeline and the real tool registry share
+one table and one slug namespace, and the sync's dedup is slug-only —
+stale pipeline rows permanently block real tools from ever getting synced.
 
-**No fix proposed yet — evidence-first per instruction.** Once the query
-result is in, next steps depend on what it shows:
+Candidate fix directions for a **future** batch (not designed or
+implemented here — needs its own scoped plan and an owner ruling on
+direction first, since it touches `server/` and the pipeline tables):
 
-- If most of the 33 missing slugs have **no row at all**: re-running
-  `sync-tool-registry.js --apply` (now with the `approved: true` fix) would
-  insert them cleanly — but confirm the 33 didn't fail for some other reason
-  (env/CHECK constraint) before assuming a plain re-run is safe.
-- If most of the 33 have a row with a **non-live status**: the fix needs a
-  decision — do those stale pipeline rows get overwritten/relabeled as the
-  real registry tool (risky, could stomp pipeline history/test data), or does
-  `sync-tool-registry.js` need slug-collision handling that's aware of
-  `status` (e.g. only treat a slug as "already synced" if `status='live'`,
-  otherwise still insert/update it)? This is a data-model decision, not a
-  one-line fix — needs its own plan once the evidence is in.
+(a) sync upserts by `slug + source` or otherwise scopes its dedup instead
+    of matching on slug alone;
+(b) a slug-uniqueness/namespacing decision for the `tools` table (the
+    `resume-builder` duplicate shows slug is not currently unique);
+(c) possibly making the "All" tab read the same static
+    `toolCatalogue.js` that the category tabs already use — single
+    source of truth, removes the DB dependency for public listing
+    entirely.
 
 ## Files touched (this commit)
 
