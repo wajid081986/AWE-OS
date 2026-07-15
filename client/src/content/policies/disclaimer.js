@@ -13,6 +13,12 @@ export default {
       ],
     },
     {
+      heading: 'Health figures',
+      paragraphs: [
+        'Results from our BMI and age calculators are general-population estimates based on standard formulas — they are informational, not medical advice. BMI in particular has known limitations and does not account for individual factors like muscle mass or medical history. For decisions about your health, consult a qualified doctor.',
+      ],
+    },
+    {
       heading: 'We are not',
       paragraphs: [
         'We are not chartered accountants, financial advisors, or lawyers. Nothing on this site constitutes professional advice.',
