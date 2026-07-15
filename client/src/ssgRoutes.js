@@ -21,6 +21,8 @@
 export const STATIC_PATHS = [
   '/', '/tools', '/tools/free', '/blog',
   '/about', '/contact', '/privacy-policy', '/terms', '/disclaimer',
+  '/editorial-policy', '/tool-testing-policy', '/ai-content-policy',
+  '/corrections-policy', '/advertising-policy',
 ]
 
 export const CATEGORY_SLUGS = ['pdf', 'calculators', 'converters', 'ai', 'productivity']

@@ -146,6 +146,12 @@ export default function AboutPage() {
               builder and AI content writer. Every tool is built with the same philosophy: make it fast, make it
               accurate, and keep as much of it free as possible.
             </p>
+            <p>
+              Curious who's behind this site and how we write and test what's published here? Read our{' '}
+              <Link to="/editorial-policy" className="text-blue-600 hover:underline font-medium">
+                Editorial Policy
+              </Link>.
+            </p>
           </div>
         </div>
       </section>

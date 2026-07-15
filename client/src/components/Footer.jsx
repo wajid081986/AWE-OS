@@ -22,9 +22,14 @@ const COLS = [
   {
     title: 'Legal & Trust',
     links: [
-      { label: 'Privacy Policy', to: '/privacy-policy' },
-      { label: 'Terms of Use',   to: '/terms' },
-      { label: 'Disclaimer',     to: '/disclaimer' },
+      { label: 'Privacy Policy',         to: '/privacy-policy' },
+      { label: 'Terms of Use',           to: '/terms' },
+      { label: 'Disclaimer',             to: '/disclaimer' },
+      { label: 'Editorial Policy',       to: '/editorial-policy' },
+      { label: 'Tool Testing Policy',    to: '/tool-testing-policy' },
+      { label: 'AI Content Policy',      to: '/ai-content-policy' },
+      { label: 'Corrections Policy',     to: '/corrections-policy' },
+      { label: 'Advertising Policy',     to: '/advertising-policy' },
     ],
   },
 ]

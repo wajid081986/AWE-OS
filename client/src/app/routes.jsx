@@ -38,6 +38,11 @@ const AboutPage      = lazy(() => import('../pages/AboutPage'))
 const PrivacyPolicy  = lazy(() => import('../pages/PrivacyPolicy'))
 const Terms          = lazy(() => import('../pages/Terms'))
 const Disclaimer     = lazy(() => import('../pages/Disclaimer'))
+const EditorialPolicy    = lazy(() => import('../pages/EditorialPolicy'))
+const ToolTestingPolicy  = lazy(() => import('../pages/ToolTestingPolicy'))
+const AiContentPolicy    = lazy(() => import('../pages/AiContentPolicy'))
+const CorrectionsPolicy  = lazy(() => import('../pages/CorrectionsPolicy'))
+const AdvertisingPolicy  = lazy(() => import('../pages/AdvertisingPolicy'))
 const ContactPage    = lazy(() => import('../pages/ContactPage'))
 const FreeToolsPage  = lazy(() => import('../pages/FreeToolsPage'))
 const BlogPage       = lazy(() => import('../pages/BlogPage'))
@@ -177,6 +182,11 @@ export default function AppRoutes() {
         <Route path="/privacy-policy" element={lazy$(<PrivacyPolicy />)} />
         <Route path="/terms"          element={lazy$(<Terms />)} />
         <Route path="/disclaimer"     element={lazy$(<Disclaimer />)} />
+        <Route path="/editorial-policy"     element={lazy$(<EditorialPolicy />)} />
+        <Route path="/tool-testing-policy"  element={lazy$(<ToolTestingPolicy />)} />
+        <Route path="/ai-content-policy"    element={lazy$(<AiContentPolicy />)} />
+        <Route path="/corrections-policy"   element={lazy$(<CorrectionsPolicy />)} />
+        <Route path="/advertising-policy"   element={lazy$(<AdvertisingPolicy />)} />
         <Route path="/contact"        element={lazy$(<ContactPage />)} />
         <Route path="/pricing"        element={<Navigate to="/" replace />} />
         <Route path="/payment/success" element={lazy$(<PaymentSuccess />)} />
