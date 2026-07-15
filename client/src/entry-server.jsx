@@ -74,6 +74,11 @@ import ContactPage from './pages/ContactPage'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import Terms from './pages/Terms'
 import Disclaimer from './pages/Disclaimer'
+import EditorialPolicy from './pages/EditorialPolicy'
+import ToolTestingPolicy from './pages/ToolTestingPolicy'
+import AiContentPolicy from './pages/AiContentPolicy'
+import CorrectionsPolicy from './pages/CorrectionsPolicy'
+import AdvertisingPolicy from './pages/AdvertisingPolicy'
 import BlogPage from './pages/BlogPage'
 import BlogPostPage from './pages/BlogPostPage'
 import CityToolPage from './pages/CityToolPage'
@@ -182,7 +187,7 @@ function assertNoRouteDrift() {
   if (JSON.stringify(categoryKeys) !== JSON.stringify(expectedCategories)) {
     errors.push(`CATEGORY_ROUTES slugs != ssgRoutes.js CATEGORY_SLUGS.\n  got: ${categoryKeys.join(', ')}\n  expected: ${expectedCategories.join(', ')}`)
   }
-  const staticPaths = ['/', '/tools', '/tools/free', '/blog', '/about', '/contact', '/privacy-policy', '/terms', '/disclaimer'].sort()
+  const staticPaths = ['/', '/tools', '/tools/free', '/blog', '/about', '/contact', '/privacy-policy', '/terms', '/disclaimer', '/editorial-policy', '/tool-testing-policy', '/ai-content-policy', '/corrections-policy', '/advertising-policy'].sort()
   const expectedStatic = [...STATIC_PATHS].sort()
   if (JSON.stringify(staticPaths) !== JSON.stringify(expectedStatic)) {
     errors.push(`Static route paths != ssgRoutes.js STATIC_PATHS.\n  got: ${staticPaths.join(', ')}\n  expected: ${expectedStatic.join(', ')}`)
@@ -231,6 +236,11 @@ export function buildRoutes() {
   routes.push({ path: '/privacy-policy', pattern: '/privacy-policy', element: <PrivacyPolicy />, outFile: 'privacy-policy/index.html' })
   routes.push({ path: '/terms',          pattern: '/terms',          element: <Terms />,        outFile: 'terms/index.html' })
   routes.push({ path: '/disclaimer',     pattern: '/disclaimer',     element: <Disclaimer />,   outFile: 'disclaimer/index.html' })
+  routes.push({ path: '/editorial-policy',    pattern: '/editorial-policy',    element: <EditorialPolicy />,    outFile: 'editorial-policy/index.html' })
+  routes.push({ path: '/tool-testing-policy', pattern: '/tool-testing-policy', element: <ToolTestingPolicy />,  outFile: 'tool-testing-policy/index.html' })
+  routes.push({ path: '/ai-content-policy',   pattern: '/ai-content-policy',   element: <AiContentPolicy />,    outFile: 'ai-content-policy/index.html' })
+  routes.push({ path: '/corrections-policy',  pattern: '/corrections-policy',  element: <CorrectionsPolicy />,  outFile: 'corrections-policy/index.html' })
+  routes.push({ path: '/advertising-policy',  pattern: '/advertising-policy',  element: <AdvertisingPolicy />,  outFile: 'advertising-policy/index.html' })
 
   for (const page of CITY_PAGES) {
     routes.push({
