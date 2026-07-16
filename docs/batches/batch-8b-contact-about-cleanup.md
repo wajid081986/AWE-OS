@@ -97,6 +97,22 @@ where. At implementation:
 4. `grep -r "TODO-CONTENT"` — zero before considered done, or explicitly
    listed as known issue if owner text isn't supplied yet.
 
+## Observed during verification (2026-07-15)
+
+The hydration sweep run for this batch surfaced 3 failing routes —
+`/bmi-calculator/mumbai`, `/sip-calculator/mumbai`, `/sip-calculator/pune`
+— all React error #421. **Correction**: these are not pre-existing
+failures specific to this batch's edits. Batch 5.6's determination sweep
+had all 24 city pages passing 3/3, which is why they're in the
+`isHydrationSafe()` default-safe set. This is the same early-effect
+timing race already tracked as **Batch 5.6b needed** in
+`docs/backlog.md` (React #421/#422, previously observed only on
+`/tools/:slug` and blog routes) now also manifesting intermittently on
+city pages. Unrelated to any file touched in batch 8b
+(`ContactPage.jsx`, `AboutPage.jsx`, `FreeToolsPage.jsx` don't render on
+these routes) — belongs to 5.6b's scope, not fixed here. Logged in
+`docs/backlog.md`'s Batch 5.6b entry.
+
 ## Scope guard
 
 - No changes to routing, `ssgRoutes.js`, `entry-server.jsx`, or Footer.
