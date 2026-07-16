@@ -93,6 +93,7 @@ export default function WordToPDF() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Complex Word layouts (text boxes, unusual fonts) may shift slightly; always review the output."}
     >
       <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
         {status === 'idle' || status === 'loading' ? (

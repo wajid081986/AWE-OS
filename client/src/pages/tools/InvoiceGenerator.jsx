@@ -302,6 +302,7 @@ export default function InvoiceGenerator() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"You are responsible for entering the correct GST rate and your valid GSTIN — the tool formats the invoice but cannot verify tax compliance."}
     >
       <InvoiceTool />
     </ToolPageShell>

@@ -138,6 +138,7 @@ export default function TipCalculator() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Splits bills equally only — it cannot handle per-person itemized splits."}
     >
       <TipTool />
     </ToolPageShell>

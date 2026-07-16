@@ -177,6 +177,7 @@ export default function GSTCalculator() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"You must choose the correct GST rate for your item — the tool cannot determine which rate legally applies to your product or service."}
     >
       <GSTTool />
     </ToolPageShell>

@@ -194,7 +194,8 @@ export default function JPGtoPDF() {
   return (
     <ToolPageShell slug="jpg-to-pdf" name="JPG to PDF" icon="🖼️"
       description="Convert JPG, PNG and WEBP images into a single PDF document."
-      steps={STEPS} faqs={FAQS} about={ABOUT}>
+      steps={STEPS} faqs={FAQS} about={ABOUT}
+      limitation={"Converts images as-is — it does not enhance image quality or make scanned text searchable."}>
       <JPGtoPDFTool />
     </ToolPageShell>
   )

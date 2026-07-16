@@ -122,6 +122,7 @@ export default function AgeCalculator() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Calculates calendar age exactly — time zones can shift the result by a day if you were born near midnight abroad."}
     >
       <AgeTool />
     </ToolPageShell>

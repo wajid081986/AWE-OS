@@ -143,7 +143,8 @@ export default function ExtractPagesPDF() {
   return (
     <ToolPageShell slug="extract-pages-pdf" name="Extract PDF Pages" icon="📄"
       description="Extract specific pages from a PDF and save them as a new document."
-      steps={STEPS} faqs={FAQS} about={ABOUT}>
+      steps={STEPS} faqs={FAQS} about={ABOUT}
+      limitation={"Extracts pages as they are — it cannot edit or reflow the extracted content."}>
       <ExtractTool />
     </ToolPageShell>
   )

@@ -154,7 +154,8 @@ export default function SplitPDF() {
   return (
     <ToolPageShell slug="split-pdf" name="Split PDF" icon="✂️"
       description="Split a PDF into separate pages, custom ranges, or extract specific pages."
-      steps={STEPS} faqs={FAQS} about={ABOUT}>
+      steps={STEPS} faqs={FAQS} about={ABOUT}
+      limitation={"Very large PDFs (500+ pages) may be slow on low-memory devices, since all processing happens on your device."}>
       <SplitTool />
     </ToolPageShell>
   )

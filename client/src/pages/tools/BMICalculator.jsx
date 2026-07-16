@@ -171,6 +171,7 @@ export default function BMICalculator() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"BMI does not distinguish muscle from fat — athletes and elderly users may get misleading categories; consult a doctor for health decisions."}
     >
       <BMITool />
     </ToolPageShell>

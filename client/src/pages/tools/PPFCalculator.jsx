@@ -777,6 +777,7 @@ export default function PPFCalculator() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Assumes the current PPF rate for the full tenure — the government revises this rate quarterly."}
     >
       <PPFTool />
     </ToolPageShell>

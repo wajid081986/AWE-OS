@@ -165,6 +165,7 @@ export default function UnitConverter() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Uses standard international conversion factors — regional/legacy units (like local land units) may vary by state."}
     >
       <UnitConverterTool />
     </ToolPageShell>

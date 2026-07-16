@@ -164,6 +164,7 @@ export default function CurrencyConverter() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Rates are indicative market rates — banks and money changers add their own margin, so the amount you actually get will differ."}
     >
       <CurrencyTool />
     </ToolPageShell>

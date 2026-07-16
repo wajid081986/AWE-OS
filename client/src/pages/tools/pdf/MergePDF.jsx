@@ -133,7 +133,8 @@ export default function MergePDF() {
   return (
     <ToolPageShell slug="merge-pdf" name="Merge PDF" icon="📎"
       description="Combine multiple PDF files into one document. Drag to reorder before merging."
-      steps={STEPS} faqs={FAQS} about={ABOUT}>
+      steps={STEPS} faqs={FAQS} about={ABOUT}
+      limitation={"Password-protected PDFs must be unlocked first — this tool cannot bypass PDF passwords."}>
       <MergeTool />
     </ToolPageShell>
   )

@@ -124,7 +124,8 @@ export default function UnlockPDF() {
   return (
     <ToolPageShell slug="unlock-pdf" name="Unlock PDF" icon="🔓"
       description="Remove password protection from a PDF you own. Enter the password to decrypt."
-      steps={STEPS} faqs={FAQS} about={ABOUT}>
+      steps={STEPS} faqs={FAQS} about={ABOUT}
+      limitation={"Removes a password only if you know it — this tool cannot crack or bypass unknown passwords."}>
       <UnlockTool />
     </ToolPageShell>
   )

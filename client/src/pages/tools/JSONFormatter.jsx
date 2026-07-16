@@ -149,6 +149,7 @@ export default function JSONFormatter() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Validates JSON syntax only — it cannot check whether your data matches a specific schema or API contract."}
     >
       <JSONFormatterTool />
     </ToolPageShell>

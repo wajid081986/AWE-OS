@@ -97,6 +97,7 @@ export default function ImageCompressor() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Compression is lossy at lower quality settings — keep your original if you may need full quality later."}
     >
       <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
         {status === 'idle' ? (

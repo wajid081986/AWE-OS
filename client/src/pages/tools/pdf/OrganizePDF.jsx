@@ -145,7 +145,8 @@ export default function OrganizePDF() {
   return (
     <ToolPageShell slug="organize-pdf" name="Organize PDF" icon="📋"
       description="Reorder and delete PDF pages to reorganize your document structure."
-      steps={STEPS} faqs={FAQS} about={ABOUT}>
+      steps={STEPS} faqs={FAQS} about={ABOUT}
+      limitation={"Reorders whole pages only — it cannot move content between pages."}>
       <OrganizeTool />
     </ToolPageShell>
   )

@@ -98,6 +98,7 @@ export default function ContractGenerator() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Generates standard templates for common situations — have important contracts reviewed by a lawyer before signing."}
     >
       <ContractUI />
     </ToolPageShell>

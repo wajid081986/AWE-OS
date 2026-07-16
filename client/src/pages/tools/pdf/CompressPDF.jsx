@@ -121,7 +121,8 @@ export default function CompressPDF() {
   return (
     <ToolPageShell slug="compress-pdf" name="Compress PDF" icon="🗜️"
       description="Reduce PDF file size by removing metadata and optimising PDF structure."
-      steps={STEPS} faqs={FAQS} about={ABOUT}>
+      steps={STEPS} faqs={FAQS} about={ABOUT}
+      limitation={"Heavily image-based PDFs compress well; text-only PDFs may shrink very little because there's little left to compress."}>
       <CompressTool />
     </ToolPageShell>
   )

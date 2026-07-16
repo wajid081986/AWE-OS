@@ -123,6 +123,7 @@ export default function PercentageCalculator() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Results are mathematically exact, but rounding displayed to 2 decimals may differ slightly from financial statements."}
     >
       <PercentageTool />
     </ToolPageShell>

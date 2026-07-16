@@ -150,6 +150,7 @@ export default function ColorPicker() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Colors may look different across screens — always test on your target device before finalizing brand colors."}
     >
       <ColorPickerTool />
     </ToolPageShell>

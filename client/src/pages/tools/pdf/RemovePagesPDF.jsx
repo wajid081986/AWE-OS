@@ -124,7 +124,8 @@ export default function RemovePagesPDF() {
   return (
     <ToolPageShell slug="remove-pages-pdf" name="Remove PDF Pages" icon="🗑️"
       description="Delete unwanted pages from your PDF. Select pages to remove and download the result."
-      steps={STEPS} faqs={FAQS} about={ABOUT}>
+      steps={STEPS} faqs={FAQS} about={ABOUT}
+      limitation={"Removed pages cannot be recovered from the output file — keep your original."}>
       <RemovePagesTool />
     </ToolPageShell>
   )

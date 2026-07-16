@@ -148,6 +148,7 @@ export default function PasswordGenerator() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Generates strong passwords locally, but a password is only as safe as where you store it — use a password manager."}
     >
       <PasswordGeneratorTool />
     </ToolPageShell>
