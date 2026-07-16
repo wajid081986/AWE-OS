@@ -22,6 +22,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Link }                from 'react-router-dom'
 import { Helmet }              from 'react-helmet-async'
 import AdBanner                from '../../components/AdBanner'
+import Callout                 from '../../components/primitives/Callout'
 import {
   getToolBySlug,
   getCategoryMeta,
@@ -110,8 +111,34 @@ function EmbedCode({ url, name }) {
   )
 }
 
+// ── Author / testing trust box — shared across every tool page, no per-tool
+// prop, matches docs/reference/tool-page-merge-pdf.html's .authorbox ────────
+function AuthorBox() {
+  return (
+    <div className="flex gap-4 items-start bg-card border border-line rounded-m p-5 mt-9 mb-2">
+      <span
+        aria-hidden
+        className="shrink-0 w-12 h-12 rounded-full bg-cobalt-tint text-cobalt grid place-items-center font-bold"
+      >
+        A
+      </span>
+      <div>
+        <p className="font-semibold text-ink text-sm">Built &amp; maintained by Team AWE-OS</p>
+        <p className="text-ink-soft text-sm mt-1 leading-relaxed">
+          This tool is developed in-house and manually re-tested on Chrome, Firefox, Edge, and Safari
+          after every update, following our{' '}
+          <Link to="/tool-testing-policy" className="text-cobalt hover:underline">tool testing policy</Link>.
+          Found a bug?{' '}
+          <Link to="/contact" className="text-cobalt hover:underline">Tell us</Link> — fixes are usually
+          shipped within days.
+        </p>
+      </div>
+    </div>
+  )
+}
+
 // ── Main shell ────────────────────────────────────────────────────────────────
-export default function ToolPageShell({ slug, name, description, icon, steps, faqs, about, children }) {
+export default function ToolPageShell({ slug, name, description, icon, steps, faqs, about, limitation, children }) {
   // Resolve tool and category metadata from the registry
   const toolMeta = getToolBySlug(slug)
   const catMeta  = toolMeta ? getCategoryMeta(toolMeta.category) : null
@@ -195,6 +222,11 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
     finance:      { published: '2025-06-01', modified: '2026-06-01' },
   }
   const catDates = CATEGORY_DATES[toolMeta?.category] ?? { published: '2024-01-01', modified: '2026-06-01' }
+  // Explicit locale + UTC avoids server/client locale drift, which would
+  // otherwise mismatch the SSG HTML and trip a hydration error (see
+  // docs/batches/batch-5.6-ssg-hydration.md).
+  const updatedLabel = new Date(`${catDates.modified}T00:00:00Z`)
+    .toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
 
   const articleSchema = {
     '@context':        'https://schema.org',
@@ -294,6 +326,9 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
                 <p className="text-gray-500 mt-1 text-sm leading-relaxed">{description}</p>
                 <span className="inline-flex items-center gap-1 mt-2 text-xs text-green-700 bg-green-50 border border-green-200 px-2.5 py-0.5 rounded-full font-medium">
                   ✓ Free · No sign-up · Works in browser
+                </span>
+                <span className="block mt-2 font-mono text-xs text-ink-soft">
+                  Last updated: <b className="text-marigold">{updatedLabel}</b> · Tested on Chrome, Firefox, Edge, Safari
                 </span>
               </div>
             </div>
@@ -444,6 +479,13 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
               )
             )}
 
+            {/* Honest limitation callout — only when supplied, no placeholder */}
+            {limitation && (
+              <Callout variant="warning" className="mb-10">
+                <><strong>Honest limitation:</strong> {limitation}</>
+              </Callout>
+            )}
+
             {/* Tips & Best Practices */}
             {guide?.tips?.length > 0 && (
               <section className="mb-10 p-5 bg-amber-50 rounded-xl border border-amber-200">
@@ -499,6 +541,9 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
                 </div>
               </section>
             )}
+
+            {/* Author / testing trust box */}
+            <AuthorBox />
 
           </main>
 
