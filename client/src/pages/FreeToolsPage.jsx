@@ -145,7 +145,7 @@ export default function FreeToolsPage() {
             <div className="space-y-4 text-gray-600 text-sm leading-relaxed">
               <p>AWE-OS was built with a simple belief: professional-grade tools should be accessible to everyone in India — students, freelancers, teachers, homemakers, and small business owners — regardless of their income or technical background. Every tool on this page is 100% free with no hidden fees, no subscription tiers, and no features locked behind a paywall. (Our AI-powered tools, like the Resume Builder and Content Writer, are the exception — they require a free account and, for heavy use, a paid plan.)</p>
               <p>Unlike most "free" tool sites that limit you to 3 downloads per day or watermark your output files, AWE-OS tools have no such restrictions. Merge 50 PDFs, calculate your EMI 100 times, generate unlimited QR codes — everything runs without usage counters or artificial limits. The tools process your files entirely in your browser using JavaScript, which means no server costs are passed on to you and your files never leave your device.</p>
-              <p>We sustain AWE-OS through non-intrusive advertising and optional premium features for power users who want cloud storage and priority support. The core tools — all {tools.length} of them — will always remain free for everyday use by individuals and small businesses across India.</p>
+              <p>AWE-OS is funded by advertising and by digital products we build and sell in our Store. The free tools have no usage limits, no watermarks, and no hidden fees — and that won't change.</p>
               <div>
                 <h3 className="text-base font-semibold text-gray-900 mb-3">Popular Free Tools You Can Use Right Now</h3>
                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -179,7 +179,7 @@ export default function FreeToolsPage() {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 text-sm mb-1">How do you make money if the tools are free?</p>
-                    <p>AWE-OS earns through non-intrusive advertising shown on pages and optional premium subscriptions for business users who need advanced features. The free tools will always stay free for individual and personal use.</p>
+                    <p>AWE-OS is funded by advertising and by digital products we build and sell in our Store. The free tools have no usage limits, no watermarks, and no hidden fees — and that won't change.</p>
                   </div>
                 </div>
               </div>
