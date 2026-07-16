@@ -16,7 +16,7 @@ const VALUES = [
   { icon: '🔒', title: 'Private & Safe',    desc: 'We never sell your data. Files you process in our PDF tools are never stored on our servers. Your inputs stay yours.' },
   { icon: '🤖', title: 'AI-Powered',        desc: 'Cutting-edge language models and machine learning algorithms work behind every AI tool to deliver smarter, more accurate results.' },
   { icon: '📱', title: 'Mobile First',      desc: 'Every tool works perfectly on your phone, tablet or desktop. No app download needed — just open your browser and start.' },
-  { icon: '🌍', title: 'Built for Everyone', desc: 'From students in Lagos to freelancers in London, AWE-OS is designed to be useful regardless of your device, language, or technical skill.' },
+  { icon: '🌍', title: 'Built for Everyone', desc: 'From students in Hyderabad to freelancers in Delhi, AWE-OS is designed to be useful regardless of your device, language, or technical skill.' },
 ]
 
 const CATEGORIES = [
@@ -126,8 +126,8 @@ export default function AboutPage() {
             <p>
               AWE-OS was built to give everyone access to tools that usually cost money or require accounts.
               PDF tools, financial calculators, and converters are free and run entirely in your browser — no
-              account needed. Whether you&apos;re a student in Mumbai, a freelancer in Lagos, or a small business
-              owner in London, you deserve the same powerful tools as any Fortune 500 company.
+              account needed. Whether you&apos;re a student in Hyderabad, a freelancer in Delhi, or a small
+              business owner anywhere in India, you deserve the same powerful tools as any Fortune 500 company.
             </p>
             <p>
               <strong>Privacy is not an afterthought — it&apos;s our foundation.</strong> No data is sent to any

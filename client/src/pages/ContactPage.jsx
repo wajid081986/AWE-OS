@@ -40,7 +40,7 @@ export default function ContactPage() {
       setStatus('success')
       setForm({ name: '', email: '', subject: '', message: '' })
     } catch {
-      window.location.href = `mailto:contact@awe-os.com?subject=${encodeURIComponent(form.subject)}&body=${encodeURIComponent(form.message)}`
+      window.location.href = `mailto:support@awe-os.com?subject=${encodeURIComponent(form.subject)}&body=${encodeURIComponent(form.message)}`
       setStatus(null)
     }
   }
@@ -107,7 +107,7 @@ export default function ContactPage() {
                   { q: 'What is your response time?',      a: 'We aim to reply within 24 hours on weekdays (Monday–Friday, IST). Messages sent over the weekend are typically answered by Monday morning.' },
                   { q: 'How do I report a bug?',           a: "Use the contact form below and select 'Bug Report' as the subject. Include the tool name, what you were trying to do, and what happened instead. Screenshots help a lot." },
                   { q: 'Can I request a new tool?',        a: "Absolutely. We add new tools every few weeks based on user demand. Select 'Feature Request' in the form and describe the tool you need and your specific use case." },
-                  { q: 'Are all AWE-OS tools really free?',a: 'Yes — every tool is free with no usage limits, no watermarks, and no hidden fees. No credit card or subscription required. We earn through non-intrusive advertising.' },
+                  { q: 'Are all AWE-OS tools really free?',a: 'Yes — every tool is free with no usage limits, no watermarks, and no hidden fees. No credit card or subscription required. We earn through advertising and our own digital products in the Store — the free tools stay free.' },
                 ].map(({ q, a }) => (
                   <div key={q} className="border border-gray-200 rounded-xl p-4 bg-white">
                     <p className="text-sm font-semibold text-gray-900 mb-1.5">{q}</p>
@@ -134,10 +134,10 @@ export default function ContactPage() {
                   <div>
                     <p className="text-sm font-semibold text-gray-900">Email</p>
                     <a
-                      href="mailto:contact@awe-os.com"
+                      href="mailto:support@awe-os.com"
                       className="text-sm text-blue-600 hover:underline mt-0.5 block"
                     >
-                      contact@awe-os.com
+                      support@awe-os.com
                     </a>
                   </div>
                 </div>
