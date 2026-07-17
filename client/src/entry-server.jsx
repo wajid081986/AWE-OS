@@ -43,18 +43,26 @@
  *    route-level code-splitting), which renderToString never emitted
  *    boundary markers for. Fixed by switching to renderToPipeableStream
  *    (which does emit them) and wrapping each rendered route element in a
- *    matching <Suspense> here. Tool routes need a SECOND, nested
- *    <Suspense> too: DynamicToolPage.jsx (the client's /tools/:slug
- *    renderer, bypassed here since components are imported directly —
- *    see TOOL_PAGE_COMPONENTS below) wraps its resolved component in its
- *    own internal <Suspense>, so tool routes get two nested layers to
- *    match; every other route gets one.
+ *    matching <Suspense> here.
  *
- * See docs/batches/batch-5.6-ssg-hydration.md.
+ *    UPDATE (batch 5.6b, docs/batches/batch-5.6b-hydration-race.md): this
+ *    point originally said tool routes needed a SECOND, nested <Suspense>
+ *    to match DynamicToolPage.jsx's own internal boundary. That extra
+ *    boundary (both here and in DynamicToolPage.jsx) has been REMOVED —
+ *    it caused React's hydration algorithm to mis-consume the inner
+ *    boundary's markers once Batch 5.6b's preload-before-hydrate fix made
+ *    both lazy layers resolve synchronously instead of across a staged
+ *    async gap (React error #422, confirmed via DOM diff, reproduced on
+ *    multiple tool routes). Tool routes now get exactly ONE boundary,
+ *    same as every other route.
+ *
+ * See docs/batches/batch-5.6-ssg-hydration.md and
+ * docs/batches/batch-5.6b-hydration-race.md.
  */
 
 import { Suspense } from 'react'
 import { renderToPipeableStream } from 'react-dom/server'
+import { ChunkErrorBoundary, ToolErrorBoundary } from './components/errors'
 import { Writable } from 'node:stream'
 import { StaticRouter } from 'react-router'
 import { Routes, Route } from 'react-router-dom'
@@ -216,9 +224,33 @@ export function buildRoutes() {
   for (const [slug, Comp] of Object.entries(TOOL_PAGE_COMPONENTS)) {
     routes.push({
       path: `/tools/${slug}`, pattern: `/tools/${slug}`,
-      // Inner Suspense matches DynamicToolPage.jsx's own boundary around
-      // the resolved tool component (client-side) — see file header.
-      element: <Suspense fallback={null}><Comp /></Suspense>, outFile: `tools/${slug}/index.html`,
+      // No inner Suspense here (batch 5.6b) — DynamicToolPage.jsx no
+      // longer has one either; see its file header for why the second,
+      // nested boundary this used to mirror was removed. The outer
+      // Suspense at this file's renderRoute() (matching routes.jsx's
+      // route-level lazy$()) is now the only boundary for tool routes,
+      // same as every other route.
+      //
+      // ChunkErrorBoundary/ToolErrorBoundary wrap here too (batch 5.6b) —
+      // confirmed root cause of the #422 hydration mismatch: DynamicToolPage.jsx
+      // always wraps its resolved tool in these on the client, and
+      // ToolErrorBoundary's non-error render path returns a REAL host
+      // element (`<div style={{display:'contents'}}>`, ToolErrorBoundary.jsx),
+      // not a pass-through — this file previously never rendered it at
+      // all, so that div had zero server-side counterpart. Confirmed via
+      // a stub test (temporarily removing both boundaries client-side
+      // flipped merge-pdf/split-pdf from 10/10 FAIL to 10/10 PASS).
+      // ChunkErrorBoundary itself is a pure pass-through (no host DOM)
+      // and isn't required for parity, but included for identical error
+      // isolation during SSR too.
+      element: (
+        <ChunkErrorBoundary>
+          <ToolErrorBoundary toolName={slug}>
+            <Comp />
+          </ToolErrorBoundary>
+        </ChunkErrorBoundary>
+      ),
+      outFile: `tools/${slug}/index.html`,
     })
   }
 

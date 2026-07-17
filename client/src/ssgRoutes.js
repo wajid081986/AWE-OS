@@ -63,26 +63,31 @@ export function isSsgRoute(pathname, knownPaths) {
   return set.has(normalize(pathname))
 }
 
-const TOOL_SLUG_SET = new Set(TOOL_SLUGS)
-
 /**
- * Category-level hydrateRoot allowlist, per the batch's 3-run determination
- * sweep (docs/batches/batch-5.6-ssg-hydration.md): individual /tools/:slug
- * pages (all 48/48 failed — an early-effect-vs-Suspense-hydration race, root
- * cause not yet isolated) and the whole /blog family (38/41 passed 3/3, but
- * "an individual passing blog post today may fail tomorrow" per the flaky
- * members — excluded as a category, not a per-URL allowlist) still need
- * createRoot. Everything else in SSG_PATHS (home, tool category/index pages,
- * static pages, all 24 city pages, compare, faq) passed 3/3 clean.
+ * Category-level hydrateRoot allowlist. Originally (Batch 5.6, per a 3-run
+ * determination sweep) excluded individual /tools/:slug pages (48/48 failed)
+ * and the whole /blog family (38/41 passed 3/3, but excluded as a category
+ * since "an individual passing blog post today may fail tomorrow"). Both
+ * exclusions REMOVED in Batch 5.6b (docs/batches/batch-5.6b-hydration-race.md)
+ * after isolating and fixing two real, independent bugs:
+ *   (a) tool pages: entry-server.jsx never rendered ChunkErrorBoundary/
+ *       ToolErrorBoundary around tool components, but ToolErrorBoundary's
+ *       non-error render path returns a real host element
+ *       (<div style={{display:'contents'}}>) — a deterministic hydration
+ *       mismatch on every tool page. Fixed by wrapping entry-server.jsx's
+ *       tool routes in the same boundaries the client uses.
+ *   (b) the underlying lazy()-vs-hydration timing race (React #421,
+ *       intermittent on home/category/city pages, ~100% on tool pages'
+ *       double-lazy waterfall) — fixed by hydratePreload.js resolving
+ *       every route's lazy import(s) before hydrateRoot is ever called.
+ * Re-validated after both fixes: force-hydrate stress tests 10/10 clean on
+ * 3 heavy tool pages + 2 blog posts + homepage + a previously-flaky city
+ * page, plus 5/5 full-site sweeps (3x concurrency=2, 2x concurrency=1).
  *
- * This does NOT affect ssg-build.js — excluded routes still get prerendered
- * static HTML (SEO/first-paint benefit unchanged); only the CLIENT'S
- * hydrateRoot-vs-createRoot choice is gated by this.
+ * This does NOT affect ssg-build.js — every SSG_PATHS route still gets
+ * prerendered static HTML regardless; this only gates the CLIENT'S
+ * hydrateRoot-vs-createRoot choice.
  */
-export function isHydrationSafe(pathname) {
-  const normalized = normalize(pathname)
-  if (normalized === '/blog' || normalized.startsWith('/blog/')) return false
-  const toolSlugMatch = /^\/tools\/([a-z0-9-]+)$/.exec(normalized)
-  if (toolSlugMatch && TOOL_SLUG_SET.has(toolSlugMatch[1])) return false
+export function isHydrationSafe(_pathname) {
   return true
 }

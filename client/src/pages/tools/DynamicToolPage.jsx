@@ -1,7 +1,8 @@
 /**
  * DynamicToolPage — unified entry point for all /tools/:slug routes.
  *
- * AUTO-REGISTRATION: To add a new tool, add ONE line to TOOL_COMPONENTS:
+ * AUTO-REGISTRATION: To add a new tool, add ONE line to
+ * toolComponentMap.js's TOOL_COMPONENTS:
  *   'your-slug': () => import('./YourComponent')
  * No other changes needed — lazy() wrapping, aliases, and fallback are
  * all handled automatically.
@@ -12,89 +13,33 @@
  *
  * Error isolation (outermost → innermost):
  *  ChunkErrorBoundary → chunk download failures (network, post-deploy 404)
- *    Suspense → lazy loading state
- *      ToolErrorBoundary → render errors inside the tool
+ *    ToolErrorBoundary → render errors inside the tool
+ *
+ * No local <Suspense> here (batch 5.6b, docs/batches/batch-5.6b-hydration-race.md)
+ * — this used to wrap a SECOND, nested Suspense boundary inside routes.jsx's
+ * own route-level one, and entry-server.jsx manually mirrored it for SSR.
+ * Two adjacent Suspense boundaries with nothing between them made React's
+ * hydration algorithm mis-consume the inner boundary's markers once both
+ * lazy layers started resolving synchronously (thanks to Option A's
+ * preload) instead of across a staged async gap — a structural mismatch
+ * (React error #422), confirmed via DOM diff and reproduced identically
+ * on split-pdf. Removing this boundary gives tool pages the same single-
+ * Suspense shape every other hydrated route already has; ToolComponent /
+ * ToolDetailPage now suspend up to routes.jsx's route-level boundary
+ * instead, which already covers this same visual area during client-side
+ * navigation too (ToolComponent renders ToolPageShell itself, so the
+ * "loading" zone was always the whole page either way — see plan doc).
  */
 
-import { lazy, Suspense } from 'react'
+import { lazy } from 'react'
 import { useParams } from 'react-router-dom'
 import { SLUG_ALIASES } from '../../data/toolRegistry'
 import { ChunkErrorBoundary, ToolErrorBoundary } from '../../components/errors'
-
-// ── Tool import registry ───────────────────────────────────────────────────
-// Add new tools here: 'slug': () => import('./ComponentFile')
-// lazy() is applied on first access and cached — do NOT wrap in lazy() here.
-
-const TOOL_COMPONENTS = {
-  // PDF — Organize
-  'merge-pdf':           () => import('./pdf/MergePDF'),
-  'split-pdf':           () => import('./pdf/SplitPDF'),
-  'compress-pdf':        () => import('./pdf/CompressPDF'),
-  'rotate-pdf':          () => import('./pdf/RotatePDF'),
-  'remove-pages-pdf':    () => import('./pdf/RemovePagesPDF'),
-  'extract-pages-pdf':   () => import('./pdf/ExtractPagesPDF'),
-  'organize-pdf':        () => import('./pdf/OrganizePDF'),
-  'test-ai-tool':        () => import('../tools/TestAiTool'),
-
-  // PDF — Convert to PDF
-  'jpg-to-pdf':          () => import('./pdf/JPGtoPDF'),
-  'word-to-pdf':         () => import('./pdf/WordToPDF'),
-  'excel-to-pdf':        () => import('./pdf/ExcelToPDF'),
-  'powerpoint-to-pdf':   () => import('./pdf/PowerPointToPDF'),
-
-  // PDF — Convert from PDF
-  'pdf-to-jpg':          () => import('./pdf/PDFtoJPG'),
-  'pdf-to-word':         () => import('./pdf/PDFtoWord'),
-  'pdf-to-excel':        () => import('./pdf/PDFtoExcel'),
-  'pdf-to-text':         () => import('./pdf/PDFtoText'),
-  'pdf-to-ppt':          () => import('./pdf/PDFtoPPT'),
-
-  // PDF — Edit
-  'watermark-pdf':       () => import('./pdf/WatermarkPDF'),
-  'page-numbers-pdf':    () => import('./pdf/PageNumbersPDF'),
-  'pdf-editor':          () => import('./pdf/PdfEditor'),
-
-  // PDF — Security
-  'protect-pdf':         () => import('./pdf/ProtectPDF'),
-  'unlock-pdf':          () => import('./pdf/UnlockPDF'),
-
-  // Calculators
-  'age-calculator':        () => import('./AgeCalculator'),
-  'bmi-calculator':        () => import('./BMICalculator'),
-  'discount-calculator':   () => import('./DiscountCalculator'),
-  'gpa-calculator':        () => import('./GPACalculator'),
-  'gst-calculator':        () => import('./GSTCalculator'),
-  'loan-calculator':       () => import('./LoanCalculator'),
-  'percentage-calculator': () => import('./PercentageCalculator'),
-  'roi-calculator':        () => import('./ROICalculator'),
-  'sip-calculator':        () => import('./SIPCalculator'),
-  'tax-calculator':        () => import('./TaxCalculator'),
-  'tip-calculator':        () => import('./TipCalculator'),
-
-  // Converters & Utilities
-  'base-converter':        () => import('./BaseConverter'),
-  'color-picker':          () => import('./ColorPicker'),
-  'csv-to-json':           () => import('./CSVtoJSON'),
-  'currency-converter':    () => import('./CurrencyConverter'),
-  'image-compressor':      () => import('./ImageCompressor'),
-  'json-formatter':        () => import('./JSONFormatter'),
-  'password-generator':    () => import('./PasswordGenerator'),
-  'qr-code-generator':     () => import('./QRCodeGenerator'),
-  'unit-converter':        () => import('./UnitConverter'),
-  'word-counter':          () => import('./WordCounter'),
-
-  // AI Tools
-  'ai-content-writer':     () => import('./ai/ContentWriter'),
-  'resume-builder':        () => import('./ai/ResumeBuilder'),
-
-  // Productivity / Legal
-  'contract-generator':    () => import('./ContractGenerator'),
-  'invoice-generator':     () => import('./InvoiceGenerator'),
-
-  // Finance
-  'fd-calculator':         () => import('./FDCalculator'),
-  'ppf-calculator':        () => import('./PPFCalculator'),
-}
+// Slug -> import() map, hoisted to toolComponentMap.js (batch 5.6b) so
+// hydratePreload.js can await the same closures before hydrateRoot runs
+// without importing this file's React/JSX into main.jsx's eager bundle.
+// Add new tools there, not here.
+import { TOOL_COMPONENTS } from './toolComponentMap'
 
 // Module-level cache: slug → lazy component.
 // Ensures the same lazy() instance is returned for a given slug across renders,
@@ -106,24 +51,6 @@ function getOrCreateLazy(slug, importFn) {
     _lazyCache[slug] = lazy(importFn)
   }
   return _lazyCache[slug]
-}
-
-// ── Loading spinner ────────────────────────────────────────────────────────
-
-function PageLoader() {
-  return (
-    <div
-      className="flex items-center justify-center min-h-[40vh]"
-      role="status"
-      aria-label="Loading tool"
-    >
-      <div
-        className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"
-        aria-hidden="true"
-      />
-      <span className="sr-only">Loading…</span>
-    </div>
-  )
 }
 
 // ── Lazy fallback (API-driven tools) ───────────────────────────────────────
@@ -142,15 +69,13 @@ export default function DynamicToolPage() {
 
   return (
     <ChunkErrorBoundary>
-      <Suspense fallback={<PageLoader />}>
-        {ToolComponent ? (
-          <ToolErrorBoundary toolName={slug}>
-            <ToolComponent />
-          </ToolErrorBoundary>
-        ) : (
-          <ToolDetailPage />
-        )}
-      </Suspense>
+      {ToolComponent ? (
+        <ToolErrorBoundary toolName={slug}>
+          <ToolComponent />
+        </ToolErrorBoundary>
+      ) : (
+        <ToolDetailPage />
+      )}
     </ChunkErrorBoundary>
   )
 }
