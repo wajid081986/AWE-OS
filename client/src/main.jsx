@@ -9,6 +9,7 @@ import { validateRegistry, validateEnv } from './safety';
 import { ADSENSE_CONFIG, ADS_ACTIVE } from './adsense.config';
 import { isSsgRoute, isHydrationSafe } from './ssgRoutes';
 import { SSG_PATHS } from './ssgRoutes.generated';
+import { preloadForHydration } from './hydratePreload';
 
 // Bootstrap Web Vitals and performance monitoring
 initMonitoring()
@@ -72,12 +73,29 @@ const canHydrate = rootEl.hasChildNodes()
   && isSsgRoute(window.location.pathname, SSG_PATHS)
   && (window.__AWE_FORCE_HYDRATE__ === true || isHydrationSafe(window.location.pathname));
 
-if (canHydrate) {
-  ReactDOM.hydrateRoot(rootEl, app);
-} else {
-  rootEl.replaceChildren(); // clear stale markup (e.g. rewrite-fallback homepage HTML) before a clean mount
-  ReactDOM.createRoot(rootEl).render(app);
+// Batch 5.6b (docs/batches/batch-5.6b-hydration-race.md): root cause of
+// the #421/#422 hydration race was entry-server.jsx's SSR output never
+// actually suspending (every page imported directly, no lazy()), while
+// the client MUST resolve one or more lazy() chunks before it can render
+// the same tree — any real resolution latency lets that chunk's promise
+// "ping" its Suspense boundary mid-hydration. Fix: resolve every lazy
+// import the matched route needs BEFORE calling hydrateRoot, so nothing
+// is left to resolve asynchronously once hydration starts. This is why
+// mount() is async — hydrateRoot below simply isn't reached until
+// preloadForHydration's awaits settle. No UX cost: the SSG'd HTML is
+// already painted on screen for the whole wait, and the page wasn't
+// interactive before this chunk loaded either way.
+async function mount() {
+  if (canHydrate) {
+    await preloadForHydration(window.location.pathname);
+    ReactDOM.hydrateRoot(rootEl, app);
+  } else {
+    rootEl.replaceChildren(); // clear stale markup (e.g. rewrite-fallback homepage HTML) before a clean mount
+    ReactDOM.createRoot(rootEl).render(app);
+  }
+
+  // Remove visibility:hidden guard — React has begun rendering
+  rootEl.classList.add('mounted');
 }
 
-// Remove visibility:hidden guard — React has begun rendering
-rootEl.classList.add('mounted');
+mount();

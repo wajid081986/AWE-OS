@@ -21,6 +21,9 @@
 import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import PublicLayout   from '../components/PublicLayout'
+// SSG-hydrated public routes source their lazy import from here, shared
+// with hydratePreload.js (batch 5.6b) — see routeImports.js's header.
+import { ROUTE_IMPORTS } from '../routeImports'
 
 // Lazy — these are internal-only (behind Login), never needed for a public
 // page load. AdminShell eagerly pulls in axios via api.service.js, and none
@@ -30,23 +33,23 @@ const AdminShell     = lazy(() => import('../shared/components/AdminShell'))
 const ProtectedRoute = lazy(() => import('../shared/components/ProtectedRoute'))
 
 // ── Public pages ──────────────────────────────────────────────────────────────
-const Home           = lazy(() => import('../pages/Home'))
-const ToolsPage      = lazy(() => import('../pages/ToolsPage'))
-const CategoryPage   = lazy(() => import('../pages/CategoryPage'))
-const DynamicToolPage = lazy(() => import('../pages/tools/DynamicToolPage'))
-const AboutPage      = lazy(() => import('../pages/AboutPage'))
-const PrivacyPolicy  = lazy(() => import('../pages/PrivacyPolicy'))
-const Terms          = lazy(() => import('../pages/Terms'))
-const Disclaimer     = lazy(() => import('../pages/Disclaimer'))
-const EditorialPolicy    = lazy(() => import('../pages/EditorialPolicy'))
-const ToolTestingPolicy  = lazy(() => import('../pages/ToolTestingPolicy'))
-const AiContentPolicy    = lazy(() => import('../pages/AiContentPolicy'))
-const CorrectionsPolicy  = lazy(() => import('../pages/CorrectionsPolicy'))
-const AdvertisingPolicy  = lazy(() => import('../pages/AdvertisingPolicy'))
-const ContactPage    = lazy(() => import('../pages/ContactPage'))
-const FreeToolsPage  = lazy(() => import('../pages/FreeToolsPage'))
-const BlogPage       = lazy(() => import('../pages/BlogPage'))
-const BlogPostPage   = lazy(() => import('../pages/BlogPostPage'))
+const Home           = lazy(ROUTE_IMPORTS.home)
+const ToolsPage      = lazy(ROUTE_IMPORTS.toolsIndex)
+const CategoryPage   = lazy(ROUTE_IMPORTS.categoryPage)
+const DynamicToolPage = lazy(ROUTE_IMPORTS.dynamicToolPage)
+const AboutPage      = lazy(ROUTE_IMPORTS.about)
+const PrivacyPolicy  = lazy(ROUTE_IMPORTS.privacyPolicy)
+const Terms          = lazy(ROUTE_IMPORTS.terms)
+const Disclaimer     = lazy(ROUTE_IMPORTS.disclaimer)
+const EditorialPolicy    = lazy(ROUTE_IMPORTS.editorialPolicy)
+const ToolTestingPolicy  = lazy(ROUTE_IMPORTS.toolTestingPolicy)
+const AiContentPolicy    = lazy(ROUTE_IMPORTS.aiContentPolicy)
+const CorrectionsPolicy  = lazy(ROUTE_IMPORTS.correctionsPolicy)
+const AdvertisingPolicy  = lazy(ROUTE_IMPORTS.advertisingPolicy)
+const ContactPage    = lazy(ROUTE_IMPORTS.contact)
+const FreeToolsPage  = lazy(ROUTE_IMPORTS.freeTools)
+const BlogPage       = lazy(ROUTE_IMPORTS.blog)
+const BlogPostPage   = lazy(ROUTE_IMPORTS.blogPost)
 const NotFoundPage   = lazy(() => import('../pages/NotFoundPage'))
 
 // ── Payment pages ─────────────────────────────────────────────────────────────
@@ -121,9 +124,9 @@ const ProgrammaticSeo            = lazy(() => import('../modules/admin/seo/Progr
 const SeoAuditEngine             = lazy(() => import('../modules/admin/seo/SeoAuditEngine'))
 const CrawlEnginePage            = lazy(() => import('../modules/admin/seo/CrawlEngine'))
 const SeoIntelligence            = lazy(() => import('../modules/admin/seo/SeoIntelligence'))
-const CityToolPage               = lazy(() => import('../pages/CityToolPage'))
-const CompareToolPage            = lazy(() => import('../pages/CompareToolPage'))
-const FaqCategoryPage            = lazy(() => import('../pages/FaqCategoryPage'))
+const CityToolPage               = lazy(ROUTE_IMPORTS.cityToolPage)
+const CompareToolPage            = lazy(ROUTE_IMPORTS.compareToolPage)
+const FaqCategoryPage            = lazy(ROUTE_IMPORTS.faqCategoryPage)
 
 // ── Shared suspense wrapper ───────────────────────────────────────────────────
 function PageLoader() {

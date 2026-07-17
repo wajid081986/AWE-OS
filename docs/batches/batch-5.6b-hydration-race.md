@@ -512,6 +512,69 @@ fix.
    its **own separate commit** — independently revertible from the fix
    commits, per standing rollback posture.
 
+## Implementation of A (2026-07-17) — partial success, new finding
+
+Built the 5-file preload-before-hydrate implementation exactly per plan
+(`routeImports.js`, `toolComponentMap.js`, `hydratePreload.js`,
+`routes.jsx`/`DynamicToolPage.jsx` sourcing from the shared modules,
+async `mount()` in `main.jsx`). Validation ladder step 1 result:
+
+- **`/tools/merge-pdf`, plain profile, force-hydrate: still 10/10 FAIL.**
+  BUT the error changed — from `Minified React error #421`
+  ("received an update before it finished hydrating") to `#422`
+  ("switched to client rendering"), preceded (dev-mode splice) by a
+  genuine mismatch warning: `Expected server HTML to contain a matching
+  <div> in <div>` and `Hydration failed because the initial UI does not
+  match what was rendered on the server` (×2).
+
+**The timing race IS closed** — #421's exact message never recurs after
+the fix, on any run. **A second, previously-masked bug surfaced in its
+place.** Root-caused via a structural DOM diff (`hydration-stress.js`'s
+target page vs. a captured post-recovery live DOM, tag-sequence
+comparison): at the exact point where `DynamicToolPage`'s resolved
+content begins, the live/recovered DOM shows
+
+    <!--$--><!--/$--><div style="display: contents;"><div class="max-w-7xl...
+
+— `<!--$--><!--/$-->` is a boundary that's already been closed as
+*complete*, immediately followed by `<div style="display: contents;">`,
+which is React's own internal wrapper for a Suspense boundary that has
+already fallen back to client-only rendering. The original SSR output at
+this same position is `<!--$--><!--$-->` (both of `entry-server.jsx`'s
+two manually-nested boundaries, back-to-back, both complete, zero DOM
+between — as documented in step 7 above). This means React's hydration
+algorithm is not correctly matching the **inner** (nested) boundary's
+markers against `DynamicToolPage`'s real inner `<Suspense>` — plausibly
+because, now that the preload makes *both* the outer (`DynamicToolPage`
+itself) and inner (`ToolComponent`) lazy chunks resolve essentially
+synchronously before `hydrateRoot` is even called, React discovers the
+inner boundary as part of a single synchronous resolution rather than
+across a staged/async gap, and its marker-consumption for that scenario
+does not correctly consume the second `<!--$-->`/`<!--/$-->` pair —
+a different, deeper mechanism than either the original timing-race
+theory or the initial "extra wrapper component" theory.
+
+**Confirmed systemic, not `merge-pdf`-specific**: `/tools/split-pdf`
+(also a `pdf-lib`-heavy tool, different component) — 5/5 FAIL, identical
+`Minified React error #422`.
+
+**Confirmed no regression on single-lazy-layer routes**: `/` (homepage,
+routes.jsx's single `lazy$(<Home/>)` wrap, no nested inner Suspense) —
+**10/10 PASS** with the preload fix active, same as before. The preload
+mechanism itself works correctly; the remaining failure is specific to
+the *nested*-Suspense-boundary shape unique to `/tools/:slug` routes
+(`DynamicToolPage`'s own internal `<Suspense>` around `ToolComponent`).
+
+**Status**: Option A's core mechanism (await lazy imports before
+`hydrateRoot`) is validated as sound and does close the originally-
+diagnosed timing race. It does not, by itself, clear tool pages, because
+it has surfaced a second, previously-hidden bug specific to hydrating a
+*nested* dehydrated Suspense boundary. This second bug needs its own
+root-cause pass before tool pages can pass the validation ladder.
+Validation ladder steps 2-5 not yet run to full completion pending this.
+No further code changes made past this point — reporting before
+proceeding further.
+
 ## In-passing fix (owner-approved, tooling only)
 
 `hydration-sweep.js` and `hydration-stress.js`'s
