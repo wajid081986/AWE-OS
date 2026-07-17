@@ -62,6 +62,7 @@
 
 import { Suspense } from 'react'
 import { renderToPipeableStream } from 'react-dom/server'
+import { ChunkErrorBoundary, ToolErrorBoundary } from './components/errors'
 import { Writable } from 'node:stream'
 import { StaticRouter } from 'react-router'
 import { Routes, Route } from 'react-router-dom'
@@ -229,7 +230,27 @@ export function buildRoutes() {
       // Suspense at this file's renderRoute() (matching routes.jsx's
       // route-level lazy$()) is now the only boundary for tool routes,
       // same as every other route.
-      element: <Comp />, outFile: `tools/${slug}/index.html`,
+      //
+      // ChunkErrorBoundary/ToolErrorBoundary wrap here too (batch 5.6b) —
+      // confirmed root cause of the #422 hydration mismatch: DynamicToolPage.jsx
+      // always wraps its resolved tool in these on the client, and
+      // ToolErrorBoundary's non-error render path returns a REAL host
+      // element (`<div style={{display:'contents'}}>`, ToolErrorBoundary.jsx),
+      // not a pass-through — this file previously never rendered it at
+      // all, so that div had zero server-side counterpart. Confirmed via
+      // a stub test (temporarily removing both boundaries client-side
+      // flipped merge-pdf/split-pdf from 10/10 FAIL to 10/10 PASS).
+      // ChunkErrorBoundary itself is a pure pass-through (no host DOM)
+      // and isn't required for parity, but included for identical error
+      // isolation during SSR too.
+      element: (
+        <ChunkErrorBoundary>
+          <ToolErrorBoundary toolName={slug}>
+            <Comp />
+          </ToolErrorBoundary>
+        </ChunkErrorBoundary>
+      ),
+      outFile: `tools/${slug}/index.html`,
     })
   }
 
