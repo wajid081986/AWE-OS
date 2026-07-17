@@ -13,11 +13,25 @@
  *
  * Error isolation (outermost → innermost):
  *  ChunkErrorBoundary → chunk download failures (network, post-deploy 404)
- *    Suspense → lazy loading state
- *      ToolErrorBoundary → render errors inside the tool
+ *    ToolErrorBoundary → render errors inside the tool
+ *
+ * No local <Suspense> here (batch 5.6b, docs/batches/batch-5.6b-hydration-race.md)
+ * — this used to wrap a SECOND, nested Suspense boundary inside routes.jsx's
+ * own route-level one, and entry-server.jsx manually mirrored it for SSR.
+ * Two adjacent Suspense boundaries with nothing between them made React's
+ * hydration algorithm mis-consume the inner boundary's markers once both
+ * lazy layers started resolving synchronously (thanks to Option A's
+ * preload) instead of across a staged async gap — a structural mismatch
+ * (React error #422), confirmed via DOM diff and reproduced identically
+ * on split-pdf. Removing this boundary gives tool pages the same single-
+ * Suspense shape every other hydrated route already has; ToolComponent /
+ * ToolDetailPage now suspend up to routes.jsx's route-level boundary
+ * instead, which already covers this same visual area during client-side
+ * navigation too (ToolComponent renders ToolPageShell itself, so the
+ * "loading" zone was always the whole page either way — see plan doc).
  */
 
-import { lazy, Suspense } from 'react'
+import { lazy } from 'react'
 import { useParams } from 'react-router-dom'
 import { SLUG_ALIASES } from '../../data/toolRegistry'
 import { ChunkErrorBoundary, ToolErrorBoundary } from '../../components/errors'
@@ -39,24 +53,6 @@ function getOrCreateLazy(slug, importFn) {
   return _lazyCache[slug]
 }
 
-// ── Loading spinner ────────────────────────────────────────────────────────
-
-function PageLoader() {
-  return (
-    <div
-      className="flex items-center justify-center min-h-[40vh]"
-      role="status"
-      aria-label="Loading tool"
-    >
-      <div
-        className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"
-        aria-hidden="true"
-      />
-      <span className="sr-only">Loading…</span>
-    </div>
-  )
-}
-
 // ── Lazy fallback (API-driven tools) ───────────────────────────────────────
 
 const ToolDetailPage = lazy(() => import('../ToolDetailPage'))
@@ -73,15 +69,13 @@ export default function DynamicToolPage() {
 
   return (
     <ChunkErrorBoundary>
-      <Suspense fallback={<PageLoader />}>
-        {ToolComponent ? (
-          <ToolErrorBoundary toolName={slug}>
-            <ToolComponent />
-          </ToolErrorBoundary>
-        ) : (
-          <ToolDetailPage />
-        )}
-      </Suspense>
+      {ToolComponent ? (
+        <ToolErrorBoundary toolName={slug}>
+          <ToolComponent />
+        </ToolErrorBoundary>
+      ) : (
+        <ToolDetailPage />
+      )}
     </ChunkErrorBoundary>
   )
 }

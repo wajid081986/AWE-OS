@@ -575,6 +575,70 @@ Validation ladder steps 2-5 not yet run to full completion pending this.
 No further code changes made past this point — reporting before
 proceeding further.
 
+## B-lite (2026-07-17) — did not fix it; disproves the nested-boundary theory
+
+Per owner direction, tried B-lite (smaller than full B) before full route
+flattening: removed `DynamicToolPage.jsx`'s internal `<Suspense>` (tool
+components now suspend up to `routes.jsx`'s route-level boundary
+directly) and `entry-server.jsx`'s matching manually-added second nested
+`<Suspense>` for tool routes — one boundary for `/tools/:slug`, same
+shape as every other route. Kept Option A's preload exactly as-is.
+
+- Build clean, 134 routes. Confirmed `dist/tools/merge-pdf/index.html`
+  now emits exactly **1** boundary marker pair (was 2). Confirmed full
+  content still present (steps/FAQ/limitation/author-box all intact —
+  the boundary removal didn't drop any rendered output).
+- `hydration-stress.js`, force-hydrate, `/tools/merge-pdf`, plain
+  profile: **still 10/10 FAIL**, still `Minified React error #422`.
+
+**This disproves the nested-boundary-marker theory from Option A's
+implementation log.** Dev-mode splice against the B-lite build shows the
+exact same warning at the exact same location:
+
+    Warning: Expected server HTML to contain a matching <div> in <div>.
+        at div
+        at ToolPageShell (.../ToolPageShell.jsx:245:41)
+        at MergePDF
+        at div
+        at ToolErrorBoundary
+        at ChunkErrorBoundary
+        at DynamicToolPage
+        at Suspense          <- only ONE Suspense frame now, confirmed
+        ...
+
+A second structural DOM diff against the B-lite build shows *why* the
+earlier diff was misleading: the `<div style="display: contents;">`
+this batch attributed to "nested boundary marker mismatch" is actually
+just **React's generic wrapper for any Suspense boundary that has
+already fallen back to client rendering** — it appears identically with
+a single boundary. It's evidence hydration failed, not the cause. Once
+that's understood, the earlier diff's real information is just: some
+child of `ToolPageShell` (the stack shows no further component between
+`ToolPageShell` and the mismatch site) doesn't produce the same host DOM
+on the client as `entry-server.jsx` produced during SSR — a genuine,
+independent content/structure bug, not a Suspense-timing or Suspense-
+shape issue at all. It was masked until now because the original #421
+timing race always fired first and never let hydration walk deep enough
+to reach it.
+
+**Both Option A and B-lite are still correct, kept as-is** — they fixed
+the bugs they targeted (the timing race; the redundant nested boundary
+entry-server.jsx never needed once the client no longer has one). They
+were necessary, just not sufficient. **Full B (flattening `/tools/:slug`
+into per-slug routes) is not expected to help** — the evidence shows
+this mismatch is unrelated to lazy-layering or Suspense structure at
+all, so removing another layer of indirection wouldn't touch it.
+
+**Not yet found**: the specific host-element difference inside
+`ToolPageShell`'s (or a prop it receives — `about`, `steps`, `faqs`,
+`guide`, `limitation`, `relatedTools`) rendered output between
+`entry-server.jsx`'s SSR pass and the client's render. Spot-checked and
+ruled out so far: `AdBanner` (confirmed empty in both SSR output and
+current build, `ADS_ACTIVE` false both sides), `MergePDF`/`PDFDropZone`
+(no module-scope or render-time browser-API reads, no conditional
+structure keyed on anything environment-dependent). Stopping here per
+instruction — reporting before further investigation.
+
 ## In-passing fix (owner-approved, tooling only)
 
 `hydration-sweep.js` and `hydration-stress.js`'s

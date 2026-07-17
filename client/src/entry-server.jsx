@@ -43,14 +43,21 @@
  *    route-level code-splitting), which renderToString never emitted
  *    boundary markers for. Fixed by switching to renderToPipeableStream
  *    (which does emit them) and wrapping each rendered route element in a
- *    matching <Suspense> here. Tool routes need a SECOND, nested
- *    <Suspense> too: DynamicToolPage.jsx (the client's /tools/:slug
- *    renderer, bypassed here since components are imported directly —
- *    see TOOL_PAGE_COMPONENTS below) wraps its resolved component in its
- *    own internal <Suspense>, so tool routes get two nested layers to
- *    match; every other route gets one.
+ *    matching <Suspense> here.
  *
- * See docs/batches/batch-5.6-ssg-hydration.md.
+ *    UPDATE (batch 5.6b, docs/batches/batch-5.6b-hydration-race.md): this
+ *    point originally said tool routes needed a SECOND, nested <Suspense>
+ *    to match DynamicToolPage.jsx's own internal boundary. That extra
+ *    boundary (both here and in DynamicToolPage.jsx) has been REMOVED —
+ *    it caused React's hydration algorithm to mis-consume the inner
+ *    boundary's markers once Batch 5.6b's preload-before-hydrate fix made
+ *    both lazy layers resolve synchronously instead of across a staged
+ *    async gap (React error #422, confirmed via DOM diff, reproduced on
+ *    multiple tool routes). Tool routes now get exactly ONE boundary,
+ *    same as every other route.
+ *
+ * See docs/batches/batch-5.6-ssg-hydration.md and
+ * docs/batches/batch-5.6b-hydration-race.md.
  */
 
 import { Suspense } from 'react'
@@ -216,9 +223,13 @@ export function buildRoutes() {
   for (const [slug, Comp] of Object.entries(TOOL_PAGE_COMPONENTS)) {
     routes.push({
       path: `/tools/${slug}`, pattern: `/tools/${slug}`,
-      // Inner Suspense matches DynamicToolPage.jsx's own boundary around
-      // the resolved tool component (client-side) — see file header.
-      element: <Suspense fallback={null}><Comp /></Suspense>, outFile: `tools/${slug}/index.html`,
+      // No inner Suspense here (batch 5.6b) — DynamicToolPage.jsx no
+      // longer has one either; see its file header for why the second,
+      // nested boundary this used to mirror was removed. The outer
+      // Suspense at this file's renderRoute() (matching routes.jsx's
+      // route-level lazy$()) is now the only boundary for tool routes,
+      // same as every other route.
+      element: <Comp />, outFile: `tools/${slug}/index.html`,
     })
   }
 
