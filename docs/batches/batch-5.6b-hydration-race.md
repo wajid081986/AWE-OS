@@ -250,8 +250,115 @@ Plan approved with the following rulings, incorporated above:
    (`git diff` confirms `AuthContext.jsx` is back to HEAD); dist
    rebuilt clean.
 
-**Status**: root cause not yet isolated. Suspect #1 ruled out. Next:
-bisect the remaining §1 candidates — starting with per-tool-component
-effects (row 10) and `HelmetDispatcher`'s render-phase `emitChange()`
-(row 6) — using the now-working plain/force-hydrate/`/tools/merge-pdf`
-profile as the reliable 10/10 signal, no throttling or decoys required.
+6. **Unminified error captured (dev-mode splice), and it's a different
+   diagnosis than the structural-mismatch theory**: built
+   `client/scripts/hydration-diagnose.js` — splices `dist/tools/merge-pdf/`'s
+   real prerendered `#root` markup into a live Vite dev server's empty
+   shell (via Playwright request interception on the document response),
+   with `window.__AWE_FORCE_HYDRATE__` set, so `hydrateRoot` runs for
+   real against an unminified React dev build. Captured message (full
+   text, not a minified code):
+
+   > This Suspense boundary received an update before it finished
+   > hydrating. This caused the boundary to switch to client rendering.
+   > The usual way to fix this is to wrap the original update in
+   > startTransition.
+
+   This is React's generic "dehydrated Suspense boundary received an
+   update mid-hydration" message — not a content/attribute mismatch
+   message (those name the specific mismatched value). No app component
+   is named in the message itself; the stack trace is entirely inside
+   React's own internals (`updateDehydratedSuspenseComponent` etc. in
+   the pre-bundled dev chunk), confirming this is a *timing* event
+   hitting React's hydration machinery, not a *shape* mismatch in our
+   JSX.
+7. **Suspense-marker structural diff, server vs. client's real code
+   path — suspect #3 CONFIRMED, but the mechanism is timing, not DOM
+   shape**: grepped `dist/tools/merge-pdf/index.html`'s raw source for
+   React's streaming-SSR boundary comment markers
+   (`<!--$-->`/`<!--/$-->`/`<!--$?-->` for pending). Found exactly 2
+   markers of each type, positioned back-to-back with zero DOM between
+   them: `<main class="flex-1"><!--$--><!--$--><div class="max-w-7xl...">`
+   at the open, `...</div></div><!--/$--><!--/$--></main>` at the close.
+   Both are the **complete** marker (`<!--$-->`), never the **pending**
+   marker (`<!--$?-->`) — because `entry-server.jsx` imports every tool
+   component directly (`TOOL_PAGE_COMPONENTS`, no `lazy()`), so neither
+   of its two manually-added `<Suspense>` wraps (file header comment,
+   root cause #2) ever actually suspends during SSR; the whole two-layer
+   tree resolves synchronously in one pass, and `ChunkErrorBoundary`/
+   `ToolErrorBoundary` (present client-side, absent server-side) render
+   no host DOM themselves so they don't show up as a marker/shape
+   difference either — ruling out my initial "extra wrapper components"
+   theory specifically.
+   The REAL mismatch: the **client's** route for `/tools/:slug` requires
+   **two sequential, network-dependent `lazy()` resolutions** —
+   `routes.jsx`'s `lazy$(<DynamicToolPage />)` (routes.jsx:36, :174) must
+   resolve BEFORE `DynamicToolPage.jsx` can even evaluate
+   `getOrCreateLazy(canonicalSlug, importFn)` and request the *second*
+   chunk (the actual tool component, e.g. `MergePDF`) — a true waterfall,
+   not parallel. `entry-server.jsx`'s SSR output has no equivalent delay
+   at all (both "boundaries" are already-resolved by construction). Any
+   real, non-zero latency in that two-step waterfall is enough to have
+   the second lazy resolution's promise settle (and ping its Suspense
+   boundary) after the outer boundary's hydration attempt has already
+   started but not committed — exactly the message captured in step 6.
+   This is structurally **guaranteed to occur on every load**, not
+   contention-dependent, which matches the observed 10/10 determinism.
+8. **Comparison to non-tool routes, checking whether this is really a
+   separate bug from the intermittent race**: homepage
+   (`dist/index.html`) has exactly **1** boundary marker pair (matching
+   `routes.jsx`'s single `lazy$(<Home />)` wrap; `Home` is also directly
+   imported in `entry-server.jsx`, so it too never suspends server-side).
+   Client-side, `Home` is `lazy()`-wrapped exactly once — a single
+   resolution, no waterfall. This offers a plausible **unifying
+   hypothesis, not yet confirmed**: every hydrated route has at least one
+   client-side `lazy()` resolution racing its own hydration commit;
+   single-layer routes (home, category pages, city pages) usually *win*
+   that race (chunk small/fast enough) and only occasionally lose it
+   under real contention — matching 5.6's "homepage failed once in 3
+   runs" and the batch-12 diagnostic's intermittent `/tools/ai` failure —
+   while tool pages' forced two-layer waterfall makes them lose it
+   essentially every time. If true, bug (a) and bug (b) share one root
+   *mechanism* (a `lazy()` promise settling mid-hydration) but differ in
+   *reliability* purely because of structural depth (1 vs. 2 sequential
+   lazy layers), not because they're unrelated bugs. **Not yet tested
+   directly against a non-tool route with this same dev-splice
+   technique** — logged as the natural next validation step, not
+   asserted as confirmed.
+9. **Incidental finding, not fixed (logged to backlog)**:
+   `hydration-sweep.js`'s (and this batch's `hydration-stress.js`'s,
+   copied from it) `HYDRATION_MISMATCH_PATTERNS` regex
+   `/minified react error #41[0-9]/i` only matches codes **410–419** —
+   it does NOT match #421/#422/#423/#425, despite the adjacent comment
+   explicitly listing those as the intended coverage. Harmless to
+   pass/fail correctness (any console error fails the route regardless
+   of pattern match — the list only controls the friendlier "hydration
+   mismatch" vs. generic "console error" label), so no sweep verdict has
+   ever been wrong because of it, but every tool-page failure in every
+   sweep run to date has been mislabeled "console error" instead of
+   "hydration mismatch." Fix is a one-character-class change
+   (`#4[12][0-9]` or similar) — trivial, but out of this investigation's
+   scope; logged to `docs/backlog.md`.
+
+## Two-bug tracking (per owner instruction, 2026-07-17)
+
+- **Bug (a) — deterministic, tool pages**: confirmed root cause is the
+  structural double-`lazy()` waterfall in `/tools/:slug`'s client route
+  (routes.jsx's `DynamicToolPage` wrap + `DynamicToolPage`'s own internal
+  `ToolComponent` lazy) racing against `entry-server.jsx`'s always-
+  synchronous SSR output for the same route. 10/10 reproducible via
+  `hydration-diagnose.js` / `hydration-stress.js` with force-hydrate on,
+  no throttling or decoys needed.
+- **Bug (b) — intermittent, homepage/category/city pages**: mechanism
+  UNCONFIRMED. Step 8's hypothesis (same `lazy()`-vs-hydration race,
+  single-layer version, contention-dependent because it's usually fast
+  enough to win) is plausible and would mean (a) and (b) share a root
+  mechanism rather than being fully independent bugs — but this needs
+  its own dev-splice/stress-harness confirmation pass before being
+  treated as established. Tracking separately until then, per
+  instruction.
+
+**Status**: root cause of bug (a) identified with strong evidence, not
+yet fixed (no code changes made per "report before changing any code").
+Bug (b) still open. Suspect #1 (`AuthContext`) ruled out for bug (a) via
+Step A; not yet tested against bug (b) specifically.
