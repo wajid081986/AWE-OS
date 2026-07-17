@@ -9,7 +9,8 @@
     "build:prerender-legacy": "vite build && node scripts/prerender.js",
     "preview": "vite preview",
     "preview:ssg": "node scripts/static-preview-server.js",
-    "hydration-sweep": "node scripts/hydration-sweep.js"
+    "hydration-sweep": "node scripts/hydration-sweep.js",
+    "hydration-stress": "node scripts/hydration-stress.js"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.2.1",

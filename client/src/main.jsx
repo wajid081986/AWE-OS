@@ -57,9 +57,20 @@ const app = (
 //     unaffected) — this only controls whether the client hydrates or
 //     does a clean client render against it.
 // See docs/batches/batch-5.6-ssg-hydration.md.
+//
+// window.__AWE_FORCE_HYDRATE__: test-only override for Batch 5.6b's
+// hydration-race stress harness (docs/batches/batch-5.6b-hydration-race.md).
+// Undefined in all real traffic — only Playwright's page.addInitScript()
+// sets it, to force hydrateRoot on isHydrationSafe()-excluded routes so
+// the harness can actually exercise the race those routes are gated
+// against, instead of testing the inert createRoot fallback. Widens the
+// hydrate path only, never narrows it — production behavior when this is
+// unset is byte-identical to before this line existed. Kept intentionally
+// past Batch 5.6b's end: future determination sweeps need this to
+// re-test excluded routes before isHydrationSafe() is ever expanded.
 const canHydrate = rootEl.hasChildNodes()
   && isSsgRoute(window.location.pathname, SSG_PATHS)
-  && isHydrationSafe(window.location.pathname);
+  && (window.__AWE_FORCE_HYDRATE__ === true || isHydrationSafe(window.location.pathname));
 
 if (canHydrate) {
   ReactDOM.hydrateRoot(rootEl, app);
