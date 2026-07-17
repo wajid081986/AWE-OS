@@ -190,4 +190,68 @@ Plan approved with the following rulings, incorporated above:
 
 ## Implementation log
 
-_(filled in as work proceeds)_
+1. **Calibration attempt 1 — CDP CPU/network throttling, FAILED to
+   reproduce**: built `client/scripts/hydration-stress.js` (repeated
+   single-route hydration under CDP throttling). Tried CPU throttle 4x
+   and 20x, network throttle 400ms/50KB/s ("Slow 3G"-like), a combined
+   aggressive profile (6x CPU + 1000ms/10KB/s — broke navigation itself,
+   `page.goto` timeouts before hydration was ever reached), and a
+   moderate combined profile (3x CPU + 150ms/150KB/s). **Every profile
+   produced 10/10 clean PASS on `/tools/merge-pdf`** (except the
+   navigation-breaking one, which never got far enough to test
+   anything). Conclusion: uniform throttling (CPU or network) scales the
+   mount-effect timing and the chunk-resolution timing by the same
+   factor, preserving their relative order — it cannot recreate the
+   asymmetric/bursty scheduling delays that real host contention causes.
+2. **Calibration attempt 2 — real concurrent decoy pages, ALSO
+   inconclusive (wrong reason)**: extended the harness to open N decoy
+   pages navigating to other heavy tool routes in the same browser,
+   concurrently with the target route's navigation (real host-CPU/
+   process contention, not simulated). Tried N=4 (matching 5.6's
+   concurrency=5), N=6, N=8 — **still 10/10 clean every time.**
+3. **Root cause of the clean 10/10s, found before concluding anything
+   about the race itself**: `client/src/ssgRoutes.js`'s `isHydrationSafe()`
+   returns `false` for every `/tools/:slug` route, including
+   `merge-pdf` — meaning `main.jsx` was correctly using `createRoot`
+   (not `hydrateRoot`) for the entire target route throughout both
+   calibration attempts. There was never any hydration happening to
+   race in the first place; the harness was testing an inert path.
+   Fixed by adding `window.__AWE_FORCE_HYDRATE__` to `main.jsx` — a
+   test-only override, undefined in all real traffic, read (never set)
+   by shipped code, set only by the harness via Playwright's
+   `page.addInitScript()`. Verified inert: `grep`ing `dist/` shows only
+   a read (`window.__AWE_FORCE_HYDRATE__===!0||ko(...)`, minified), and
+   a normal `npm run hydration-sweep` run (flag never set) stayed
+   135/135 clean after this change. Per owner ruling, this hook is kept
+   past this batch's end — future determination sweeps need it to
+   re-test `isHydrationSafe()`-excluded routes before that gate is ever
+   expanded.
+4. **Working baseline found — no throttling or decoys needed at all**:
+   with the force-hydrate flag active, a plain run (no CPU/network
+   throttle, no decoy pages, 1 page hydrating at a time) produced
+   **10/10 FAIL** on `/tools/merge-pdf`, every failure `Minified React
+   error #422`. Matches 5.6's own original finding (0/48 tool pages
+   passed even at `HYDRATION_SWEEP_CONCURRENCY=1`, i.e. sequential,
+   uncontended) — the race on this route is apparently fully
+   deterministic once hydration is actually attempted, not contention-
+   dependent at all. (Reconciling this with 5.6's homepage/`/tools/ai`
+   *intermittent* failures, and the batch-12 diagnostic's intermittent
+   `/tools/ai` failure at concurrency=1, is unresolved — those routes
+   may have a genuinely different, timing-sensitive trigger than tool
+   pages' apparently-deterministic one. Flagged for Step B if needed.)
+5. **Step A — suspect #1 (`AuthContext`) stub test, RULED OUT**:
+   temporarily neutralized `AuthContext.jsx`'s entire mount effect
+   (commented out `setIsLoading(false)`/`setUser()`/the whole
+   session-restore body) and re-ran the identical profile (plain, 10
+   runs, force-hydrate). **Result: 10/10 FAIL, byte-identical error
+   (`Minified React error #422`) to the unmodified baseline.**
+   Suspect #1 is not the (sole) cause — removing it entirely made no
+   measurable difference. Stub reverted immediately after the test
+   (`git diff` confirms `AuthContext.jsx` is back to HEAD); dist
+   rebuilt clean.
+
+**Status**: root cause not yet isolated. Suspect #1 ruled out. Next:
+bisect the remaining §1 candidates — starting with per-tool-component
+effects (row 10) and `HelmetDispatcher`'s render-phase `emitChange()`
+(row 6) — using the now-working plain/force-hydrate/`/tools/merge-pdf`
+profile as the reliable 10/10 signal, no throttling or decoys required.
