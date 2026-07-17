@@ -639,6 +639,61 @@ current build, `ADS_ACTIVE` false both sides), `MergePDF`/`PDFDropZone`
 structure keyed on anything environment-dependent). Stopping here per
 instruction — reporting before further investigation.
 
+## Direct comparison (2026-07-17) — prop and DOM diff both inconclusive; new lead found
+
+Per owner direction, ran the two direct comparisons before any further
+section-bisection:
+
+1. **Prop comparison**: temporarily added a `console.log` at the top of
+   `ToolPageShell`'s body (slug-gated to `merge-pdf`, reverted
+   immediately after capturing both sides — confirmed `git diff` clean
+   afterward), logging a normalized snapshot (name, description, icon,
+   `steps.length`, `faqs.length`, `about` shape/keys, `limitation`,
+   `guide` presence, `relatedTools` slugs). Captured via `npm run build`
+   (server) and `hydration-diagnose.js` (client, dev-mode splice).
+   **Byte-identical JSON on both sides**, every field, every run. Props
+   are not the divergence.
+2. **DOM diff**: built a one-off tree-walking differ (real browser DOM
+   parser on both sides, not hand-rolled HTML parsing) comparing (a) the
+   `<main>` subtree parsed from `dist/tools/merge-pdf/index.html`
+   against (b) the same subtree from a clean, unhydrated client-only
+   render (plain Vite dev server, no splice — `createRoot`, not
+   `hydrateRoot`, so no hydration mechanics involved at all). Diffs tag,
+   attributes, and trimmed text content, node by node, transparently
+   collapsing React's `display:contents` recovery wrapper so it can't
+   skew indices. **Result: `NO DIVERGENCE FOUND — trees are structurally
+   identical.`** Final rendered output is pixel-for-pixel the same tree
+   on both sides.
+
+**Both explicitly inconclusive** — no prop difference, no rendered-DOM
+difference. Whatever is wrong isn't "wrong content."
+
+### New lead, found while building the above (not speculation — verified by re-reading both files)
+
+`entry-server.jsx`'s tool-route loop renders `<Comp />` (i.e.
+`<MergePDF/>`) **directly** as the route element — that's the entire
+point of its "49 registered tool components — direct static imports"
+approach (file header, `TOOL_PAGE_COMPONENTS`). It never goes through
+`DynamicToolPage` at all. Server-side component tree for
+`/tools/merge-pdf`: `<Suspense><MergePDF/></Suspense>` — nothing else.
+
+Client-side (`routes.jsx` + `DynamicToolPage.jsx`, even after B-lite):
+`<Suspense><DynamicToolPage/></Suspense>`, and `DynamicToolPage` itself
+renders `<ChunkErrorBoundary><ToolErrorBoundary><MergePDF/></ToolErrorBoundary></ChunkErrorBoundary>`.
+**Three component layers (`DynamicToolPage`, `ChunkErrorBoundary`,
+`ToolErrorBoundary`) exist in the client's fiber tree with zero
+server-side equivalent.** They render no host DOM themselves (pure
+pass-through / class components returning `this.props.children`), which
+is exactly why neither the prop check nor the DOM diff could catch
+this — it's invisible to both. But it's a real, confirmed asymmetry in
+component *identity*, not just content, and error boundaries in
+particular have special hydration-related internal handling that a
+plain functional wrapper wouldn't.
+
+This is a concrete, narrow, easily-testable hypothesis — smaller and
+more targeted than bisecting `ToolPageShell`'s ~480 lines of JSX.
+Reporting before testing it or changing any code, per instruction.
+
 ## In-passing fix (owner-approved, tooling only)
 
 `hydration-sweep.js` and `hydration-stress.js`'s
