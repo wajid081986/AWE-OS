@@ -87,6 +87,7 @@ export default function WordCounter() {
       steps={STEPS}
       faqs={FAQS}
       about={TOOL_ABOUT['word-counter']}
+      limitation={"Reading-time estimates use average reading speed — your audience's actual speed will vary."}
     >
       <WordCounterTool />
     </ToolPageShell>

@@ -154,7 +154,8 @@ export default function RotatePDF() {
   return (
     <ToolPageShell slug="rotate-pdf" name="Rotate PDF" icon="🔄"
       description="Rotate individual PDF pages or all pages at once — 90°, 180°, or 270°."
-      steps={STEPS} faqs={FAQS} about={ABOUT}>
+      steps={STEPS} faqs={FAQS} about={ABOUT}
+      limitation={"Rotates whole pages only — it cannot straighten skewed scans."}>
       <RotateTool />
     </ToolPageShell>
   )

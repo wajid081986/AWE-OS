@@ -552,6 +552,7 @@ export default function FDCalculator() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Bank rates shown are indicative and change frequently — confirm the current rate with your bank before investing."}
     >
       <FDTool />
     </ToolPageShell>

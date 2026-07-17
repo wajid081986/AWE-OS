@@ -143,7 +143,8 @@ export default function PDFtoJPG() {
   return (
     <ToolPageShell slug="pdf-to-jpg" name="PDF to JPG" icon="📸"
       description="Convert every PDF page to a JPG image. Choose quality and download as ZIP."
-      steps={STEPS} faqs={FAQS} about={ABOUT}>
+      steps={STEPS} faqs={FAQS} about={ABOUT}
+      limitation={"Output quality depends on the PDF's own resolution — it cannot add detail that isn't there."}>
       <PDFtoJPGTool />
     </ToolPageShell>
   )

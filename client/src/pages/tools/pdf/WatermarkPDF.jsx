@@ -180,7 +180,8 @@ export default function WatermarkPDF() {
   return (
     <ToolPageShell slug="watermark-pdf" name="Add Watermark to PDF" icon="💧"
       description="Add a customisable text watermark to every page of your PDF document."
-      steps={STEPS} faqs={FAQS} about={ABOUT}>
+      steps={STEPS} faqs={FAQS} about={ABOUT}
+      limitation={"Adds text watermarks only — image/logo watermarks are not supported yet."}>
       <WatermarkTool />
     </ToolPageShell>
   )

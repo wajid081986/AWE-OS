@@ -2246,7 +2246,8 @@ export default function PdfEditor() {
   return (
     <ToolPageShell slug="pdf-editor" name="PDF Editor" icon="✏️"
       description="Edit PDFs online free — annotate, highlight, draw, sign, add stamps, watermarks, and more. 100% browser-based."
-      steps={STEPS} faqs={FAQS} about={ABOUT}>
+      steps={STEPS} faqs={FAQS} about={ABOUT}
+      limitation={"Adds new text, drawings, and highlights on top of the PDF — it cannot edit or delete the PDF's original text."}>
       <PdfEditorTool />
     </ToolPageShell>
   )

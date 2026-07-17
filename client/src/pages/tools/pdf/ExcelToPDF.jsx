@@ -123,6 +123,7 @@ export default function ExcelToPDF() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Very wide spreadsheets may be scaled down or split across pages to fit."}
     >
       <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
         {status === 'idle' || status === 'loading' ? (

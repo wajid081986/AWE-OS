@@ -164,6 +164,7 @@ export default function LoanCalculator() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Assumes a fixed interest rate for the full tenure — floating-rate loans will differ as rates change."}
     >
       <LoanTool />
     </ToolPageShell>

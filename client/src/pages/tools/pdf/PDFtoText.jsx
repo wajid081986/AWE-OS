@@ -173,6 +173,7 @@ export default function PDFtoText() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Extracts only real text — scanned/image-based PDFs will return little or nothing (no OCR)."}
     >
       <PDFtoTextTool />
     </ToolPageShell>

@@ -174,7 +174,8 @@ export default function PageNumbersPDF() {
   return (
     <ToolPageShell slug="page-numbers-pdf" name="Add Page Numbers to PDF" icon="🔢"
       description="Add page numbers to every page of your PDF at any position and in any format."
-      steps={STEPS} faqs={FAQS} about={ABOUT}>
+      steps={STEPS} faqs={FAQS} about={ABOUT}
+      limitation={"Adds numbers in fixed positions — it cannot detect and avoid existing page content."}>
       <PageNumbersTool />
     </ToolPageShell>
   )

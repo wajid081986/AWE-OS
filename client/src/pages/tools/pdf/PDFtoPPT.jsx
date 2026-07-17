@@ -297,6 +297,7 @@ export default function PDFtoPPT() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Each PDF page becomes one static slide image — text is not editable in the output."}
     >
       <PDFtoPPTTool />
     </ToolPageShell>

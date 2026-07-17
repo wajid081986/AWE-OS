@@ -673,6 +673,7 @@ export default function SIPCalculator() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Projections assume a constant return rate — real mutual fund returns vary year to year and are not guaranteed."}
     >
       <SIPTool />
     </ToolPageShell>

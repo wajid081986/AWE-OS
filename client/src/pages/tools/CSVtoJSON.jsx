@@ -105,6 +105,7 @@ export default function CSVtoJSON() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Assumes the first row is headers and a standard comma delimiter — unusual formats may need adjustment first."}
     >
       <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
         {/* Upload area */}

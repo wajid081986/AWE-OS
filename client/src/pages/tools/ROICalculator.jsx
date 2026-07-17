@@ -566,6 +566,7 @@ export default function ROICalculator() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Does not account for taxes, inflation, or transaction costs unless you include them in your inputs."}
     >
       <ROITool />
     </ToolPageShell>

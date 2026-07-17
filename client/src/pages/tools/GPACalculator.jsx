@@ -138,6 +138,7 @@ export default function GPACalculator() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Uses the standard grade-point scale you select — universities with custom scales or weightings may differ."}
     >
       <GPATool />
     </ToolPageShell>

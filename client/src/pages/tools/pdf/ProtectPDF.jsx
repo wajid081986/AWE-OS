@@ -137,7 +137,8 @@ export default function ProtectPDF() {
   return (
     <ToolPageShell slug="protect-pdf" name="Protect PDF" icon="🔐"
       description="Add password protection to your PDF. Encrypted files require a password to open."
-      steps={STEPS} faqs={FAQS} about={ABOUT}>
+      steps={STEPS} faqs={FAQS} about={ABOUT}
+      limitation={"Uses standard PDF password protection — choose a strong password, as weak ones can be cracked by third-party software."}>
       <ProtectTool />
     </ToolPageShell>
   )

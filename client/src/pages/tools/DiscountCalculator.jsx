@@ -126,6 +126,7 @@ export default function DiscountCalculator() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Calculates the math only — it cannot verify whether a store's \"original price\" was genuine."}
     >
       <DiscountTool />
     </ToolPageShell>

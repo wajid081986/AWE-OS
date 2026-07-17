@@ -140,6 +140,7 @@ export default function BaseConverter() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Handles integers only — fractional/decimal-point conversions between bases are not supported."}
     >
       <BaseConverterTool />
     </ToolPageShell>

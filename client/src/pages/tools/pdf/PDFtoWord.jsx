@@ -80,6 +80,7 @@ export default function PDFtoWord() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Scanned PDFs (images of text) convert as images, not editable text — this tool does not do OCR."}
     >
       <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
         {status === 'idle' ? (

@@ -128,6 +128,7 @@ export default function TaxCalculator() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Covers standard salary income and common deductions — complex cases (capital gains, foreign income, business income) need a professional."}
     >
       <TaxTool />
     </ToolPageShell>

@@ -63,6 +63,7 @@ export default function QRCodeGenerator() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Very long text produces dense QR codes that some older phone cameras struggle to scan — keep content short."}
     >
       <div className="bg-white rounded-2xl border border-gray-200 p-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

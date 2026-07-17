@@ -102,6 +102,7 @@ export default function PowerPointToPDF() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
+      limitation={"Animations and transitions are not preserved — each slide becomes a static page."}
     >
       <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
         {status === 'idle' || status === 'loading' ? (
