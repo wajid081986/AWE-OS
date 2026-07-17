@@ -362,3 +362,162 @@ Plan approved with the following rulings, incorporated above:
 yet fixed (no code changes made per "report before changing any code").
 Bug (b) still open. Suspect #1 (`AuthContext`) ruled out for bug (a) via
 Step A; not yet tested against bug (b) specifically.
+
+## Fix class evaluation (owner-accepted root cause, 2026-07-17)
+
+Owner ruling: `startTransition` is off the table — the update racing
+hydration isn't a `setState` we control; it's `lazy()`'s own internal
+promise settling and pinging its Suspense boundary. Three fix classes
+evaluated per owner's request, `A`/`B`/`C` as named in their message.
+
+### A — Preload-before-hydrate
+
+**Mechanism**: `React.lazy(ctor)` always throws on its very first
+render call, regardless of whether the underlying module is already
+cached — the wrapper's internal `payload._status` starts
+`Uninitialized`, transitions straight to `Pending`, and throws the
+promise unconditionally on that first call. What actually varies is how
+long the thrown promise takes to *settle*. If `ctor()`'s dynamic
+`import()` resolves via an already-warm browser module cache (near-
+instant, same microtask flush) instead of a real network fetch, React's
+retry can happen before the browser yields to any other task — closing
+the window against interleaving updates (an unrelated effect flush, a
+second lazy layer's own async resolution, anything scheduled on a
+macrotask). Calling `await import('<same specifier>')` in `main.jsx`
+*before* `hydrateRoot` warms that exact module in the browser's cache
+(module caching is keyed by resolved specifier, shared across every
+piece of code that imports it — the awaiting call doesn't need to be
+the same `lazy()` wrapper instance).
+Critically, since `main.jsx` would `await` the imports **before ever
+calling `hydrateRoot`**, correctness doesn't actually depend on the
+microtask-timing nuance above — `hydrateRoot` simply isn't invoked
+until every required chunk for the matched route is fully resolved, so
+there is nothing left to resolve asynchronously *during* hydration,
+regardless of network speed. This makes the fix latency-agnostic: it
+closes the race even under a throttled/slow connection, not just on a
+fast localhost server.
+**UX cost**: none per owner's own note — the SSG'd HTML is already
+painted on screen for the whole wait (that's the point of SSG), and the
+page was never interactive before this chunk loaded anyway (preload or
+not, you can't use `MergePDF` until `MergePDF.jsx`'s chunk is
+downloaded) — preloading just moves the *same* unavoidable wait earlier
+and off the hydration-race's critical path, no additional wait is
+introduced.
+**Implementation shape** (sketch, not yet built):
+1. New `client/src/routeImports.js` — hoists the plain `() =>
+   import('../pages/Home')`-style closures currently inlined in
+   `routes.jsx`'s `lazy(...)` calls into a shared, keyed object.
+   `routes.jsx` sources its `lazy()` wraps from this module instead of
+   inline closures — mechanical, zero behavior change, keeps Vite's
+   static-analyzable `import()` paths intact (`toolRegistry.js`'s own
+   header comment already notes Vite "needs static paths" for
+   code-splitting — this refactor preserves that).
+2. New `client/src/pages/tools/toolComponentMap.js` — hoists
+   `DynamicToolPage.jsx`'s inline `TOOL_COMPONENTS` map the same way.
+   `DynamicToolPage.jsx` imports it instead of defining it inline;
+   `SLUG_ALIASES` already lives in `toolRegistry.js`, reused as-is for
+   alias resolution.
+3. New `client/src/hydratePreload.js` — `preloadForHydration(pathname):
+   Promise<void>`. Matches `pathname` against `ssgRoutes.js`'s existing
+   `STATIC_PATHS`/`CATEGORY_SLUGS`/`TOOL_SLUGS` (already the single
+   source of truth for route shape) to find the matching top-level
+   route import from `routeImports.js`, awaits it; for `/tools/:slug`
+   specifically, additionally resolves the slug (via `SLUG_ALIASES`)
+   and awaits the matching entry from `toolComponentMap.js`. Covers
+   every currently-hydrated category (home, category pages, static
+   pages, city pages, compare, faq, tool pages) — not tool-pages-only —
+   so the validation ladder's step (iii) can actually test whether it
+   helps bug (b) too.
+4. `main.jsx`: wrap the hydrate/createRoot decision in an async IIFE;
+   when `canHydrate` would be `true`, `await
+   preloadForHydration(window.location.pathname)` immediately before
+   calling `hydrateRoot`. `createRoot` path is untouched (no boundary
+   timing concern for a plain client render).
+
+**Verdict: RECOMMENDED**, as the sole fix.
+
+### B — Flatten the waterfall (DynamicToolPage's map feeds routes.jsx directly)
+
+Would cut `/tools/:slug` from 2 sequential `lazy()` layers to 1. Real
+architectural change (~48 new `<Route>` entries or an equivalent
+per-slug route-generation step, replacing `DynamicToolPage`'s runtime
+dispatch/alias-fallback logic that `routes.jsx`'s header comment
+documents as the "add one line" auto-registration convenience).
+
+**Verdict: NOT NEEDED, given A.** A's `await`-before-`hydrateRoot`
+mechanism is correctness-independent of *how many* sequential lazy
+layers exist on a route — main.jsx just awaits each one in turn before
+ever calling `hydrateRoot`; a second layer costs one more `await` in an
+already-async function, not a reopened race window. B would only earn
+its cost (bigger diff, loses the current auto-registration convenience,
+new surface area for routing bugs) as a *separate* performance
+optimization (marginally faster time-to-interactive after hydration,
+unrelated to the hydration-mismatch defect) — out of scope for a
+correctness fix, and CLAUDE.md's anti-overengineering guidance argues
+against bundling it in here. Logging as a possible future
+backlog/optimization item, not implementing now.
+
+### C — React 18/19 resource-preload hints
+
+Checked `react-dom`'s actual installed build
+(`node_modules/react-dom@18.3.1`, verified via
+`node -e "require('react-dom')"` and grepping the dev bundle for
+`preload`/`preinit`/`prefetchDNS`/`preconnect` exports): **none of
+these exist on this React version** — they're React 19-only APIs.
+Confirmed absent, not just undocumented; a major React version bump is
+far outside this batch's scope (and CLAUDE.md §5 requires explicit
+approval + stated reason/size cost for any dependency change, let alone
+a major-version upgrade of the rendering library itself).
+
+The framework-agnostic alternative — hand-emitting `<link
+rel="modulepreload" href="...">` tags into the SSG'd HTML `<head>` for
+each route's specific chunk(s), reading Vite's build manifest at
+`ssg-build.js` time to resolve hashed chunk filenames — is real and
+would work on React 18. It's a **pure latency optimization**, though:
+it makes the browser start fetching earlier (parallel with HTML
+parsing, before `main.jsx` even runs), but does NOT by itself
+guarantee the fetch is *complete* by the time `hydrateRoot` is called —
+only `await`ing the import (option A) gives that guarantee. Correctness
+comes from A regardless of whether this hint exists.
+
+**Verdict: NOT REQUIRED. Optional hardening**, worth a fast-follow if
+the validation ladder shows real-network latency ever makes the
+preload wait long enough to matter for perceived load time — not
+needed for correctness, not implementing as part of this batch's core
+fix.
+
+## Validation ladder (owner-specified, once A is implemented)
+
+1. `hydration-stress.js`, force-hydrate, `/tools/merge-pdf`, plain (no
+   throttle/decoys — the working baseline profile): must flip from
+   10/10 FAIL to **10/10 PASS**.
+2. Same profile against 2 more heavy tool routes (candidates:
+   `/tools/split-pdf`, `/tools/pdf-editor` — both pulled `pdf-lib`-class
+   chunks per §2's decoy-route list).
+3. Bug-(b) hypothesis test "for free": repeated `hydration-stress.js`
+   runs against homepage and a city-page route (force-hydrate not
+   needed for these — they're already `isHydrationSafe()`-included) —
+   if pass-rate visibly improves/stabilizes versus 5.6's and batch-12's
+   documented intermittent failures, that's evidence bug (a) and bug
+   (b) share the `lazy()`-vs-hydration mechanism. Not a hard pass/fail
+   gate (bug (b) was never reliably reproducible to begin with — no
+   clean "before" baseline to diff against — so this is corroborating
+   evidence, not a certification).
+4. Full-site sweeps, the agreed bar: **3× clean at
+   `HYDRATION_SWEEP_CONCURRENCY=2`, 2× clean at
+   `HYDRATION_SWEEP_CONCURRENCY=1`**, all 5 runs 135/135 (or the then-
+   current SSG route count).
+5. Only after all of the above pass: expand `isHydrationSafe()` in
+   `ssgRoutes.js` (drop the `/tools/:slug` and `/blog` exclusions) as
+   its **own separate commit** — independently revertible from the fix
+   commits, per standing rollback posture.
+
+## In-passing fix (owner-approved, tooling only)
+
+`hydration-sweep.js` and `hydration-stress.js`'s
+`HYDRATION_MISMATCH_PATTERNS` regex `/minified react error #41[0-9]/i`
+only matches codes 410-419 (backlog entry, 2026-07-17). Widened to
+match the set the adjacent comment always claimed to cover — 418, 419,
+421, 422, 423, 425 — via `/minified react error #4(18|19|2[1235])/i`.
+Test-tooling only, no behavior change to pass/fail verdicts (see
+backlog entry for why).

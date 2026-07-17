@@ -99,7 +99,7 @@ const HYDRATION_MISMATCH_PATTERNS = [
   /text content does not match/i,
   /hydrating but/i,
   /expected server html to contain/i,
-  /minified react error #41[0-9]/i, // #418, #419, #421, #422, #423, #425 — hydration-mismatch family
+  /minified react error #4(18|19|2[1235])/i, // #418, #419, #421, #422, #423, #425 — hydration-mismatch family
 ]
 
 // Same environment-noise exclusion as hydration-sweep.js — /tools/:slug
