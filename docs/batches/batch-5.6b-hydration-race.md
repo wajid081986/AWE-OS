@@ -694,6 +694,99 @@ This is a concrete, narrow, easily-testable hypothesis — smaller and
 more targeted than bisecting `ToolPageShell`'s ~480 lines of JSX.
 Reporting before testing it or changing any code, per instruction.
 
+## Stub test + root cause CONFIRMED, real fix implemented, full validation clean (2026-07-17)
+
+Resumed after `/clear` from the "new lead" state (three client-only
+component layers — `DynamicToolPage`, `ChunkErrorBoundary`,
+`ToolErrorBoundary` — with no server-side equivalent).
+
+**Stub test**: temporarily removed `ChunkErrorBoundary`/`ToolErrorBoundary`
+from `DynamicToolPage.jsx` (rendering `<ToolComponent/>` directly).
+**Result: 10/10 PASS on both `merge-pdf` and `split-pdf`** (were 10/10
+FAIL). Confirmed and localized. Stub reverted immediately
+(`git diff` clean).
+
+**Actual root cause**: `ToolErrorBoundary.jsx`'s non-error render path
+(line ~78) is:
+
+```jsx
+return (
+  <div key={this.state.retryCount} style={{ display: 'contents' }}>
+    {this.props.children}
+  </div>
+)
+```
+
+This is a **real host `<div>`**, not a pass-through — always rendered,
+every load. `entry-server.jsx` never rendered `ToolErrorBoundary` at
+all (renders the tool component directly, bypassing `DynamicToolPage`
+entirely per its "direct static imports" design), so this div had zero
+server-side counterpart. Deterministic `div`-in-`div` mismatch, on
+every tool page, every time — exactly matching the observed 10/10
+failure rate. `ChunkErrorBoundary` was never part of it (confirmed
+pure pass-through, `return this.props.children`, no host DOM).
+
+This also explains the earlier "inconclusive" DOM diff (§"Direct
+comparison"): that diff tool explicitly special-cased and collapsed
+`display:contents` divs, on the (wrong) assumption they were a
+React-internal recovery artifact rather than real app-rendered content.
+Built the exact blind spot into the tooling that the bug was hiding
+in — a lesson for next time: don't special-case anything in a diff
+tool without first confirming *where* the special-cased pattern
+actually originates in the code.
+
+**Real fix** (`entry-server.jsx`): wrapped the tool-route element in the
+same `ChunkErrorBoundary`/`ToolErrorBoundary` the client uses, so both
+sides produce identical DOM (and SSR gets the same error isolation the
+client has, as a bonus — previously zero). Verified: `dist/` output now
+contains the `display:contents` div; all tool-page content
+(steps/FAQ/limitation/author-box) still intact.
+
+### Full validation ladder — all clean
+
+- Force-hydrate, plain profile, 10/10 each: `/tools/merge-pdf`,
+  `/tools/split-pdf`, `/tools/pdf-editor` (3 heavy tool pages).
+- Force-hydrate, 10/10 each: `/blog` index, 2 individual blog posts
+  (`how-to-merge-pdf-files-for-free`,
+  `income-tax-calculator-india-2026-old-vs-new-regime`) — direct check
+  before extending the expansion to `/blog`, not just analogy to
+  homepage.
+- Force-hydrate, 10/10: `/` (homepage) and `/bmi-calculator/mumbai`
+  (previously-flaky city page, batch 8b) — no regression.
+- **Pre-expansion** full-site sweeps (confirms no regression from Option
+  A / the error-boundary fix on the existing hydrate-safe route set):
+  3× clean at `HYDRATION_SWEEP_CONCURRENCY=2`, 2× clean at
+  `HYDRATION_SWEEP_CONCURRENCY=1` — 135/135 every run.
+- `isHydrationSafe()` expanded (own commit, `da8de78`) — dropped both
+  the `/tools/:slug` and `/blog` exclusions, function kept in place
+  (now unconditionally `true`) rather than deleted, preserving it as an
+  independently revertible safety valve per the standing rollback
+  posture.
+- **Post-expansion** full-site sweeps (real hydration now attempted on
+  every tool page and blog post, not force-hydrate): 3× clean at
+  concurrency=2, 2× clean at concurrency=1 — 135/135 every run.
+
+**10 full-site sweeps total this validation round, zero failures.**
+Every route category — home, tool category pages, static pages, city
+pages, compare, faq, all 48 individual tool pages, blog index, all
+blog posts — now hydrates via `hydrateRoot`, none on the `createRoot`
+fallback.
+
+### Bug (b) resolution
+
+Bug (b) (intermittent homepage/`/tools/ai`/city-page failures from 5.6
+and the batch-12 diagnostic) is resolved as a side effect of Option A's
+preload fix — same `lazy()`-vs-hydration mechanism as bug (a), just a
+single-layer, lower-probability version of it (per the "Comparison to
+non-tool routes" hypothesis, now corroborated by 10/10 clean stress
+runs plus 10/10 clean full sweeps with no analogous intermittent
+failure recurring anywhere in this validation round). Bug (a)'s
+`ToolErrorBoundary` div mismatch was a second, independent,
+tool-page-specific bug layered on top — both now fixed.
+
+**Status: DONE.** All plan success criteria met. Ready to push and open
+a PR for owner QA.
+
 ## In-passing fix (owner-approved, tooling only)
 
 `hydration-sweep.js` and `hydration-stress.js`'s
