@@ -35,6 +35,7 @@ const ROOT        = resolve(__dirname, '..')
 const DIST        = resolve(ROOT, 'dist')
 const SSR_OUT_DIR = resolve(ROOT, '.ssg-server')
 const OUT_DIR     = resolve(ROOT, process.env.SSG_OUT_DIR || 'dist')
+const SITE_URL    = 'https://www.awe-os.com'
 
 // ── Guard: the client shell must already exist ───────────────────────────────
 const shellPath = join(DIST, 'index.html')
@@ -140,6 +141,26 @@ function injectBody(html, bodyHtml) {
   return html.replace('<div id="root"></div>', `<div id="root">${bodyHtml}</div>`)
 }
 
+function xmlEscape(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+// Single source of truth: reuses the same `routes` buildRoutes() produced for
+// rendering, so the sitemap can never drift from what actually got built.
+// Excludes noindex routes; lastmod uses each route's own date where the data
+// file has one (blog posts, the FAQ page), falling back to buildDate.
+function generateSitemap(routes, buildDate) {
+  const urls = routes
+    .filter(route => !route.noindex)
+    .map(route => {
+      const loc = route.path === '/' ? SITE_URL : `${SITE_URL}${route.path}`
+      const lastmod = route.date || buildDate
+      return `  <url>\n    <loc>${xmlEscape(loc)}</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`
+    })
+
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`
+}
+
 // ── 3. Render + assemble each route ──────────────────────────────────────────
 let shellHtml = stripFoucHidingRules(shellHtmlSource)
 shellHtml = stripNoscript(shellHtml)
@@ -171,6 +192,11 @@ for (const route of routes) {
     noindex: !!route.noindex,
   })
 }
+
+const buildDate = new Date().toISOString().slice(0, 10)
+const noindexCount = routes.filter(r => r.noindex).length
+writeFileSync(join(OUT_DIR, 'sitemap.xml'), generateSitemap(routes, buildDate), 'utf-8')
+console.log(`✅ Sitemap: ${routes.length - noindexCount} routes written (${noindexCount} noindex excluded of ${routes.length} total)`)
 
 console.log(`\n✅ SSG build complete. ${routes.length} routes written to ${OUT_DIR.replace(ROOT + '\\', '').replace(ROOT + '/', '') || '.'}/\n`)
 

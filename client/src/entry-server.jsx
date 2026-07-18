@@ -260,6 +260,7 @@ export function buildRoutes() {
       path: `/blog/${post.slug}`, pattern: '/blog/:slug',
       element: <BlogPostPage />, outFile: `blog/${post.slug}/index.html`,
       noindex: !!post.noindex,
+      date: post.date,
     })
   }
 
@@ -290,6 +291,7 @@ export function buildRoutes() {
     routes.push({
       path: `/faq/${page.slug}`, pattern: '/faq/:slug',
       element: <FaqCategoryPage />, outFile: `faq/${page.slug}/index.html`,
+      date: page.publishedAt,
     })
   }
 
