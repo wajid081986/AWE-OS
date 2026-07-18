@@ -30,3 +30,15 @@
 - Branch `batch-14-sitemap` off `origin/main`.
 - Files touched: `client/scripts/ssg-build.js`, `client/src/entry-server.jsx` (add `date` field to 2 route types), delete `client/public/sitemap.xml`, `docs/batches/batch-14-sitemap-plan.md`. That's 4 files — well under the 25-file mass-change threshold.
 - No content changes, no `server/` changes (confirmed `server/core/automation-hub/sitemap-generator.js` only fetches the *served* `/sitemap.xml` over HTTP — doesn't touch the repo file, so it's unaffected either way).
+
+## Batch CLOSED (2026-07-18) — production verified
+
+PR #17 merged to `main` (merge commit `6dc8748`). Production
+verification (`docs/reports/batch-14-production-verification.md`):
+live `sitemap.xml` returns exactly 122 well-formed `<url>` entries (126
+total SSG routes minus 4 noindex blog posts); spot-checked a tool page,
+a policy page, and a blog post loc, all present; zero removed,
+redirected, or noindex slugs found in the sitemap; `robots.txt`
+confirmed still pointing to the correct `Sitemap:` URL.
+
+No further action on this batch.
