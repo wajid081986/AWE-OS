@@ -17,20 +17,31 @@ const CATEGORY_COLORS = {
   'Converters':  'bg-yellow-100 text-yellow-700',
 }
 
-// Converts **bold** markers to <strong>, and inline <a href='..'>label</a>
-// tags (as produced by the AI blog generator) into real Link/anchor elements —
-// without this, AI-generated internal links render as literal HTML text.
+// Converts **bold** markers to <strong>, inline <a href='..'>label</a> tags
+// (as produced by the AI blog generator), and Markdown [label](url) links
+// into real Link/anchor elements — without this, AI-generated internal
+// links render as literal text (HTML tags) or literal Markdown syntax
+// (batch 13 — found via the blog content audit, docs/reports/blog-content-audit-2026-07.md).
 const INLINE_LINK_RE = /^<a\s+href=(['"])([^'"]+)\1[^>]*>([^<]*)<\/a>$/i
+const MD_LINK_RE = /^\[([^\]]+)\]\(([^)]+)\)$/
 
 function renderInline(text) {
-  if (typeof text !== 'string' || (!text.includes('**') && !text.includes('<a '))) return text
-  return text.split(/(\*\*[^*]+\*\*|<a\s+href=(?:'[^']+'|"[^"]+")[^>]*>[^<]*<\/a>)/gi).map((part, i) => {
+  if (typeof text !== 'string' || (!text.includes('**') && !text.includes('<a ') && !/\[[^\]]+\]\([^)]+\)/.test(text))) return text
+  return text.split(/(\*\*[^*]+\*\*|<a\s+href=(?:'[^']+'|"[^"]+")[^>]*>[^<]*<\/a>|\[[^\]]+\]\([^)]+\))/gi).map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       return <strong key={i} className="font-semibold text-gray-900">{part.slice(2, -2)}</strong>
     }
     const linkMatch = part.match(INLINE_LINK_RE)
     if (linkMatch) {
       const [, , href, label] = linkMatch
+      const cls = 'text-blue-600 hover:text-blue-700 font-medium underline underline-offset-2'
+      return href.startsWith('/')
+        ? <Link key={i} to={href} className={cls}>{label}</Link>
+        : <a key={i} href={href} target="_blank" rel="noopener noreferrer" className={cls}>{label}</a>
+    }
+    const mdMatch = part.match(MD_LINK_RE)
+    if (mdMatch) {
+      const [, label, href] = mdMatch
       const cls = 'text-blue-600 hover:text-blue-700 font-medium underline underline-offset-2'
       return href.startsWith('/')
         ? <Link key={i} to={href} className={cls}>{label}</Link>
