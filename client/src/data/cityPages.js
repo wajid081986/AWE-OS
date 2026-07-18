@@ -4,6 +4,7 @@ export const CITY_PAGES = [
     "title": "BMI Calculator for Ahmedabad — Free Online Tool for Ahmedabad Businesses",
     "metaTitle": "Free BMI Calculator Ahmedabad 2026 | AWE-OS",
     "metaDescription": "Use BMI Calculator in Ahmedabad — instant results, free, no signup required. Built for Ahmedabad businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -184,6 +185,7 @@ export const CITY_PAGES = [
     "title": "BMI Calculator for Kolkata — Free Online Tool for Kolkata Businesses",
     "metaTitle": "Free BMI Calculator Kolkata 2026 | AWE-OS",
     "metaDescription": "Use BMI Calculator in Kolkata — instant results, free, no signup required. Built for Kolkata businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -364,6 +366,7 @@ export const CITY_PAGES = [
     "title": "BMI Calculator for Pune — Free Online Tool for Pune Businesses",
     "metaTitle": "Free BMI Calculator Pune 2026 | AWE-OS",
     "metaDescription": "Use BMI Calculator in Pune — instant results, free, no signup required. Built for Pune businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -544,6 +547,7 @@ export const CITY_PAGES = [
     "title": "BMI Calculator for Chennai — Free Online Tool for Chennai Businesses",
     "metaTitle": "Free BMI Calculator Chennai 2026 | AWE-OS",
     "metaDescription": "Use BMI Calculator in Chennai — instant results, free, no signup required. Built for Chennai businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -724,6 +728,7 @@ export const CITY_PAGES = [
     "title": "BMI Calculator for Hyderabad — Free Online Tool for Hyderabad Businesses",
     "metaTitle": "Free BMI Calculator Hyderabad 2026 | AWE-OS",
     "metaDescription": "Use BMI Calculator in Hyderabad — instant results, free, no signup required. Built for Hyderabad businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -904,6 +909,7 @@ export const CITY_PAGES = [
     "title": "BMI Calculator for Bengaluru — Free Online Tool for Bengaluru Businesses",
     "metaTitle": "Free BMI Calculator Bengaluru 2026 | AWE-OS",
     "metaDescription": "Use BMI Calculator in Bengaluru — instant results, free, no signup required. Built for Bengaluru businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -1084,6 +1090,7 @@ export const CITY_PAGES = [
     "title": "BMI Calculator for Delhi — Free Online Tool for Delhi Businesses",
     "metaTitle": "Free BMI Calculator Delhi 2026 | AWE-OS",
     "metaDescription": "Use BMI Calculator in Delhi — instant results, free, no signup required. Built for Delhi businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -1264,6 +1271,7 @@ export const CITY_PAGES = [
     "title": "BMI Calculator for Mumbai — Free Online Tool for Mumbai Businesses",
     "metaTitle": "Free BMI Calculator Mumbai 2026 | AWE-OS",
     "metaDescription": "Use BMI Calculator in Mumbai — instant results, free, no signup required. Built for Mumbai businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -1444,6 +1452,7 @@ export const CITY_PAGES = [
     "title": "SIP Calculator for Ahmedabad — Free Online Tool for Ahmedabad Businesses",
     "metaTitle": "Free SIP Calculator Ahmedabad 2026 | AWE-OS",
     "metaDescription": "Use SIP Calculator in Ahmedabad — instant results, free, no signup required. Built for Ahmedabad businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -1581,6 +1590,7 @@ export const CITY_PAGES = [
     "title": "SIP Calculator for Kolkata — Free Online Tool for Kolkata Businesses",
     "metaTitle": "Free SIP Calculator Kolkata 2026 | AWE-OS",
     "metaDescription": "Use SIP Calculator in Kolkata — instant results, free, no signup required. Built for Kolkata businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -1718,6 +1728,7 @@ export const CITY_PAGES = [
     "title": "SIP Calculator for Pune — Free Online Tool for Pune Businesses",
     "metaTitle": "Free SIP Calculator Pune 2026 | AWE-OS",
     "metaDescription": "Use SIP Calculator in Pune — instant results, free, no signup required. Built for Pune businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -1855,6 +1866,7 @@ export const CITY_PAGES = [
     "title": "SIP Calculator for Chennai — Free Online Tool for Chennai Businesses",
     "metaTitle": "Free SIP Calculator Chennai 2026 | AWE-OS",
     "metaDescription": "Use SIP Calculator in Chennai — instant results, free, no signup required. Built for Chennai businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -1992,6 +2004,7 @@ export const CITY_PAGES = [
     "title": "SIP Calculator for Hyderabad — Free Online Tool for Hyderabad Businesses",
     "metaTitle": "Free SIP Calculator Hyderabad 2026 | AWE-OS",
     "metaDescription": "Use SIP Calculator in Hyderabad — instant results, free, no signup required. Built for Hyderabad businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -2129,6 +2142,7 @@ export const CITY_PAGES = [
     "title": "SIP Calculator for Bengaluru — Free Online Tool for Bengaluru Businesses",
     "metaTitle": "Free SIP Calculator Bengaluru 2026 | AWE-OS",
     "metaDescription": "Use SIP Calculator in Bengaluru — instant results, free, no signup required. Built for Bengaluru businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -2266,6 +2280,7 @@ export const CITY_PAGES = [
     "title": "SIP Calculator for Delhi — Free Online Tool for Delhi Businesses",
     "metaTitle": "Free SIP Calculator Delhi 2026 | AWE-OS",
     "metaDescription": "Use SIP Calculator in Delhi — instant results, free, no signup required. Built for Delhi businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -2403,6 +2418,7 @@ export const CITY_PAGES = [
     "title": "SIP Calculator for Mumbai — Free Online Tool for Mumbai Businesses",
     "metaTitle": "Free SIP Calculator Mumbai 2026 | AWE-OS",
     "metaDescription": "Use SIP Calculator in Mumbai — instant results, free, no signup required. Built for Mumbai businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -2583,6 +2599,7 @@ export const CITY_PAGES = [
     "title": "gst-calculator for Ahmedabad — Free Online Tool for Ahmedabad Businesses",
     "metaTitle": "Free gst-calculator Ahmedabad 2026 | AWE-OS",
     "metaDescription": "Use gst-calculator in Ahmedabad — instant results, free, no signup required. Built for Ahmedabad businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -2763,6 +2780,7 @@ export const CITY_PAGES = [
     "title": "GST Calculator for Kolkata — Free Online Tool for Kolkata Businesses",
     "metaTitle": "Free GST Calculator Kolkata 2026 | AWE-OS",
     "metaDescription": "Use GST Calculator in Kolkata — instant results, free, no signup required. Built for Kolkata businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -2940,6 +2958,7 @@ export const CITY_PAGES = [
     "title": "gst-calculator for Pune — Free Online Tool for Pune Businesses",
     "metaTitle": "Free gst-calculator Pune 2026 | AWE-OS",
     "metaDescription": "Use gst-calculator in Pune — instant results, free, no signup required. Built for Pune businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -3120,6 +3139,7 @@ export const CITY_PAGES = [
     "title": "gst-calculator for Chennai — Free Online Tool for Chennai Businesses",
     "metaTitle": "Free gst-calculator Chennai 2026 | AWE-OS",
     "metaDescription": "Use gst-calculator in Chennai — instant results, free, no signup required. Built for Chennai businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -3300,6 +3320,7 @@ export const CITY_PAGES = [
     "title": "GST Calculator for Hyderabad — Free Online Tool for Hyderabad Businesses",
     "metaTitle": "Free GST Calculator Hyderabad 2026 | AWE-OS",
     "metaDescription": "Use GST Calculator in Hyderabad — instant results, free, no signup required. Built for Hyderabad businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -3477,6 +3498,7 @@ export const CITY_PAGES = [
     "title": "gst-calculator for Bengaluru — Free Online Tool for Bengaluru Businesses",
     "metaTitle": "Free gst-calculator Bengaluru 2026 | AWE-OS",
     "metaDescription": "Use gst-calculator in Bengaluru — instant results, free, no signup required. Built for Bengaluru businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -3657,6 +3679,7 @@ export const CITY_PAGES = [
     "title": "GST Calculator for Delhi — Free Online Tool for Delhi Businesses",
     "metaTitle": "Free GST Calculator Delhi 2026 | AWE-OS",
     "metaDescription": "Use GST Calculator in Delhi — instant results, free, no signup required. Built for Delhi businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
@@ -3834,6 +3857,7 @@ export const CITY_PAGES = [
     "title": "gst-calculator for Mumbai — Free Online Tool for Mumbai Businesses",
     "metaTitle": "Free gst-calculator Mumbai 2026 | AWE-OS",
     "metaDescription": "Use gst-calculator in Mumbai — instant results, free, no signup required. Built for Mumbai businesses.",
+    "noindex": true,
     "content": [
       {
         "type": "h1",
