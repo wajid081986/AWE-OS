@@ -44,7 +44,14 @@
     { "source": "/gst-calculator/kanpur",        "destination": "/tools/gst-calculator", "permanent": true },
     { "source": "/gst-calculator/lucknow",       "destination": "/tools/gst-calculator", "permanent": true },
     { "source": "/gst-calculator/surat",         "destination": "/tools/gst-calculator", "permanent": true },
-    { "source": "/gst-calculator/jaipur",        "destination": "/tools/gst-calculator", "permanent": true }
+    { "source": "/gst-calculator/jaipur",        "destination": "/tools/gst-calculator", "permanent": true },
+
+    { "source": "/blog/how-to-create-a-personal-budget-in-india", "destination": "/blog/how-to-create-a-budget-that-works-for-you-in-india", "permanent": true },
+    { "source": "/blog/image-compression-guide-2025", "destination": "/blog/how-to-compress-images-without-losing-quality", "permanent": true },
+    { "source": "/blog/word-to-pdf-complete-guide-2025", "destination": "/blog/how-to-convert-word-to-pdf-free", "permanent": true },
+    { "source": "/blog/emi-calculator-home-car-personal-loan-guide", "destination": "/blog/emi-calculator-home-car-personal-loan", "permanent": true },
+    { "source": "/blog/gst-calculator-india-add-or-remove-gst", "destination": "/blog/gst-calculator-india-add-remove-gst", "permanent": true },
+    { "source": "/blog/ppf-calculator-2026-maturity-amount-withdrawal-rules-tax-benefits", "destination": "/blog/ppf-calculator-india-maturity-80c-tax-benefits", "permanent": true }
   ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
