@@ -279,6 +279,7 @@ export function buildRoutes() {
     routes.push({
       path: `/${page.slug}`, pattern: '/:toolSlug/:city',
       element: <CityToolPage />, outFile: `${page.slug}/index.html`,
+      noindex: !!page.noindex,
     })
   }
   for (const page of COMPARISON_PAGES) {
