@@ -86,3 +86,23 @@ new) → **sitemap count 126 − 28 = 98 URLs**.
 One per logical unit per CLAUDE.md §6: this plan file first, then the
 `cityPages.js` data change, then the `entry-server.jsx` change, then
 the backlog entries, then verification/closure.
+
+---
+
+## STATUS: CLOSED (2026-07-19)
+
+PR #18 merged, production-verified. Full results in
+`docs/reports/batch-15-production-verification.md`.
+
+- ✅ `main` tip = PR #18 merge commit (`0db2e2a`)
+- ✅ Sitemap: 98 URLs, 0 city URLs — exact match
+- ✅ Tool page / homepage: no noindex leakage
+- ⚠️ **Known issue (found during production verification, not fixed in
+  this batch):** all 24 city pages ship a **conflicting** pair of
+  robots meta tags (`index, follow` + `noindex, follow`), not a clean
+  single directive. Root cause: `CityToolPage.jsx` has no `<Helmet>` at
+  all, so `ssg-build.js`'s `stripDefaultSeoTags()` never removes the
+  shell's default `index, follow` tag before `injectHelmet()` appends
+  the `noindex, follow` override. Needs its own scoped fix batch in
+  `ssg-build.js`'s shared head-injection logic — logged here and in the
+  production-verification report for an owner ruling on priority.
