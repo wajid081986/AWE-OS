@@ -80,3 +80,40 @@ senior citizen FDs offering 8–9%, append this sentence verbatim:
 - Production 308-redirect check post-merge, as usual (Vercel serves
   308 for `permanent: true`, SEO-equivalent to 301 — established in
   Batch 13's production verification).
+
+## Implementation log (2026-07-18)
+
+1. Removed the 2 outdated tax-regime posts (script-driven line-range
+   deletion, same method as Batch 13; verified via `import()` — 35 →
+   33 posts, both slugs confirmed gone, no double-blank-line seams).
+2. Added 2 redirect entries to `vercel.json` (both → the FY 2025-26
+   post). Checked `public/sitemap.xml` — neither slug was listed there
+   (part of the June 2026 post batch, never added to the sitemap,
+   consistent with Batch 13's finding), so no sitemap edit needed.
+3. Retitled the 6 posts — only the `title:` field. Traced
+   `BlogPostPage.jsx`'s `<Helmet>` first: `<title>`/`og:title` read
+   from a *separate* `metaTitle` field (already independent,
+   non-templated, untouched by this batch); `<h1>`, the JSON-LD
+   `headline`, and the breadcrumb name all read `post.title` directly
+   in the render code, so they pick up the new titles with no separate
+   edit needed. Confirmed all 6 diffs are exactly one line each — slug,
+   date, category, body all untouched.
+4. Applied the 2 owner-approved content edits verbatim — confirmed via
+   diff that only the intended sentence changed in each post, nothing
+   else in either paragraph/list item.
+
+### Verification — all clean
+
+- `npm run build`: **126 routes** (was 128) — exact predicted drop.
+- Both removed slugs confirmed absent from `dist/blog/`.
+- All 6 new titles present in their route's built HTML; all 6 old
+  title strings return 0 matches anywhere in `dist/`.
+- Both content edits confirmed present verbatim in built HTML
+  (`dist/blog/ppf-calculator-india-maturity-80c-tax-benefits/index.html`,
+  `dist/blog/sip-vs-fd-india-2025/index.html`).
+- `hydration-sweep.js`: **127/127 clean** at both
+  `HYDRATION_SWEEP_CONCURRENCY=2` and `=1` (126 SSG routes + `/login`).
+
+**Status**: implementation complete, locally verified. Pushed, PR
+opened, **not merged** — awaiting owner review. Production
+308-redirect check to follow after merge+deploy.
