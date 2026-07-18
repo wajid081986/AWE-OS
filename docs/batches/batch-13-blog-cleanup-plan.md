@@ -1,5 +1,9 @@
 # Batch 13 Plan — Blog Cleanup (Removals + Link-Renderer Fix)
 
+**Status: CLOSED (2026-07-18)** — merged via PR #15 (`bbf9057`),
+production-verified. See
+`docs/reports/batch-13-production-verification.md`.
+
 Branch: `batch-13-blog-cleanup`, from `origin/main`.
 
 Source: `docs/reports/blog-content-audit-2026-07.md` (Content Sprint
@@ -164,3 +168,17 @@ Approved by owner. Cluster F/G picks confirmed as listed above.
 **Status**: implementation complete, locally verified. Ready to push
 and open a PR; production redirect verification to follow after
 merge+deploy.
+
+## Batch CLOSED (2026-07-18) — production verified
+
+PR #15 merged to `main` (merge commit `bbf9057`). Production
+verification (`docs/reports/batch-13-production-verification.md`):
+`main` tip confirmed at the merge commit; all 6 removed blog URLs
+permanently redirect to their correct surviving twin (Vercel serves
+308 for `"permanent": true` — its documented equivalent of 301, same
+SEO treatment); `/blog` and a spot-checked remaining post serve
+intact content; the Markdown-link renderer fix confirmed live and
+working on real served HTML (the one previously-broken link now
+renders as a real `<a href>` tag).
+
+No further action on this batch.
