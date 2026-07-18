@@ -1,5 +1,9 @@
 # Batch 13b — Blog Retitles + Outdated Tax Posts Removal
 
+**Status: CLOSED (2026-07-18)** — merged via PR #16 (`2be897c`),
+production-verified. See
+`docs/reports/batch-13b-production-verification.md`.
+
 Branch: `batch-13b-blog-retitles`, from `origin/main` (confirmed PR #15
 merge commit `bbf9057` present).
 
@@ -117,3 +121,17 @@ senior citizen FDs offering 8–9%, append this sentence verbatim:
 **Status**: implementation complete, locally verified. Pushed, PR
 opened, **not merged** — awaiting owner review. Production
 308-redirect check to follow after merge+deploy.
+
+## Batch CLOSED (2026-07-18) — production verified
+
+PR #16 merged to `main` (merge commit `2be897c`). Production
+verification (`docs/reports/batch-13b-production-verification.md`):
+`main` tip confirmed at the merge commit; both removed tax-regime post
+URLs 308-redirect to `new-vs-old-tax-regime-fy-2025-26`; `/blog` serves
+exactly 33 posts with no dangling references to the removed posts;
+both retitled posts spot-checked serve their new titles; the PPF
+post's rate-currency caveat is live.
+
+**Content Sprint status: Hissa A, B, C — all COMPLETE.**
+
+No further action on this batch.
