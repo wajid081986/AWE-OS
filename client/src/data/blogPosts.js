@@ -412,7 +412,7 @@ export const BLOG_POSTS = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     slug: 'qr-code-generator-10-practical-uses',
-    title: 'Unlocking the Potential: QR Code Generator for Free Online with 10 Practical Uses',
+    title: '10 Practical Uses for QR Codes in India (Free Generator)',
     date: '2026-06-01',
     category: 'General',
     author: 'AWE-OS Team',
@@ -925,7 +925,7 @@ export const BLOG_POSTS = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     slug: 'sip-calculator-mutual-fund-returns-india',
-    title: 'Maximize Your Investments with the SIP Calculator in India',
+    title: 'SIP Calculator: Plan Your Mutual Fund Returns in India',
     date: '2026-06-01',
     category: 'Calculators',
     author: 'AWE-OS Team',
@@ -1511,7 +1511,7 @@ export const BLOG_POSTS = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     slug: 'word-counter-online-writers-students',
-    title: 'Maximize Efficiency with Word Counter Online Free',
+    title: 'Word Counter Online: A Guide for Writers & Students',
     date: '2026-06-01',
     category: 'Finance',
     author: 'AWE-OS Team',
@@ -1845,7 +1845,7 @@ export const BLOG_POSTS = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     slug: 'unit-converter-online-length-weight-temperature',
-    title: 'Effortlessly Convert Units with Our Unit Converter Online Free',
+    title: 'Unit Converter: Length, Weight & Temperature Made Simple',
     date: '2026-06-01',
     category: 'AI Tools',
     author: 'AWE-OS Team',
@@ -2221,7 +2221,7 @@ export const BLOG_POSTS = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     slug: 'free-gst-invoice-generator-for-indian-freelancers',
-    title: 'Effortlessly Create GST Invoices: Free Generator for Indian Freelancers',
+    title: 'GST Invoices for Freelancers: Free Generator Guide',
     date: '2026-06-01',
     category: 'Finance',
     author: 'AWE-OS Team',
@@ -2400,7 +2400,7 @@ export const BLOG_POSTS = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     slug: 'ppf-calculator-india-maturity-80c-tax-benefits',
-    title: 'Unlocking the Potential of PPF Calculator India for Tax Savings',
+    title: 'PPF Calculator: Maturity Value & Section 80C Tax Benefits',
     date: '2026-06-01',
     category: 'Finance',
     author: 'AWE-OS Team',
