@@ -125,3 +125,42 @@ separately (no-AI-prose rule).
 ## Approval
 
 Approved by owner. Cluster F/G picks confirmed as listed above.
+
+## Implementation log (2026-07-18)
+
+1. Removed all 6 posts from `blogPosts.js` (script-driven line-range
+   deletion to avoid hand-editing a 6000-line file; verified via
+   `import()` afterward — 41 → 35 posts, all 6 slugs confirmed gone,
+   module still loads cleanly). Fixed 2 blank-line formatting seams
+   left by the deletions (one trailing, one mid-file) for consistency
+   with the rest of the file.
+2. Added 6 `permanent: true` redirect entries to `vercel.json`, each
+   removed slug → its surviving twin, matching the file's existing
+   redirect pattern.
+3. Removed the 2 `<url>` blocks from `client/public/sitemap.xml` for
+   the two previously-live removed posts; validated `<url>`/`</url>`
+   tag counts stay balanced (101/101) and both slugs are gone from the
+   file.
+4. Extended `BlogPostPage.jsx`'s `renderInline()` with a Markdown
+   `[text](url)` alternative, reusing the existing `<a href>` case's
+   output/styling/internal-vs-external branching exactly.
+
+### Verification — all clean
+
+- `npm run build`: **128 routes** (was 134) — exact predicted drop.
+- All 6 removed slugs confirmed absent from `dist/blog/`.
+- `dist/blog/qr-code-generator-10-practical-uses/index.html`: the
+  literal `[QR Code Generator](` string is gone; a real
+  `<a href="https://www.awe-os.com/tools/qr-code-generator" ...>` tag
+  is present instead.
+- `hydration-sweep.js`: **129/129 clean** at both
+  `HYDRATION_SWEEP_CONCURRENCY=2` and `=1` (128 SSG routes + `/login`).
+- **Not yet verified**: the 6 production 301 redirects themselves —
+  `static-preview-server.js` doesn't implement `vercel.json`'s
+  `redirects`, so this needs a post-deploy production check (`curl -I`
+  each removed URL), same pattern as the Batch 5.6b production-
+  verification report.
+
+**Status**: implementation complete, locally verified. Ready to push
+and open a PR; production redirect verification to follow after
+merge+deploy.
