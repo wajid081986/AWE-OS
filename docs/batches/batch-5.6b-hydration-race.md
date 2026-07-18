@@ -1,5 +1,9 @@
 # Batch 5.6b Plan — Hydration Race Isolation (React #421/#422)
 
+**Status: CLOSED (2026-07-18)** — merged via PR #14 (`1434df2`),
+production-verified. See `docs/reports/batch-5.6b-production-verification.md`
+and the closing section at the end of this doc.
+
 Branch: `batch-5.6b-hydration-race`, created from `origin/main` @ `7034c6e`
 (merge of PR #13 / batch-12-tool-prose).
 
@@ -796,3 +800,24 @@ match the set the adjacent comment always claimed to cover — 418, 419,
 421, 422, 423, 425 — via `/minified react error #4(18|19|2[1235])/i`.
 Test-tooling only, no behavior change to pass/fail verdicts (see
 backlog entry for why).
+
+## Batch CLOSED (2026-07-18) — production verified
+
+PR #14 merged to `main` (merge commit `1434df2`). Production
+verification (`docs/reports/batch-5.6b-production-verification.md`):
+`main` tip confirmed at the merge commit; 4 production routes
+(homepage, 2 tool pages, a blog post) all serve complete SSG'd HTML
+with correct per-page titles/`<h1>`s; the `ToolErrorBoundary`
+`display:contents` wrapper — the actual bug fixed by this batch — is
+confirmed present in live tool-page HTML, proving the fix is the code
+actually served.
+
+Owner-verified production Lighthouse: **Desktop 100/100/100/100 (CLS
+0, FCP 0.7s)**, **Mobile 83/100/100/100 (CLS 0)**. CLS 0 on both
+confirms the batch's core goal — real `hydrateRoot` site-wide, no
+`createRoot`-discard-and-rebuild layout shift — holds in production,
+not just in the local sweep harness. Mobile's 83 (non-CLS, non-layout)
+is a separate, pre-existing gap (route code-splitting / unused JS),
+logged to `docs/backlog.md`, not a regression from this batch.
+
+No further action on this batch.
