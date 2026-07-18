@@ -2435,7 +2435,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'p',
-        text: 'The PPF scheme is backed by the Government of India, ensuring safety and guaranteed returns. It is one of the most secure investment options available in India, making it a preferred choice for risk-averse investors. The interest rate on PPF is revised quarterly by the government, and as of now, it stands at 7.1% per annum. Using the PPF calculator India, you can explore different scenarios by adjusting the contribution amount or the investment period. This helps in making an informed decision regarding your investment strategy.'
+        text: 'The PPF scheme is backed by the Government of India, ensuring safety and guaranteed returns. It is one of the most secure investment options available in India, making it a preferred choice for risk-averse investors. The PPF interest rate is revised quarterly by the government. As of the July–September 2026 quarter, it stands at 7.1% per annum — check the latest rate on the National Savings Institute website before investing. Using the PPF calculator India, you can explore different scenarios by adjusting the contribution amount or the investment period. This helps in making an informed decision regarding your investment strategy.'
       },
       {
         type: 'h2',
@@ -4592,7 +4592,7 @@ export const BLOG_POSTS = [
         items: [
           "**Emergency fund (6 months of expenses):** Your emergency fund must never sit in equity SIP. Markets can drop 30–40% exactly when a job loss or medical crisis forces you to withdraw. A sweep-in FD or liquid FD is the only appropriate instrument here — non-negotiable.",
           "**Goals within 3 years (wedding, home down payment, car purchase):** Equity SIP in 3 years or less can give negative returns if markets are in a downturn at your exit date. For any goal where you cannot afford capital loss, FD — or a short-term debt mutual fund at most — is correct. Your sister's wedding budget belongs in an FD, not a SIP.",
-          '**Retired investors aged 65+ who need regular income:** Senior citizen FDs from banks like AU Small Finance Bank or Jana Bank offer 8–9%, with a ₹50,000 TDS exemption threshold. This creates predictable quarterly interest income. SIP volatility is inappropriate for someone drawing down their corpus for living expenses.',
+          '**Retired investors aged 65+ who need regular income:** Senior citizen FDs from banks like AU Small Finance Bank or Jana Bank offer 8–9%, with a ₹50,000 TDS exemption threshold. FD rates change frequently — always verify current rates directly with the bank before booking. This creates predictable quarterly interest income. SIP volatility is inappropriate for someone drawing down their corpus for living expenses.',
           '**First-time investors who cannot tolerate uncertainty:** A guaranteed 7% return you can sleep through is worth more than a theoretical 13% that causes anxiety and triggers panic-selling at the worst possible moment. Start with FD to build the savings habit, then graduate to SIP as you understand how market cycles work.',
         ],
       },
