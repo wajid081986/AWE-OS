@@ -98,3 +98,20 @@ logic.
 Plan doc (this file) → `ssg-build.js` fix → batch-15 plan-doc status
 update → verification/closure report (production, after deploy +
 approval).
+
+---
+
+## STATUS: CLOSED (2026-07-19)
+
+PR #19 merged, production-verified. Full results in
+`docs/reports/batch-15b-production-verification.md`.
+
+- ✅ `main` tip = PR #19 merge commit (`3bb111a`)
+- ✅ City page (`/bmi-calculator/hyderabad`): exactly one
+  `noindex, follow` tag — conflicting pair resolved
+- ✅ Noindexed blog post: exactly one `noindex, follow` tag —
+  duplicate pair resolved
+- ✅ Homepage / tool page / policy page: zero robots tags, no leakage
+- ✅ Sitemap: 98 URLs, unchanged
+
+Batch 15's known issue is fully resolved. No new issues found.
