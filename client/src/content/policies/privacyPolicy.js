@@ -39,7 +39,7 @@ export default {
     {
       heading: 'Cookies',
       paragraphs: [
-        'We use only the cookies necessary for the site to function and for the anonymous analytics described above. Advertising partners, where present, may use cookies as described in our Advertising Policy.',
+        'We use only the cookies necessary for the site to function. Our analytics (Umami) are cookie-free — no analytics cookies are set on your device. Advertising partners, where present, may use cookies as described in our Advertising Policy.',
       ],
     },
     {

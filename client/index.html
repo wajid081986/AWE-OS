@@ -43,17 +43,8 @@
     <!-- Favicon (emoji fallback — replace with real PNG once available) -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>" />
 
-    <!-- Google Analytics GA4 -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-G44WCZFZSE"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){ dataLayer.push(arguments); }
-      gtag('js', new Date());
-      gtag('config', 'G-G44WCZFZSE', {
-        page_path: window.location.pathname,
-        send_page_view: true
-      });
-    </script>
+    <!-- Umami Cloud analytics (batch 16 — replaced GA4) -->
+    <script defer src="https://cloud.umami.is/script.js" data-website-id="a2f17bdc-08eb-49a3-832b-79f611d9766d"></script>
 
     <!-- FOUC prevention: dark bg before any JS loads; hide root/noscript until React mounts -->
     <style>
