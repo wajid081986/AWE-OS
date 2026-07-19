@@ -1,6 +1,7 @@
 /**
  * Core Web Vitals tracking via native PerformanceObserver.
- * No external SDK. Reports to GA4 (window.gtag) if present.
+ * No external SDK. Logs to console in dev only — regressions are
+ * caught by the CI-enforced Lighthouse gate, not runtime reporting.
  * Tracks: LCP, FID, CLS, FCP, TTFB.
  */
 
@@ -21,11 +22,6 @@ function getRating(name, value) {
 
 function send(name, value) {
   const rating = getRating(name, value)
-  window.gtag?.('event', name, {
-    value:         Math.round(name === 'CLS' ? value * 1000 : value),
-    metric_rating: rating,
-    non_interaction: true,
-  })
   if (import.meta.env.DEV) {
     const color = rating === 'good' ? '#22c55e' : rating === 'needs-improvement' ? '#f59e0b' : '#ef4444'
     console.log(`%c[WebVital] ${name}`, `color:${color};font-weight:bold`, Math.round(value), `(${rating})`)
