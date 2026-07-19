@@ -87,7 +87,9 @@ console.log(`▶ Rendering ${routes.length} routes…`)
 // and have no <title>/description of their own (pre-existing content gap,
 // backlogged separately); blindly stripping would leave those pages with an
 // empty <title>, which is worse than the site-wide default they'd otherwise
-// inherit.
+// inherit. robots is the one exception (batch 15b): it's always stripped
+// unconditionally since injectHelmet() is its sole source of truth — see
+// that function's own comment.
 function stripDefaultSeoTags(html, helmet) {
   const helmetHasTitle = /<title[^>]*>\s*[^\s<]/.test(helmet?.title?.toString() || '')
   const helmetHasMeta  = (helmet?.meta?.toString() || '').length > 0
@@ -101,6 +103,11 @@ function stripDefaultSeoTags(html, helmet) {
       ''
     )
   }
+  // robots is always centrally owned by injectHelmet()'s `noindex` param
+  // (batch 15b) — strip the shell's default unconditionally, independent of
+  // helmetHasMeta, so routes with no Helmet meta at all (e.g. CityToolPage)
+  // don't keep a stale "index, follow" tag alongside an injected override.
+  html = html.replace(/\s*<meta\s+name="robots"[^>]*\/?>/gi, '')
   return html
 }
 
@@ -125,9 +132,17 @@ function injectHelmet(html, helmet, noindex) {
   const titleStr = helmet.title?.toString() || ''
   const hasRealTitle = /<title[^>]*>\s*[^\s<]/.test(titleStr)
 
+  // robots is centrally owned by the `noindex` param below (batch 15b) —
+  // strip any component-supplied robots tag (e.g. BlogPostPage's own
+  // noindex meta) so it never ships duplicated alongside the override.
+  const metaStr = (helmet.meta?.toString() || '').replace(
+    /\s*<meta\s+name="robots"[^>]*\/?>/gi,
+    ''
+  )
+
   const headTags = [
     hasRealTitle ? titleStr : null,
-    helmet.meta?.toString(),
+    metaStr,
     helmet.link?.toString(),
     helmet.script?.toString(),
   ].filter(Boolean).join('\n    ')
