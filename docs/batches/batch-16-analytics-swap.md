@@ -72,3 +72,22 @@ Server-side `/api/events/track` POST logic (internal marketing pipeline) is unto
 - No `server/` changes — server-side event tracking is a separate system.
 - Files touched: `client/index.html`, `client/src/hooks/useAnalytics.js`, `client/src/utils/performance/webVitals.js`, `client/.env` (untracked/local), `vercel.json`, `docs/backlog.md`, this plan doc. 6 tracked files — well under the 25-file threshold.
 - No ads, no new npm dependencies, no protected-zone files touched.
+
+## Batch CLOSED (2026-07-19) — production verification
+
+PR #20 merged to `main` (merge commit `93967dc`). Production verified
+by `curl`ing the live site directly:
+- `https://www.awe-os.com/` — zero `gtag`/`googletagmanager`/`google-analytics`
+  strings; `<script defer src="https://cloud.umami.is/script.js"
+  data-website-id="a2f17bdc-08eb-49a3-832b-79f611d9766d">` present.
+- `https://www.awe-os.com/privacy-policy` — Cookies section confirmed
+  live with the updated sentence ("Our analytics (Umami) are
+  cookie-free — no analytics cookies are set on your device."); old
+  wording confirmed absent.
+
+Not re-verified in this pass (unchanged from the pre-merge checks
+already run in this batch): Lighthouse Desktop Perf, and the
+SPA-route-change pageview behavior in the Umami dashboard (§7, item 6)
+— still an owner action item, not blocking closure.
+
+No further action on this batch.
