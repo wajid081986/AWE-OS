@@ -97,12 +97,13 @@ PR #18 merged, production-verified. Full results in
 - ✅ `main` tip = PR #18 merge commit (`0db2e2a`)
 - ✅ Sitemap: 98 URLs, 0 city URLs — exact match
 - ✅ Tool page / homepage: no noindex leakage
-- ⚠️ **Known issue (found during production verification, not fixed in
-  this batch):** all 24 city pages ship a **conflicting** pair of
-  robots meta tags (`index, follow` + `noindex, follow`), not a clean
-  single directive. Root cause: `CityToolPage.jsx` has no `<Helmet>` at
-  all, so `ssg-build.js`'s `stripDefaultSeoTags()` never removes the
-  shell's default `index, follow` tag before `injectHelmet()` appends
-  the `noindex, follow` override. Needs its own scoped fix batch in
-  `ssg-build.js`'s shared head-injection logic — logged here and in the
-  production-verification report for an owner ruling on priority.
+- ⚠️→✅ **Known issue fixed in [batch-15b](batch-15b-plan.md)** (not yet
+  deployed at time of writing): all 24 city pages shipped a
+  **conflicting** pair of robots meta tags (`index, follow` +
+  `noindex, follow`); 4 noindexed blog posts shipped a duplicate pair.
+  Fixed at the source in `ssg-build.js`'s
+  `stripDefaultSeoTags()`/`injectHelmet()` — robots meta is now single-
+  sourced from `route.noindex`, exactly one tag per route. Verified
+  locally (build + grep across `dist/` + hydration sweep, all clean);
+  production verification pending deploy — see batch-15b's own report
+  once closed.
