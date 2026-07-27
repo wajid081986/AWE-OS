@@ -8,6 +8,12 @@
     { "source": "/tools/emi-calculator", "destination": "/tools/loan-calculator", "permanent": true },
     { "source": "/tools/image-to-pdf",   "destination": "/tools/jpg-to-pdf",      "permanent": true },
 
+    { "source": "/tools/loan-emi-calculator",   "destination": "/tools/loan-calculator",  "permanent": true },
+    { "source": "/tools/income-tax-calculator", "destination": "/tools/tax-calculator",   "permanent": true },
+    { "source": "/tools/investment-calculator", "destination": "/tools/roi-calculator",   "permanent": true },
+    { "source": "/tools/character-counter",     "destination": "/tools/word-counter",     "permanent": true },
+    { "source": "/tools/image-resizer",         "destination": "/tools/image-compressor", "permanent": true },
+
     { "source": "/bmi-calculator/visakhapatnam", "destination": "/tools/bmi-calculator", "permanent": true },
     { "source": "/bmi-calculator/coimbatore",    "destination": "/tools/bmi-calculator", "permanent": true },
     { "source": "/bmi-calculator/kochi",         "destination": "/tools/bmi-calculator", "permanent": true },
@@ -57,6 +63,10 @@
     { "source": "/blog/income-tax-calculator-india-2025-old-vs-new-regime", "destination": "/blog/new-vs-old-tax-regime-fy-2025-26", "permanent": true }
   ],
   "rewrites": [
+    { "source": "/tools/retirement-planner",           "destination": "/__gone" },
+    { "source": "/tools/grammar-checker",               "destination": "/__gone" },
+    { "source": "/tools/file-converter",                "destination": "/__gone" },
+    { "source": "/tools/investment-growth-calculator",  "destination": "/__gone" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
