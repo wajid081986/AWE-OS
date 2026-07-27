@@ -3,7 +3,7 @@
 export default {
   slug: 'terms',
   title: 'Terms of Use',
-  metaDescription: 'AWE-OS tools are provided free, as-is, for personal and business use.',
+  metaDescription: 'AWE-OS tools are provided free, as-is, for personal and business use. For decisions involving significant money, consult a qualified professional.',
   lastUpdated: 'July 15, 2026',
   sections: [
     {

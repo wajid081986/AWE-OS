@@ -19,6 +19,4 @@ Disallow: /api/
 Disallow: /login
 Disallow: /tools/test-ai-tool
 
-Crawl-delay: 1
-
 Sitemap: https://www.awe-os.com/sitemap.xml
