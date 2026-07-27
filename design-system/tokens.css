@@ -192,6 +192,15 @@
   --searchbar-padding-left: 18px;
   --searchbar-max-width: 32rem;
 
+  /* Hero visual strip (Batch 17, sourced from owner's teal-redesign spec).
+     Glass-panel effect is one-off/decorative, tied to this single new
+     gradient band — tokenized anyway per the file's own no-raw-hex
+     discipline (CLAUDE.md §4), same as every other component-specific
+     token above. */
+  --hero-strip-card-bg: rgba(255, 255, 255, 0.12);
+  --hero-strip-card-border: rgba(255, 255, 255, 0.25);
+  --hero-strip-divider: rgba(255, 255, 255, 0.2);
+
   /* Browser Frame (Batch 5, sourced from reference HTML .browser/.flow/.dot).
      Same no-duplicate-token discipline — .radius-2xl (16px), .rounded-md
      (6px), w/h-2.5 (10px), px-3/px-4/px-6/pb-6/mb-6/gap-1.5 already cover
