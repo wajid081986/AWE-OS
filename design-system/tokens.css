@@ -18,9 +18,18 @@
   --ink-soft: #3B4463;
   --paper: #F6F7FB;
   --card: #FFFFFF;
-  --cobalt: #2742D6;
-  --cobalt-deep: #1B2FA0;
-  --cobalt-tint: #EDF0FE;
+  /* --cobalt* are role names ("primary action"), not literal color
+     names — Batch 17 repointed the value from cobalt-blue to deep teal
+     (#0F766E) site-wide. Renaming the variables/classes was considered
+     and rejected (would touch 15+ more files for a value-only rebrand);
+     see docs/batches/batch-17-homepage-teal-redesign-plan.md §1. */
+  --cobalt: #0F766E;
+  --cobalt-deep: #115E59;
+  --cobalt-tint: #F0FDF9;
+  --cobalt-border: #D1FAE5;
+  --cobalt-accent: #5EEAD4;
+  --cobalt-gradient-mid: #0D9488;
+  --cobalt-gradient-end: #14B8A6;
   --marigold: #E8850C;
   --marigold-tint: #FEF3E2;
   --marigold-border: #F5D9AE;
@@ -30,6 +39,11 @@
   --mint-border: #BFE8D6;
   --mint-text-strong: #14543C;
   --line: #E4E7F0;
+  /* Trust section (Batch 17) — the only dark-surface section on the
+     public site; scoped tokens rather than repurposing --ink (which
+     every light-bg page's body text relies on). */
+  --surface-dark: #0F172A;
+  --text-on-dark-muted: #94A3B8;
 
   /* Color — role aliases (Blueprint §5) */
   --color-action: var(--cobalt);
@@ -46,7 +60,7 @@
   /* Shadow — Blueprint §5 (soft, low-opacity ink; never pure black) */
   --shadow-card: 0 1px 2px rgba(19, 26, 46, 0.06), 0 4px 12px rgba(19, 26, 46, 0.06);
   --shadow-float: 0 8px 24px rgba(19, 26, 46, 0.12);
-  --shadow-button: 0 4px 14px rgba(39, 66, 214, 0.28);
+  --shadow-button: 0 4px 14px rgba(15, 118, 110, 0.28);
 
   /* Borders — Blueprint §5 */
   --border-standard: 1.5px solid var(--line);
