@@ -50,12 +50,12 @@ export default function ContactPage() {
   return (
     <>
       <Helmet>
-        <title>Contact Us — AWE-OS</title>
+        <title>Contact Us — AWE-OS | Free Online Tools</title>
         <meta name="description"         content="Get in touch with the AWE-OS team. Report bugs, request features, or ask questions about our free online tools." />
         <link rel="canonical"            href="https://www.awe-os.com/contact" />
         <meta property="og:site_name"    content="AWE-OS" />
         <meta property="og:locale"       content="en_US" />
-        <meta property="og:title"        content="Contact Us — AWE-OS" />
+        <meta property="og:title"        content="Contact Us — AWE-OS | Free Online Tools" />
         <meta property="og:description"  content="Get in touch with the AWE-OS team. Report bugs, request features, or ask questions about our free online tools." />
         <meta property="og:url"          content="https://www.awe-os.com/contact" />
         <meta property="og:type"         content="website" />
@@ -65,7 +65,7 @@ export default function ContactPage() {
         <meta property="og:image:alt"    content="Contact AWE-OS" />
         <meta name="twitter:card"        content="summary_large_image" />
         <meta name="twitter:site"        content="@awe_os" />
-        <meta name="twitter:title"       content="Contact Us — AWE-OS" />
+        <meta name="twitter:title"       content="Contact Us — AWE-OS | Free Online Tools" />
         <meta name="twitter:description" content="Get in touch with the AWE-OS team. Report bugs, request features, or ask questions about our free online tools." />
         <meta name="twitter:image"       content="https://www.awe-os.com/og-image.svg" />
         <meta name="twitter:image:alt"   content="Contact AWE-OS" />

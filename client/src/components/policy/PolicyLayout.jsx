@@ -23,7 +23,7 @@ function linkifyEmails(text) {
  */
 export default function PolicyLayout({ title, metaDescription, lastUpdated, sections, canonicalPath }) {
   const canonicalUrl = getCanonicalUrl(canonicalPath)
-  const pageTitle = `${title} — AWE-OS`
+  const pageTitle = `${title} — AWE-OS | Free Online Tools`
 
   return (
     <>
