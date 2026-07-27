@@ -49,6 +49,7 @@
   --surface-dark: #0F172A;
   --text-muted-slate: #94A3B8;
   --stat-divider: #F1F5F9;
+  --trust-icon-bg: rgba(15, 118, 110, 0.3);
 
   /* Color — role aliases (Blueprint §5) */
   --color-action: var(--cobalt);
