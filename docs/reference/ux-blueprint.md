@@ -6,6 +6,21 @@ This document is the single source of truth for redesigning the public AWE-OS we
 
 ---
 
+## Changelog
+
+- **2026-07-27 (Batch 17)** — Owner-approved brand pivot: primary action
+  color changed from cobalt-blue (`#2742D6`) to deep teal (`#0F766E`).
+  The `--cobalt*` token/class *names* are unchanged (§5 already treats
+  them as role names, not appearance names — "`--cobalt` is acceptable
+  as a palette name"); only the hex values moved. Marigold and mint are
+  explicitly **not** part of this pivot — both retained unchanged.
+  §4's color table, §11's Blog Card band, §14's homepage filter-tab
+  active state, and §16's Hero are updated below to match what shipped.
+  See `docs/batches/batch-17-homepage-teal-redesign-plan.md` for the
+  full decision trail.
+
+---
+
 ## 1. Design Philosophy
 
 AWE-OS's public site has one job: convert an anonymous visitor into someone who trusts the platform enough to hand it their bank statement. Everything follows from that. The philosophy is **"verifiable trust"** — we never *claim* trustworthiness with adjectives; we *demonstrate* it with checkable facts. "Your files never leave your device — open the Network tab and watch" is our voice. "World-class secure platform" is not.
@@ -18,7 +33,7 @@ Why this philosophy: AWE-OS cannot out-spend Adobe or out-brand Notion. It can o
 
 The identity is built around a single metaphor: **the ledger**. A ledger is precise, auditable, and honest — exactly the brand promise. It appears as a visual signature across the site: dashed-border boxes with monospace rows recording verifiable facts ("Files stored on our servers: 0 — ever"). This is the one element a visitor remembers and no clone site can credibly copy, because it only works if the claims are true.
 
-Supporting the ledger: a deep ink-navy base (serious, financial), cobalt blue for action (energy without the startup-gradient cliché), and a single marigold accent (an Indian note — marigold, not saffron-as-flag, keeping it cultural rather than political). Logo remains the existing "A" mark in a cobalt gradient rounded square; do not redesign the logo in this phase — logo churn destroys the small brand equity that exists.
+Supporting the ledger: a deep ink-navy base (serious, financial), deep teal for action (energy without the startup-gradient cliché; teal since Batch 17 — see Changelog, was cobalt blue at v1.0), and a single marigold accent (an Indian note — marigold, not saffron-as-flag, keeping it cultural rather than political). Logo remains the existing "A" mark in a `--cobalt`-token gradient rounded square (now teal-valued); do not redesign the logo mark itself in this phase — logo churn destroys the small brand equity that exists.
 
 Why: the ledger motif converts the platform's genuine technical property (client-side processing) into a visual language. Identity derived from a real product truth ages well; identity derived from trends needs redesigning every two years.
 
@@ -44,14 +59,18 @@ Rule: Bricolage never appears below 1.1rem, and mono never carries full sentence
 | `--ink-soft` | #3B4463 | Secondary text |
 | `--paper` | #F6F7FB | Page background (cool, faintly blue — deliberately not the warm-cream AI default) |
 | `--card` | #FFFFFF | Elevated surfaces |
-| `--cobalt` | #2742D6 | Primary action, links |
-| `--cobalt-deep` | #1B2FA0 | Hover/pressed |
-| `--cobalt-tint` | #EDF0FE | Icon backgrounds, selected states |
-| `--marigold` | #E8850C | Accent: highlights, eyebrows' tick, category counts. Never a button |
-| `--mint` | #0E9F6E | Success and privacy-verified states only |
+| `--cobalt` | #0F766E (was #2742D6 at v1.0) | Primary action, links |
+| `--cobalt-deep` | #115E59 (was #1B2FA0) | Hover/pressed |
+| `--cobalt-tint` | #F0FDF9 (was #EDF0FE) | Icon backgrounds, selected states |
+| `--cobalt-border` | #D1FAE5 | Batch 17: pill/badge/card borders, gradient card edges |
+| `--cobalt-accent` | #5EEAD4 | Batch 17: hero underline bar, icons on dark surfaces |
+| `--marigold` | #E8850C | Accent: highlights, eyebrows' tick, category counts. Never a button. Unchanged by Batch 17 |
+| `--mint` | #0E9F6E | Success and privacy-verified states only. Unchanged by Batch 17 |
 | `--line` | #E4E7F0 | Borders, dividers |
+| `--surface-dark` | #0F172A | Batch 17: Trust section background (the one dark public-page surface besides the footer) |
+| `--text-on-dark-muted` | #94A3B8 | Batch 17: body text on `--surface-dark` |
 
-Usage ratio roughly 70% paper/card, 20% ink, 8% cobalt, 2% marigold+mint. Contrast: all text pairs meet WCAG AA (ink on paper = 13.9:1; ink-soft on paper = 7.4:1; white on cobalt = 6.9:1). Marigold is decorative-only precisely because #E8850C on white fails AA for text.
+Usage ratio roughly 70% paper/card, 20% ink, 8% cobalt(teal), 2% marigold+mint — ratio unchanged by the Batch 17 recolor, only the hue of the 8% shifted. Contrast: all text pairs meet WCAG AA (ink on paper = 13.9:1; ink-soft on paper = 7.4:1; white on cobalt = 5.47:1 post-Batch-17 — computed, not estimated; still clears AA's 4.5:1 floor for normal text, down from cobalt-blue's 6.9:1 but with more headroom to spare). Marigold is decorative-only precisely because #E8850C on white fails AA for text.
 
 Why one accent family plus one highlight: multi-hue palettes on utility sites read as "template." Discipline here is the premium signal.
 
@@ -91,9 +110,11 @@ Phase 1 ships exactly these components, each with one canonical implementation: 
 
 Why a closed set: authority comes from repetition. A visitor who has seen one tool page can predict every other tool page; that predictability *is* the premium feel of Linear and Stripe, and it is achieved by refusing to invent new components per page.
 
+**Batch 17 addition — Trust Section**: a dark (`--surface-dark`) 3-column icon-grid section, homepage only, replacing the homepage's `PrivacyPromise` instance of the Step List pattern. It is not new *content* — the 3 pillars are the existing owner-approved "why AWE-OS is different" copy (zero uploads, built for India, runs on your device) condensed from the same 4-step + callout text that was already there, per owner ruling during Batch 17 planning — but it is a new *visual* pattern (parallel icon+title+body cards on a dark surface, vs. Step List's sequential numbered rows on paper). Logged here rather than silently added, per this section's own closed-set rule.
+
 ## 11. Cards
 
-All cards share: white surface, 1.5px `--line` border, `--radius-m`, and a hover state of translateY(−3px) + border-color→cobalt + soft shadow. **Tool Card**: icon in a 40px cobalt-tint rounded square, name (Instrument Sans 700), two-line description at .84rem, and one mono tag (`NO UPLOAD` in mint / `INDIA-READY` / `AI-ASSISTED` in their tint colors). The tag row is mandatory — it repeats the differentiation on every single card. **Blog Card**: a 7px gradient band (cobalt→marigold) on top, mono meta row with *updated date* (freshness signal per §24), title, excerpt, and an author row with avatar. **Related-Tool Card**: compact, title + one line, used only inside articles.
+All cards share: white surface, 1.5px `--line` border, `--radius-m`, and a hover state of translateY(−3px) + border-color→cobalt + soft shadow. **Tool Card**: icon in a 40px cobalt-tint rounded square, name (Instrument Sans 700), two-line description at .84rem, and one mono tag (`NO UPLOAD` in mint / `INDIA-READY` / `AI-ASSISTED` in their tint colors). The tag row is mandatory — it repeats the differentiation on every single card. **Blog Card**: a soft gradient header block (`--cobalt-tint` → pale teal, `--cobalt-border` bottom edge — replaces v1.0's thin 7px cobalt→marigold band as of Batch 17, homepage only so far) holding the category label, mono meta row with *updated date* (freshness signal per §24), title, excerpt, and an author row with avatar. **Related-Tool Card**: compact, title + one line, used only inside articles.
 
 Why border-based elevation instead of heavy shadows: shadow-heavy cards are the generic-SaaS tell; borders read as drafting-table precision, which matches the ledger identity.
 
@@ -111,9 +132,9 @@ Why client-side: it is faster, it works offline like the tools do, and the synon
 
 ## 14. Filters
 
-Filter tabs (Popular / PDF / Calculators / Converters / Productivity / AI) appear on the homepage tool section and the `/tools` listing. Visual: pill buttons, active = ink fill with white text. Behavior: single-select, updates the grid instantly, syncs to the URL hash (`/tools#calculators`) so filtered states are shareable and crawlable. No multi-facet filtering in Phase 1 — 49 items don't need it, and faceted URLs create crawl-budget waste and thin-page risk (§24).
+Filter tabs (Popular / PDF / Calculators / Converters / Productivity / AI) appear on the homepage tool section and the `/tools` listing. Visual (homepage, as of Batch 17): pill buttons, active = white fill + subtle shadow + teal text. Behavior: single-select, updates the grid instantly, syncs to the URL hash (`/tools#calculators`) so filtered states are shareable and crawlable. No multi-facet filtering in Phase 1 — 49 items don't need it, and faceted URLs create crawl-budget waste and thin-page risk (§24).
 
-Why ink-fill active state rather than cobalt: the filter is a *state*, not an *action*; reserving cobalt for actions keeps the interaction grammar consistent.
+Why white+shadow active state rather than ink-fill (changed from v1.0's rule, which argued for ink-fill precisely *because* the filter is a state not an action): the owner's Batch 17 spec called for it explicitly as part of the teal redesign's overall card/pill visual language, where "elevated white card over subtle background" is the state-indicator idiom used consistently (active tab, tool card, stat card) rather than a solid-fill idiom. Superseding the earlier rationale for the homepage's tab component only. **Known inconsistency, not fixed by Batch 17**: `/tools` listing page's filter tabs are a separate, pre-Blueprint implementation (`ToolsPage.jsx`, raw Tailwind defaults like `bg-blue-600`, not the token system at all — same "pre-redesign" debt already flagged for `ContactPage`/`CategoryPage`) and were not touched by this batch; the two pages' tab styling will visibly diverge until `/tools` gets its own migration batch.
 
 ## 15. Navigation
 
@@ -125,7 +146,9 @@ Why Login stays visible but small: hiding it breaks the workflow of the internal
 
 ## 16. Hero
 
-Homepage hero is a thesis, not a slideshow: left column carries the claim ("Online tools that **never upload** your files" — the differentiator is the headline, with marigold underline on the two words that matter), a one-line subhead naming the audience and scope, the search bar, and four verifiable chips. Right column is the signature Browser Frame: a stylized browser window animating file → in-browser processing → download, above a Ledger with three checkable facts. No hero image, no illustration of abstract people, no gradient blobs.
+Homepage hero is a thesis, not a slideshow: left column carries a "Privacy-first — zero uploads" pill badge (added Batch 17), the claim ("Online tools that **never upload** your files" — the differentiator is the headline, with a teal (`--cobalt-accent`) underline on the two words that matter as of Batch 17, was marigold at v1.0), a one-line subhead naming the audience and scope, the search bar, and four verifiable chips. Right column is the signature Browser Frame: a stylized browser window animating file → in-browser processing → download, above a Ledger with three checkable facts — retained as-is by Batch 17 (considered for replacement, kept per owner ruling). No hero image, no illustration of abstract people, no gradient blobs *within the hero grid itself*; Batch 17 adds one exception below it — see next paragraph.
+
+**Hero visual strip (added Batch 17)**: a full-width band directly below the hero grid (text column + Browser Frame), `linear-gradient(135deg, --cobalt, --cobalt-gradient-mid, --cobalt-gradient-end)` background, holding three stat cards (translucent white cards on the gradient) computed live from `TOOL_REGISTRY` — not hardcoded, so they can't drift from the actual tool count — plus a "Runs 100% in browser" badge. This is the one deliberate gradient exception on the page; it's scoped to this single band, not a general license for gradients elsewhere.
 
 Tool-page heroes are smaller: H1 (keyword-bearing), one-sentence value line, badge row, updated-date line, then immediately the working tool. Why: on a tool page, every pixel between the visitor and the tool is friction, and friction on a utility site reads as bait.
 
