@@ -877,7 +877,7 @@ export const TOOL_REGISTRY = [
     tags: ['qr code generator', 'qr code maker', 'create qr code', 'free qr code', 'qr barcode'],
     relatedSlugs: ['image-compressor', 'password-generator', 'jpg-to-pdf'],
     seo: {
-      title: 'QR Code Generator Free — UPI, WhatsApp, Business Cards India | AWE-OS',
+      title: 'QR Code Generator Free — UPI, WhatsApp, Business Cards | AWE-OS',
       description: 'Generate QR codes free for UPI payment, WhatsApp, URL, text and business cards. Download as PNG instantly. No signup, works in browser.',
     },
   },

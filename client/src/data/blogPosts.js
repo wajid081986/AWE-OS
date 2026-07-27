@@ -2979,7 +2979,7 @@ export const BLOG_POSTS = [
     readTime: '6 min read',
     excerpt: 'Discover how BMI calculations vary between ICMR and WHO guidelines for Indians. Learn how to use the BMI Calculator India tool to assess your health effectively.',
     metaTitle: 'BMI Calculator India: ICMR vs WHO',
-    metaDescription: 'Explore BMI calculator India standards by ICMR vs WHO. Learn more!',
+    metaDescription: 'Discover how BMI calculations vary between ICMR and WHO guidelines for Indians, and how to use the BMI Calculator India tool to assess your health.',
     relatedTools: [
       {
         label: 'BMI Calculator',
@@ -4692,7 +4692,7 @@ export const BLOG_POSTS = [
       'Zero tax up to ₹12,75,000 under the new regime. But does the old regime win when deductions are high? Exact tax calculations for ₹10L, ₹15L, and ₹20L salaries — with a free calculator to find your answer in 2 minutes.',
     metaTitle: 'New vs Old Tax Regime FY 2025-26: Which Saves You More Money?',
     metaDescription:
-      'Confused between old and new tax regime for FY 2025-26? See exact tax calculations for ₹10L, ₹15L, ₹20L salaries with examples. Use our free tax calculator to find your best option.',
+      'Old vs new tax regime for FY 2025-26? See exact tax calculations for ₹10L, ₹15L, ₹20L salaries. Use our free calculator to find your best option.',
     relatedTools: [
       { label: 'Income Tax Calculator', slug: 'tax-calculator',  icon: '🧾' },
       { label: 'SIP Calculator',        slug: 'sip-calculator',  icon: '📈' },
