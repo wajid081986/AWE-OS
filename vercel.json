@@ -63,10 +63,6 @@
     { "source": "/blog/income-tax-calculator-india-2025-old-vs-new-regime", "destination": "/blog/new-vs-old-tax-regime-fy-2025-26", "permanent": true }
   ],
   "rewrites": [
-    { "source": "/tools/retirement-planner",           "destination": "/__gone" },
-    { "source": "/tools/grammar-checker",               "destination": "/__gone" },
-    { "source": "/tools/file-converter",                "destination": "/__gone" },
-    { "source": "/tools/investment-growth-calculator",  "destination": "/__gone" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
