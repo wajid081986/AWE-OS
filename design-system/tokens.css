@@ -153,13 +153,15 @@
   --catrow-padding-x: 28px;
   --catrow-gap: 26px;
 
-  /* BlogCard */
+  /* BlogCard — header block replaces the old 7px cobalt->marigold band
+     as of Batch 17 (--blogcard-band-height retired, no longer used);
+     title resized 1.05rem->13px per spec. */
   --text-blogcard-meta: .68rem;
   --tracking-blogcard-meta: .06em;
-  --text-blogcard-title: 1.05rem;
+  --text-blogcard-title: 13px;
   --text-blogcard-excerpt: .88rem;
   --text-blogcard-author: .8rem;
-  --blogcard-band-height: 7px;
+  --blogcard-header-end: #E6F7F5;
   --blogcard-avatar-size: 28px;
   --blogcard-padding: 22px;
 
