@@ -18,9 +18,18 @@
   --ink-soft: #3B4463;
   --paper: #F6F7FB;
   --card: #FFFFFF;
-  --cobalt: #2742D6;
-  --cobalt-deep: #1B2FA0;
-  --cobalt-tint: #EDF0FE;
+  /* --cobalt* are role names ("primary action"), not literal color
+     names — Batch 17 repointed the value from cobalt-blue to deep teal
+     (#0F766E) site-wide. Renaming the variables/classes was considered
+     and rejected (would touch 15+ more files for a value-only rebrand);
+     see docs/batches/batch-17-homepage-teal-redesign-plan.md §1. */
+  --cobalt: #0F766E;
+  --cobalt-deep: #115E59;
+  --cobalt-tint: #F0FDF9;
+  --cobalt-border: #D1FAE5;
+  --cobalt-accent: #5EEAD4;
+  --cobalt-gradient-mid: #0D9488;
+  --cobalt-gradient-end: #14B8A6;
   --marigold: #E8850C;
   --marigold-tint: #FEF3E2;
   --marigold-border: #F5D9AE;
@@ -30,6 +39,17 @@
   --mint-border: #BFE8D6;
   --mint-text-strong: #14543C;
   --line: #E4E7F0;
+  /* --surface-dark (Batch 17) — the Trust section's background, the
+     only other dark-surface section on the public site besides the
+     footer; scoped rather than repurposing --ink (which every
+     light-bg page's body text relies on). --text-muted-slate is used
+     on *both* the Trust section (dark) and StatsStrip (light, also
+     Batch 17) — spec calls for the identical gray on both surfaces,
+     so it's named for the color, not the surface it sits on. */
+  --surface-dark: #0F172A;
+  --text-muted-slate: #94A3B8;
+  --stat-divider: #F1F5F9;
+  --trust-icon-bg: rgba(15, 118, 110, 0.3);
 
   /* Color — role aliases (Blueprint §5) */
   --color-action: var(--cobalt);
@@ -46,7 +66,7 @@
   /* Shadow — Blueprint §5 (soft, low-opacity ink; never pure black) */
   --shadow-card: 0 1px 2px rgba(19, 26, 46, 0.06), 0 4px 12px rgba(19, 26, 46, 0.06);
   --shadow-float: 0 8px 24px rgba(19, 26, 46, 0.12);
-  --shadow-button: 0 4px 14px rgba(39, 66, 214, 0.28);
+  --shadow-button: 0 4px 14px rgba(15, 118, 110, 0.28);
 
   /* Borders — Blueprint §5 */
   --border-standard: 1.5px solid var(--line);
@@ -133,13 +153,15 @@
   --catrow-padding-x: 28px;
   --catrow-gap: 26px;
 
-  /* BlogCard */
+  /* BlogCard — header block replaces the old 7px cobalt->marigold band
+     as of Batch 17 (--blogcard-band-height retired, no longer used);
+     title resized 1.05rem->13px per spec. */
   --text-blogcard-meta: .68rem;
   --tracking-blogcard-meta: .06em;
-  --text-blogcard-title: 1.05rem;
+  --text-blogcard-title: 13px;
   --text-blogcard-excerpt: .88rem;
   --text-blogcard-author: .8rem;
-  --blogcard-band-height: 7px;
+  --blogcard-header-end: #E6F7F5;
   --blogcard-avatar-size: 28px;
   --blogcard-padding: 22px;
 
@@ -147,11 +169,12 @@
   --text-relcard-desc: .82rem;
   --relcard-padding: 18px;
 
-  /* StatsStrip */
+  /* StatsStrip — light bg + teal numbers as of Batch 17 (was dark
+     bg-ink + white text at v1.0; --statsstrip-text-dim retired, no
+     longer has a dark surface to sit on). */
   --statsstrip-padding-y: 34px;
-  --text-stat-value: 1.7rem;
-  --text-stat-label: .83rem;
-  --statsstrip-text-dim: rgba(255, 255, 255, .65);
+  --text-stat-value: 26px;
+  --text-stat-label: 11px;
 
   /* Motion — Blueprint §20 */
   --ease: cubic-bezier(.2, .7, .3, 1);
@@ -177,6 +200,15 @@
   --hero-underline-offset: -.32em;
   --searchbar-padding-left: 18px;
   --searchbar-max-width: 32rem;
+
+  /* Hero visual strip (Batch 17, sourced from owner's teal-redesign spec).
+     Glass-panel effect is one-off/decorative, tied to this single new
+     gradient band — tokenized anyway per the file's own no-raw-hex
+     discipline (CLAUDE.md §4), same as every other component-specific
+     token above. */
+  --hero-strip-card-bg: rgba(255, 255, 255, 0.12);
+  --hero-strip-card-border: rgba(255, 255, 255, 0.25);
+  --hero-strip-divider: rgba(255, 255, 255, 0.2);
 
   /* Browser Frame (Batch 5, sourced from reference HTML .browser/.flow/.dot).
      Same no-duplicate-token discipline — .radius-2xl (16px), .rounded-md

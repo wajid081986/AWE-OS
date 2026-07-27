@@ -193,41 +193,117 @@ function BrowserFrame({ totalTools }) {
   )
 }
 
+function ShieldLockIcon(props) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+      <rect x="9" y="11" width="6" height="5" rx="1" />
+      <path d="M10.5 11V9.5a1.5 1.5 0 0 1 3 0V11" />
+    </svg>
+  )
+}
+
+function ToolIcon(props) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+      <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4l-6 6a1.5 1.5 0 0 0 2 2l6-6a4 4 0 0 0 5.4-5.4l-2.1 2.1-2-2Z" />
+    </svg>
+  )
+}
+
+function LaptopIcon(props) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+      <rect x="4" y="4" width="16" height="11" rx="1.5" />
+      <path d="M2 19h20" />
+    </svg>
+  )
+}
+
+function HeroStrip({ totalTools, pdfCount, calculatorCount }) {
+  const stats = [
+    { label: 'PDF Tools', value: `${pdfCount} Tools` },
+    { label: 'India Finance', value: `${calculatorCount} Calculators` },
+    { label: 'Total Free Tools', value: `${totalTools}+` },
+  ]
+
+  return (
+    <div className="mt-12 rounded-l bg-gradient-to-br from-cobalt via-[color:var(--cobalt-gradient-mid)] to-[color:var(--cobalt-gradient-end)] py-6 px-6 md:px-8 flex flex-col md:flex-row items-center gap-6">
+      <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 w-full divide-y sm:divide-y-0 sm:divide-x divide-[color:var(--hero-strip-divider)]">
+        {stats.map(stat => (
+          <div key={stat.label} className="text-center py-3 sm:py-0 sm:px-5 first:pt-0 last:pb-0">
+            <div className="rounded-m bg-[color:var(--hero-strip-card-bg)] border border-[color:var(--hero-strip-card-border)] py-3 px-4">
+              <div className="text-white/70 text-xs font-semibold uppercase tracking-wide mb-1">{stat.label}</div>
+              <div className="text-white font-display font-bold text-lg">{stat.value}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="shrink-0 inline-flex items-center gap-2 rounded-full bg-[color:var(--hero-strip-card-bg)] border border-[color:var(--hero-strip-card-border)] text-white text-sm font-semibold py-2.5 px-4">
+        <LaptopIcon />
+        Runs 100% in browser
+      </div>
+    </div>
+  )
+}
+
 export default function Hero() {
   const totalTools = ALL_TOOLS.length
+  const pdfCount = ALL_TOOLS.filter(t => t.category === 'pdf').length
+  const calculatorCount = ALL_TOOLS.filter(t => t.category === 'calculators').length
 
   return (
     <section className="pt-[length:var(--hero-padding-top)] pb-16 relative overflow-hidden">
-      <Container className="grid grid-cols-1 md:grid-cols-[1.05fr_.95fr] gap-8 md:gap-14 items-center">
-        <div>
-          <span className="ds-mono-eyebrow inline-flex items-center gap-2 text-[length:var(--text-eyebrow)] font-bold text-cobalt mb-3.5">
-            <span className="w-[length:var(--eyebrow-dash-width)] h-0.5 bg-marigold" aria-hidden="true" />
-            Free · No signup for most · Made for India
-          </span>
+      <Container>
+        <div className="grid grid-cols-1 md:grid-cols-[1.05fr_.95fr] gap-8 md:gap-14 items-center">
+          <div>
+            <span className="inline-flex items-center gap-2 text-xs font-semibold text-cobalt bg-cobalt-tint border border-cobalt-border rounded-full py-1.5 px-3.5 mb-4">
+              <ShieldLockIcon />
+              Privacy-first — zero uploads
+            </span>
 
-          <h1 className="ds-h1 text-ink mb-5">
-            Online tools that{' '}
-            <span className="[box-shadow:inset_0_var(--hero-underline-offset)_0_var(--marigold-tint)] [border-bottom:var(--hero-underline-width)_solid_var(--marigold)]">
-              never upload
-            </span>{' '}
-            your files.
-          </h1>
+            <h1 className="font-display text-[42px] font-medium tracking-[-1.5px] leading-[1.15] text-ink mb-5">
+              Online tools that{' '}
+              <span className="relative inline-block text-cobalt after:content-[''] after:absolute after:left-0 after:right-0 after:-bottom-1 after:h-[length:var(--hero-underline-width)] after:bg-cobalt-accent">
+                never upload
+              </span>{' '}
+              your files.
+            </h1>
 
-          <p className="text-[length:var(--text-hero-sub)] text-ink-soft max-w-[length:var(--hero-sub-max-width)] mb-7">
-            {totalTools}+ free utilities for PDFs, Indian taxes and investments, images, and documents — all processed directly in your browser. Your files stay on your device, always.
-          </p>
+            <p className="text-[length:var(--text-hero-sub)] text-ink-soft max-w-[length:var(--hero-sub-max-width)] mb-7">
+              {totalTools}+ free utilities for PDFs, Indian taxes and investments, images, and documents — all processed directly in your browser. Your files stay on your device, always.
+            </p>
 
-          <HeroSearch />
+            <HeroSearch />
 
-          <div className="flex flex-wrap gap-2.5">
-            <Chip icon="✓">100% browser-based</Chip>
-            <Chip icon="✓">No file uploads</Chip>
-            <Chip icon="✓">India-first calculators</Chip>
-            <Chip icon="✓">Works offline*</Chip>
+            <div className="flex flex-wrap gap-2.5 mb-7">
+              <Chip icon="✓">100% browser-based</Chip>
+              <Chip icon="✓">No file uploads</Chip>
+              <Chip icon="✓">India-first calculators</Chip>
+              <Chip icon="✓">Works offline*</Chip>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <Button as={Link} to="/tools">
+                <ToolIcon />
+                Browse all {totalTools} tools
+              </Button>
+              <Button
+                variant="ghost"
+                as="a"
+                href="#privacy"
+                className="!text-cobalt !border-cobalt hover:!border-cobalt-deep hover:!text-cobalt-deep"
+              >
+                See how it works
+              </Button>
+            </div>
           </div>
+
+          <BrowserFrame totalTools={totalTools} />
         </div>
 
-        <BrowserFrame totalTools={totalTools} />
+        <HeroStrip totalTools={totalTools} pdfCount={pdfCount} calculatorCount={calculatorCount} />
       </Container>
     </section>
   )

@@ -70,7 +70,7 @@ export default function PopularTools() {
           </p>
         </div>
 
-        <div role="tablist" aria-label="Tool categories" className="flex flex-wrap gap-2.5 mb-7">
+        <div role="tablist" aria-label="Tool categories" className="inline-flex flex-wrap gap-1 mb-7 bg-paper rounded-full p-1.5">
           {TABS.map(tab => (
             <button
               key={tab.key}
@@ -78,10 +78,10 @@ export default function PopularTools() {
               role="tab"
               aria-selected={activeTab === tab.key}
               onClick={() => selectTab(tab.key)}
-              className={`font-semibold text-[length:var(--text-tab)] rounded-full border-[1.5px] transition-colors duration-micro ease-ds-ease py-[length:var(--btn-padding-y-compact)] px-[length:var(--btn-padding-x-compact)] ${
+              className={`font-semibold text-[length:var(--text-tab)] rounded-full transition-all duration-micro ease-ds-ease py-[length:var(--btn-padding-y-compact)] px-[length:var(--btn-padding-x-compact)] ${
                 activeTab === tab.key
-                  ? 'bg-ink text-card border-ink'
-                  : 'bg-card text-ink-soft border-line hover:border-cobalt'
+                  ? 'bg-card text-cobalt shadow-card'
+                  : 'bg-transparent text-ink-soft hover:text-cobalt'
               }`}
             >
               {tab.label}

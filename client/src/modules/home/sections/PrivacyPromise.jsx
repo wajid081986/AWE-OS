@@ -1,85 +1,77 @@
 import { Link } from 'react-router-dom'
-import { Container, Callout } from '../../../components/primitives'
+import { Container } from '../../../components/primitives'
 
-const STEPS = [
+// Condensed from the pre-Batch-17 4-step "how it works" + privacy-promise
+// copy (owner-approved) into 3 pillars, per owner ruling during Batch 17
+// planning — same claims, no new content. See
+// docs/batches/batch-17-homepage-teal-redesign-plan.md §0 item 3.
+const PILLARS = [
   {
-    title: 'Open a tool — nothing to install',
-    body: 'Every tool is a web page. It loads in about a second and asks for no account, no email, and no payment for core features.',
+    title: 'Zero uploads, ever',
+    body: "Every tool runs entirely in your browser using WebAssembly and modern browser APIs. There's no upload step — it simply doesn't exist. Close the tab and every trace of your file is gone.",
+    Icon: (props) => (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+        <rect x="4" y="11" width="16" height="9" rx="1.5" />
+        <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+      </svg>
+    ),
   },
   {
-    title: 'Add your file or numbers',
-    body: "Drop in a PDF or type your figures. File tools read your document locally using your browser's own file API — the network tab stays silent.",
+    title: 'Built for India',
+    body: "Generic calculators don't know CGST vs IGST, old vs new tax regimes, PPF's 15-year lock-in, or TDS on FD interest. Ours do — because that's what our users actually need to calculate.",
+    Icon: (props) => (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+        <path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12Z" />
+        <circle cx="12" cy="9" r="2.5" />
+      </svg>
+    ),
   },
   {
-    title: 'Process on your device',
-    body: 'Merging, compressing, converting, calculating — all of it runs as code in your browser tab, on your hardware.',
-  },
-  {
-    title: 'Download the result instantly',
-    body: 'Your output file is generated in memory and saved straight to your device. No queue, no link expiry, no watermark.',
+    title: 'Tested, not just shipped',
+    body: 'Every tool is manually tested on Chrome, Firefox, Edge, and Safari before release — and re-tested after every update.',
+    Icon: (props) => (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+        <path d="m9 12 2 2 4-4" />
+        <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z" />
+      </svg>
+    ),
   },
 ]
 
-function Eyebrow({ children }) {
-  return (
-    <span className="ds-mono-eyebrow inline-flex items-center gap-2 text-[length:var(--text-eyebrow)] font-bold text-cobalt mb-3.5">
-      <span className="w-[length:var(--eyebrow-dash-width)] h-0.5 bg-marigold" aria-hidden="true" />
-      {children}
-    </span>
-  )
-}
-
 export default function PrivacyPromise() {
   return (
-    <section
-      id="privacy"
-      className="bg-card border-t border-b border-line py-[length:var(--space-8)] max-[560px]:py-[length:var(--space-section-mobile)]"
-    >
-      <Container className="grid grid-cols-1 md:grid-cols-[1.1fr_.9fr] gap-10 md:gap-14 items-start">
-        <div>
-          <Eyebrow>Why AWE-OS is different</Eyebrow>
-          <h2 className="ds-h2 text-ink mb-[18px]">
-            Most "free" tool sites upload your files. We architected AWE-OS so we can't.
+    <section id="privacy" className="bg-[color:var(--surface-dark)] py-[length:var(--space-8)] max-[560px]:py-[length:var(--space-section-mobile)]">
+      <Container>
+        <div className="max-w-[length:var(--section-head-max-width)] mb-10">
+          <span className="ds-mono-eyebrow inline-flex items-center gap-2 text-[length:var(--text-eyebrow)] font-bold text-cobalt-accent mb-3.5">
+            <span className="w-[length:var(--eyebrow-dash-width)] h-0.5 bg-cobalt-accent" aria-hidden="true" />
+            Why AWE-OS is different
+          </span>
+          <h2 className="ds-h2 text-white">
+            Most &quot;free&quot; tool sites upload your files. We architected AWE-OS so we can&apos;t.
           </h2>
-
-          <div className="[&_p]:font-body [&_p]:text-[length:var(--text-body)] [&_p]:text-ink-soft [&_p]:mb-4 [&_strong]:text-ink [&_strong]:font-semibold">
-            <p>When you use a typical online PDF tool, your file travels to a server, gets processed there, and a download link comes back. That means your bank statement, offer letter, or ID proof sits — even briefly — on someone else's machine, subject to their retention policy and their security.</p>
-            <p><strong>AWE-OS works differently by design.</strong> Our tools are built with WebAssembly and modern browser APIs, so the processing happens on <em>your</em> CPU, inside <em>your</em> browser tab. There is no upload step to skip — it simply doesn't exist. Close the tab and every trace of your file is gone.</p>
-            <p>This architecture also makes the tools fast (no upload/download round-trip), lets many of them work offline once loaded, and means they keep working even for very large files that server-based sites reject.</p>
-            <p>The second thing we do differently: our calculators are <strong>built for India first</strong>. Generic EMI calculators don't know about CGST vs IGST, old vs new tax regimes, PPF's 15-year lock-in, or TDS on FD interest. Ours do — because that's what our users actually need to calculate.</p>
-          </div>
-
-          <Callout variant="success" title="🔒 Our privacy promise">
-            Files processed by our browser-based tools are never transmitted to, stored on, or readable by our servers. We can't see your documents even if we wanted to. Read the full <Link to="/privacy-policy" className="font-semibold">privacy policy</Link>.
-          </Callout>
         </div>
 
-        <div>
-          <Eyebrow>How every tool works</Eyebrow>
-          <div className="grid">
-            {STEPS.map((step, i) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {PILLARS.map(({ title, body, Icon }) => (
+            <div key={title}>
               <div
-                key={step.title}
-                className={`flex gap-[18px] py-5 ${i < STEPS.length - 1 ? 'border-b border-dashed border-line' : ''}`}
+                className="grid place-items-center rounded-m bg-[color:var(--trust-icon-bg)] text-cobalt-accent mb-4"
+                style={{ width: 'var(--toolcard-icon-size)', height: 'var(--toolcard-icon-size)' }}
               >
-                <div
-                  className="flex-none grid place-items-center rounded-s bg-ink text-card font-mono font-bold text-[length:var(--text-step-num)]"
-                  style={{ width: 'var(--step-num-size)', height: 'var(--step-num-size)' }}
-                  aria-hidden="true"
-                >
-                  {i + 1}
-                </div>
-                <div>
-                  <h3 className="font-body font-bold text-[length:var(--text-step-title)] text-ink mb-1">{step.title}</h3>
-                  <p className="text-[length:var(--text-step-body)] text-ink-soft">{step.body}</p>
-                </div>
+                <Icon />
               </div>
-            ))}
-          </div>
-          <p className="font-body text-[length:var(--text-step-footnote)] text-ink-soft mt-3.5">
-            Every tool is manually tested on Chrome, Firefox, Edge, and Safari before release, and re-tested after updates.
-          </p>
+              <h3 className="font-body font-medium text-sm text-white mb-1.5">{title}</h3>
+              <p className="text-xs leading-normal text-[color:var(--text-muted-slate)]">{body}</p>
+            </div>
+          ))}
         </div>
+
+        <p className="text-center mt-10">
+          <Link to="/privacy-policy" className="text-sm font-semibold text-cobalt-accent hover:underline">
+            Read our full privacy policy →
+          </Link>
+        </p>
       </Container>
     </section>
   )
