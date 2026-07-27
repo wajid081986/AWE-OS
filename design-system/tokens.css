@@ -39,11 +39,16 @@
   --mint-border: #BFE8D6;
   --mint-text-strong: #14543C;
   --line: #E4E7F0;
-  /* Trust section (Batch 17) — the only dark-surface section on the
-     public site; scoped tokens rather than repurposing --ink (which
-     every light-bg page's body text relies on). */
+  /* --surface-dark (Batch 17) — the Trust section's background, the
+     only other dark-surface section on the public site besides the
+     footer; scoped rather than repurposing --ink (which every
+     light-bg page's body text relies on). --text-muted-slate is used
+     on *both* the Trust section (dark) and StatsStrip (light, also
+     Batch 17) — spec calls for the identical gray on both surfaces,
+     so it's named for the color, not the surface it sits on. */
   --surface-dark: #0F172A;
-  --text-on-dark-muted: #94A3B8;
+  --text-muted-slate: #94A3B8;
+  --stat-divider: #F1F5F9;
 
   /* Color — role aliases (Blueprint §5) */
   --color-action: var(--cobalt);
@@ -161,11 +166,12 @@
   --text-relcard-desc: .82rem;
   --relcard-padding: 18px;
 
-  /* StatsStrip */
+  /* StatsStrip — light bg + teal numbers as of Batch 17 (was dark
+     bg-ink + white text at v1.0; --statsstrip-text-dim retired, no
+     longer has a dark surface to sit on). */
   --statsstrip-padding-y: 34px;
-  --text-stat-value: 1.7rem;
-  --text-stat-label: .83rem;
-  --statsstrip-text-dim: rgba(255, 255, 255, .65);
+  --text-stat-value: 26px;
+  --text-stat-label: 11px;
 
   /* Motion — Blueprint §20 */
   --ease: cubic-bezier(.2, .7, .3, 1);

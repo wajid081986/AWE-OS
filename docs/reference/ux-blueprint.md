@@ -55,7 +55,7 @@ Rule: Bricolage never appears below 1.1rem, and mono never carries full sentence
 
 | Token | Hex | Role |
 |---|---|---|
-| `--ink` | #131A2E | Primary text, dark surfaces (footer, stats strip) |
+| `--ink` | #131A2E | Primary text, dark surfaces (footer). Stats Strip moved to a light `--card` surface with teal figures as of Batch 17 — was `--ink` at v1.0 |
 | `--ink-soft` | #3B4463 | Secondary text |
 | `--paper` | #F6F7FB | Page background (cool, faintly blue — deliberately not the warm-cream AI default) |
 | `--card` | #FFFFFF | Elevated surfaces |

@@ -12,8 +12,12 @@ export default function ToolCard({ icon, name, description, to, tag, className =
   return (
     <Link
       to={to}
-      className={`block bg-card border-[1.5px] border-line rounded-m p-5 transition-[transform,box-shadow,border-color] duration-micro ease-ds-ease hover:-translate-y-[3px] hover:shadow-card-hover hover:border-cobalt motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${className}`}
+      className={`group relative overflow-hidden block bg-card border-[1.5px] border-line rounded-m p-5 transition-[transform,box-shadow,border-color] duration-micro ease-ds-ease hover:-translate-y-[3px] hover:shadow-card-hover hover:border-cobalt motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${className}`}
     >
+      <span
+        aria-hidden="true"
+        className="absolute top-0 left-0 right-0 h-[3px] bg-cobalt origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-structural ease-ds-ease motion-reduce:transition-none"
+      />
       <div
         className="grid place-items-center rounded-s bg-cobalt-tint text-[length:var(--text-toolcard-icon)] mb-3.5"
         style={{ width: 'var(--toolcard-icon-size)', height: 'var(--toolcard-icon-size)' }}
