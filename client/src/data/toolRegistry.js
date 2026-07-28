@@ -1088,6 +1088,25 @@ export const TOOL_REGISTRY = [
     },
   },
 
+  {
+    slug: 'text-editor',
+    name: 'Online Text Editor',
+    category: 'productivity',
+    subcategory: 'Document Tools',
+    icon: '📝',
+    description: 'A free, browser-based rich text editor — format documents and export as .txt, .html, or .docx. No upload, no account.',
+    isFeatured: true,
+    isNew: true,
+    isPremium: false,
+    comingSoon: false,
+    tags: ['online text editor', 'free word processor online', 'ms word alternative free', 'online document editor', 'rich text editor online india'],
+    relatedSlugs: ['pdf-editor', 'word-to-pdf', 'invoice', 'word-counter'],
+    seo: {
+      title: 'Online Text Editor — Free Word Processor Online | AWE-OS',
+      description: 'Free online text editor and word processor. Format, tabulate, and export documents as .txt, .html, or .docx — 100% browser-based, no upload, no sign-up.',
+    },
+  },
+
   // ── AI TOOLS ──────────────────────────────────────────────────────────────
 
   {

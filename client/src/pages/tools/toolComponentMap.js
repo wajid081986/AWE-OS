@@ -78,6 +78,7 @@ export const TOOL_COMPONENTS = {
   // Productivity / Legal
   'contract-generator':    () => import('./ContractGenerator'),
   'invoice-generator':     () => import('./InvoiceGenerator'),
+  'text-editor':           () => import('./TextEditor'),
 
   // Finance
   'fd-calculator':         () => import('./FDCalculator'),

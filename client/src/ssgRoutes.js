@@ -39,7 +39,7 @@ export const TOOL_SLUGS = [
   'currency-converter', 'image-compressor', 'json-formatter', 'password-generator', 'qr-code-generator',
   'unit-converter', 'word-counter', 'ai-content-writer', 'resume-builder', 'contract-generator',
   'invoice-generator', 'fd-calculator', 'ppf-calculator', 'hra-calculator', 'nps-calculator',
-  'capital-gains-calculator',
+  'capital-gains-calculator', 'text-editor',
 ]
 
 export function buildBaseSsgPaths() {

@@ -57,6 +57,7 @@ export const TOOL_CATALOGUE = {
           { icon: '🔄', label: 'Rotate PDF',         to: '/tools/rotate-pdf'       },
           { icon: '💧', label: 'Add Watermark',      to: '/tools/watermark-pdf'    },
           { icon: '🔢', label: 'Add Page Numbers',   to: '/tools/page-numbers-pdf' },
+          { icon: '✏️', label: 'PDF Editor',         to: '/tools/pdf-editor'       },
         ],
       },
       {
@@ -146,7 +147,7 @@ export const TOOL_CATALOGUE = {
     label: 'Productivity',
     icon: '🧾',
     to: '/tools/productivity',
-    count: '2+',
+    count: '3+',
     description: 'Invoice generation, contracts, billing and business tools',
     accent: 'indigo',
     sections: [
@@ -160,6 +161,12 @@ export const TOOL_CATALOGUE = {
         title: 'Legal Tools',
         items: [
           { icon: '📝', label: 'Contract Generator', to: '/tools/contract-generator' },
+        ],
+      },
+      {
+        title: 'Document Tools',
+        items: [
+          { icon: '📝', label: 'Online Text Editor', to: '/tools/text-editor' },
         ],
       },
     ],

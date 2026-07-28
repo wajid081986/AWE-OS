@@ -1574,4 +1574,41 @@ export const TOOL_ABOUT = {
       { q: "Can I offset capital losses against capital gains using this calculator?", a: "No, this calculator computes the tax on a single transaction in isolation. Under Indian tax rules, short-term capital losses can be set off against both STCG and LTCG, while long-term capital losses can only be set off against LTCG, and unabsorbed losses can be carried forward for up to 8 assessment years. If you have losses from other transactions in the same or earlier years, apply the set-off rules manually or consult a CA before arriving at your final tax liability." },
     ],
   },
+
+  'text-editor': {
+    description: "AWE-OS Online Text Editor is a free, browser-based word processor built for anyone who needs to draft, format, and export a document without installing Microsoft Word or paying for a subscription. It supports the formatting Indian students, freelancers, and small-business owners actually use day to day — bold, italic, underline, headings, bullet and numbered lists, tables, text and highlight colors, and hyperlinks — all through a familiar toolbar above an A4-proportioned page. Because everything runs inside your browser tab, there is no waiting for a cloud editor to load and no risk of a half-written letter or assignment being saved to someone else's server. When you are done, export directly to .txt, .html, or .docx, or send the page straight to your printer.",
+    features: [
+      "Full formatting toolbar: bold, italic, underline, strikethrough, font family, font size, text color, and highlight color",
+      "Paragraph tools: H1/H2/H3 headings, bullet and numbered lists, indent/outdent, and blockquote",
+      "Insert tools: tables (custom rows × columns), horizontal rules, hyperlinks, and images by URL",
+      "Live word count, character count, and cursor line/column shown in the status bar as you type",
+      "Simple Find & Replace across the whole document",
+      "Export to .txt, .html, or .docx, or print directly from the browser — no file ever leaves your device until you choose to download it",
+    ],
+    useCases: [
+      "Students in India drafting assignments, application essays, or project reports who need basic formatting without opening a heavyweight desktop app",
+      "Freelancers and consultants writing quick proposals, cover letters, or client notes that need to be emailed as a .docx attachment",
+      "Anyone who wants a distraction-free page to draft a letter, resignation notice, or affidavit text before printing it",
+      "Bloggers and content writers who want to format a draft with headings and lists and export clean .html for pasting into a CMS",
+    ],
+    howToUse: [
+      "Step 1: Open the AWE-OS Online Text Editor and start typing directly on the page — no sign-up or file upload needed.",
+      "Step 2: Use the toolbar to format your text — change fonts, sizes, colors, alignment, headings, or insert a table, link, or image by URL.",
+      "Step 3: Check your live word count, character count, and cursor position in the status bar at the bottom of the editor.",
+      "Step 4: Use Find & Replace from the toolbar if you need to update a word or phrase throughout the document.",
+      "Step 5: When finished, download your document as .txt, .html, or .docx, or click Print to send it straight to your printer.",
+    ],
+    whyUseUs: [
+      "No installation, no account, and no subscription — the editor loads instantly in any modern browser and works the moment the page opens",
+      "Your document is never uploaded to a server at any point; formatting, editing, and exporting to .docx all happen locally in your browser",
+      "Genuine .docx export (not just a renamed HTML file) built with a real OOXML document library, so the file opens correctly in Microsoft Word and Google Docs",
+    ],
+    faqs: [
+      { q: "Is this a full replacement for Microsoft Word?", a: "No — it is a lightweight, free alternative for everyday formatting tasks like letters, notes, and short reports. Advanced Word features such as mail merge, macros, tracked changes, and complex multi-column layouts are not supported. For simple documents that need headings, lists, tables, and basic styling, this editor covers the common cases." },
+      { q: "Is my document saved anywhere while I'm typing?", a: "No. Your document exists only in your browser tab's memory while you work. It is never auto-saved to a server, and closing or refreshing the tab without downloading will lose your unsaved work — always export before you close the tab." },
+      { q: "Can I upload an image file directly into my document?", a: "No, by design. AWE-OS never accepts file uploads for this editor, in keeping with the platform's no-server-upload promise. You can insert an image by pasting a publicly accessible image URL instead." },
+      { q: "Will my formatting survive when I export to .docx?", a: "Yes, for the formatting this editor supports — bold, italic, underline, strikethrough, colors, highlights, fonts, sizes, alignment, headings, lists, blockquotes, and tables are all converted into the equivalent Word formatting. Images inserted by URL are embedded where the browser allows it; if a particular image can't be read due to the source site's cross-origin restrictions, it is replaced with a text placeholder in the exported file." },
+      { q: "Does the 'Page N of M' counter reflect exactly how the document will print?", a: "It's an estimate based on comparing your content's height against a standard A4 page height, not a true print-layout engine. Actual pagination when you print or open the .docx in Word depends on your printer settings, margins, and Word's own layout engine, so treat the on-screen count as a rough guide rather than an exact figure." },
+    ],
+  },
 }

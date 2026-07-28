@@ -3,7 +3,7 @@ import * as pdfjsLib from 'pdfjs-dist'
 import pdfjsWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib'
 import ToolPageShell from '../ToolPageShell'
-import { downloadFile } from './pdfUtils'
+import { downloadFile, downloadBlob } from './pdfUtils'
 import { TOOL_ABOUT } from '../../../data/toolPageContent'
 import DisabledToolButton from '../../../components/pdf-editor/DisabledToolButton'
 
@@ -161,6 +161,8 @@ const RIBBON_TABS = [
     { id:'_v-two',      icon:'⊟',  label:'Two-Page',  act:'view-two',    cls:'text-xl' },
     'sep',
     { id:'_dark',       icon:'🌙', label:'Dark Mode', act:'dark-mode',   cls:'text-lg' },
+    'sep',
+    { id:'_extract-txt',icon:'📋', label:'Extract Text', act:'extract-text', cls:'text-lg' },
   ]},
 ]
 
@@ -433,6 +435,41 @@ function DlRangeModal({ total, from, to, setFrom, setTo, onConfirm, onClose }) {
         <div className="px-5 pb-5 flex gap-3 justify-end">
           <button onClick={onClose} className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
           <button onClick={onConfirm} className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">Download</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Extract Text Modal ────────────────────────────────────────────────────────
+function ExtractTextModal({ text, loading, onClose }) {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    try { navigator.clipboard.writeText(text) } catch {}
+    setCopied(true); setTimeout(() => setCopied(false), 2000)
+  }
+  const download = () => downloadBlob(new Blob([text], { type: 'text/plain' }), 'extracted-text.txt')
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl">
+        <div className="flex items-center justify-between px-5 py-4 border-b">
+          <h3 className="font-semibold text-gray-900">Extracted Text</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+        </div>
+        <div className="p-5">
+          {loading ? (
+            <div className="flex items-center justify-center py-10">
+              <span className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : (
+            <textarea readOnly value={text} rows={12}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-700 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+          )}
+        </div>
+        <div className="px-5 pb-5 flex gap-3 justify-end">
+          <button onClick={onClose} className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Close</button>
+          <button onClick={download} disabled={loading} className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50">Download .txt</button>
+          <button onClick={copy} disabled={loading} className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-medium">{copied ? '✓ Copied!' : 'Copy to Clipboard'}</button>
         </div>
       </div>
     </div>
@@ -977,6 +1014,11 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   const [sigOpen, setSigOpen]       = useState(false)
   const [pendingSig, setPendingSig] = useState(null)
 
+  // Extract text
+  const [extractOpen, setExtractOpen]     = useState(false)
+  const [extractedText, setExtractedText] = useState('')
+  const [extracting, setExtracting]       = useState(false)
+
   // Upload state — new-tab flow
   const [uploadError,  setUploadError]  = useState(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -1294,11 +1336,13 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       case 'view-two':      setViewMode('two-page'); break
       case 'dark-mode':     setDarkCanvas(v=>!v); break
       case 'toggle-meta':   setStripMeta(v=>!v); break
+      case 'extract-text':  extractAllText(); break
       case 'edit-text-hint':  break  // disabled — button shows tooltip instead
       case 'edit-image-hint': break  // disabled — button shows tooltip instead
       default: break
     }
-  }, [pageOrder, currentPage])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageOrder, currentPage, pdfjsDoc])
 
   // ── Position Fractional Helper ──────────────────────────────────────────────
   function posFrac(e, pi) {
@@ -1524,6 +1568,26 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
     setPhase('ready')
   }
 
+  // ── Extract Text (all pages, via pdf.js text layer) ─────────────────────────
+  async function extractAllText() {
+    if (!pdfjsDoc) return
+    setExtracting(true); setExtractOpen(true)
+    try {
+      let out = ''
+      for (let i = 0; i < pdfjsDoc.numPages; i++) {
+        const pg = await pdfjsDoc.getPage(i + 1)
+        const content = await pg.getTextContent()
+        const pageText = content.items.map(it => it.str).join(' ')
+        out += `── Page ${i + 1} ──\n${pageText.trim()}\n\n`
+      }
+      setExtractedText(out.trim() || 'No extractable text found — this PDF may be a scanned image without a text layer.')
+    } catch (err) {
+      console.error('[pdf-editor] extract text error:', err)
+      setExtractedText('Could not extract text from this PDF — it may be a scanned image without a text layer.')
+    }
+    setExtracting(false)
+  }
+
   // ── Navigation / Fit ────────────────────────────────────────────────────────
   function goToPage(di) {
     const c=Math.max(0,Math.min(pageOrder.length-1,di)); setCurrentPage(c)
@@ -1619,8 +1683,11 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
           <div className="text-5xl">✏️</div>
           <div>
             <p className="text-lg font-semibold text-gray-800">Upload PDF to Edit</p>
-            <p className="text-sm text-gray-500 mt-1">Drag & drop or click to browse — your file never leaves your browser.</p>
+            <p className="text-sm text-gray-500 mt-1">Drag & drop or click to browse.</p>
             <p className="text-xs text-gray-400 mt-0.5">Max {MAX_PDF_SIZE_MB} MB · PDF only</p>
+            <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 bg-green-50 border border-green-200 rounded-full text-xs font-semibold text-green-700">
+              🔒 Your PDF stays on your device
+            </span>
           </div>
           <label className="inline-block cursor-pointer">
             <input type="file" accept=".pdf,application/pdf" className="hidden" onChange={e=>{const f=e.target.files[0];if(f)handleFile(f)}} />
@@ -2148,6 +2215,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       {dlRangeOpen&&<DlRangeModal total={pageOrder.length} from={dlFrom} to={dlTo}
         setFrom={setDlFrom} setTo={setDlTo}
         onConfirm={handleDownloadRange} onClose={()=>setDlRangeOpen(false)} />}
+      {extractOpen&&<ExtractTextModal text={extractedText} loading={extracting} onClose={()=>setExtractOpen(false)} />}
     </div>
   )
 }

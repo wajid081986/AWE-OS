@@ -976,4 +976,21 @@ export const TOOL_GUIDE = {
       'Not distinguishing debt mutual fund units bought before vs after 1 April 2023 — only units acquired on or after that date lose LTCG treatment and indexation entirely; older units may still follow the previous rules depending on your specific holding.',
     ],
   },
+
+  'text-editor': {
+    tips: [
+      'Download your document regularly while working on something long — this editor keeps your draft only in the browser tab\'s memory, so an accidental refresh or closed tab loses anything not yet exported.',
+      'Use Heading styles (H1/H2/H3) instead of just making text bold and bigger — headings carry real structure into the .docx and .html exports, making the document easier to navigate and reformat later in Word.',
+      'When inserting an image by URL, use a direct link to the image file itself (ending in .jpg/.png/etc.), not a link to the webpage that contains it — a webpage URL will fail to render as an image.',
+      'If you plan to convert your final draft to PDF, format and proofread it fully in this editor first, download the .docx, then use the AWE-OS Word to PDF tool for the conversion.',
+      'For a document you\'ll edit further in Microsoft Word, export as .docx rather than .html — the .docx keeps fonts, colors, and list structure in a format Word expects, while .html can render slightly differently when reopened in Word.',
+    ],
+    mistakes: [
+      'Closing the browser tab without downloading — since nothing is auto-saved to a server, this is the single most common way to lose an unfinished document in this editor.',
+      'Expecting uploaded images to work — this editor only accepts images by URL, by design, since AWE-OS never uploads files to a server; a local photo on your device needs to be hosted somewhere first, or added after exporting to Word.',
+      'Relying on the "Page N of M" counter as an exact print preview — it is a height-based estimate, not a real pagination engine, so always check your printer\'s own print-preview screen before printing a multi-page document.',
+      'Formatting a whole paragraph as one giant bold/colored block instead of using headings and structure — this makes the exported document harder to skim and loses the semantic structure that Word and screen readers rely on.',
+      'Trying to open an existing Word document in this editor — it composes new documents only; there is no import feature in this release, so start with a blank page rather than expecting to load a .docx file.',
+    ],
+  },
 }
