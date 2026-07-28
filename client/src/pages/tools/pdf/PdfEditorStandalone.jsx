@@ -2,27 +2,22 @@
  * PdfEditorStandalone — Full-screen, no-shell PDF editor tab.
  *
  * Flow:
- *  1. Main upload page (PdfEditor) encodes PDF → stores in localStorage[KEY]
+ *  1. Main upload page (PdfEditor) stores the raw PDF bytes in
+ *     IndexedDB[KEY] (see pdfEditorSession.js — not localStorage, which is
+ *     too small a quota for a base64'd file near the upload size limit)
  *  2. Opens /tools/pdf-editor/editor?session=KEY in new tab
- *  3. This page reads KEY → decodes bytes → loads PdfEditorTool in fullScreen mode
- *  4. localStorage entry deleted immediately after reading (one-shot handshake)
+ *  3. This page reads KEY → loads PdfEditorTool in fullScreen mode
+ *  4. The IndexedDB entry is deleted immediately after reading (one-shot handshake)
  *
- * localStorage is used (not sessionStorage) because:
- *  - localStorage is shared across all tabs of the same origin
- *  - sessionStorage is per-browsing-context and severed by window.open()
+ * IndexedDB (not sessionStorage) because sessionStorage is per-browsing-
+ * context and severed by window.open(); IndexedDB, like localStorage, is
+ * shared across all tabs of the same origin.
  */
 
 import { useState, useEffect } from 'react'
 import { PdfEditorTool } from './PdfEditor'
+import { loadPdfSession } from './pdfEditorSession'
 import EditorErrorBoundary from '../../../components/pdf-editor/EditorErrorBoundary'
-
-// Decode base64 → Uint8Array
-function base64ToUint8(b64) {
-  const bin = atob(b64)
-  const arr = new Uint8Array(bin.length)
-  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i)
-  return arr
-}
 
 export default function PdfEditorStandalone() {
   const [initialBytes,    setInitialBytes]    = useState(null)
@@ -52,15 +47,15 @@ export default function PdfEditorStandalone() {
       return () => clearInterval(tick)
     }
 
-    // ── Poll localStorage for payload (parent tab may still be encoding) ─────
+    // ── Poll IndexedDB for payload (parent tab may still be writing it) ──────
     const startTime = Date.now()
     const TIMEOUT   = 20_000  // 20 s
 
-    const tryLoad = () => {
+    const tryLoad = async () => {
       try {
-        const raw = localStorage.getItem(key)
+        const value = await loadPdfSession(key)  // one-shot: already deleted on read
 
-        if (!raw) {
+        if (!value) {
           if (Date.now() - startTime < TIMEOUT) {
             setTimeout(tryLoad, 300)
           } else {
@@ -70,19 +65,16 @@ export default function PdfEditorStandalone() {
           return
         }
 
-        const { name, data, createdAt } = JSON.parse(raw)
+        const { name, bytes, createdAt } = value
 
         // Reject sessions older than 10 minutes (stale)
         if (Date.now() - createdAt > 10 * 60 * 1000) {
-          localStorage.removeItem(key)
           setLoadError('Session expired. Please re-upload your PDF.')
           setStatus('error')
           return
         }
 
-        localStorage.removeItem(key)   // One-shot — clean up immediately
-
-        setInitialBytes(base64ToUint8(data))
+        setInitialBytes(bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes))
         setInitialFileName(name || 'document.pdf')
         setStatus('ready')
 

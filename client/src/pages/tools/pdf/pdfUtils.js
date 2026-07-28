@@ -21,6 +21,14 @@ export const downloadBlob = (blob, filename) => {
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
+// Browsers report `file.type` from OS/source metadata at drag-time, not by
+// reading the file — it's frequently empty or generic (application/octet-stream)
+// for files dropped from cloud-sync folders, email clients, etc., even for a
+// genuinely valid PDF. Falling back to the .pdf extension avoids silently
+// rejecting those files.
+export const isPdfFile = (file) =>
+  !!file && (file.type === 'application/pdf' || /\.pdf$/i.test(file.name || ''))
+
 export const formatBytes = (bytes) => {
   if (!bytes || bytes === 0) return '0 B'
   const k = 1024

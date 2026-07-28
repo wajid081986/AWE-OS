@@ -3,7 +3,8 @@ import * as pdfjsLib from 'pdfjs-dist'
 import pdfjsWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib'
 import ToolPageShell from '../ToolPageShell'
-import { downloadFile, downloadBlob } from './pdfUtils'
+import { downloadFile, downloadBlob, isPdfFile } from './pdfUtils'
+import { savePdfSession, evictOldPdfSessions } from './pdfEditorSession'
 import { TOOL_ABOUT } from '../../../data/toolPageContent'
 import DisabledToolButton from '../../../components/pdf-editor/DisabledToolButton'
 
@@ -1086,7 +1087,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   async function handleFile(file) {
     setUploadError(null); setPopupBlocked(false); setPendingUrl(null)
 
-    if (!file || file.type !== 'application/pdf') {
+    if (!isPdfFile(file)) {
       setUploadError('Please upload a valid PDF file.')
       return
     }
@@ -1103,33 +1104,22 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       return
     }
 
-    // Main page — encode + store + open new tab
+    // Main page — store + open new tab
     setIsProcessing(true)
     try {
-      // Chunk-based base64 (prevents stack overflow on large files)
       const arrayBuffer = await file.arrayBuffer()
-      const uint8Array  = new Uint8Array(arrayBuffer)
-      let binary = ''
-      const CHUNK = 8192
-      for (let i = 0; i < uint8Array.length; i += CHUNK) {
-        binary += String.fromCharCode(...uint8Array.subarray(i, i + CHUNK))
-      }
-      const base64 = btoa(binary)
+      const bytes = new Uint8Array(arrayBuffer)
 
       // Unique session key
       const sessionKey = `awe_pdf_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-      const payload    = JSON.stringify({ name: file.name, size: file.size, data: base64, createdAt: Date.now() })
 
-      // Store in localStorage — shared across tabs (sessionStorage is tab-local and severed by noopener)
-      try {
-        localStorage.setItem(sessionKey, payload)
-      } catch (quotaErr) {
-        // Evict stale awe_pdf_ entries if storage quota exceeded
-        Object.keys(localStorage)
-          .filter(k => k.startsWith('awe_pdf_'))
-          .forEach(k => localStorage.removeItem(k))
-        localStorage.setItem(sessionKey, payload)
-      }
+      // IndexedDB (not localStorage) — stores the raw bytes directly (no
+      // base64 bloat) and its quota is far above localStorage's ~5-10MB
+      // per-origin cap, which a base64'd file anywhere near MAX_PDF_SIZE_MB
+      // would otherwise exceed. Shared across tabs of the same origin, same
+      // as localStorage was, so the handoff to the new tab still works.
+      await evictOldPdfSessions().catch(() => {})
+      await savePdfSession(sessionKey, { name: file.name, bytes, createdAt: Date.now() })
 
       const editorUrl = `/tools/pdf-editor/editor?session=${sessionKey}`
       const newTab    = window.open(editorUrl, '_blank')
@@ -1672,7 +1662,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   if (phase==='idle'||phase==='loading') return (
     <div className="border-2 border-dashed border-gray-300 rounded-2xl p-12 text-center bg-gray-50 hover:border-blue-400 transition-colors"
       onDragOver={e=>e.preventDefault()}
-      onDrop={e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f?.type==='application/pdf')handleFile(f)}}>
+      onDrop={e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f)handleFile(f)}}>
       {(phase==='loading' || isProcessing) ? (
         <div className="space-y-3">
           <div className="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
