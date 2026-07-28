@@ -148,14 +148,15 @@ export default function ToolsPage() {
         <meta property="og:description"  content={`Browse ${pageTitle} on AWE-OS. Free, fast and easy-to-use online tools for everyone.`} />
         <meta property="og:url"          content="https://www.awe-os.com/tools" />
         <meta property="og:type"         content="website" />
-        <meta property="og:image"        content="https://www.awe-os.com/og-image.svg" />
+        <meta property="og:image"        content="https://www.awe-os.com/og-image.png" />
+        <meta property="og:image:type"   content="image/png" />
         <meta property="og:image:width"  content="1200" />
         <meta property="og:image:height" content="630" />
         <meta name="twitter:card"        content="summary_large_image" />
         <meta name="twitter:site"        content="@awe_os" />
         <meta name="twitter:title"       content={`${pageTitle} — AWE-OS Free Online Tools`} />
         <meta name="twitter:description" content={`Browse ${pageTitle} on AWE-OS. Free, fast and easy-to-use online tools for everyone.`} />
-        <meta name="twitter:image"       content="https://www.awe-os.com/og-image.svg" />
+        <meta name="twitter:image"       content="https://www.awe-os.com/og-image.png" />
       </Helmet>
 
       {/* Page hero */}
@@ -179,7 +180,7 @@ export default function ToolsPage() {
           <div className="mb-8 p-6 bg-white rounded-2xl border border-gray-200">
             <h2 className="text-base font-bold text-gray-900 mb-2">49+ Free Online Tools — No Sign Up Required</h2>
             <div className="text-sm text-gray-600 leading-relaxed space-y-2">
-              <p>AWE-OS provides free online tools for Indian students, professionals, and small businesses — covering everything from PDF manipulation to financial calculations, format conversion, and AI-powered productivity. Every tool runs entirely in your browser with no software download, no registration, and no fees — ever.</p>
+              <p>AWE-OS provides free online tools for Indian students, professionals, and small businesses — covering everything from PDF manipulation to financial calculations, format conversion, and AI-powered productivity. Every tool runs entirely in your browser with no software download, no registration, and no fees — ever. Because every tool processes data locally in your browser, your files and personal inputs are never uploaded to a server — everything stays on your device.</p>
               <p>Our <Link to="/tools/pdf" className="text-blue-600 hover:underline">PDF tools</Link> handle merging, splitting, compressing, rotating, and converting documents for the workflows Indian government portals, universities, and corporates require. The <Link to="/tools/calculators" className="text-blue-600 hover:underline">financial calculators</Link> use Indian standards — ₹ format, lakh/crore notation, SEBI SIP formulas, FY 2025-26 income tax slabs, RBI PPF rates, and ICMR BMI thresholds — making them accurate for Indian users.</p>
               <p>The <Link to="/tools/converters" className="text-blue-600 hover:underline">converter and utility tools</Link> handle unit conversion (including Indian land units like bigha and marla), live INR currency rates, QR code generation, secure password creation, JSON formatting, and word counting. <Link to="/tools/ai" className="text-blue-600 hover:underline">AI tools</Link> powered by GPT models generate professional resumes and content drafts in seconds. <Link to="/tools/free" className="text-blue-600 hover:underline">Browse all free tools →</Link></p>
             </div>

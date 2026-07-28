@@ -194,7 +194,7 @@ export default function BlogPostPage() {
 
   const OG_IMAGE = {
     '@type': 'ImageObject',
-    url:     'https://www.awe-os.com/og-image.svg',
+    url:     'https://www.awe-os.com/og-image.png',
     width:   1200,
     height:  630,
   }

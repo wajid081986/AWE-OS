@@ -33,7 +33,7 @@ import { TOOL_GUIDE } from '../../data/toolGuideContent'
 import { useTrackToolView } from '../../hooks/useTrackToolView'
 
 const SITE_URL  = 'https://www.awe-os.com'
-const OG_IMAGE  = 'https://www.awe-os.com/og-image.svg'
+const OG_IMAGE  = 'https://www.awe-os.com/og-image.png'
 
 // ── Share buttons ─────────────────────────────────────────────────────────────
 function ShareButtons({ url, title }) {
@@ -240,7 +240,7 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
       '@type': 'Organization',
       name:    'AWE-OS',
       url:     SITE_URL,
-      logo:    { '@type': 'ImageObject', url: `${SITE_URL}/og-image.svg` },
+      logo:    { '@type': 'ImageObject', url: `${SITE_URL}/og-image.png` },
     },
     datePublished:     catDates.published,
     dateModified:      catDates.modified,
@@ -276,6 +276,7 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
         <meta property="og:url"          content={pageUrl} />
         <meta property="og:type"         content="website" />
         <meta property="og:image"        content={OG_IMAGE} />
+        <meta property="og:image:type"   content="image/png" />
         <meta property="og:image:width"  content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt"    content={`${name} — AWE-OS`} />

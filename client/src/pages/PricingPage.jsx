@@ -59,7 +59,8 @@ export default function PricingPage() {
         <meta property="og:description"  content="Simple, transparent pricing. Start free, upgrade to Pro for AI tools. Resume Builder, AI Content Writer and more." />
         <meta property="og:url"          content="https://www.awe-os.com/pricing" />
         <meta property="og:type"         content="website" />
-        <meta property="og:image"        content="https://www.awe-os.com/og-image.svg" />
+        <meta property="og:image"        content="https://www.awe-os.com/og-image.png" />
+        <meta property="og:image:type"   content="image/png" />
         <meta property="og:image:width"  content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt"    content="AWE-OS Pro Pricing" />
@@ -67,7 +68,7 @@ export default function PricingPage() {
         <meta name="twitter:site"        content="@awe_os" />
         <meta name="twitter:title"       content="Pricing — AWE-OS Pro" />
         <meta name="twitter:description" content="Simple, transparent pricing. Start free, upgrade to Pro for AI tools. Resume Builder, AI Content Writer and more." />
-        <meta name="twitter:image"       content="https://www.awe-os.com/og-image.svg" />
+        <meta name="twitter:image"       content="https://www.awe-os.com/og-image.png" />
         <meta name="twitter:image:alt"   content="AWE-OS Pro Pricing" />
       </Helmet>
 

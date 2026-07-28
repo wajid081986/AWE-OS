@@ -79,7 +79,8 @@ export default function AboutPage() {
         <meta property="og:description"  content="Learn about AWE-OS — who we are, why we built free browser-based tools, and our commitment to privacy-first, no-signup tools for everyone." />
         <meta property="og:url"          content="https://www.awe-os.com/about" />
         <meta property="og:type"         content="website" />
-        <meta property="og:image"        content="https://www.awe-os.com/og-image.svg" />
+        <meta property="og:image"        content="https://www.awe-os.com/og-image.png" />
+        <meta property="og:image:type"   content="image/png" />
         <meta property="og:image:width"  content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt"    content="About AWE-OS — Free Online Tools for Everyone" />
@@ -87,7 +88,7 @@ export default function AboutPage() {
         <meta name="twitter:site"        content="@awe_os" />
         <meta name="twitter:title"       content="About Us — AWE-OS | Free Online Tools" />
         <meta name="twitter:description" content="Learn about AWE-OS — who we are, why we built free browser-based tools, and our commitment to privacy-first, no-signup tools for everyone." />
-        <meta name="twitter:image"       content="https://www.awe-os.com/og-image.svg" />
+        <meta name="twitter:image"       content="https://www.awe-os.com/og-image.png" />
         <meta name="twitter:image:alt"   content="About AWE-OS — Free Online Tools for Everyone" />
         <script type="application/ld+json">{JSON.stringify(ORG_SCHEMA)}</script>
       </Helmet>

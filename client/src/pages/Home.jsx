@@ -41,14 +41,15 @@ export default function Home() {
         <meta property="og:description" content={description} />
         <meta property="og:url"         content={SITE_URL} />
         <meta property="og:type"        content="website" />
-        <meta property="og:image"        content={`${SITE_URL}/og-image.svg`} />
+        <meta property="og:image"        content={`${SITE_URL}/og-image.png`} />
+        <meta property="og:image:type"   content="image/png" />
         <meta property="og:image:width"  content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt"    content={title} />
         <meta name="twitter:card"        content="summary" />
         <meta name="twitter:title"       content={title} />
         <meta name="twitter:description" content={description} />
-        <meta name="twitter:image"       content={`${SITE_URL}/og-image.svg`} />
+        <meta name="twitter:image"       content={`${SITE_URL}/og-image.png`} />
         <script type="application/ld+json">{JSON.stringify(WEBSITE_SCHEMA)}</script>
         <script type="application/ld+json">{JSON.stringify(ORG_SCHEMA)}</script>
       </Helmet>

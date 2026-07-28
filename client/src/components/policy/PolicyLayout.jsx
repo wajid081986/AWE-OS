@@ -37,7 +37,8 @@ export default function PolicyLayout({ title, metaDescription, lastUpdated, sect
         <meta property="og:description"  content={metaDescription} />
         <meta property="og:url"          content={canonicalUrl} />
         <meta property="og:type"         content="website" />
-        <meta property="og:image"        content="https://www.awe-os.com/og-image.svg" />
+        <meta property="og:image"        content="https://www.awe-os.com/og-image.png" />
+        <meta property="og:image:type"   content="image/png" />
         <meta property="og:image:width"  content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt"    content={pageTitle} />
@@ -45,7 +46,7 @@ export default function PolicyLayout({ title, metaDescription, lastUpdated, sect
         <meta name="twitter:site"        content="@awe_os" />
         <meta name="twitter:title"       content={pageTitle} />
         <meta name="twitter:description" content={metaDescription} />
-        <meta name="twitter:image"       content="https://www.awe-os.com/og-image.svg" />
+        <meta name="twitter:image"       content="https://www.awe-os.com/og-image.png" />
         <meta name="twitter:image:alt"   content={pageTitle} />
       </Helmet>
 

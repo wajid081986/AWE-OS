@@ -81,14 +81,15 @@ export default function ToolLayout({
         <meta property="og:description" content={seoDesc} />
         <meta property="og:url"         content={pageUrl} />
         <meta property="og:type"        content="website" />
-        <meta property="og:image"        content={`${SITE_URL}/og-image.svg`} />
+        <meta property="og:image"        content={`${SITE_URL}/og-image.png`} />
+        <meta property="og:image:type"   content="image/png" />
         <meta property="og:image:width"  content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt"    content={seoTitle} />
         <meta name="twitter:card"        content="summary" />
         <meta name="twitter:title"       content={seoTitle} />
         <meta name="twitter:description" content={seoDesc} />
-        <meta name="twitter:image"       content={`${SITE_URL}/og-image.svg`} />
+        <meta name="twitter:image"       content={`${SITE_URL}/og-image.png`} />
         {schemas.map((s, i) => (
           <script key={i} type="application/ld+json">{JSON.stringify(s)}</script>
         ))}
