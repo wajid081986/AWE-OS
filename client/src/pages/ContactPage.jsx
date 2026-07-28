@@ -11,6 +11,22 @@ const CONTACT_SCHEMA = {
   description: 'Contact the AWE-OS team for support, bug reports, or feature requests.',
 }
 
+const WEBSITE_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'AWE-OS',
+  url: 'https://www.awe-os.com',
+  description: 'Free browser-based online tools for everyone — PDF tools, calculators, converters, and AI tools. No signup required.',
+}
+
+const ORG_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'AWE-OS',
+  url: 'https://www.awe-os.com',
+  logo: 'https://www.awe-os.com/logo.png',
+}
+
 const SUBJECTS = [
   'General Question',
   'Bug Report',
@@ -71,6 +87,8 @@ export default function ContactPage() {
         <meta name="twitter:image"       content="https://www.awe-os.com/og-image.png" />
         <meta name="twitter:image:alt"   content="Contact AWE-OS" />
         <script type="application/ld+json">{JSON.stringify(CONTACT_SCHEMA)}</script>
+        <script type="application/ld+json">{JSON.stringify(WEBSITE_SCHEMA)}</script>
+        <script type="application/ld+json">{JSON.stringify(ORG_SCHEMA)}</script>
       </Helmet>
 
       {/* Hero */}

@@ -9,6 +9,23 @@ const ORG_SCHEMA = {
   description: 'Free browser-based online tools for everyone — PDF tools, calculators, converters, and AI tools. No signup required.',
 }
 
+const WEBSITE_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'AWE-OS',
+  url: 'https://www.awe-os.com',
+  description: 'Free browser-based online tools for everyone — PDF tools, calculators, converters, and AI tools. No signup required.',
+}
+
+const BREADCRUMB_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home',  item: 'https://www.awe-os.com' },
+    { '@type': 'ListItem', position: 2, name: 'About' },
+  ],
+}
+
 const VALUES = [
   { icon: '🆓', title: 'Always Free',       desc: 'Core tools are free forever. No hidden fees, no paywalls on essential features. We believe utility should not be gated by your budget.' },
   { icon: '⚡', title: 'Fast & Simple',     desc: 'Every tool is designed to deliver results in seconds. Most need no sign-up and no bloated interfaces — just paste, click, done.' },
@@ -91,6 +108,8 @@ export default function AboutPage() {
         <meta name="twitter:image"       content="https://www.awe-os.com/og-image.png" />
         <meta name="twitter:image:alt"   content="About AWE-OS — Free Online Tools for Everyone" />
         <script type="application/ld+json">{JSON.stringify(ORG_SCHEMA)}</script>
+        <script type="application/ld+json">{JSON.stringify(WEBSITE_SCHEMA)}</script>
+        <script type="application/ld+json">{JSON.stringify(BREADCRUMB_SCHEMA)}</script>
       </Helmet>
 
       {/* Hero */}

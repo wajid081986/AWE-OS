@@ -106,12 +106,28 @@ export default function BlogPage() {
     })),
   }
 
+  const title = 'Blog — Free Tools, Productivity Tips & AI Guides | AWE-OS'
+  const description = 'Explore guides, tips, and tutorials on AI tools, PDF tools, productivity, career, and more. Free resources from the AWE-OS team.'
+
   return (
     <>
       <Helmet>
-        <title>Blog — Free Tools, Productivity Tips & AI Guides | AWE-OS</title>
-        <meta name="description" content="Explore guides, tips, and tutorials on AI tools, PDF tools, productivity, career, and more. Free resources from the AWE-OS team." />
+        <title>{title}</title>
+        <meta name="description" content={description} />
         <link rel="canonical" href="https://www.awe-os.com/blog" />
+        <meta property="og:title"        content={title} />
+        <meta property="og:description"  content={description} />
+        <meta property="og:url"          content="https://www.awe-os.com/blog" />
+        <meta property="og:type"         content="website" />
+        <meta property="og:image"        content="https://www.awe-os.com/og-image.png" />
+        <meta property="og:image:type"   content="image/png" />
+        <meta property="og:image:width"  content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt"    content={title} />
+        <meta name="twitter:card"        content="summary_large_image" />
+        <meta name="twitter:title"       content={title} />
+        <meta name="twitter:description" content={description} />
+        <meta name="twitter:image"       content="https://www.awe-os.com/og-image.png" />
         <script type="application/ld+json">{JSON.stringify(blogSchema)}</script>
       </Helmet>
 

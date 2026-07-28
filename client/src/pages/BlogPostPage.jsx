@@ -257,6 +257,10 @@ export default function BlogPostPage() {
         <meta property="og:type" content="article" />
         <meta property="og:image" content={heroImage.url} />
         <meta property="article:published_time" content={toISO(post.date)} />
+        <meta name="twitter:card"        content="summary_large_image" />
+        <meta name="twitter:title"       content={post.metaTitle} />
+        <meta name="twitter:description" content={post.metaDescription} />
+        <meta name="twitter:image"       content={heroImage.url} />
         <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       </Helmet>
