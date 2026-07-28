@@ -38,24 +38,24 @@ function LoanTool() {
     <div className="max-w-xl mx-auto space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Loan Amount (₹)</label>
-          <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="500000"
+          <label htmlFor="loan-amount" className="block text-sm font-medium text-gray-700 mb-1.5">Loan Amount (₹)</label>
+          <input id="loan-amount" type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="500000"
             className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Annual Interest Rate (%)</label>
-          <input type="number" value={rate} onChange={e => setRate(e.target.value)} placeholder="8.5" step="0.1"
+          <label htmlFor="loan-rate" className="block text-sm font-medium text-gray-700 mb-1.5">Annual Interest Rate (%)</label>
+          <input id="loan-rate" type="number" value={rate} onChange={e => setRate(e.target.value)} placeholder="8.5" step="0.1"
             className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label htmlFor="loan-tenure" className="block text-sm font-medium text-gray-700 mb-1.5">
             Loan Tenure
             <span className="ml-2">
               <button onClick={() => setTenureType('years')} className={`text-xs px-2 py-0.5 rounded ${tenureType === 'years' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>Years</button>
               <button onClick={() => setTenureType('months')} className={`ml-1 text-xs px-2 py-0.5 rounded ${tenureType === 'months' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>Months</button>
             </span>
           </label>
-          <input type="number" value={tenure} onChange={e => setTenure(e.target.value)} placeholder={tenureType === 'years' ? '20' : '240'}
+          <input id="loan-tenure" type="number" value={tenure} onChange={e => setTenure(e.target.value)} placeholder={tenureType === 'years' ? '20' : '240'}
             className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
       </div>

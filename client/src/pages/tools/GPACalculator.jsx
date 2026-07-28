@@ -50,13 +50,13 @@ function GPATool() {
           {subjects.map((row, i) => (
             <div key={i} className="grid grid-cols-12 gap-2 px-3 py-2 items-center">
               <input className="col-span-5 px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder={`Subject ${i + 1}`} value={row.name} onChange={e => update(i, 'name', e.target.value)} />
+                placeholder={`Subject ${i + 1}`} aria-label={`Subject ${i + 1} name`} value={row.name} onChange={e => update(i, 'name', e.target.value)} />
               <select className="col-span-3 px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                value={row.grade} onChange={e => update(i, 'grade', e.target.value)}>
+                aria-label={`Subject ${i + 1} grade`} value={row.grade} onChange={e => update(i, 'grade', e.target.value)}>
                 {Object.keys(GRADE_MAP).map(g => <option key={g}>{g}</option>)}
               </select>
               <input type="number" className="col-span-3 px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="3" min="0.5" step="0.5" value={row.credits} onChange={e => update(i, 'credits', e.target.value)} />
+                placeholder="3" min="0.5" step="0.5" aria-label={`Subject ${i + 1} credits`} value={row.credits} onChange={e => update(i, 'credits', e.target.value)} />
               <button onClick={() => removeRow(i)} className="col-span-1 text-gray-400 hover:text-red-500 text-lg leading-none text-center transition-colors">×</button>
             </div>
           ))}

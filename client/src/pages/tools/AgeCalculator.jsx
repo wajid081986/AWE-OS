@@ -39,8 +39,8 @@ function AgeTool() {
   return (
     <div className="max-w-lg mx-auto space-y-5">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Date of Birth</label>
-        <input type="date" value={dob} onChange={e => setDob(e.target.value)} max={today}
+        <label htmlFor="age-dob" className="block text-sm font-medium text-gray-700 mb-1.5">Date of Birth</label>
+        <input id="age-dob" type="date" value={dob} onChange={e => setDob(e.target.value)} max={today}
           className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
 

@@ -8,9 +8,11 @@ function Tab1() {
     <div className="space-y-3">
       <div className="flex items-center gap-2 flex-wrap">
         <input type="number" value={x} onChange={e => setX(e.target.value)} placeholder="X"
+          aria-label="Percentage"
           className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         <span className="text-sm text-gray-600 font-medium">% of</span>
         <input type="number" value={y} onChange={e => setY(e.target.value)} placeholder="Y"
+          aria-label="Base value"
           className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         <span className="text-sm text-gray-600 font-medium">= ?</span>
       </div>
@@ -27,9 +29,11 @@ function Tab2() {
     <div className="space-y-3">
       <div className="flex items-center gap-2 flex-wrap">
         <input type="number" value={x} onChange={e => setX(e.target.value)} placeholder="X"
+          aria-label="Value"
           className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         <span className="text-sm text-gray-600 font-medium">is what % of</span>
         <input type="number" value={y} onChange={e => setY(e.target.value)} placeholder="Y"
+          aria-label="Total value"
           className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         <span className="text-sm text-gray-600 font-medium">?</span>
       </div>
@@ -48,9 +52,11 @@ function Tab3() {
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-sm text-gray-600 font-medium">From</span>
         <input type="number" value={x} onChange={e => setX(e.target.value)} placeholder="X"
+          aria-label="Original value"
           className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         <span className="text-sm text-gray-600 font-medium">to</span>
         <input type="number" value={y} onChange={e => setY(e.target.value)} placeholder="Y"
+          aria-label="New value"
           className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
       <button onClick={calc} className="py-2.5 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors">Calculate</button>

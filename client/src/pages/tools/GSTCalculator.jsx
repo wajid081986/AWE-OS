@@ -105,10 +105,11 @@ function GSTTool() {
 
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="gst-amount" className="block text-sm font-medium text-gray-700 mb-1">
             {mode === 'add' ? 'Base Amount (₹)' : 'GST-Inclusive Amount (₹)'}
           </label>
           <input
+            id="gst-amount"
             type="number" min="0" step="0.01"
             value={amount} onChange={e => { setAmount(e.target.value); setResult(null) }}
             placeholder="e.g. 10000"
@@ -118,15 +119,15 @@ function GSTTool() {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">GST Rate</label>
-            <select value={rate} onChange={e => { setRate(Number(e.target.value)); setResult(null) }}
+            <label htmlFor="gst-rate" className="block text-sm font-medium text-gray-700 mb-1">GST Rate</label>
+            <select id="gst-rate" value={rate} onChange={e => { setRate(Number(e.target.value)); setResult(null) }}
               className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
               {GST_RATES.map(r => <option key={r} value={r}>{r}%</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Transaction Type</label>
-            <select value={txType} onChange={e => { setTxType(e.target.value); setResult(null) }}
+            <label htmlFor="gst-tx-type" className="block text-sm font-medium text-gray-700 mb-1">Transaction Type</label>
+            <select id="gst-tx-type" value={txType} onChange={e => { setTxType(e.target.value); setResult(null) }}
               className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="intra">Intra-state (CGST+SGST)</option>
               <option value="inter">Inter-state (IGST)</option>

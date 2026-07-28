@@ -60,21 +60,21 @@ function SimpleROITab() {
     <div className="max-w-xl mx-auto space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Initial Investment ($)</label>
-          <input type="number" value={initial} onChange={e => setInitial(e.target.value)}
+          <label htmlFor="roi-initial" className="block text-sm font-medium text-gray-700 mb-1.5">Initial Investment ($)</label>
+          <input id="roi-initial" type="number" value={initial} onChange={e => setInitial(e.target.value)}
             placeholder="10,000" min="0" className={INPUT_CLS} />
         </div>
         <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Final Value / Return ($)</label>
-          <input type="number" value={finalVal} onChange={e => setFinalVal(e.target.value)}
+          <label htmlFor="roi-final" className="block text-sm font-medium text-gray-700 mb-1.5">Final Value / Return ($)</label>
+          <input id="roi-final" type="number" value={finalVal} onChange={e => setFinalVal(e.target.value)}
             placeholder="15,000" min="0" className={INPUT_CLS} />
         </div>
         <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label htmlFor="roi-years" className="block text-sm font-medium text-gray-700 mb-1.5">
             Investment Period (years)
             <span className="ml-2 text-gray-400 font-normal text-xs">optional — unlocks annualized ROI</span>
           </label>
-          <input type="number" value={years} onChange={e => setYears(e.target.value)}
+          <input id="roi-years" type="number" value={years} onChange={e => setYears(e.target.value)}
             placeholder="3" min="0" step="0.5" className={INPUT_CLS} />
         </div>
       </div>
@@ -210,18 +210,18 @@ function AnnualizedTab() {
     <div className="max-w-xl mx-auto space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Initial ($)</label>
-          <input type="number" value={initial} onChange={e => setInitial(e.target.value)}
+          <label htmlFor="cagr-initial" className="block text-sm font-medium text-gray-700 mb-1.5">Initial ($)</label>
+          <input id="cagr-initial" type="number" value={initial} onChange={e => setInitial(e.target.value)}
             placeholder="10,000" className={INPUT_CLS} />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Final Value ($)</label>
-          <input type="number" value={finalVal} onChange={e => setFinalVal(e.target.value)}
+          <label htmlFor="cagr-final" className="block text-sm font-medium text-gray-700 mb-1.5">Final Value ($)</label>
+          <input id="cagr-final" type="number" value={finalVal} onChange={e => setFinalVal(e.target.value)}
             placeholder="20,000" className={INPUT_CLS} />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Years</label>
-          <input type="number" value={years} onChange={e => setYears(e.target.value)}
+          <label htmlFor="cagr-years" className="block text-sm font-medium text-gray-700 mb-1.5">Years</label>
+          <input id="cagr-years" type="number" value={years} onChange={e => setYears(e.target.value)}
             placeholder="5" min="1" step="1" className={INPUT_CLS} />
         </div>
       </div>
@@ -362,26 +362,27 @@ function ScenarioTab() {
               <input
                 value={s.name}
                 onChange={e => update(i, 'name', e.target.value)}
+                aria-label={`Scenario ${String.fromCharCode(65 + i)} name`}
                 className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder={`Scenario ${String.fromCharCode(65 + i)}`}
               />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Initial ($)</label>
-                <input type="number" value={s.initial} onChange={e => update(i, 'initial', e.target.value)}
+                <label htmlFor={`roi-scenario-${i}-initial`} className="block text-xs text-gray-500 mb-1">Initial ($)</label>
+                <input id={`roi-scenario-${i}-initial`} type="number" value={s.initial} onChange={e => update(i, 'initial', e.target.value)}
                   placeholder="10000"
                   className="w-full px-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Final ($)</label>
-                <input type="number" value={s.finalVal} onChange={e => update(i, 'finalVal', e.target.value)}
+                <label htmlFor={`roi-scenario-${i}-final`} className="block text-xs text-gray-500 mb-1">Final ($)</label>
+                <input id={`roi-scenario-${i}-final`} type="number" value={s.finalVal} onChange={e => update(i, 'finalVal', e.target.value)}
                   placeholder="15000"
                   className="w-full px-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Years</label>
-                <input type="number" value={s.years} onChange={e => update(i, 'years', e.target.value)}
+                <label htmlFor={`roi-scenario-${i}-years`} className="block text-xs text-gray-500 mb-1">Years</label>
+                <input id={`roi-scenario-${i}-years`} type="number" value={s.years} onChange={e => update(i, 'years', e.target.value)}
                   placeholder="3"
                   className="w-full px-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>

@@ -51,27 +51,27 @@ function BMITool() {
       <div className="grid grid-cols-2 gap-4">
         {unit === 'metric' ? (
           <div className="col-span-2 sm:col-span-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Height (cm)</label>
-            <input type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder="175"
+            <label htmlFor="bmi-height-cm" className="block text-sm font-medium text-gray-700 mb-1.5">Height (cm)</label>
+            <input id="bmi-height-cm" type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder="175"
               className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
         ) : (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Height (ft)</label>
-              <input type="number" value={heightFt} onChange={e => setHeightFt(e.target.value)} placeholder="5"
+              <label htmlFor="bmi-height-ft" className="block text-sm font-medium text-gray-700 mb-1.5">Height (ft)</label>
+              <input id="bmi-height-ft" type="number" value={heightFt} onChange={e => setHeightFt(e.target.value)} placeholder="5"
                 className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Height (in)</label>
-              <input type="number" value={heightIn} onChange={e => setHeightIn(e.target.value)} placeholder="9"
+              <label htmlFor="bmi-height-in" className="block text-sm font-medium text-gray-700 mb-1.5">Height (in)</label>
+              <input id="bmi-height-in" type="number" value={heightIn} onChange={e => setHeightIn(e.target.value)} placeholder="9"
                 className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
           </>
         )}
         <div className={unit === 'metric' ? 'col-span-2 sm:col-span-1' : 'col-span-2'}>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Weight ({unit === 'metric' ? 'kg' : 'lb'})</label>
-          <input type="number" value={weight} onChange={e => setWeight(e.target.value)} placeholder={unit === 'metric' ? '70' : '154'}
+          <label htmlFor="bmi-weight" className="block text-sm font-medium text-gray-700 mb-1.5">Weight ({unit === 'metric' ? 'kg' : 'lb'})</label>
+          <input id="bmi-weight" type="number" value={weight} onChange={e => setWeight(e.target.value)} placeholder={unit === 'metric' ? '70' : '154'}
             className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
       </div>

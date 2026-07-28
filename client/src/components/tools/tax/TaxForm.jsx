@@ -41,7 +41,7 @@ export default function TaxForm({
 
       {/* Annual income */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+        <label htmlFor="tax-income" className="block text-sm font-medium text-gray-700 mb-1.5">
           Annual Income ({currencySymbol})
         </label>
         <div className="relative">
@@ -49,6 +49,7 @@ export default function TaxForm({
             {currencySymbol}
           </span>
           <input
+            id="tax-income"
             type="number"
             value={income}
             onChange={(e) => setIncome(e.target.value)}

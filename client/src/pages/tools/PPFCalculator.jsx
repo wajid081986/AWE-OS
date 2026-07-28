@@ -128,13 +128,15 @@ const WITHDRAWAL_RULES = [
 
 function RangeSlider({ label, value, min, max, step, onChange, display, hint }) {
   const pct = ((value - min) / (max - min)) * 100
+  const id = `slider-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-medium text-gray-400">{label}</label>
+        <label htmlFor={id} className="text-xs font-medium text-gray-400">{label}</label>
         <span className="text-sm font-bold text-white">{display(value)}</span>
       </div>
       <input
+        id={id}
         type="range" min={min} max={max} step={step} value={value}
         onChange={e => onChange(Number(e.target.value))}
         className="w-full h-1.5 rounded-full cursor-pointer appearance-none accent-emerald-500"
@@ -305,11 +307,12 @@ function PPFTool() {
 
                 {/* Existing Balance */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-gray-400">
+                  <label htmlFor="ppf-existing-balance" className="text-xs font-medium text-gray-400">
                     Existing PPF Balance (₹)
                     <span className="ml-1 text-gray-600 font-normal">— optional</span>
                   </label>
                   <input
+                    id="ppf-existing-balance"
                     type="number" min={0} value={existingBal}
                     onChange={e => setExistingBal(e.target.value)}
                     placeholder="e.g. 500000"

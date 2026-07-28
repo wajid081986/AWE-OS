@@ -66,8 +66,9 @@ function TipTool() {
     <div className="max-w-md mx-auto space-y-5">
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Bill Total (₹)</label>
+          <label htmlFor="tip-bill" className="block text-sm font-medium text-gray-700 mb-1">Bill Total (₹)</label>
           <input
+            id="tip-bill"
             type="number" min="0" step="0.01"
             value={bill} onChange={e => setBill(e.target.value)}
             placeholder="e.g. 1500"
@@ -89,6 +90,7 @@ function TipTool() {
             <input
               type="number" min="0" max="100" step="0.5"
               value={custom} placeholder="Custom %"
+              aria-label="Custom tip percentage"
               onChange={e => { setCustom(e.target.value); setUseCustom(true) }}
               onFocus={() => setUseCustom(true)}
               className={`w-32 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${useCustom ? 'border-blue-400 ring-2 ring-blue-200' : 'border-gray-300'}`}

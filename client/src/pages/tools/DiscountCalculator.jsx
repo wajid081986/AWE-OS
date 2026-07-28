@@ -74,14 +74,14 @@ function DiscountTool() {
     <div className="max-w-md mx-auto space-y-5">
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Original Price (₹)</label>
-          <input type="number" min="0" step="0.01" value={original}
+          <label htmlFor="discount-original" className="block text-sm font-medium text-gray-700 mb-1">Original Price (₹)</label>
+          <input id="discount-original" type="number" min="0" step="0.01" value={original}
             onChange={e => setOriginal(e.target.value)} placeholder="e.g. 2000"
             className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Discount (%)</label>
-          <input type="number" min="0" max="100" step="0.5" value={discount}
+          <label htmlFor="discount-pct" className="block text-sm font-medium text-gray-700 mb-1">Discount (%)</label>
+          <input id="discount-pct" type="number" min="0" max="100" step="0.5" value={discount}
             onChange={e => setDiscount(e.target.value)} placeholder="e.g. 25"
             className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
