@@ -152,6 +152,7 @@ export default function ToolsPage() {
     url: `${SITE_URL}/tools`,
     author: { '@type': 'Organization', name: 'AWE-OS', url: SITE_URL },
     publisher: { '@type': 'Organization', name: 'AWE-OS', url: SITE_URL },
+    dateModified: '2026-07-28',
   }
 
   return (

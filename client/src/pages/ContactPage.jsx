@@ -11,6 +11,7 @@ const CONTACT_SCHEMA = {
   description: 'Contact the AWE-OS team for support, bug reports, or feature requests.',
   author: { '@type': 'Organization', name: 'AWE-OS', url: 'https://www.awe-os.com' },
   publisher: { '@type': 'Organization', name: 'AWE-OS', url: 'https://www.awe-os.com' },
+  dateModified: '2026-07-28',
 }
 
 const WEBSITE_SCHEMA = {

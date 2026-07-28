@@ -54,14 +54,24 @@ export default function ToolLayout({
     { name: toolName, url: pageUrl },
   ]
 
-  const schemas = [
-    generateToolSchema({
+  // Matches the 'ai' category entry in ToolPageShell.jsx's CATEGORY_DATES —
+  // this shell is currently only adopted by the two Pro-gated AI tools
+  // (resume-builder, ai-content-writer), so it's the same real data point,
+  // not a separate invented date.
+  const toolSchema = {
+    ...generateToolSchema({
       name:                toolName,
       description:         toolDesc,
       url:                 pageUrl,
       applicationCategory: appCategory,
       keywords:            toolMeta?.tags,
     }),
+    datePublished: '2025-03-01',
+    dateModified:  '2026-05-20',
+  }
+
+  const schemas = [
+    toolSchema,
     generateHowToSchema(toolName, steps),
     generateBreadcrumbSchema(breadcrumbItems),
     generateFAQSchema(faqs),
