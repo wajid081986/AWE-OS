@@ -44,8 +44,9 @@
     <!-- Favicon (emoji fallback — replace with real PNG once available) -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>" />
 
-    <!-- Umami Cloud analytics (batch 16 — replaced GA4) -->
-    <script defer src="https://cloud.umami.is/script.js" data-website-id="a2f17bdc-08eb-49a3-832b-79f611d9766d"></script>
+    <!-- Umami Cloud analytics (batch 16 — replaced GA4) — loading moved to
+         useCookieConsent.js (batch 18): only injected client-side after the
+         visitor accepts the cookie banner, never baked into static HTML. -->
 
     <!-- FOUC prevention: dark bg before any JS loads; hide root/noscript until React mounts -->
     <style>

@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import Header from './Header'
 import Footer from './Footer'
+import CookieConsentBanner from './CookieConsentBanner'
 
 export default function PublicLayout({ children }) {
   return (
@@ -16,6 +17,7 @@ export default function PublicLayout({ children }) {
         {children ?? <Outlet />}
       </main>
       <Footer />
+      <CookieConsentBanner />
     </div>
   )
 }

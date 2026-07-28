@@ -111,3 +111,20 @@
 @media (prefers-reduced-motion: reduce) {
   .ds-flow-node { animation: none; }
 }
+
+/**
+ * Cookie consent banner entrance (Batch 18) — simple slide-up + fade,
+ * disabled entirely under reduced motion.
+ */
+@keyframes ds-banner-in {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.ds-banner-in {
+  animation: ds-banner-in var(--duration-structural) var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-banner-in { animation: none; }
+}
