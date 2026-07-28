@@ -17,7 +17,7 @@
 const BOT_UA = /Twitterbot|facebookexternalhit|Slackbot-LinkExpanding|LinkedInBot|WhatsApp|TelegramBot|Discordbot|Pinterest|Googlebot-Image|applebot|Iframely/i;
 
 const SITE_URL = process.env.FRONTEND_URL || 'https://awe-os.com';
-const OG_IMAGE = `${SITE_URL}/og-image.svg`;
+const OG_IMAGE = `${SITE_URL}/og-image.png`;
 
 function esc(str) {
   return String(str || '')
@@ -44,6 +44,7 @@ function buildHtml(title, description, url) {
     `<meta property="og:url" content="${u}">`,
     '<meta property="og:type" content="website">',
     `<meta property="og:image" content="${img}">`,
+    '<meta property="og:image:type" content="image/png">',
     '<meta property="og:image:width" content="1200">',
     '<meta property="og:image:height" content="630">',
     '<meta name="twitter:card" content="summary_large_image">',

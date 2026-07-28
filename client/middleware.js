@@ -29,7 +29,7 @@ const SOCIAL_BOT_UA = /Twitterbot|facebookexternalhit|Slackbot-LinkExpanding|Lin
 const SEARCH_BOT_UA = /Googlebot|bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|Sogou|Exabot|facebot|ia_archiver|AhrefsBot|SemrushBot|MJ12bot|DotBot/i;
 
 const SITE_URL = 'https://www.awe-os.com';
-const OG_IMAGE = 'https://www.awe-os.com/og-image.svg';
+const OG_IMAGE = 'https://www.awe-os.com/og-image.png';
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
@@ -70,6 +70,7 @@ function headBlock({ title, description, url, canonical, extraMeta = '' }) {
   <meta property="og:url" content="${c}">
   <meta property="og:type" content="website">
   <meta property="og:image" content="${esc(OG_IMAGE)}">
+  <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
@@ -127,6 +128,7 @@ function ogHtml(title, description, url) {
     `<meta property="og:url" content="${u}">` +
     '<meta property="og:type" content="website">' +
     `<meta property="og:image" content="${esc(OG_IMAGE)}">` +
+    '<meta property="og:image:type" content="image/png">' +
     '<meta property="og:image:width" content="1200">' +
     '<meta property="og:image:height" content="630">' +
     '<meta name="twitter:card" content="summary_large_image">' +
