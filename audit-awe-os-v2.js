@@ -239,8 +239,17 @@ function extractMeta(html, url) {
   const hasEditPolicy = /editorial.policy|fact.check|review.process/i.test(html);
 
   // Accessibility
-  const buttons       = [...html.matchAll(/<button([^>]*)>/gi)].map(m => m[1]);
-  const buttonsNoLabel = buttons.filter(b => !/aria-label|aria-labelledby/i.test(b) && !/<\/button>/i.test(b)).length;
+  // A button has a real accessible name via aria-label/aria-labelledby, a
+  // title attribute, OR visible text content — checking attrs alone (as this
+  // used to) flags every text-labelled button as unlabeled, which is wrong:
+  // visible button text is itself a valid accessible name per WCAG 4.1.2.
+  const buttons        = [...html.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/gi)].map(m => ({ attrs: m[1], inner: m[2] }));
+  const buttonsNoLabel = buttons.filter(b => {
+    const hasAria = /aria-label|aria-labelledby/i.test(b.attrs);
+    const hasTitle = /\btitle=/i.test(b.attrs);
+    const hasText = b.inner.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().length > 0;
+    return !hasAria && !hasTitle && !hasText;
+  }).length;
   const inputs        = [...html.matchAll(/<input([^>]*)>/gi)].map(m => m[1]);
   const inputsNoLabel = inputs.filter(i => !/aria-label|id=/i.test(i) && !/type=["']hidden["']/i.test(i)).length;
   const hasSkipLink   = /skip.to.main|skip-to-content|skip-nav/i.test(html);
