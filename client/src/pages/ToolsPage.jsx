@@ -8,6 +8,15 @@ import InfiniteScrollSentinel from '../components/InfiniteScrollSentinel'
 import { TOOL_CATALOGUE }     from '../data/toolCatalogue'
 import { useInfiniteTools }   from '../hooks/useInfiniteTools'
 import { useDebounce }        from '../hooks/useDebounce'
+import { SITE_URL }           from '../utils/canonicalUrl'
+import { generateWebsiteSchema, generateOrganizationSchema, generateBreadcrumbSchema } from '../utils/schema'
+
+const WEBSITE_SCHEMA = generateWebsiteSchema()
+const ORG_SCHEMA = generateOrganizationSchema()
+const BREADCRUMB_SCHEMA = generateBreadcrumbSchema([
+  { name: 'Home', url: SITE_URL },
+  { name: 'Tools', url: `${SITE_URL}/tools` },
+])
 
 const SORT_OPTIONS = [
   { id: 'popular', label: 'Popular' },
@@ -157,6 +166,9 @@ export default function ToolsPage() {
         <meta name="twitter:title"       content={`${pageTitle} — AWE-OS Free Online Tools`} />
         <meta name="twitter:description" content={`Browse ${pageTitle} on AWE-OS. Free, fast and easy-to-use online tools for everyone.`} />
         <meta name="twitter:image"       content="https://www.awe-os.com/og-image.png" />
+        <script type="application/ld+json">{JSON.stringify(WEBSITE_SCHEMA)}</script>
+        <script type="application/ld+json">{JSON.stringify(ORG_SCHEMA)}</script>
+        <script type="application/ld+json">{JSON.stringify(BREADCRUMB_SCHEMA)}</script>
       </Helmet>
 
       {/* Page hero */}

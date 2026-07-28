@@ -1,9 +1,13 @@
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 import { Breadcrumb, Container } from '../primitives'
-import { getCanonicalUrl } from '../../utils/canonicalUrl'
+import { getCanonicalUrl, SITE_URL } from '../../utils/canonicalUrl'
+import { generateWebsiteSchema, generateOrganizationSchema, generateBreadcrumbSchema } from '../../utils/schema'
 
 const EMAIL_RE = /([\w.+-]+@[\w-]+\.[\w.-]+)/g
+
+const WEBSITE_SCHEMA = generateWebsiteSchema()
+const ORG_SCHEMA = generateOrganizationSchema()
 
 // Renders any support@awe-os.com etc. found in verbatim body text as a
 // clickable mailto: link — a presentation transform, not a text edit.
@@ -24,6 +28,10 @@ function linkifyEmails(text) {
 export default function PolicyLayout({ title, metaDescription, lastUpdated, sections, canonicalPath }) {
   const canonicalUrl = getCanonicalUrl(canonicalPath)
   const pageTitle = `${title} — AWE-OS | Free Online Tools`
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Home', url: SITE_URL },
+    { name: title, url: canonicalUrl },
+  ])
 
   return (
     <>
@@ -48,6 +56,9 @@ export default function PolicyLayout({ title, metaDescription, lastUpdated, sect
         <meta name="twitter:description" content={metaDescription} />
         <meta name="twitter:image"       content="https://www.awe-os.com/og-image.png" />
         <meta name="twitter:image:alt"   content={pageTitle} />
+        <script type="application/ld+json">{JSON.stringify(WEBSITE_SCHEMA)}</script>
+        <script type="application/ld+json">{JSON.stringify(ORG_SCHEMA)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       </Helmet>
 
       <Container size="narrow" className="py-[length:var(--space-8)] max-[560px]:py-[length:var(--space-section-mobile)]">
