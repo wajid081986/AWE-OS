@@ -1,6 +1,7 @@
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { COMPARISON_PAGES } from '../data/comparisonPages'
+import { getCanonicalUrl } from '../utils/canonicalUrl'
 
 function renderBlock(block, i) {
   switch (block.type) {
@@ -58,6 +59,8 @@ export default function CompareToolPage() {
 
   if (!page) return <Navigate to="/404" replace />
 
+  const pageUrl = getCanonicalUrl(`/compare/${page.slug}`)
+
   const schema = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -66,7 +69,7 @@ export default function CompareToolPage() {
         itemListElement: [
           { '@type': 'ListItem', position: 1, name: 'Home',  item: 'https://www.awe-os.com' },
           { '@type': 'ListItem', position: 2, name: 'Tools', item: 'https://www.awe-os.com/tools' },
-          { '@type': 'ListItem', position: 3, name: page.title, item: `https://www.awe-os.com/compare/${page.slug}` },
+          { '@type': 'ListItem', position: 3, name: page.title, item: pageUrl },
         ],
       },
       {
@@ -77,12 +80,27 @@ export default function CompareToolPage() {
         author:    { '@type': 'Organization', name: 'AWE-OS' },
         publisher: { '@type': 'Organization', name: 'AWE-OS', url: 'https://www.awe-os.com' },
       },
+      ...((page.faqs || []).length > 0 ? [{
+        '@type': 'FAQPage',
+        mainEntity: page.faqs.map(({ q, a }) => ({
+          '@type': 'Question',
+          name: q,
+          acceptedAnswer: { '@type': 'Answer', text: a },
+        })),
+      }] : []),
     ],
   }
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
       <Helmet>
+        <title>{page.metaTitle || page.title}</title>
+        {page.metaDescription && <meta name="description" content={page.metaDescription} />}
+        <link rel="canonical" href={pageUrl} />
+        <meta property="og:title"       content={page.metaTitle || page.title} />
+        {page.metaDescription && <meta property="og:description" content={page.metaDescription} />}
+        <meta property="og:url"         content={pageUrl} />
+        <meta property="og:type"        content="article" />
         <script type="application/ld+json">{JSON.stringify(schema)}</script>
       </Helmet>
       {/* Breadcrumb */}

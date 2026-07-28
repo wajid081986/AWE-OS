@@ -1,6 +1,9 @@
 import { useParams, Link, Navigate } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { CITY_PAGES } from '../data/cityPages'
 import { TOOL_REGISTRY } from '../data/toolRegistry'
+import { SITE_URL, getCanonicalUrl } from '../utils/canonicalUrl'
+import { generateFAQSchema, generateBreadcrumbSchema } from '../utils/schema'
 
 function renderBlock(block, i) {
   switch (block.type) {
@@ -67,8 +70,33 @@ export default function CityToolPage() {
     .filter(p => p.slug !== page.slug && p.slug.startsWith(toolSlug + '/'))
     .slice(0, 5)
 
+  const pageUrl = getCanonicalUrl(`/${page.slug}`)
+  const breadcrumbItems = [
+    { name: 'Home',     url: SITE_URL },
+    { name: 'Tools',    url: `${SITE_URL}/tools` },
+    { name: toolLabel,  url: `${SITE_URL}/tools/${toolSlug}` },
+    { name: cityLabel,  url: pageUrl },
+  ]
+  const schemas = [
+    generateBreadcrumbSchema(breadcrumbItems),
+    generateFAQSchema(page.faqs),
+  ].filter(Boolean)
+
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
+      <Helmet>
+        <title>{page.metaTitle || page.title}</title>
+        {page.metaDescription && <meta name="description" content={page.metaDescription} />}
+        <link rel="canonical" href={pageUrl} />
+        <meta property="og:title"       content={page.metaTitle || page.title} />
+        {page.metaDescription && <meta property="og:description" content={page.metaDescription} />}
+        <meta property="og:url"         content={pageUrl} />
+        <meta property="og:type"        content="website" />
+        {schemas.map((s, i) => (
+          <script key={i} type="application/ld+json">{JSON.stringify(s)}</script>
+        ))}
+      </Helmet>
+
       {/* Breadcrumb */}
       <nav className="text-sm text-gray-500 mb-8 flex items-center gap-1 flex-wrap">
         <Link to="/" className="hover:text-indigo-600">Home</Link>
