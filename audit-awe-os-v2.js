@@ -214,8 +214,17 @@ function extractMeta(html, url) {
 
   // Internal & external links
   const allLinks     = [...html.matchAll(/href=["']([^"'#]+)["']/gi)].map(m => m[1]);
-  const internalLinks = allLinks.filter(l => l.startsWith("/") || l.includes(BASE));
-  const externalLinks = allLinks.filter(l => l.startsWith("http") && !l.includes("awe-os.com"));
+  // preconnect/dns-prefetch hints intentionally point at a bare origin with no
+  // path — nothing is ever fetched from them, so they always 404 a HEAD/GET
+  // check and aren't real "links" to verify.
+  const hintHrefs = new Set(
+    [...html.matchAll(/<link[^>]+rel=["'](?:preconnect|dns-prefetch)["'][^>]*>/gi)]
+      .map(tag => tag[0].match(/href=["']([^"']+)["']/i)?.[1])
+      .filter(Boolean)
+  );
+  const linkableLinks = allLinks.filter(l => !hintHrefs.has(l));
+  const internalLinks = linkableLinks.filter(l => l.startsWith("/") || l.includes(BASE));
+  const externalLinks = linkableLinks.filter(l => l.startsWith("http") && !l.includes("awe-os.com"));
 
   // Schema
   const schemas = [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)]
