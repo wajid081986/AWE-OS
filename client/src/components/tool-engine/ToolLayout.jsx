@@ -11,6 +11,7 @@ import {
   generateToolSchema,
   generateHowToSchema,
   generateBreadcrumbSchema,
+  generateFAQSchema,
 } from '../../utils/schema'
 import ToolContainer  from './ToolContainer'
 import ToolHero       from './ToolHero'
@@ -63,6 +64,7 @@ export default function ToolLayout({
     }),
     generateHowToSchema(toolName, steps),
     generateBreadcrumbSchema(breadcrumbItems),
+    generateFAQSchema(faqs),
   ].filter(Boolean)
 
   useEffect(() => {
