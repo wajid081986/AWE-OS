@@ -1461,4 +1461,117 @@ export const TOOL_ABOUT = {
       { q: "How do I format a very large JSON file efficiently?", a: "For JSON files under 5 MB, the AWE-OS JSON Formatter processes data in the browser without performance issues on modern computers and browsers. For very large files from 5 MB to hundreds of megabytes, command-line tools are significantly more efficient. jq is a powerful command-line JSON processor available on Linux, macOS, and Windows via package managers — the command 'jq . large_file.json' formats and pretty-prints any JSON file instantly. Python's built-in json module also works without installing anything extra: 'python -m json.tool large_file.json' outputs formatted JSON to the terminal. For Indian developers working with large datasets from data.gov.in, bulk financial transaction exports from payment processors, or API response archives from logistics and e-commerce platforms, these command-line approaches are recommended for files above 5 MB where browser-based tools may become slow." },
     ],
   },
+
+  // ── BATCH 19 — HRA, NPS, CAPITAL GAINS ──────────────────────────────────────
+
+  'hra-calculator': {
+    description: "AWE-OS HRA Calculator computes your House Rent Allowance tax exemption under Section 10(13A) of the Income Tax Act for salaried employees in India who pay rent and receive HRA as part of their salary. The exemption is the smallest of three amounts: the actual HRA received from your employer, 50% of Basic Salary for metro cities (Delhi, Mumbai, Chennai, Kolkata) or 40% for non-metro cities, and actual rent paid minus 10% of Basic Salary. The calculator shows all three conditions side by side with the applicable minimum clearly marked, along with monthly and annual figures for both the exempt and taxable portions of your HRA. This exemption is available only under the Old Tax Regime — it is not available if you have opted into the New Tax Regime, which removes most exemptions and deductions in exchange for lower slab rates. Getting the correct exemption figure matters for accurate TDS deduction by your employer and for filing your income tax return without a mismatch that could trigger a notice.",
+    features: [
+      "Computes the exact Section 10(13A) minimum-of-three-conditions formula used by every Indian employer's payroll system",
+      "Metro (50% of Basic) vs Non-Metro (40% of Basic) toggle covering Delhi, Mumbai, Chennai, Kolkata correctly",
+      "Real-time calculation — results update instantly as you type, with no submit button",
+      "Side-by-side breakdown of all 3 conditions with a clear checkmark on whichever value is the exemption",
+      "Monthly and annual figures for both HRA Exemption and Taxable HRA in one view",
+      "100% browser-based — your salary and rent figures are never sent to any server",
+    ],
+    useCases: [
+      "Salaried employees under the Old Tax Regime submitting rent receipts to their HR/payroll team for accurate monthly TDS deduction",
+      "Employees choosing between the Old and New Tax Regime who need their exact HRA exemption amount to compare total tax liability under both",
+      "Anyone who recently moved to a metro city (or out of one) and needs to recompute their exemption under the new 50%/40% threshold",
+      "Employees filing their own ITR who need to independently verify the HRA exemption figure shown in their Form 16",
+    ],
+    howToUse: [
+      "Enter your monthly Basic Salary exactly as shown on your payslip",
+      "Enter the monthly HRA you receive from your employer and the monthly rent you actually pay",
+      "Select Metro or Non-Metro based on your city of residence",
+      "Review the 3-condition breakdown — the smallest value, marked with a ✓, is your exempt HRA",
+      "Note the monthly and annual Exemption and Taxable HRA figures for your ITR or rent-receipt submission",
+    ],
+    whyUseUs: [
+      "Shows the full 3-condition comparison, not just the final number — so you can see exactly why your exemption is what it is, the same way a payroll system computes it",
+      "Correctly distinguishes the 4 metro cities from every other Indian city, a detail many simplified calculators get wrong",
+      "No sign-up, no data storage — your salary details stay in your browser only",
+    ],
+    faqs: [
+      { q: "Is HRA exemption available if I live with my parents and pay them rent?", a: "Yes, provided the arrangement is genuine and documented: you pay rent to your parent(s) via bank transfer (not cash), your parent(s) own the property, and they declare the rental income in their own income tax return. The Income Tax Department has upheld such claims in several tribunal rulings when properly documented, but it is scrutinised more closely than renting from an unrelated landlord — keep bank transfer records and a rent agreement." },
+      { q: "What happens if my rent exceeds ₹1 lakh a year?", a: "If your annual rent paid exceeds ₹1,00,000 (roughly ₹8,333/month), your employer will require your landlord's PAN in addition to rent receipts before allowing HRA exemption in monthly TDS calculations. Without the landlord's PAN, your employer may not process the exemption at source, though you can still claim it directly while filing your ITR if you have valid rent receipts." },
+      { q: "Can I claim HRA exemption and home loan interest deduction at the same time?", a: "Yes, but only if the rented accommodation and the home you own (on which you're claiming home loan interest under Section 24) are in different cities, or if you can demonstrate a genuine reason you don't live in your own house (e.g., it's too far from your workplace). Claiming both for the same city without justification is a common scrutiny trigger." },
+      { q: "Why does the calculator show my exemption as zero when I enter valid numbers?", a: "This happens when your Rent Paid minus 10% of Basic Salary works out to zero or negative — usually because your rent is low relative to your Basic Salary, or you entered no rent at all. In that case, condition (3) of the formula becomes the binding minimum at zero, meaning none of your HRA is exempt for that month. This is the correct, intended behaviour of Section 10(13A), not a calculation error." },
+      { q: "Should I choose the Old or New Tax Regime if I have a large HRA exemption?", a: "It depends on your total exemptions and deductions relative to the tax saved by the New Regime's lower slabs. As a rough guide, if your HRA exemption plus 80C/80D and other deductions are large relative to your income, the Old Regime often works out cheaper; if you claim few deductions, the New Regime usually wins. Run your numbers through both regimes using the AWE-OS Tax Calculator with and without this HRA exemption included to compare your actual total tax liability." },
+    ],
+  },
+
+  'nps-calculator': {
+    description: "AWE-OS NPS Calculator projects your National Pension System retirement corpus, tax-free lump-sum withdrawal, and monthly pension based on your current age, monthly contribution, and expected return assumptions. NPS is a government-regulated, PFRDA-administered retirement savings scheme available to all Indian citizens between 18 and 70. At retirement (fixed at age 60 for this calculator), a minimum of 40% of your accumulated corpus must be used to purchase an annuity plan that pays you a monthly pension for life, while up to 60% can be withdrawn as a tax-free lump sum. The calculator uses the standard SIP future-value formula to project your corpus growth from monthly contributions, then splits the projected corpus between lump sum and annuity based on your chosen annuity rate, and estimates your resulting monthly pension using your chosen annuity return rate. All return and annuity rate assumptions are adjustable so you can model conservative and optimistic scenarios rather than relying on a single fixed projection.",
+    features: [
+      "Age-based investment period calculation — automatically computes years remaining to the fixed NPS retirement age of 60",
+      "Adjustable expected return rate (8–14%) to match your NPS fund's equity/debt/government-securities allocation",
+      "PFRDA-compliant annuity rate slider with the 40% statutory minimum clearly labelled",
+      "Adjustable annuity return rate (5–9%) reflecting current insurer annuity payout rates",
+      "Pie chart visualization of the Lump Sum vs Annuity Portion split of your projected corpus",
+      "Five summary cards: Total Corpus, Lump Sum Withdrawal, Monthly Pension, Total Invested, and Wealth Gained",
+    ],
+    useCases: [
+      "Salaried employees deciding how much to contribute monthly to their NPS Tier-I account for retirement planning",
+      "Employees comparing NPS against PPF and SIP-based retirement corpus growth using AWE-OS's other finance calculators",
+      "Anyone approaching retirement modelling different annuity allocation percentages (40% minimum vs a higher voluntary share) to see the lump-sum vs monthly-pension trade-off",
+      "Financial planning enthusiasts stress-testing their retirement corpus projection under conservative vs optimistic return assumptions",
+    ],
+    howToUse: [
+      "Set your Current Age using the slider — the investment period to retirement (fixed at 60) is calculated automatically",
+      "Enter your planned Monthly Contribution amount",
+      "Adjust the Expected Return Rate slider based on your NPS fund allocation",
+      "Set the Annuity Rate (minimum 40%) and Annuity Return Rate sliders to match your retirement income strategy",
+      "Review the summary cards and the Lump Sum vs Annuity pie chart",
+    ],
+    whyUseUs: [
+      "Every rate assumption is user-adjustable, not hardcoded — so you can see how sensitive your retirement outcome is to return and annuity rate changes",
+      "Correctly enforces the PFRDA 40% minimum annuity rule rather than presenting an unconstrained withdrawal split",
+      "Free, instant, and entirely browser-based — no account or login required to plan your retirement numbers",
+    ],
+    faqs: [
+      { q: "Is NPS better than PPF for retirement savings?", a: "NPS and PPF serve different purposes. NPS offers market-linked returns (via equity, corporate bond, and government security allocation) that historically outperform PPF's fixed government rate over long horizons, plus an additional ₹50,000 tax deduction under Section 80CCD(1B) beyond the ₹1.5 lakh Section 80C limit. PPF offers a fixed, government-guaranteed return with full tax-free withdrawal at maturity and no compulsory annuitization. Many investors use both — PPF for guaranteed capital protection and NPS for market-linked growth with a bundled pension." },
+      { q: "What tax benefits does NPS offer?", a: "NPS contributions qualify for a deduction of up to ₹1.5 lakh under Section 80CCD(1) (within the overall 80C limit) plus an additional exclusive deduction of up to ₹50,000 under Section 80CCD(1B) — meaning NPS can give you tax benefits beyond what 80C alone allows. At retirement, the 60% lump-sum withdrawal is entirely tax-free, though the monthly annuity/pension income is taxed at your slab rate when received." },
+      { q: "Can I withdraw from NPS before age 60?", a: "Partial withdrawal is allowed after 3 years of account opening, up to 25% of your own contributions (not the employer's), for specific purposes like higher education, marriage, home purchase, or medical treatment, and only up to 3 times during the entire tenure. Full premature exit before 60 is allowed after 5 years of joining but is subject to compulsory annuitization of at least 80% of the corpus, with lower thresholds than the normal retirement exit." },
+      { q: "How is my NPS corpus actually invested?", a: "Your NPS contributions are invested by pension fund managers you select, across a mix of Equity (E), Corporate Bonds (C), and Government Securities (G), based on either your own chosen allocation (Active Choice) or an age-based glide path that automatically reduces equity exposure as you approach 60 (Auto Choice). The expected return rate you enter into this calculator should reflect your actual chosen allocation's historical or projected blended return, not a single asset class in isolation." },
+      { q: "What happens if I don't touch the annuity rate — is 40% always the right choice?", a: "40% is only the regulatory minimum, not a recommendation. A higher annuity rate gives you a larger guaranteed monthly pension but a smaller immediate tax-free lump sum; a lower rate (down to the 40% floor) maximises your lump sum but gives a smaller pension. The right choice depends on whether you have other retirement income sources and how much you value a guaranteed monthly payout versus a larger one-time withdrawal — model both ends of the slider to compare." },
+    ],
+  },
+
+  'capital-gains-calculator': {
+    description: "AWE-OS Capital Gains Calculator computes short-term and long-term capital gains tax across four asset classes — Equity/Stocks/Equity Mutual Funds, Debt Mutual Funds/Bonds, Real Estate/Property, and Gold/Other Assets — using the rates introduced by the Finance Act 2024 (Budget 2024), applicable for FY 2025-26. Each asset class has a distinct holding-period threshold and tax treatment: equity uses a 12-month threshold with a 20% STCG rate and 12.5% LTCG rate (with a ₹1.25 lakh annual exemption); real estate and gold use a 24-month threshold with LTCG taxed at 12.5% without indexation (a change from the pre-Budget-2024 20%-with-indexation regime); and debt mutual funds acquired after April 2023 are taxed entirely at your income tax slab rate regardless of holding period, per the Finance Act 2023's removal of indexation for debt funds. For Real Estate, the calculator also shows a reference-only comparison using the pre-Budget-2024 indexed-cost method and the real, CBDT-published Cost Inflation Index, so you can see exactly how the rule change affects your specific transaction. Because capital gains rules change with nearly every Union Budget, this calculator states its rate basis explicitly and recommends confirming with a Chartered Accountant before any filing or sale decision.",
+    features: [
+      "Four asset-type tabs — Equity, Debt Mutual Funds, Real Estate, Gold — each with the correct holding-period threshold and rate",
+      "Automatic holding-period calculation and STCG/LTCG classification from your buy and sell dates",
+      "Equity: 20% STCG / 12.5% LTCG with the ₹1.25 lakh annual LTCG exemption applied automatically",
+      "Real Estate: 12.5% no-indexation LTCG (Budget 2024) shown alongside a reference-only indexed-cost figure using the real published CBDT Cost Inflation Index",
+      "Debt Mutual Funds: correctly taxed at your income tax slab rate with no LTCG/STCG distinction, per the post-April-2023 rule",
+      "Effective tax rate and net profit after tax computed for every asset type where a fixed rate applies",
+    ],
+    useCases: [
+      "Equity investors calculating tax liability before selling shares or equity mutual fund units near a financial year-end",
+      "Property sellers comparing their tax liability under the new 12.5% no-indexation rule versus the old indexed-cost method for the same sale",
+      "Gold investors (physical gold, gold ETFs, or SGBs redeemed early) estimating capital gains tax on a sale",
+      "Debt mutual fund investors confirming that their gain will be taxed at their slab rate rather than a flat capital gains rate",
+    ],
+    howToUse: [
+      "Select the Asset Type — Equity, Debt Mutual Funds, Real Estate, or Gold",
+      "Enter your buy/sell price (or NAV/units for debt funds, or price-per-gram/weight for gold) and the exact Buy Date and Sell Date",
+      "For Real Estate, also enter Stamp Duty & Registration cost, which is added to your purchase cost",
+      "Review the automatic Holding Period, STCG/LTCG classification, Taxable Gain, Tax Amount, Effective Tax Rate, and Net Profit After Tax",
+      "For Real Estate held long-term, compare the new 12.5% method against the reference indexed-cost figure shown separately",
+    ],
+    whyUseUs: [
+      "Reflects the actual Finance Act 2024 rate changes (12.5% flat LTCG, no indexation) rather than outdated pre-2024 assumptions many calculators still use",
+      "Uses the real, officially published CBDT Cost Inflation Index table for the Real Estate reference comparison — not an invented or approximated index",
+      "Honest about what it can't compute: for slab-rate cases (Debt MF, and short-term Real Estate/Gold), it shows the taxable gain without inventing a tax amount that depends on your personal income slab",
+    ],
+    faqs: [
+      { q: "What counts as the 'holding period' for capital gains — is it the exact number of days?", a: "For this calculator, holding period is measured in complete months between your buy date and sell date, which is how the STCG/LTCG threshold (12 months for equity, 24 months for real estate and gold) is actually applied under the Income Tax Act. A holding period of exactly 12 months and 1 day for equity, for example, qualifies as long-term, while exactly 12 months does not." },
+      { q: "Does the ₹1.25 lakh equity LTCG exemption apply per transaction or per year?", a: "It applies per financial year across all your equity LTCG combined, not per individual transaction. This calculator applies the ₹1.25 lakh exemption to the single transaction you enter, which is accurate if this is your only equity LTCG for the year — if you have multiple equity sales in the same financial year, you should sum all your LTCG first and apply the ₹1.25 lakh exemption only once to the total." },
+      { q: "Why is the Real Estate indexed-cost figure only a 'reference' and not the actual tax I owe?", a: "Budget 2024 (effective for transfers from 23 July 2024) replaced the old 20%-with-indexation LTCG rate for real estate with a flat 12.5% rate without indexation. The indexed-cost figure this calculator shows is the pre-Budget-2024 calculation method, included only so you can compare how much tax you would have owed under the old rule versus the new one — the 12.5% no-indexation figure is what actually applies to your sale." },
+      { q: "I sold my property before 23 July 2024 — does the 12.5% no-indexation rate still apply to me?", a: "No. The Budget 2024 rate change applies to transfers made on or after 23 July 2024. If your actual sale happened before that date, the pre-Budget-2024 20%-with-indexation rate applied instead. This calculator computes both figures for every Real Estate entry, but you should use whichever rate was actually in force on your specific sale date." },
+      { q: "Can I offset capital losses against capital gains using this calculator?", a: "No, this calculator computes the tax on a single transaction in isolation. Under Indian tax rules, short-term capital losses can be set off against both STCG and LTCG, while long-term capital losses can only be set off against LTCG, and unabsorbed losses can be carried forward for up to 8 assessment years. If you have losses from other transactions in the same or earlier years, apply the set-off rules manually or consult a CA before arriving at your final tax liability." },
+    ],
+  },
 }

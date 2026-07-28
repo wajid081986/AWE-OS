@@ -38,7 +38,8 @@ export const TOOL_SLUGS = [
   'sip-calculator', 'tax-calculator', 'tip-calculator', 'base-converter', 'color-picker', 'csv-to-json',
   'currency-converter', 'image-compressor', 'json-formatter', 'password-generator', 'qr-code-generator',
   'unit-converter', 'word-counter', 'ai-content-writer', 'resume-builder', 'contract-generator',
-  'invoice-generator', 'fd-calculator', 'ppf-calculator',
+  'invoice-generator', 'fd-calculator', 'ppf-calculator', 'hra-calculator', 'nps-calculator',
+  'capital-gains-calculator',
 ]
 
 export function buildBaseSsgPaths() {

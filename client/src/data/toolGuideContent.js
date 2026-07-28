@@ -923,4 +923,57 @@ export const TOOL_GUIDE = {
       'Using AI-generated content in academic submissions — most Indian universities and competitive exam boards explicitly prohibit AI-generated content in assignments, research papers, and examination answers. Verify your institution\'s AI policy before using AI writing assistance.',
     ],
   },
+
+  // ── Batch 19 ──────────────────────────────────────────────────────────────
+
+  'hra-calculator': {
+    tips: [
+      'Use your exact monthly Basic Salary, not your gross or CTC figure — the 50%/40% and 10% conditions in the HRA formula are legally defined against Basic Salary only, and using gross salary will overstate your exemption.',
+      'If your rent varies month to month (a new lease, a rent hike mid-year), calculate the exemption separately for each period at the applicable rent and salary figures rather than using a single annual average, since your employer\'s payroll does the same month-by-month.',
+      'Keep rent receipts and, for annual rent above ₹1 lakh, your landlord\'s PAN — without these your employer may not process the exemption in monthly TDS, forcing you to claim it directly (and prove it) at ITR filing time instead.',
+      'If you\'re comparing Old vs New Tax Regime, run your numbers through the AWE-OS Tax Calculator twice — once including your HRA exemption (Old Regime) and once without any exemptions (New Regime) — since HRA exemption is not available under the New Regime at all.',
+      'Double-check your city classification — only Delhi, Mumbai, Chennai, and Kolkata qualify for the 50% metro rate; every other city, including Bengaluru, Hyderabad, and Pune, uses the 40% non-metro rate regardless of local rents.',
+    ],
+    mistakes: [
+      'Entering gross salary or CTC instead of Basic Salary — this is the single most common HRA calculation error and always overstates your exemption relative to what your employer\'s payroll or the tax department will accept.',
+      'Assuming you can claim HRA exemption while paying no rent, or paying rent to a spouse — HRA exemption requires an actual, provable rent payment, and rent paid to a spouse is generally not accepted as a genuine landlord-tenant arrangement.',
+      'Forgetting that HRA exemption disappears entirely under the New Tax Regime — if your employer defaults you into the New Regime, any HRA exemption you expect to claim will not apply unless you actively opt for the Old Regime.',
+      'Not retaining rent receipts because your employer didn\'t ask for them — if the exemption is later questioned during ITR processing or scrutiny, you need documentary proof of rent paid, not just this calculator\'s output.',
+      'Using the wrong metro/non-metro classification for a city you recently moved to or from — the 50%/40% distinction applies based on your actual place of residence during the period the salary and rent relate to, not your permanent address.',
+    ],
+  },
+
+  'nps-calculator': {
+    tips: [
+      'Model at least two scenarios — a conservative return rate (8-9%) and your realistically expected rate (11-12% for equity-heavy allocations) — rather than relying on a single projection, since NPS returns are market-linked and vary with your chosen fund manager and asset mix.',
+      'Increase your annuity rate slider above the 40% PFRDA minimum if you don\'t expect significant other retirement income sources (pension, rental income, other investments) — a larger guaranteed monthly pension reduces longevity risk even though it lowers your immediate lump sum.',
+      'Claim the additional ₹50,000 deduction under Section 80CCD(1B) for NPS contributions — this is over and above the ₹1.5 lakh Section 80C limit and is one of the few remaining exclusive tax benefits available only through NPS.',
+      'Revisit your projection every few years as you get closer to retirement and your NPS fund\'s actual annual statement (available from the CRA — Central Recordkeeping Agency) becomes available — replace the assumed return rate with your fund\'s actual trailing CAGR for a more accurate later-stage projection.',
+      'Remember the annuity return rate you select should reflect what insurers are actually offering today, not a hoped-for figure — check current annuity rates from PFRDA-empanelled insurers (LIC, SBI Life, HDFC Life and others) before finalising your retirement income assumptions.',
+    ],
+    mistakes: [
+      'Assuming NPS returns are guaranteed like a fixed deposit — NPS is a market-linked instrument, and the expected return rate in this calculator is an assumption you control, not a promised outcome.',
+      'Ignoring the compulsory 40% minimum annuitization rule and assuming you can withdraw the entire corpus as a lump sum at 60 — only up to 60% can ever be withdrawn as a lump sum; the rest must purchase an annuity by law.',
+      'Forgetting that the monthly annuity/pension income is fully taxable at your slab rate — only the 60% lump-sum withdrawal is tax-free; don\'t plan your post-retirement budget assuming the monthly pension arrives tax-free too.',
+      'Not accounting for inflation when interpreting the projected corpus and monthly pension — a corpus or pension figure that looks large today in nominal rupees will have materially lower purchasing power 20-30 years from now.',
+      'Treating the annuity return rate as fixed for life — insurers set annuity rates based on prevailing interest rates at the time you actually purchase the annuity at retirement, which may differ meaningfully from the rate you assumed years earlier while planning.',
+    ],
+  },
+
+  'capital-gains-calculator': {
+    tips: [
+      'Confirm your actual sale date before relying on the tax rate shown — the Budget 2024 rate change (12.5% no-indexation LTCG) applies only to transfers on or after 23 July 2024; sales before that date follow the older 20%-with-indexation rule for real estate and gold.',
+      'For equity, remember the ₹1.25 lakh LTCG exemption is an annual limit across all your equity gains combined, not per transaction — if you have multiple sales in the same financial year, total them first before applying the exemption once.',
+      'For real estate, always include Stamp Duty & Registration in your purchase cost — this is a legitimate addition to your cost base under the Income Tax Act and directly reduces your taxable gain, yet it\'s frequently forgotten when estimating tax liability.',
+      'If you\'re close to the STCG/LTCG holding-period threshold (12 months for equity, 24 months for real estate and gold), check whether waiting a few extra weeks moves you into the long-term category — the rate difference (20% vs 12.5% for equity, slab vs 12.5% for real estate/gold) can be substantial.',
+      'For debt mutual funds, don\'t search for a "debt fund LTCG rate" — since April 2023 there isn\'t one; budget for the gain to be taxed at your full income tax slab rate when planning your after-tax return.',
+    ],
+    mistakes: [
+      'Assuming the pre-Budget-2024 20%-with-indexation rate still applies to a real estate or gold sale made after 23 July 2024 — the applicable rate for these assets is now a flat 12.5% without indexation.',
+      'Forgetting that capital losses can offset gains — this calculator computes a single transaction in isolation and does not apply carry-forward losses or intra-year set-offs; add those manually before arriving at your final liability.',
+      'Ignoring reinvestment exemptions like Section 54, 54EC, or 54F on property sales — these can substantially reduce your actual real estate capital gains tax but are not modelled by this calculator, which shows the pre-exemption tax only.',
+      'Using the indexed-cost "reference" figure as if it were the applicable tax on a post-Budget-2024 real estate sale — it is shown for historical comparison only; the 12.5% no-indexation figure is what actually applies today.',
+      'Not distinguishing debt mutual fund units bought before vs after 1 April 2023 — only units acquired on or after that date lose LTCG treatment and indexation entirely; older units may still follow the previous rules depending on your specific holding.',
+    ],
+  },
 }

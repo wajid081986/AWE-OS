@@ -82,4 +82,7 @@ export const TOOL_COMPONENTS = {
   // Finance
   'fd-calculator':         () => import('./FDCalculator'),
   'ppf-calculator':        () => import('./PPFCalculator'),
+  'hra-calculator':        () => import('./HRACalculator'),
+  'nps-calculator':        () => import('./NPSCalculator'),
+  'capital-gains-calculator': () => import('./CapitalGainsCalculator'),
 }

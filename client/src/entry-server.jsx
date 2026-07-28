@@ -151,6 +151,9 @@ import ContractGenerator from './pages/tools/ContractGenerator'
 import InvoiceGenerator from './pages/tools/InvoiceGenerator'
 import FDCalculator from './pages/tools/FDCalculator'
 import PPFCalculator from './pages/tools/PPFCalculator'
+import HRACalculator from './pages/tools/HRACalculator'
+import NPSCalculator from './pages/tools/NPSCalculator'
+import CapitalGainsCalculator from './pages/tools/CapitalGainsCalculator'
 
 const TOOL_PAGE_COMPONENTS = {
   'merge-pdf': MergePDF, 'split-pdf': SplitPDF, 'compress-pdf': CompressPDF,
@@ -169,6 +172,7 @@ const TOOL_PAGE_COMPONENTS = {
   'qr-code-generator': QRCodeGenerator, 'unit-converter': UnitConverter, 'word-counter': WordCounter,
   'ai-content-writer': ContentWriter, 'resume-builder': ResumeBuilder, 'contract-generator': ContractGenerator,
   'invoice-generator': InvoiceGenerator, 'fd-calculator': FDCalculator, 'ppf-calculator': PPFCalculator,
+  'hra-calculator': HRACalculator, 'nps-calculator': NPSCalculator, 'capital-gains-calculator': CapitalGainsCalculator,
 }
 
 const CATEGORY_ROUTES = [

@@ -789,6 +789,63 @@ export const TOOL_REGISTRY = [
     },
   },
 
+  {
+    slug: 'hra-calculator',
+    name: 'HRA Calculator',
+    category: 'calculators',
+    subcategory: 'Finance',
+    icon: '🏠',
+    description: 'Calculate your HRA tax exemption under Section 10(13A) — compares actual HRA received, 50%/40% of basic salary, and rent paid minus 10% of basic to find your exempt amount.',
+    isFeatured: true,
+    isNew: true,
+    isPremium: false,
+    comingSoon: false,
+    tags: ['hra calculator', 'house rent allowance', 'section 10(13a)', 'hra exemption india', 'hra tax exemption calculator'],
+    relatedSlugs: ['tax-calculator', 'gst-calculator', 'percentage-calculator'],
+    seo: {
+      title: 'HRA Calculator — House Rent Allowance Exemption India | AWE-OS',
+      description: 'Calculate your HRA tax exemption under Section 10(13A). Compares all 3 conditions — actual HRA, 50%/40% of basic salary, and rent minus 10% of basic. Free HRA calculator for India.',
+    },
+  },
+
+  {
+    slug: 'nps-calculator',
+    name: 'NPS Calculator',
+    category: 'calculators',
+    subcategory: 'Finance',
+    icon: '🧓',
+    description: 'Calculate your National Pension System (NPS) retirement corpus, tax-free lump sum withdrawal, and monthly pension based on contribution, expected returns, and annuity rate.',
+    isFeatured: false,
+    isNew: true,
+    isPremium: false,
+    comingSoon: false,
+    tags: ['nps calculator', 'national pension system', 'nps returns calculator', 'nps maturity calculator', 'nps pension calculator india'],
+    relatedSlugs: ['ppf-calculator', 'sip-calculator', 'tax-calculator'],
+    seo: {
+      title: 'NPS Calculator — National Pension System Returns India | AWE-OS',
+      description: 'Calculate your NPS retirement corpus, tax-free lump sum, and monthly pension. Adjust contribution, expected return, and annuity rate. Free NPS calculator for India.',
+    },
+  },
+
+  {
+    slug: 'capital-gains-calculator',
+    name: 'Capital Gains Calculator',
+    category: 'calculators',
+    subcategory: 'Finance',
+    icon: '📈',
+    description: 'Calculate capital gains tax on equity, debt mutual funds, real estate, and gold — FY 2025-26 rates per Finance Act 2024, with STCG/LTCG classification and effective tax rate.',
+    isFeatured: true,
+    isNew: true,
+    isPremium: false,
+    comingSoon: false,
+    tags: ['capital gains calculator india', 'ltcg stcg calculator', 'capital gains tax 2025', 'equity capital gains calculator', 'property capital gains india'],
+    relatedSlugs: ['tax-calculator', 'sip-calculator', 'roi-calculator'],
+    seo: {
+      title: 'Capital Gains Calculator — LTCG STCG Tax India 2025 | AWE-OS',
+      description: 'Calculate capital gains tax on equity, debt funds, real estate, and gold per Finance Act 2024 rates. STCG/LTCG classification, effective tax rate, net profit. Free for India.',
+    },
+  },
+
   // ── CONVERTERS ────────────────────────────────────────────────────────────
 
   {
