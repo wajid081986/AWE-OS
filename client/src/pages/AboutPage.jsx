@@ -7,7 +7,6 @@ const ORG_SCHEMA = {
   name: 'AWE-OS',
   url: 'https://www.awe-os.com',
   description: 'Free browser-based online tools for everyone — PDF tools, calculators, converters, and AI tools. No signup required.',
-  sameAs: ['https://twitter.com/awe_os'],
 }
 
 const VALUES = [

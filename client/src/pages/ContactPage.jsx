@@ -142,20 +142,6 @@ export default function ContactPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="text-2xl">𝕏</span>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">Twitter / X</p>
-                    <a
-                      href="https://twitter.com/awe_os"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:underline mt-0.5 block"
-                    >
-                      @awe_os
-                    </a>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
                   <span className="text-2xl">⏱️</span>
                   <div>
                     <p className="text-sm font-semibold text-gray-900">Response Time</p>
