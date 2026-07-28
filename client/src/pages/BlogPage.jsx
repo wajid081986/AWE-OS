@@ -12,6 +12,31 @@ const CATEGORY_COLORS = {
   'Calculators': 'bg-orange-100 text-orange-700',
 }
 
+const WEBSITE_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'AWE-OS',
+  url: 'https://www.awe-os.com',
+  description: 'Free browser-based online tools for everyone — PDF tools, calculators, converters, and AI tools. No signup required.',
+}
+
+const ORG_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'AWE-OS',
+  url: 'https://www.awe-os.com',
+  logo: 'https://www.awe-os.com/logo.png',
+}
+
+const BREADCRUMB_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.awe-os.com' },
+    { '@type': 'ListItem', position: 2, name: 'Blog' },
+  ],
+}
+
 function CategoryBadge({ category }) {
   const cls = CATEGORY_COLORS[category] || 'bg-gray-100 text-gray-600'
   return (
@@ -129,6 +154,9 @@ export default function BlogPage() {
         <meta name="twitter:description" content={description} />
         <meta name="twitter:image"       content="https://www.awe-os.com/og-image.png" />
         <script type="application/ld+json">{JSON.stringify(blogSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(WEBSITE_SCHEMA)}</script>
+        <script type="application/ld+json">{JSON.stringify(ORG_SCHEMA)}</script>
+        <script type="application/ld+json">{JSON.stringify(BREADCRUMB_SCHEMA)}</script>
       </Helmet>
 
       <div className="min-h-screen bg-gray-50">

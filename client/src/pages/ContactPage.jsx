@@ -41,6 +41,32 @@ const HELP_LINKS = [
   { q: 'Are all tools really free?',  to: '/about'           },
 ]
 
+const CONTACT_FAQS = [
+  { q: 'What is your response time?',       a: 'We aim to reply within 24 hours on weekdays (Monday–Friday, IST). Messages sent over the weekend are typically answered by Monday morning.' },
+  { q: 'How do I report a bug?',            a: "Use the contact form below and select 'Bug Report' as the subject. Include the tool name, what you were trying to do, and what happened instead. Screenshots help a lot." },
+  { q: 'Can I request a new tool?',         a: "Absolutely. We add new tools every few weeks based on user demand. Select 'Feature Request' in the form and describe the tool you need and your specific use case." },
+  { q: 'Are all AWE-OS tools really free?', a: 'Yes — every tool is free with no usage limits, no watermarks, and no hidden fees. No credit card or subscription required. We earn through advertising and our own digital products in the Store — the free tools stay free.' },
+]
+
+const BREADCRUMB_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.awe-os.com' },
+    { '@type': 'ListItem', position: 2, name: 'Contact' },
+  ],
+}
+
+const FAQ_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: CONTACT_FAQS.map(({ q, a }) => ({
+    '@type': 'Question',
+    name: q,
+    acceptedAnswer: { '@type': 'Answer', text: a },
+  })),
+}
+
 export default function ContactPage() {
   const [form, setForm]     = useState({ name: '', email: '', subject: '', message: '' })
   const [status, setStatus] = useState(null) // 'sending' | 'success' | 'error'
@@ -89,6 +115,8 @@ export default function ContactPage() {
         <script type="application/ld+json">{JSON.stringify(CONTACT_SCHEMA)}</script>
         <script type="application/ld+json">{JSON.stringify(WEBSITE_SCHEMA)}</script>
         <script type="application/ld+json">{JSON.stringify(ORG_SCHEMA)}</script>
+        <script type="application/ld+json">{JSON.stringify(BREADCRUMB_SCHEMA)}</script>
+        <script type="application/ld+json">{JSON.stringify(FAQ_SCHEMA)}</script>
       </Helmet>
 
       {/* Hero */}
@@ -122,12 +150,7 @@ export default function ContactPage() {
             <div>
               <h2 className="text-xl font-bold text-gray-900 mb-4">Support FAQ</h2>
               <div className="space-y-4">
-                {[
-                  { q: 'What is your response time?',      a: 'We aim to reply within 24 hours on weekdays (Monday–Friday, IST). Messages sent over the weekend are typically answered by Monday morning.' },
-                  { q: 'How do I report a bug?',           a: "Use the contact form below and select 'Bug Report' as the subject. Include the tool name, what you were trying to do, and what happened instead. Screenshots help a lot." },
-                  { q: 'Can I request a new tool?',        a: "Absolutely. We add new tools every few weeks based on user demand. Select 'Feature Request' in the form and describe the tool you need and your specific use case." },
-                  { q: 'Are all AWE-OS tools really free?',a: 'Yes — every tool is free with no usage limits, no watermarks, and no hidden fees. No credit card or subscription required. We earn through advertising and our own digital products in the Store — the free tools stay free.' },
-                ].map(({ q, a }) => (
+                {CONTACT_FAQS.map(({ q, a }) => (
                   <div key={q} className="border border-gray-200 rounded-xl p-4 bg-white">
                     <p className="text-sm font-semibold text-gray-900 mb-1.5">{q}</p>
                     <p className="text-sm text-gray-600 leading-relaxed">{a}</p>

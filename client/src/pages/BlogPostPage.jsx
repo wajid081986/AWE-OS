@@ -7,6 +7,22 @@ import { useAnalytics } from '../hooks/useAnalytics'
 
 const VIEWED_SESSION_PREFIX = 'awe_viewed_blog_'
 
+const WEBSITE_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'AWE-OS',
+  url: 'https://www.awe-os.com',
+  description: 'Free browser-based online tools for everyone — PDF tools, calculators, converters, and AI tools. No signup required.',
+}
+
+const ORG_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'AWE-OS',
+  url: 'https://www.awe-os.com',
+  logo: 'https://www.awe-os.com/logo.png',
+}
+
 const CATEGORY_COLORS = {
   'AI Tools':    'bg-purple-100 text-purple-700',
   'PDF Tools':   'bg-red-100 text-red-700',
@@ -263,6 +279,8 @@ export default function BlogPostPage() {
         <meta name="twitter:image"       content={heroImage.url} />
         <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(WEBSITE_SCHEMA)}</script>
+        <script type="application/ld+json">{JSON.stringify(ORG_SCHEMA)}</script>
       </Helmet>
 
       <div className="min-h-screen bg-gray-50">
