@@ -32,6 +32,15 @@ export default function PolicyLayout({ title, metaDescription, lastUpdated, sect
     { name: 'Home', url: SITE_URL },
     { name: title, url: canonicalUrl },
   ])
+  const webPageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: title,
+    description: metaDescription,
+    url: canonicalUrl,
+    author: { '@type': 'Organization', name: 'AWE-OS', url: SITE_URL },
+    publisher: { '@type': 'Organization', name: 'AWE-OS', url: SITE_URL },
+  }
 
   return (
     <>
@@ -59,6 +68,7 @@ export default function PolicyLayout({ title, metaDescription, lastUpdated, sect
         <script type="application/ld+json">{JSON.stringify(WEBSITE_SCHEMA)}</script>
         <script type="application/ld+json">{JSON.stringify(ORG_SCHEMA)}</script>
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(webPageSchema)}</script>
       </Helmet>
 
       <Container size="narrow" className="py-[length:var(--space-8)] max-[560px]:py-[length:var(--space-section-mobile)]">

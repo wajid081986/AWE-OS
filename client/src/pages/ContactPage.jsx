@@ -9,6 +9,8 @@ const CONTACT_SCHEMA = {
   name: 'Contact AWE-OS',
   url: 'https://www.awe-os.com/contact',
   description: 'Contact the AWE-OS team for support, bug reports, or feature requests.',
+  author: { '@type': 'Organization', name: 'AWE-OS', url: 'https://www.awe-os.com' },
+  publisher: { '@type': 'Organization', name: 'AWE-OS', url: 'https://www.awe-os.com' },
 }
 
 const WEBSITE_SCHEMA = {

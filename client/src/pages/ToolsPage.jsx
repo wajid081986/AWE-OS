@@ -144,6 +144,15 @@ export default function ToolsPage() {
 
   const tabCatData = activeTab !== 'all' ? TOOL_CATALOGUE[TAB_META[activeTab]?.catKey] : null
   const pageTitle  = TAB_META[activeTab]?.label || 'All Tools'
+  const webPageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: `${pageTitle} — AWE-OS Free Online Tools`,
+    description: `Browse ${pageTitle} on AWE-OS. Free, fast and easy-to-use online tools for everyone.`,
+    url: `${SITE_URL}/tools`,
+    author: { '@type': 'Organization', name: 'AWE-OS', url: SITE_URL },
+    publisher: { '@type': 'Organization', name: 'AWE-OS', url: SITE_URL },
+  }
 
   return (
     <>
@@ -169,6 +178,7 @@ export default function ToolsPage() {
         <script type="application/ld+json">{JSON.stringify(WEBSITE_SCHEMA)}</script>
         <script type="application/ld+json">{JSON.stringify(ORG_SCHEMA)}</script>
         <script type="application/ld+json">{JSON.stringify(BREADCRUMB_SCHEMA)}</script>
+        <script type="application/ld+json">{JSON.stringify(webPageSchema)}</script>
       </Helmet>
 
       {/* Page hero */}
