@@ -54,10 +54,10 @@ function PasswordGeneratorTool() {
       {/* Length slider */}
       <div>
         <div className="flex justify-between items-center mb-2">
-          <label className="text-sm font-medium text-gray-700">Password Length</label>
+          <label htmlFor="pw-length" className="text-sm font-medium text-gray-700">Password Length</label>
           <span className="text-sm font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-lg">{length}</span>
         </div>
-        <input type="range" min={8} max={64} value={length} onChange={e => { setLength(parseInt(e.target.value)); setPassword('') }}
+        <input id="pw-length" type="range" min={8} max={64} value={length} onChange={e => { setLength(parseInt(e.target.value)); setPassword('') }}
           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
         <div className="flex justify-between text-xs text-gray-400 mt-1"><span>8</span><span>64</span></div>
       </div>

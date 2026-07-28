@@ -70,8 +70,9 @@ export default function QRCodeGenerator() {
           {/* Controls */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Text or URL</label>
+              <label htmlFor="qr-text" className="block text-sm font-semibold text-gray-700 mb-1.5">Text or URL</label>
               <textarea
+                id="qr-text"
                 value={text}
                 onChange={e => setText(e.target.value)}
                 rows={3}
@@ -83,8 +84,8 @@ export default function QRCodeGenerator() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Size</label>
-                <select value={size} onChange={e => setSize(Number(e.target.value))}
+                <label htmlFor="qr-size" className="block text-sm font-semibold text-gray-700 mb-1.5">Size</label>
+                <select id="qr-size" value={size} onChange={e => setSize(Number(e.target.value))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value={128}>128×128</option>
                   <option value={256}>256×256</option>
@@ -93,8 +94,8 @@ export default function QRCodeGenerator() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Error Correction</label>
-                <select value={ecLevel} onChange={e => setEcLevel(e.target.value)}
+                <label htmlFor="qr-ec-level" className="block text-sm font-semibold text-gray-700 mb-1.5">Error Correction</label>
+                <select id="qr-ec-level" value={ecLevel} onChange={e => setEcLevel(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                   {EC_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
                 </select>
@@ -103,16 +104,16 @@ export default function QRCodeGenerator() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">QR Color</label>
+                <label htmlFor="qr-fg-color" className="block text-sm font-semibold text-gray-700 mb-1.5">QR Color</label>
                 <div className="flex items-center gap-2 border border-gray-300 rounded-xl px-3 py-2">
-                  <input type="color" value={fg} onChange={e => setFg(e.target.value)} className="w-8 h-6 rounded cursor-pointer border-0" />
+                  <input id="qr-fg-color" type="color" value={fg} onChange={e => setFg(e.target.value)} className="w-8 h-6 rounded cursor-pointer border-0" />
                   <span className="text-sm text-gray-600 font-mono">{fg}</span>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Background</label>
+                <label htmlFor="qr-bg-color" className="block text-sm font-semibold text-gray-700 mb-1.5">Background</label>
                 <div className="flex items-center gap-2 border border-gray-300 rounded-xl px-3 py-2">
-                  <input type="color" value={bg} onChange={e => setBg(e.target.value)} className="w-8 h-6 rounded cursor-pointer border-0" />
+                  <input id="qr-bg-color" type="color" value={bg} onChange={e => setBg(e.target.value)} className="w-8 h-6 rounded cursor-pointer border-0" />
                   <span className="text-sm text-gray-600 font-mono">{bg}</span>
                 </div>
               </div>

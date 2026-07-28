@@ -101,13 +101,13 @@ function CurrencyTool() {
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 space-y-4">
         {/* From */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+          <label htmlFor="currency-amount" className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
           <div className="flex gap-2">
-            <select value={from} onChange={e => setFrom(e.target.value)}
+            <select value={from} onChange={e => setFrom(e.target.value)} aria-label="From currency"
               className="w-36 px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
               {CURRENCIES.map(c => <option key={c} value={c}>{c} — {CURRENCY_NAMES[c]}</option>)}
             </select>
-            <input type="number" min="0" step="any" value={amount}
+            <input id="currency-amount" type="number" min="0" step="any" value={amount}
               onChange={e => setAmount(e.target.value)} placeholder="Enter amount"
               className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
@@ -123,9 +123,9 @@ function CurrencyTool() {
 
         {/* To */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Converted To</label>
+          <label htmlFor="currency-to" className="block text-sm font-medium text-gray-700 mb-1">Converted To</label>
           <div className="flex gap-2">
-            <select value={to} onChange={e => setTo(e.target.value)}
+            <select id="currency-to" value={to} onChange={e => setTo(e.target.value)}
               className="w-36 px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
               {CURRENCIES.map(c => <option key={c} value={c}>{c} — {CURRENCY_NAMES[c]}</option>)}
             </select>

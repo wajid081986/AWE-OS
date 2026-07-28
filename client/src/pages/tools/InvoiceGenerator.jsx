@@ -200,10 +200,10 @@ function InvoiceTool() {
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <h3 className="font-bold text-gray-900 mb-4">Invoice Details</h3>
         <div className="grid grid-cols-2 gap-3">
-          <div><label className={labelCls}>Invoice Number</label>
-            <input className={inputCls} value={meta.invoiceNo} onChange={e => setM('invoiceNo', e.target.value)} /></div>
-          <div><label className={labelCls}>Invoice Date</label>
-            <input type="date" className={inputCls} value={meta.date} onChange={e => setM('date', e.target.value)} /></div>
+          <div><label htmlFor="inv-number" className={labelCls}>Invoice Number</label>
+            <input id="inv-number" className={inputCls} value={meta.invoiceNo} onChange={e => setM('invoiceNo', e.target.value)} /></div>
+          <div><label htmlFor="inv-date" className={labelCls}>Invoice Date</label>
+            <input id="inv-date" type="date" className={inputCls} value={meta.date} onChange={e => setM('date', e.target.value)} /></div>
         </div>
       </div>
 
@@ -212,16 +212,16 @@ function InvoiceTool() {
         <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
           <h3 className="font-bold text-gray-900">Seller (Your Details)</h3>
           {[['name','Business / Your Name *'],['gstin','GSTIN'],['address','Address'],['email','Email'],['phone','Phone']].map(([k, lbl]) => (
-            <div key={k}><label className={labelCls}>{lbl}</label>
-              <input className={inputCls} value={seller[k]} onChange={e => setS(k, e.target.value)}
+            <div key={k}><label htmlFor={`seller-${k}`} className={labelCls}>{lbl}</label>
+              <input id={`seller-${k}`} className={inputCls} value={seller[k]} onChange={e => setS(k, e.target.value)}
                 placeholder={k === 'gstin' ? '22AAAAA0000A1Z5' : ''} /></div>
           ))}
         </div>
         <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
           <h3 className="font-bold text-gray-900">Bill To (Client Details)</h3>
           {[['name','Client Name *'],['gstin','Client GSTIN (B2B)'],['address','Client Address']].map(([k, lbl]) => (
-            <div key={k}><label className={labelCls}>{lbl}</label>
-              <input className={inputCls} value={buyer[k]} onChange={e => setB(k, e.target.value)} /></div>
+            <div key={k}><label htmlFor={`buyer-${k}`} className={labelCls}>{lbl}</label>
+              <input id={`buyer-${k}`} className={inputCls} value={buyer[k]} onChange={e => setB(k, e.target.value)} /></div>
           ))}
         </div>
       </div>
@@ -233,13 +233,13 @@ function InvoiceTool() {
           {items.map((it, i) => (
             <div key={i} className="grid grid-cols-12 gap-2 items-center">
               <input className="col-span-6 px-2 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="Description" value={it.desc} onChange={e => updateItem(i, 'desc', e.target.value)} />
+                placeholder="Description" aria-label={`Item ${i + 1} description`} value={it.desc} onChange={e => updateItem(i, 'desc', e.target.value)} />
               <input type="number" min="0" step="0.5"
                 className="col-span-2 px-2 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="Qty" value={it.qty} onChange={e => updateItem(i, 'qty', e.target.value)} />
+                placeholder="Qty" aria-label={`Item ${i + 1} quantity`} value={it.qty} onChange={e => updateItem(i, 'qty', e.target.value)} />
               <input type="number" min="0" step="0.01"
                 className="col-span-3 px-2 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="Unit ₹" value={it.price} onChange={e => updateItem(i, 'price', e.target.value)} />
+                placeholder="Unit ₹" aria-label={`Item ${i + 1} unit price`} value={it.price} onChange={e => updateItem(i, 'price', e.target.value)} />
               <button onClick={() => removeItem(i)} className="col-span-1 text-gray-400 hover:text-red-500 text-lg text-center">×</button>
             </div>
           ))}
@@ -253,15 +253,15 @@ function InvoiceTool() {
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
-            <label className={labelCls}>GST Rate</label>
-            <select value={gstRate} onChange={e => setGstRate(Number(e.target.value))}
+            <label htmlFor="inv-gst-rate" className={labelCls}>GST Rate</label>
+            <select id="inv-gst-rate" value={gstRate} onChange={e => setGstRate(Number(e.target.value))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
               {GST_RATES.map(r => <option key={r} value={r}>{r}%</option>)}
             </select>
           </div>
           <div>
-            <label className={labelCls}>Transaction Type</label>
-            <select value={txType} onChange={e => setTxType(e.target.value)}
+            <label htmlFor="inv-tx-type" className={labelCls}>Transaction Type</label>
+            <select id="inv-tx-type" value={txType} onChange={e => setTxType(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="intra">Intra-state (CGST + SGST)</option>
               <option value="inter">Inter-state (IGST)</option>

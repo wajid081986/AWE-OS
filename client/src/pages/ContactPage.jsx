@@ -233,10 +233,11 @@ export default function ContactPage() {
               <form onSubmit={submit} className="space-y-4" noValidate>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label htmlFor="contact-name" className="block text-sm font-medium text-gray-700 mb-1.5">
                       Name <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="contact-name"
                       type="text"
                       required
                       value={form.name}
@@ -246,10 +247,11 @@ export default function ContactPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label htmlFor="contact-email" className="block text-sm font-medium text-gray-700 mb-1.5">
                       Email <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="contact-email"
                       type="email"
                       required
                       value={form.email}
@@ -261,10 +263,11 @@ export default function ContactPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label htmlFor="contact-subject" className="block text-sm font-medium text-gray-700 mb-1.5">
                     Subject <span className="text-red-500">*</span>
                   </label>
                   <select
+                    id="contact-subject"
                     required
                     value={form.subject}
                     onChange={update('subject')}
@@ -278,10 +281,11 @@ export default function ContactPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label htmlFor="contact-message" className="block text-sm font-medium text-gray-700 mb-1.5">
                     Message <span className="text-red-500">*</span>
                   </label>
                   <textarea
+                    id="contact-message"
                     required
                     minLength={20}
                     value={form.message}
