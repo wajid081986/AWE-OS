@@ -1,5 +1,7 @@
 import { useParams, Link, Navigate } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { FAQ_PAGES } from '../data/faqPages'
+import { getCanonicalUrl } from '../utils/canonicalUrl'
 
 function renderBlock(block, i) {
   switch (block.type) {
@@ -24,6 +26,8 @@ export default function FaqCategoryPage() {
 
   if (!page) return <Navigate to="/404" replace />
 
+  const pageUrl = getCanonicalUrl(`/faq/${page.slug}`)
+
   // FAQ JSON-LD schema for rich snippets
   const faqSchema = {
     '@context': 'https://schema.org',
@@ -37,6 +41,16 @@ export default function FaqCategoryPage() {
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
+      <Helmet>
+        <title>{page.metaTitle || page.title}</title>
+        {page.metaDescription && <meta name="description" content={page.metaDescription} />}
+        <link rel="canonical" href={pageUrl} />
+        <meta property="og:title"       content={page.metaTitle || page.title} />
+        {page.metaDescription && <meta property="og:description" content={page.metaDescription} />}
+        <meta property="og:url"         content={pageUrl} />
+        <meta property="og:type"        content="website" />
+      </Helmet>
+
       {/* FAQ JSON-LD */}
       <script
         type="application/ld+json"
