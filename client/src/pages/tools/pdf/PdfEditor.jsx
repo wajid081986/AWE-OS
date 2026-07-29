@@ -1210,6 +1210,8 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   const [extracting, setExtracting]       = useState(false)
   const [splitOpen, setSplitOpen]         = useState(false)
   const [splitting, setSplitting]         = useState(false)
+  const [exportProgress, setExportProgress] = useState(null) // { current, total } | null
+  const [renderedPages, setRenderedPages] = useState(() => new Set()) // batch-31: pages seen near-viewport in continuous mode
 
   // Find in PDF (batch-27)
   const [findOpen, setFindOpen]     = useState(false)
@@ -1237,6 +1239,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   const annImportRef  = useRef(null)
   const pendingImg    = useRef(null)
   const centerRef     = useRef(null)
+  const pinchRef      = useRef(null) // batch-31: { startDist, startZoom } while a 2-finger touch is active
   const editorRootRef = useRef(null)
   const downloadRef   = useRef(null)
   const initLoadDone  = useRef(false)
@@ -1431,8 +1434,34 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
     } catch {}
   }, [pdfjsDoc, pageDims])
 
-  useEffect(() => { if (phase==='ready') pageOrder.forEach(pi => renderPage(pi)) }, [phase, pageOrder, zoom, pageRotations, renderPage])
+  // Single/two-page view modes only ever mount 1-2 page containers, so renderPage's own
+  // canvasRefs-missing guard already makes rendering the rest of pageOrder a cheap no-op —
+  // no gating needed there. Continuous mode mounts every page's container up front (so
+  // scroll/layout stays stable), but only the ones IntersectionObserver has seen near the
+  // viewport (renderedPages, below) actually get the expensive pdf.js render call.
+  useEffect(() => {
+    if (phase!=='ready') return
+    pageOrder.forEach(pi => { if (viewMode!=='continuous' || renderedPages.has(pi)) renderPage(pi) })
+  }, [phase, pageOrder, zoom, pageRotations, renderPage, viewMode, renderedPages])
   useEffect(() => { if (phase==='ready') pageOrder.forEach(pi => renderThumb(pi)) }, [phase, pdfjsDoc, pageOrder, renderThumb])
+
+  // Virtualized rendering (batch-31, continuous mode only): once a page's container has been
+  // observed near the viewport it's added to renderedPages and stays there — pages already
+  // rendered are never unmounted or cleared, only *when* an off-screen page first renders is
+  // deferred, to keep this low-risk.
+  useEffect(() => {
+    if (phase!=='ready' || viewMode!=='continuous') return
+    const observer = new IntersectionObserver(entries => {
+      const seen = entries.filter(e=>e.isIntersecting).map(e=>Number(e.target.dataset.pi))
+      if (!seen.length) return
+      setRenderedPages(prev => {
+        if (seen.every(pi=>prev.has(pi))) return prev
+        const next = new Set(prev); seen.forEach(pi=>next.add(pi)); return next
+      })
+    }, { rootMargin: '800px 0px', threshold: 0.01 })
+    pageOrder.forEach(pi => { const el = pageElRefs.current[pi]; if (el) observer.observe(el) })
+    return () => observer.disconnect()
+  }, [phase, viewMode, pageOrder])
 
   // ── Undo / Redo ─────────────────────────────────────────────────────────────
   // Snapshots cover the full document/annotation state (not just annotations)
@@ -2039,13 +2068,40 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
     else document.exitFullscreen?.().catch(()=>{})
   }
 
+  // Pinch-to-zoom (batch-31). Only intercepts 2-finger touches — single-finger touch-scroll
+  // is left completely alone (preventDefault is never called for it), so native scrolling
+  // keeps working. Unverified on a real touch device (no browser available in this environment).
+  function touchDist(touches) {
+    const dx = touches[0].clientX - touches[1].clientX, dy = touches[0].clientY - touches[1].clientY
+    return Math.sqrt(dx*dx + dy*dy)
+  }
+  function onCanvasTouchStart(e) {
+    if (e.touches.length === 2) pinchRef.current = { startDist: touchDist(e.touches), startZoom: zoom }
+  }
+  function onCanvasTouchMove(e) {
+    if (e.touches.length === 2 && pinchRef.current) {
+      e.preventDefault()
+      const scale = touchDist(e.touches) / pinchRef.current.startDist
+      setZoom(clamp(+(pinchRef.current.startZoom * scale).toFixed(2), 0.25, 3.0))
+    }
+  }
+  function onCanvasTouchEnd(e) {
+    if (e.touches.length < 2) pinchRef.current = null
+  }
+
   // ── Download ─────────────────────────────────────────────────────────────────
+  // Yields to the browser every few pages so a large export doesn't freeze the tab, and
+  // reports per-page progress — chosen over a Web Worker port (see batch-31-plan.md):
+  // same code path and output, without risking the one path that would break every download.
   async function buildDoc(diRange) {
     const srcDoc=await PDFDocument.load(pdfBytes,{ignoreEncryption:true})
     const newDoc=await PDFDocument.create()
     const font=await newDoc.embedFont(StandardFonts.Helvetica)
     const fontB=await newDoc.embedFont(StandardFonts.HelveticaBold)
     let failCount=0
+    const total=diRange.length
+    setExportProgress(total>1?{current:0,total}:null)
+    let done=0
     for(const di of diRange) {
       const pi=pageOrder[di]
       if(pi===undefined) continue
@@ -2060,10 +2116,17 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
         const rot=pageRotations[pi]||0; if(rot)page.setRotation(degrees(rot))
         for(const ann of(annotations[pi]||[])){try{await embedAnnotation(page,ann,W,H,font,fontB,newDoc)}catch(err){console.error('[pdf-editor] embed annotation failed:',ann.type,err);failCount++}}
       }
+      done++
+      if (total>1) {
+        setExportProgress({current:done,total})
+        if (done%3===0) await new Promise(r=>setTimeout(r,0))
+      }
     }
     await applyGlobalSettings(newDoc,font,wm,hf,pgNum)
     if(stripMeta){newDoc.setTitle('');newDoc.setAuthor('');newDoc.setSubject('');newDoc.setKeywords([]);newDoc.setCreator('AWE-OS');newDoc.setProducer('')}
-    return { bytes: await newDoc.save(), failCount }
+    const bytes=await newDoc.save()
+    setExportProgress(null)
+    return { bytes, failCount }
   }
 
   function warnIfEmbedFailures(failCount) {
@@ -2078,7 +2141,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       downloadFile(bytes,fname)
       warnIfEmbedFailures(failCount)
     } catch(err){console.error('[pdf-editor] download error',err)}
-    setPhase('ready')
+    setExportProgress(null); setPhase('ready')
   }
   async function handleDownloadRange() {
     if(!pdfBytes) return; setPhase('saving'); setDlRangeOpen(false)
@@ -2087,7 +2150,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       downloadFile(bytes,`${downloadName}-pages${dlFrom}-${dlTo}.pdf`)
       warnIfEmbedFailures(failCount)
     } catch(err){console.error('[pdf-editor] range download error',err)}
-    setPhase('ready')
+    setExportProgress(null); setPhase('ready')
   }
   async function handleDownloadCurrentPage() {
     if(!pdfBytes) return; setPhase('saving'); setDownloadOpen(false)
@@ -2096,7 +2159,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       downloadFile(bytes,`${downloadName}-p${currentPage+1}.pdf`)
       warnIfEmbedFailures(failCount)
     } catch(err){console.error('[pdf-editor] page download error',err)}
-    setPhase('ready')
+    setExportProgress(null); setPhase('ready')
   }
 
   // ── Split / Multi-range Extract ──────────────────────────────────────────────
@@ -2143,7 +2206,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       console.error('[pdf-editor] split error', err)
       showToast('Failed to split PDF. Please try again.', 'error')
     }
-    setSplitting(false)
+    setExportProgress(null); setSplitting(false)
   }
 
   // ── Render ────────────────────────────────────────────────────────────────────
@@ -2269,7 +2332,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
             onMouseEnter={e=>{if(!e.currentTarget.disabled)e.currentTarget.style.background=C.downloadH}}
             onMouseLeave={e=>{e.currentTarget.style.background=C.download}}>
             {phase==='saving'?<span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin inline-block"/>:<span>⬇</span>}
-            <span className="hidden sm:inline">Download</span>
+            <span className="hidden sm:inline">{phase==='saving'&&exportProgress?`Page ${exportProgress.current}/${exportProgress.total}`:'Download'}</span>
             <span className="text-[10px] opacity-60">▾</span>
           </button>
           {downloadOpen&&(
@@ -2380,7 +2443,8 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
 
         {/* CENTER CANVAS */}
         <div ref={centerRef} className="flex-1 overflow-auto p-6" style={{background:darkCanvas?'#374151':C.canvas}}
-          onClick={()=>{setSelectedId(null);setCtxMenu(null)}}>
+          onClick={()=>{setSelectedId(null);setCtxMenu(null)}}
+          onTouchStart={onCanvasTouchStart} onTouchMove={onCanvasTouchMove} onTouchEnd={onCanvasTouchEnd} onTouchCancel={onCanvasTouchEnd}>
           <div className={viewMode==='two-page'?'flex flex-wrap gap-8 justify-center':'flex flex-col items-center gap-10'}>
             {pagesToShow.map(pi=>{
               const di=pageOrder.indexOf(pi)
@@ -2397,7 +2461,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                     <span>Page {di+1}</span>
                     {pageAnns.length>0&&<span className="bg-blue-600 text-white text-[10px] rounded-full px-1.5 py-0.5 leading-none">{pageAnns.length}</span>}
                   </div>
-                  <div ref={el=>{if(el)pageElRefs.current[pi]=el}}
+                  <div ref={el=>{if(el)pageElRefs.current[pi]=el}} data-pi={pi}
                     className="relative bg-white"
                     style={{width:pxW,height:pxH,boxShadow:'0 4px 24px rgba(0,0,0,0.18),0 1px 4px rgba(0,0,0,0.10)'}}
                     onClick={e=>e.stopPropagation()}>
