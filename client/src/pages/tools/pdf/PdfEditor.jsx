@@ -1228,6 +1228,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
 
   // Refs
   const canvasRefs    = useRef({})
+  const renderingRef  = useRef({}) // pi -> true while a pg.render() is in flight for that page (QA fix, see below)
   const thumbRefs     = useRef({})
   const drawRefs      = useRef({})
   const pageElRefs    = useRef({})
@@ -1399,6 +1400,14 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   }
 
   // ── Render pages / thumbs ───────────────────────────────────────────────────
+  // renderPage is called from two places (the canvas ref callback, for the first paint /
+  // single-page-mode navigation; and the render-triggering effect below, for zoom/rotation/
+  // virtualization updates) — found via live QA that these two calls can overlap for the same
+  // page (the effect's call is now delayed behind the IntersectionObserver's async callback in
+  // continuous mode, batch-31), and two concurrent pg.render() calls on the same canvas context
+  // corrupt each other's output (observed as garbled/flipped-looking page content, reproduced in
+  // ~50% of test runs). The in-flight guard makes a second overlapping call for the same page a
+  // safe no-op instead — the first call already renders at the correct, current zoom/rotation.
   const renderPage = useCallback(async (pi) => {
     const canvas = canvasRefs.current[pi]
     if (!canvas || !pdfjsDoc) return
@@ -1408,13 +1417,17 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       const ctx = canvas.getContext('2d'); ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,canvas.width,canvas.height)
       return
     }
+    if (renderingRef.current[pi]) return
+    renderingRef.current[pi] = true
     try {
       const pg = await pdfjsDoc.getPage(pi + 1)
       const vp = pg.getViewport({ scale: zoom, rotation: pageRotations[pi]||0 })
       canvas.width = Math.round(vp.width); canvas.height = Math.round(vp.height)
       const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height)
       await pg.render({ canvasContext: ctx, viewport: vp }).promise
-    } catch {}
+    } catch {} finally {
+      renderingRef.current[pi] = false
+    }
   }, [pdfjsDoc, zoom, pageRotations, pageDims])
 
   const renderThumb = useCallback(async (pi) => {
