@@ -40,7 +40,7 @@ export const TOOL_COMPONENTS = {
   // PDF — Edit
   'watermark-pdf':       () => import('./pdf/WatermarkPDF'),
   'page-numbers-pdf':    () => import('./pdf/PageNumbersPDF'),
-  'pdf-editor':          () => import('./pdf/PdfEditor'),
+  'pdf-editor':          () => import('./pdf/PdfEditorComingSoon'),
 
   // PDF — Security
   'protect-pdf':         () => import('./pdf/ProtectPDF'),
