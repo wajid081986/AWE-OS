@@ -244,7 +244,7 @@ function SignatureModal({ onInsert, onClose }) {
       <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <h3 className="font-semibold text-gray-900">Add Signature</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none" aria-label="Close">✕</button>
         </div>
         <div className="flex border-b">
           {[['draw','✍️ Draw'],['type','⌨️ Type'],['upload','📁 Upload'],['saved',`💾 Saved${savedSigs.length?` (${savedSigs.length})`:''}`]].map(([t,l]) => (
@@ -289,7 +289,7 @@ function SignatureModal({ onInsert, onClose }) {
                 {savedSigs.map(s => (
                   <div key={s.id} className="relative group border border-gray-200 rounded-lg p-2 hover:border-blue-400 cursor-pointer transition-colors" onClick={()=>useSaved(s.dataUrl)}>
                     <img src={s.dataUrl} alt="Saved signature" className="w-full h-12 object-contain" />
-                    <button onClick={e=>{e.stopPropagation();removeSaved(s.id)}} onMouseDown={e=>e.stopPropagation()}
+                    <button onClick={e=>{e.stopPropagation();removeSaved(s.id)}} onMouseDown={e=>e.stopPropagation()} aria-label="Remove saved signature"
                       className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full text-[9px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">✕</button>
                   </div>
                 ))}
@@ -321,7 +321,7 @@ function WatermarkModal({ s, set, onClose }) {
       <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <h3 className="font-semibold text-gray-900">Watermark Settings</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl" aria-label="Close">✕</button>
         </div>
         <div className="p-5 space-y-4">
           <div>
@@ -386,7 +386,7 @@ function HFModal({ s, set, onClose }) {
       <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <h3 className="font-semibold text-gray-900">Header &amp; Footer</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl" aria-label="Close">✕</button>
         </div>
         <div className="p-5 space-y-4">
           <div className="flex items-center gap-3">
@@ -419,7 +419,7 @@ function PwdModal({ s, set, onClose }) {
       <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <h3 className="font-semibold text-gray-900">Set Password</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl" aria-label="Close">✕</button>
         </div>
         <div className="p-5 space-y-4">
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-700 leading-relaxed">
@@ -454,7 +454,7 @@ function DlRangeModal({ total, from, to, setFrom, setTo, onConfirm, onClose }) {
       <div className="bg-white rounded-2xl w-full max-w-xs shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <h3 className="font-semibold text-gray-900">Download Page Range</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl" aria-label="Close">✕</button>
         </div>
         <div className="p-5 space-y-3">
           <p className="text-xs text-gray-500">Pages 1–{total}</p>
@@ -494,7 +494,7 @@ function SplitModal({ total, splitting, onSplit, onClose }) {
       <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <h3 className="font-semibold text-gray-900">Split / Extract Pages</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none" aria-label="Close">✕</button>
         </div>
         <div className="p-5 space-y-3">
           <p className="text-xs text-gray-500">{total} pages in this document</p>
@@ -539,7 +539,7 @@ function ExtractTextModal({ text, loading, onClose }) {
       <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <h3 className="font-semibold text-gray-900">Extracted Text</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none" aria-label="Close">✕</button>
         </div>
         <div className="p-5">
           {loading ? (
@@ -573,7 +573,7 @@ function ShortcutsModal({ onClose }) {
       <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <h3 className="font-semibold text-gray-900">Keyboard Shortcuts</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none" aria-label="Close">✕</button>
         </div>
         <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
           {SHORTCUT_GROUPS.map(g=>(
@@ -610,13 +610,21 @@ function ResizeHandles({ onResize, onDelete }) {
       ))}
       <button onClick={e=>{e.stopPropagation();onDelete()}} onMouseDown={e=>e.stopPropagation()}
         className="absolute flex items-center justify-center w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full text-[10px]"
-        style={{ top:-10, right:-10, zIndex:3 }} title="Delete">✕</button>
+        style={{ top:-10, right:-10, zIndex:3 }} title="Delete" aria-label="Delete annotation">✕</button>
     </>
   )
 }
 
 // ── Annotation Element ────────────────────────────────────────────────────────
-function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart, onResizeStart, onDelete, onChange, onContextMenu }) {
+// Human-readable names for the keyboard-focus aria-label (batch-30).
+const TYPE_LABELS = {
+  text:'Text', typewriter:'Typewriter text', highlight:'Highlight', underline:'Underline', strikethrough:'Strikethrough',
+  whiteout:'Whiteout', redact:'Redaction', rect:'Rectangle', circle:'Ellipse', triangle:'Triangle', diamond:'Diamond',
+  star:'Star', cloud:'Cloud', cross:'Cross', checkmark:'Checkmark', line:'Line', arrow:'Arrow', dashed:'Dashed line',
+  measure:'Measurement line', polyline:'Polyline', draw:'Drawing', image:'Image', signature:'Signature', hlpen:'Highlighter marker',
+  note:'Sticky note', callout:'Callout', stamp:'Stamp',
+}
+function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart, onResizeStart, onDelete, onChange, onContextMenu, onNudge }) {
   const L = ann.x * pageW * zoom
   const T = ann.y * pageH * zoom
   const W = Math.max(4, ann.w * pageW * zoom)
@@ -629,19 +637,42 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
   const sc = ann.strokeColor || '#1e3a8a'
   const sw = ann.strokeWidth || 2
 
+  // Keyboard path (batch-30): Tab reaches the annotation (tabIndex below), Enter/Space
+  // selects it (same path a click already uses), Arrow keys nudge position once selected
+  // — Shift for a bigger step. Delete/Backspace is handled by the existing global
+  // keydown listener once selectedId is set, so no extra wiring needed here for that.
+  const a11yProps = {
+    tabIndex: 0, role:'button',
+    'aria-label': `${TYPE_LABELS[type]||type} annotation${selected?', selected':''}`,
+    onKeyDown: e => {
+      // Text/note/callout have a real <textarea> inside this div — keydown bubbles up from
+      // it, so without this guard, typing Space (or Enter for newline) here would be swallowed
+      // by the "select"/nudge handling below instead of reaching the textarea. Only handle
+      // keys when the wrapper itself is the focus target (i.e. reached via Tab, not bubbled).
+      if (e.target !== e.currentTarget) return
+      if (e.key==='Enter' || e.key===' ') { e.preventDefault(); onSelect(); return }
+      if (!selected) return
+      const step = e.shiftKey ? 0.02 : 0.004
+      if (e.key==='ArrowLeft')  { e.preventDefault(); onNudge(-step, 0) }
+      else if (e.key==='ArrowRight') { e.preventDefault(); onNudge(step, 0) }
+      else if (e.key==='ArrowUp')    { e.preventDefault(); onNudge(0, -step) }
+      else if (e.key==='ArrowDown')  { e.preventDefault(); onNudge(0, step) }
+    },
+  }
+
   // Highlight / Underline / Strikethrough
   if (type==='highlight') return (
-    <div style={{ ...base, background:ann.color||'#fef08a', opacity:ann.opacity??0.5 }} onMouseDown={onDown} onContextMenu={onCtx}>
+    <div style={{ ...base, background:ann.color||'#fef08a', opacity:ann.opacity??0.5 }} onMouseDown={onDown} onContextMenu={onCtx} {...a11yProps}>
       {selected && <ResizeHandles onResize={onResizeStart} onDelete={onDelete} />}
     </div>
   )
   if (type==='underline') return (
-    <div style={{ ...base, background:'transparent', borderBottom:`${sw+1}px solid ${ann.color||'#1d4ed8'}`, opacity:0.9 }} onMouseDown={onDown} onContextMenu={onCtx}>
+    <div style={{ ...base, background:'transparent', borderBottom:`${sw+1}px solid ${ann.color||'#1d4ed8'}`, opacity:0.9 }} onMouseDown={onDown} onContextMenu={onCtx} {...a11yProps}>
       {selected && <ResizeHandles onResize={onResizeStart} onDelete={onDelete} />}
     </div>
   )
   if (type==='strikethrough') return (
-    <div style={{ ...base, background:'transparent' }} onMouseDown={onDown} onContextMenu={onCtx}>
+    <div style={{ ...base, background:'transparent' }} onMouseDown={onDown} onContextMenu={onCtx} {...a11yProps}>
       <div style={{ position:'absolute', top:'50%', left:0, right:0, height:sw+1, background:ann.color||'#ef4444', transform:'translateY(-50%)' }} />
       {selected && <ResizeHandles onResize={onResizeStart} onDelete={onDelete} />}
     </div>
@@ -649,24 +680,24 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
 
   // Whiteout / Redact
   if (type==='whiteout') return (
-    <div style={{ ...base, background:'#ffffff', opacity:ann.opacity??1 }} onMouseDown={onDown} onContextMenu={onCtx}>
+    <div style={{ ...base, background:'#ffffff', opacity:ann.opacity??1 }} onMouseDown={onDown} onContextMenu={onCtx} {...a11yProps}>
       {selected && <ResizeHandles onResize={onResizeStart} onDelete={onDelete} />}
     </div>
   )
   if (type==='redact') return (
-    <div style={{ ...base, background:'#000000' }} onMouseDown={onDown} onContextMenu={onCtx}>
+    <div style={{ ...base, background:'#000000' }} onMouseDown={onDown} onContextMenu={onCtx} {...a11yProps}>
       {selected && <ResizeHandles onResize={onResizeStart} onDelete={onDelete} />}
     </div>
   )
 
   // Rect / Circle
   if (type==='rect') return (
-    <div style={{ ...base, border:`${sw}px solid ${sc}`, background:ann.fillColor||'transparent', borderRadius:ann.cornerRadius||0, opacity:ann.opacity??1 }} onMouseDown={onDown} onContextMenu={onCtx}>
+    <div style={{ ...base, border:`${sw}px solid ${sc}`, background:ann.fillColor||'transparent', borderRadius:ann.cornerRadius||0, opacity:ann.opacity??1 }} onMouseDown={onDown} onContextMenu={onCtx} {...a11yProps}>
       {selected && <ResizeHandles onResize={onResizeStart} onDelete={onDelete} />}
     </div>
   )
   if (type==='circle') return (
-    <div style={{ ...base, border:`${sw}px solid ${sc}`, background:ann.fillColor||'transparent', borderRadius:'50%', opacity:ann.opacity??1 }} onMouseDown={onDown} onContextMenu={onCtx}>
+    <div style={{ ...base, border:`${sw}px solid ${sc}`, background:ann.fillColor||'transparent', borderRadius:'50%', opacity:ann.opacity??1 }} onMouseDown={onDown} onContextMenu={onCtx} {...a11yProps}>
       {selected && <ResizeHandles onResize={onResizeStart} onDelete={onDelete} />}
     </div>
   )
@@ -690,7 +721,7 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
     </>
     if (type==='checkmark') shape = <polyline points={`${sw*2},${H/2} ${W*0.38},${H-sw*2} ${W-sw*2},${sw*2}`} fill="none" stroke={sc} strokeWidth={sw*1.5} strokeLinecap="round" strokeLinejoin="round" />
     return (
-      <div style={{ ...base, opacity:ann.opacity??1 }} onMouseDown={onDown} onContextMenu={onCtx}>
+      <div style={{ ...base, opacity:ann.opacity??1 }} onMouseDown={onDown} onContextMenu={onCtx} {...a11yProps}>
         <svg width={W} height={H} style={{ position:'absolute', top:0, left:0, overflow:'visible', pointerEvents:'none' }}>{shape}</svg>
         {selected && <ResizeHandles onResize={onResizeStart} onDelete={onDelete} />}
       </div>
@@ -707,7 +738,7 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
     const labelPx = Math.round(Math.sqrt(dx*dx+dy*dy))
     return (
       <div style={{ position:'absolute', left:L, top:T, zIndex:selected?15:5, overflow:'visible', pointerEvents:'none' }} onContextMenu={onCtx}>
-        <svg style={{ position:'absolute', overflow:'visible', pointerEvents:'all', cursor:'move' }} onMouseDown={onDown}>
+        <svg style={{ position:'absolute', overflow:'visible', pointerEvents:'all', cursor:'move' }} onMouseDown={onDown} {...a11yProps}>
           <line x1={ox} y1={oy} x2={ox+dx} y2={oy+dy} stroke={sc} strokeWidth={sw} strokeDasharray={dash} />
           {type==='arrow' && <>
             <line x1={ox+dx} y1={oy+dy} x2={ox+dx+Math.cos(angle+2.4)*ah} y2={oy+dy+Math.sin(angle+2.4)*ah} stroke={sc} strokeWidth={sw} />
@@ -717,7 +748,7 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
         </svg>
         {selected && <button onMouseDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();onDelete()}}
           className="absolute flex items-center justify-center w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full text-[10px]"
-          style={{ top:-10, right:-10, zIndex:3 }}>✕</button>}
+          style={{ top:-10, right:-10, zIndex:3 }} aria-label="Delete annotation">✕</button>}
       </div>
     )
   }
@@ -727,19 +758,19 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
     const pts = (ann.points||[]).map(p=>`${p.xf*pageW*zoom},${p.yf*pageH*zoom}`).join(' ')
     return (
       <div style={{ position:'absolute', left:0, top:0, width:pageW*zoom, height:pageH*zoom, zIndex:selected?15:5, pointerEvents:'none' }} onContextMenu={onCtx}>
-        <svg style={{ position:'absolute', top:0, left:0, overflow:'visible', pointerEvents:'all', cursor:'move', width:'100%', height:'100%' }} onMouseDown={onDown}>
+        <svg style={{ position:'absolute', top:0, left:0, overflow:'visible', pointerEvents:'all', cursor:'move', width:'100%', height:'100%' }} onMouseDown={onDown} {...a11yProps}>
           <polyline points={pts} fill="none" stroke={sc} strokeWidth={sw} />
         </svg>
         {selected && <button onMouseDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();onDelete()}}
           className="absolute flex items-center justify-center w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full text-[10px]"
-          style={{ top:ann.y*pageH*zoom-10, left:ann.x*pageW*zoom+10, zIndex:3 }}>✕</button>}
+          style={{ top:ann.y*pageH*zoom-10, left:ann.x*pageW*zoom+10, zIndex:3 }} aria-label="Delete annotation">✕</button>}
       </div>
     )
   }
 
   // Draw / Image / Signature / Hlpen
   if (['draw','image','signature','hlpen'].includes(type)) return (
-    <div style={{ ...base, opacity:ann.opacity??1 }} onMouseDown={onDown} onContextMenu={onCtx}>
+    <div style={{ ...base, opacity:ann.opacity??1 }} onMouseDown={onDown} onContextMenu={onCtx} {...a11yProps}>
       {ann.imageUrl && <img src={ann.imageUrl} alt="" className="w-full h-full object-contain pointer-events-none select-none" draggable={false} />}
       {selected && <ResizeHandles onResize={onResizeStart} onDelete={onDelete} />}
     </div>
@@ -749,7 +780,7 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
   if (type==='text' || type==='typewriter') {
     const isTypew = type==='typewriter'
     return (
-      <div style={{ ...base, minWidth:60, minHeight:18 }} onMouseDown={onDown} onContextMenu={onCtx}>
+      <div style={{ ...base, minWidth:60, minHeight:18 }} onMouseDown={onDown} onContextMenu={onCtx} {...a11yProps}>
         <textarea defaultValue={ann.text} key={ann.id}
           onChange={e=>onChange({text:e.target.value})}
           onMouseDown={e=>{e.stopPropagation();onSelect()}}
@@ -768,7 +799,7 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
 
   // Note
   if (type==='note') return (
-    <div style={{ ...base, background:ann.fillColor||'#fef9c3', border:'1px solid #d97706', borderRadius:3, boxShadow:'2px 2px 6px rgba(0,0,0,0.18)' }} onMouseDown={onDown} onContextMenu={onCtx}>
+    <div style={{ ...base, background:ann.fillColor||'#fef9c3', border:'1px solid #d97706', borderRadius:3, boxShadow:'2px 2px 6px rgba(0,0,0,0.18)' }} onMouseDown={onDown} onContextMenu={onCtx} {...a11yProps}>
       <div style={{ height:`${14*zoom}px`, background:'rgba(234,179,8,0.35)', borderRadius:'2px 2px 0 0', display:'flex', alignItems:'center', padding:'0 4px', userSelect:'none' }}>
         <span style={{ fontSize:`${9*zoom}px` }}>📝</span>
       </div>
@@ -782,7 +813,7 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
 
   // Callout
   if (type==='callout') return (
-    <div style={{ ...base, minWidth:80, minHeight:30 }} onMouseDown={onDown} onContextMenu={onCtx}>
+    <div style={{ ...base, minWidth:80, minHeight:30 }} onMouseDown={onDown} onContextMenu={onCtx} {...a11yProps}>
       <div style={{ position:'absolute', top:0, left:0, width:W, height:H, background:'rgba(255,255,255,0.96)', border:`2px solid ${ann.strokeColor||'#3b82f6'}`, borderRadius:6, padding:4 }}>
         <textarea defaultValue={ann.text} key={ann.id}
           onChange={e=>onChange({text:e.target.value})}
@@ -801,7 +832,7 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
     return (
       <div style={{ ...base, border:`3px solid ${color}`, borderRadius:4, display:'flex', alignItems:'center', justifyContent:'center',
         background:`${color}18`, opacity:ann.opacity??0.85, transform:ann.rotation?`rotate(${ann.rotation}deg)`:undefined }}
-        onMouseDown={onDown} onContextMenu={onCtx}>
+        onMouseDown={onDown} onContextMenu={onCtx} {...a11yProps}>
         <span style={{ color, fontWeight:900, fontSize:`${Math.min(W/(ann.stampText?.length||8)*1.15, H*0.52)}px`, fontFamily:'Arial,sans-serif', letterSpacing:'0.08em', userSelect:'none' }}>
           {ann.stampText||'APPROVED'}
         </span>
@@ -823,17 +854,21 @@ function FormFieldEl({ field, zoom, pageW, pageH, onFillText, onToggleCheck, onS
   const L = field.xf * pageW * zoom, T = field.yf * pageH * zoom
   const W = Math.max(4, field.wf * pageW * zoom), H = Math.max(4, field.hf * pageH * zoom)
   const base = { position:'absolute', left:L, top:T, width:W, height:H, zIndex:4, boxSizing:'border-box' }
+  const enterOrSpace = fn => e => { if (e.key==='Enter'||e.key===' ') { e.preventDefault(); fn() } }
   if (field.fieldType==='Tx') return (
     <div style={{ ...base, border:'1.5px dashed #3b82f6', background:'rgba(59,130,246,0.08)', cursor:'text' }}
-      onClick={()=>onFillText(field)} title={`Form field: ${field.fieldName}`} />
+      onClick={()=>onFillText(field)} title={`Form field: ${field.fieldName}`}
+      role="button" tabIndex={0} aria-label={`Fill form field ${field.fieldName}`} onKeyDown={enterOrSpace(()=>onFillText(field))} />
   )
   if (field.checkBox) return (
     <div style={{ ...base, border:'1.5px dashed #3b82f6', background:'rgba(59,130,246,0.08)', cursor:'pointer' }}
-      onClick={()=>onToggleCheck(field)} title={`Checkbox: ${field.fieldName}`} />
+      onClick={()=>onToggleCheck(field)} title={`Checkbox: ${field.fieldName}`}
+      role="button" tabIndex={0} aria-label={`Checkbox ${field.fieldName}`} onKeyDown={enterOrSpace(()=>onToggleCheck(field))} />
   )
   if (field.radioButton) return (
     <div style={{ ...base, border:'1.5px dashed #3b82f6', borderRadius:'50%', background:'rgba(59,130,246,0.08)', cursor:'pointer' }}
-      onClick={()=>onSelectRadio(field)} title={`Radio: ${field.fieldName}`} />
+      onClick={()=>onSelectRadio(field)} title={`Radio: ${field.fieldName}`}
+      role="button" tabIndex={0} aria-label={`Radio option ${field.fieldName}`} onKeyDown={enterOrSpace(()=>onSelectRadio(field))} />
   )
   return null
 }
@@ -1534,6 +1569,24 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
     setSelectedId(null)
   }
   function updateAnn(pi, id, upd) { setAnnotations(prev=>({...prev,[pi]:(prev[pi]||[]).map(a=>a.id===id?{...a,...upd}:a)})) }
+  // Keyboard arrow-key move (batch-30) — line/arrow/dashed/measure and polyline store
+  // position differently (a second endpoint / a points array), so both ends move together.
+  function nudgeAnn(pi, ann, dx, dy) {
+    pushHistory('Move annotation')
+    if (['line','arrow','dashed','measure'].includes(ann.type)) {
+      updateAnn(pi, ann.id, {
+        x: clamp(ann.x+dx,0,0.98), y: clamp(ann.y+dy,0,0.98),
+        x2f: clamp((ann.x2f??ann.x+ann.w)+dx,0,0.98), y2f: clamp((ann.y2f??ann.y+ann.h)+dy,0,0.98),
+      })
+    } else if (ann.type==='polyline') {
+      updateAnn(pi, ann.id, {
+        x: clamp(ann.x+dx,0,0.98), y: clamp(ann.y+dy,0,0.98),
+        points: (ann.points||[]).map(p=>({ xf:clamp(p.xf+dx,0,1), yf:clamp(p.yf+dy,0,1) })),
+      })
+    } else {
+      updateAnn(pi, ann.id, { x: clamp(ann.x+dx,0,0.98), y: clamp(ann.y+dy,0,0.98) })
+    }
+  }
   function deleteAnn(id) { pushHistory('Delete annotation'); setAnnotations(prev=>{const n={};for(const[k,arr]of Object.entries(prev))n[k]=arr.filter(a=>a.id!==id);return n}); setSelectedId(null) }
   function duplicateAnn(id) {
     const ann=Object.values(annotations).flat().find(a=>a.id===id); if(!ann) return
@@ -2162,55 +2215,55 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       {/* ══ TOP BAR ═══════════════════════════════════════════════════════════ */}
       <div className="flex items-center h-12 px-3 gap-2 flex-shrink-0" style={{ background:C.topBar }}>
         <button onClick={()=>{setPdfFile(null);setPhase('idle')}}
-          className="flex items-center gap-1.5 flex-shrink-0 px-2 py-1.5 rounded-lg hover:bg-white/10 transition-colors" title="Open new file">
+          className="flex items-center gap-1.5 flex-shrink-0 px-2 py-1.5 rounded-lg hover:bg-white/10 transition-colors" title="Open new file" aria-label="Open new file">
           <span className="text-base leading-none">✏️</span>
           <span className="text-white text-sm font-bold tracking-tight hidden sm:block">AWE</span>
         </button>
         <div className="h-5 w-px bg-white/20 flex-shrink-0" />
         <div className="flex items-center gap-0.5 min-w-0 flex-1 max-w-[220px]">
           <input value={downloadName} onChange={e=>setDownloadName(e.target.value)}
-            onMouseDown={e=>e.stopPropagation()}
+            onMouseDown={e=>e.stopPropagation()} aria-label="Filename"
             className="bg-transparent text-gray-200 text-sm px-1.5 py-0.5 rounded outline-none border border-transparent hover:border-white/20 focus:border-blue-400 transition-colors min-w-0 w-full truncate"
             title="Click to rename" />
           <span className="text-gray-500 text-sm flex-shrink-0">.pdf</span>
         </div>
         <div className="flex items-center gap-0.5 mx-auto flex-shrink-0">
-          <button onClick={undo} disabled={!past.length} title={`Undo (Ctrl+Z)${past.length?' — '+past.length+' steps':''}`}
+          <button onClick={undo} disabled={!past.length} title={`Undo (Ctrl+Z)${past.length?' — '+past.length+' steps':''}`} aria-label="Undo"
             className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-300 hover:text-white hover:bg-white/10 disabled:opacity-25 transition-colors text-base relative group">
             ↩
             {past.length>0&&<span className="absolute -top-1 -right-1 text-[9px] bg-blue-500 text-white rounded-full w-4 h-4 flex items-center justify-center">{past.length>9?'9+':past.length}</span>}
           </button>
-          <button onClick={redo} disabled={!future.length} title="Redo (Ctrl+Y)"
+          <button onClick={redo} disabled={!future.length} title="Redo (Ctrl+Y)" aria-label="Redo"
             className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-300 hover:text-white hover:bg-white/10 disabled:opacity-25 transition-colors text-base">↪</button>
-          <button onClick={()=>setHistoryOpen(v=>!v)} disabled={!past.length&&!future.length} title="History panel"
+          <button onClick={()=>setHistoryOpen(v=>!v)} disabled={!past.length&&!future.length} title="History panel" aria-label="History panel"
             className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-300 hover:text-white hover:bg-white/10 disabled:opacity-25 transition-colors text-sm">📜</button>
           <div className="h-5 w-px bg-white/20 mx-1" />
-          <button onClick={()=>setZoom(z=>Math.max(0.25,+(z-0.25).toFixed(2)))} title="Zoom out"
+          <button onClick={()=>setZoom(z=>Math.max(0.25,+(z-0.25).toFixed(2)))} title="Zoom out" aria-label="Zoom out"
             className="w-7 h-7 flex items-center justify-center rounded text-gray-300 hover:text-white hover:bg-white/10 font-bold transition-colors">−</button>
           <select value={ZOOM_LEVELS.includes(zoom)?zoom:ZOOM_LEVELS.reduce((a,b)=>Math.abs(b-zoom)<Math.abs(a-zoom)?b:a)}
-            onChange={e=>setZoom(+e.target.value)}
+            onChange={e=>setZoom(+e.target.value)} aria-label="Zoom level"
             className="rounded text-xs px-1 py-1 cursor-pointer w-[58px] text-center border"
             style={{background:'#374151',color:'#e5e7eb',borderColor:'#4b5563'}}>
             {ZOOM_LEVELS.map(z=><option key={z} value={z}>{Math.round(z*100)}%</option>)}
           </select>
-          <button onClick={()=>setZoom(z=>Math.min(3.0,+(z+0.25).toFixed(2)))} title="Zoom in"
+          <button onClick={()=>setZoom(z=>Math.min(3.0,+(z+0.25).toFixed(2)))} title="Zoom in" aria-label="Zoom in"
             className="w-7 h-7 flex items-center justify-center rounded text-gray-300 hover:text-white hover:bg-white/10 font-bold transition-colors">+</button>
           <div className="h-5 w-px bg-white/20 mx-1" />
-          <button onClick={()=>goToPage(currentPage-1)} disabled={currentPage===0}
+          <button onClick={()=>goToPage(currentPage-1)} disabled={currentPage===0} aria-label="Previous page"
             className="w-7 h-7 flex items-center justify-center rounded text-gray-300 hover:text-white hover:bg-white/10 disabled:opacity-25 transition-colors text-xl leading-none">‹</button>
           <span className="text-xs text-gray-400 px-1.5 whitespace-nowrap select-none tabular-nums">{currentPage+1} / {pageOrder.length}</span>
-          <button onClick={()=>goToPage(currentPage+1)} disabled={currentPage>=pageOrder.length-1}
+          <button onClick={()=>goToPage(currentPage+1)} disabled={currentPage>=pageOrder.length-1} aria-label="Next page"
             className="w-7 h-7 flex items-center justify-center rounded text-gray-300 hover:text-white hover:bg-white/10 disabled:opacity-25 transition-colors text-xl leading-none">›</button>
         </div>
         {totalAnns>0&&<span className="text-[10px] bg-blue-600/40 text-blue-200 rounded-full px-2 py-0.5 flex-shrink-0 hidden sm:inline">{totalAnns} ann</span>}
-        <button onClick={toggleFullscreen} title={isFullscreen?'Exit fullscreen':'Fullscreen'}
+        <button onClick={toggleFullscreen} title={isFullscreen?'Exit fullscreen':'Fullscreen'} aria-label={isFullscreen?'Exit fullscreen':'Fullscreen'}
           className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors text-sm flex-shrink-0">
           {isFullscreen?'⤡':'⤢'}
         </button>
-        <button onClick={()=>setShortcutsOpen(true)} title="Keyboard shortcuts"
+        <button onClick={()=>setShortcutsOpen(true)} title="Keyboard shortcuts" aria-label="Keyboard shortcuts"
           className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors text-sm font-bold flex-shrink-0">?</button>
         <div ref={downloadRef} className="relative flex-shrink-0 ml-1">
-          <button onClick={()=>setDownloadOpen(v=>!v)} disabled={phase==='saving'}
+          <button onClick={()=>setDownloadOpen(v=>!v)} disabled={phase==='saving'} aria-label="Download"
             className="flex items-center gap-2 px-4 h-8 rounded-lg text-white text-sm font-semibold disabled:opacity-50 transition-colors"
             style={{background:C.download}}
             onMouseEnter={e=>{if(!e.currentTarget.disabled)e.currentTarget.style.background=C.downloadH}}
@@ -2314,9 +2367,9 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                     {annCount>0&&<span className="text-[9px] bg-blue-500 text-white rounded-full px-1.5 py-0.5 font-bold leading-none">{annCount>9?'9+':annCount}</span>}
                   </div>
                   <div className="absolute top-1 right-1 flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={e=>{e.stopPropagation();rotatePage(pi,'cw')}} title="Rotate CW"
+                    <button onClick={e=>{e.stopPropagation();rotatePage(pi,'cw')}} title="Rotate CW" aria-label={`Rotate page ${di+1}`}
                       className="w-5 h-5 bg-black/60 hover:bg-blue-600 text-white rounded text-[10px] flex items-center justify-center transition-colors">↻</button>
-                    {pageOrder.length>1&&<button onClick={e=>{e.stopPropagation();deletePage(pi)}} title="Delete"
+                    {pageOrder.length>1&&<button onClick={e=>{e.stopPropagation();deletePage(pi)}} title="Delete" aria-label={`Delete page ${di+1}`}
                       className="w-5 h-5 bg-black/60 hover:bg-red-600 text-white rounded text-[10px] flex items-center justify-center transition-colors">✕</button>}
                   </div>
                 </div>
@@ -2348,7 +2401,8 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                     className="relative bg-white"
                     style={{width:pxW,height:pxH,boxShadow:'0 4px 24px rgba(0,0,0,0.18),0 1px 4px rgba(0,0,0,0.10)'}}
                     onClick={e=>e.stopPropagation()}>
-                    <canvas ref={el=>{if(el){canvasRefs.current[pi]=el;renderPage(pi)}}} className="absolute inset-0" style={{display:'block'}} />
+                    <canvas ref={el=>{if(el){canvasRefs.current[pi]=el;renderPage(pi)}}} className="absolute inset-0" style={{display:'block'}}
+                      role="img" aria-label={`Page ${di+1} of ${pageOrder.length}`} />
                     <canvas ref={el=>{if(el)drawRefs.current[pi]=el}} width={pxW} height={pxH}
                       className="absolute inset-0 pointer-events-none" style={{zIndex:12}} />
                     {pageAnns.map(ann=>(
@@ -2360,6 +2414,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                         onResizeStart={(e,handle)=>{e.stopPropagation();resizeRef.current={id:ann.id,pi,handle,sx:e.clientX,sy:e.clientY,ox:ann.x,oy:ann.y,ow:ann.w,oh:ann.h}}}
                         onChange={upd=>{pushHistory('Edit text');updateAnn(pi,ann.id,upd)}}
                         onContextMenu={(cx,cy)=>setCtxMenu({x:cx,y:cy,id:ann.id})}
+                        onNudge={(dx,dy)=>nudgeAnn(pi,ann,dx,dy)}
                       />
                     ))}
                     {!activeTool&&(formFields[pi]||[]).filter(f=>!pageAnns.some(a=>a.formFieldId===f.id)).map(field=>(
@@ -2445,7 +2500,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                   <PropSection label="Color">
                     <div className="flex flex-wrap gap-1.5">
                       {HL_COLORS.map(c=>(
-                        <button key={c} onClick={()=>setHighlightColor(c)} style={{background:c}}
+                        <button key={c} onClick={()=>setHighlightColor(c)} style={{background:c}} aria-label={`Color ${c}`} aria-pressed={highlightColor===c}
                           className={`w-8 h-8 rounded-lg border-2 transition-all hover:scale-110 ${highlightColor===c?'border-blue-500 scale-110':'border-gray-200'}`} title={c} />
                       ))}
                     </div>
@@ -2476,7 +2531,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                   <PropSection label="Color">
                     <div className="grid grid-cols-4 gap-1.5">
                       {Object.entries(STAMP_COLS).map(([k,c])=>(
-                        <button key={k} onClick={()=>setStampColorKey(k)}
+                        <button key={k} onClick={()=>setStampColorKey(k)} aria-label={`Stamp color ${k}`} aria-pressed={stampColorKey===k}
                           style={{background:c}}
                           className={`h-8 rounded-lg border-2 transition-all ${stampColorKey===k?'border-gray-900 scale-105':'border-transparent'}`} title={k} />
                       ))}
@@ -2520,7 +2575,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                   <PropSection label="Color">
                     <div className="flex flex-wrap gap-1.5">
                       {HL_COLORS.map(c=>(
-                        <button key={c} onClick={()=>setHighlightColor(c)} style={{background:c}}
+                        <button key={c} onClick={()=>setHighlightColor(c)} style={{background:c}} aria-label={`Color ${c}`} aria-pressed={highlightColor===c}
                           className={`w-8 h-8 rounded-lg border-2 transition-all hover:scale-110 ${highlightColor===c?'border-blue-500 scale-110':'border-gray-200'}`} />
                       ))}
                     </div>
@@ -2611,7 +2666,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                   <div className={`space-y-2 ${activeTool?'border-t border-gray-100 pt-4':''}`}>
                     {!activeTool&&<div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-semibold text-gray-700 capitalize">{selAnn.type}</span>
-                      <button onClick={()=>setSelectedId(null)} className="text-[10px] text-gray-400 hover:text-gray-600">✕</button>
+                      <button onClick={()=>setSelectedId(null)} className="text-[10px] text-gray-400 hover:text-gray-600" aria-label="Deselect">✕</button>
                     </div>}
                     <button onClick={()=>duplicateAnn(selectedId)} className="w-full py-2 text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition-colors font-medium">⧉ Duplicate</button>
                     <button onClick={()=>bringToFront(selectedId)} className="w-full py-2 text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition-colors font-medium">↑ Bring to Front</button>
@@ -2677,7 +2732,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-white rounded-xl shadow-2xl border border-gray-200 w-72 max-h-[70vh] flex flex-col overflow-hidden">
           <div className="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
             <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">History</p>
-            <button onClick={()=>setHistoryOpen(false)} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
+            <button onClick={()=>setHistoryOpen(false)} className="text-gray-400 hover:text-gray-600 text-lg leading-none" aria-label="Close history panel">✕</button>
           </div>
           <div className="overflow-y-auto py-1">
             {future.slice().reverse().map((snap,ri)=>{
@@ -2711,18 +2766,18 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
         <div className="fixed top-16 right-6 z-50 bg-white rounded-xl shadow-2xl border border-gray-200 p-3 flex items-center gap-2" style={{minWidth:340}}>
           <input autoFocus value={findQuery} onChange={e=>setFindQuery(e.target.value)}
             onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault(); e.shiftKey?findPrev():(findMatches.length?findNext():runFind(findQuery))}}}
-            placeholder="Find in document…"
+            placeholder="Find in document…" aria-label="Find in document"
             className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           <button onClick={()=>runFind(findQuery)} disabled={finding}
             className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-medium whitespace-nowrap">
             {finding?'…':'Find'}
           </button>
           <span className="text-xs text-gray-500 whitespace-nowrap">{findMatches.length?`${findIndex+1}/${findMatches.length}`:'0/0'}</span>
-          <button onClick={findPrev} disabled={!findMatches.length} title="Previous"
+          <button onClick={findPrev} disabled={!findMatches.length} title="Previous" aria-label="Previous match"
             className="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded disabled:opacity-30">↑</button>
-          <button onClick={findNext} disabled={!findMatches.length} title="Next"
+          <button onClick={findNext} disabled={!findMatches.length} title="Next" aria-label="Next match"
             className="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded disabled:opacity-30">↓</button>
-          <button onClick={()=>{setFindOpen(false);setFindMatches([]);setFindQuery('')}} title="Close"
+          <button onClick={()=>{setFindOpen(false);setFindMatches([]);setFindQuery('')}} title="Close" aria-label="Close find bar"
             className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-gray-600 rounded">✕</button>
         </div>
       )}
@@ -2805,12 +2860,12 @@ function ColorGrid({ value, onChange }) {
     <div>
       <div className="grid grid-cols-6 gap-1 mb-1.5">
         {PALETTE.map(c=>(
-          <button key={c} onClick={()=>onChange(c)} title={c}
+          <button key={c} onClick={()=>onChange(c)} title={c} aria-label={`Color ${c}`} aria-pressed={value===c}
             style={{background:c,boxShadow:value===c?'0 0 0 2px #3b82f6':c==='#ffffff'?'0 0 0 1px #d1d5db':'none'}}
             className="w-6 h-6 rounded-md hover:scale-110 transition-transform" />
         ))}
       </div>
-      <input type="color" value={value} onChange={e=>onChange(e.target.value)} className="w-full h-8 rounded-lg cursor-pointer border border-gray-200" title="Custom color" />
+      <input type="color" value={value} onChange={e=>onChange(e.target.value)} className="w-full h-8 rounded-lg cursor-pointer border border-gray-200" title="Custom color" aria-label="Custom color" />
     </div>
   )
 }
@@ -2819,7 +2874,7 @@ function WidthPicker({ value, onChange }) {
   return (
     <div className="flex gap-1">
       {[1,2,4,6,8,12].map(w=>(
-        <button key={w} onClick={()=>onChange(w)}
+        <button key={w} onClick={()=>onChange(w)} aria-label={`Width ${w}px`} aria-pressed={value===w}
           className={`flex-1 py-1.5 text-xs rounded-lg border font-medium transition-colors ${value===w?'bg-gray-900 text-white border-gray-900':'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
           {w}
         </button>
@@ -2855,13 +2910,13 @@ function FontControls({ fontFamily, onFontFamily, fontSize, onFontSize, fontColo
       <PropSection label="Style">
         <div className="flex gap-1.5 mb-2">
           {[['B','Bold',bold,onBold,'font-bold'],['I','Italic',italic,onItalic,'italic'],['U','Underline',underlineText,onUnderline,'underline']].map(([l,t,v,fn,cls])=>(
-            <button key={l} onClick={()=>fn(!v)} title={t}
+            <button key={l} onClick={()=>fn(!v)} title={t} aria-label={t} aria-pressed={v}
               className={`flex-1 py-2 text-xs rounded-lg border transition-colors ${cls} ${v?'bg-gray-900 text-white border-gray-900':'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>{l}</button>
           ))}
         </div>
         <div className="flex gap-1">
-          {[['left','←'],['center','↔'],['right','→']].map(([a,l])=>(
-            <button key={a} onClick={()=>onTextAlign(a)}
+          {[['left','←','Align left'],['center','↔','Align center'],['right','→','Align right']].map(([a,l,label])=>(
+            <button key={a} onClick={()=>onTextAlign(a)} aria-label={label} aria-pressed={textAlign===a}
               className={`flex-1 py-1.5 text-xs rounded-lg border transition-colors ${textAlign===a?'bg-gray-900 text-white border-gray-900':'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>{l}</button>
           ))}
         </div>
