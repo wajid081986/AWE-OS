@@ -26,30 +26,31 @@ export function useAnnotations() {
     return annotation.id
   }, [history])
 
+  // Reads `annotations` (already-committed state, closed over below) directly
+  // rather than mutating an outer variable from inside the setAnnotations
+  // updater and reading it back immediately after — that pattern doesn't
+  // reliably observe the updater's result before the next line runs (timing
+  // depends on React's batching, which isn't something to rely on), and it
+  // silently dropped the history record when it didn't: annotations were
+  // still deleted, but became un-undoable, with the next Ctrl+Z instead
+  // reverting a since-unrelated earlier command. Reproduced and confirmed
+  // via docs/batches/batch-35-plan.md's QA pass.
   const updateAnnotation = useCallback((id, changes) => {
-    let before = null
-    setAnnotations((prev) => prev.map((a) => {
-      if (a.id !== id) return a
-      before = a
-      return { ...a, ...changes }
-    }))
+    const before = annotations.find((a) => a.id === id)
     if (!before) return
     const after = { ...before, ...changes }
+    setAnnotations((prev) => prev.map((a) => (a.id === id ? after : a)))
     history.record({
       undo: () => setAnnotations((prev) => prev.map((a) => (a.id === id ? before : a))),
       redo: () => setAnnotations((prev) => prev.map((a) => (a.id === id ? after : a))),
     })
-  }, [history])
+  }, [annotations, history])
 
   const deleteAnnotation = useCallback((id) => {
-    let removed = null
-    let removedIndex = -1
-    setAnnotations((prev) => {
-      removedIndex = prev.findIndex((a) => a.id === id)
-      removed = prev[removedIndex] ?? null
-      return removedIndex === -1 ? prev : prev.filter((a) => a.id !== id)
-    })
-    if (!removed) return
+    const removedIndex = annotations.findIndex((a) => a.id === id)
+    if (removedIndex === -1) return
+    const removed = annotations[removedIndex]
+    setAnnotations((prev) => prev.filter((a) => a.id !== id))
     setSelectedId((current) => (current === id ? null : current))
     history.record({
       undo: () => setAnnotations((prev) => {
@@ -59,7 +60,7 @@ export function useAnnotations() {
       }),
       redo: () => setAnnotations((prev) => prev.filter((a) => a.id !== id)),
     })
-  }, [history])
+  }, [annotations, history])
 
   const deleteSelected = useCallback(() => {
     if (selectedId) deleteAnnotation(selectedId)

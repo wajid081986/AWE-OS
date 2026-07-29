@@ -17,15 +17,24 @@ export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, a
   const [liveDraft, setLiveDraft] = useState(null)
   const [justCreatedId, setJustCreatedId] = useState(null)
 
+  // Depend on the specific stable values PageCanvas needs, not the whole
+  // `pdfDoc` object — usePdfDoc() returns a fresh object every render, so
+  // depending on `pdfDoc` itself re-fired this effect (and re-rendered the
+  // canvas) on every unrelated state change in the app (every tool switch,
+  // every keystroke), continuously racing the render-cancel guard above.
+  // `renderPageToCanvas`/`isReady` are themselves stable (memoized on
+  // `doc`), so destructuring them out of the dependency array fixes it.
+  const { renderPageToCanvas, isReady } = pdfDoc
+
   useEffect(() => {
     let cancelled = false
     async function render() {
-      const viewport = await pdfDoc.renderPageToCanvas(pageNumber, canvasRef.current, RENDER_SCALE)
+      const viewport = await renderPageToCanvas(pageNumber, canvasRef.current, RENDER_SCALE)
       if (!cancelled && viewport) setDims({ width: viewport.width, height: viewport.height })
     }
-    if (pdfDoc.isReady) render()
+    if (isReady) render()
     return () => { cancelled = true }
-  }, [pdfDoc, pageNumber])
+  }, [renderPageToCanvas, isReady, pageNumber])
 
   // Outer wrapper is sized to the zoomed visual box; the inner layer (canvas +
   // annotations) stays at native `dims` and is scaled via CSS transform, so
@@ -41,13 +50,19 @@ export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, a
     const { x, y } = pointFromEvent(e)
 
     if (state.kind === 'box') {
-      setLiveDraft({
+      const box = {
         type: state.tool,
         x: Math.min(state.startX, x),
         y: Math.min(state.startY, y),
         w: Math.abs(x - state.startX),
         h: Math.abs(y - state.startY),
-      })
+      }
+      // Mutating the same object handlePointerDown put on dragRef.current —
+      // a plain ref write, always synchronously current, unlike `liveDraft`
+      // React state (see handlePointerUp below for why that distinction
+      // matters here).
+      state.current = box
+      setLiveDraft(box) // still drives the dashed live-preview render
     } else if (state.kind === 'freehand') {
       state.points.push({ x: x - state.originX, y: y - state.originY })
       setLiveDraft({ type: state.tool, points: state.points.map((p) => ({ x: p.x + state.originX, y: p.y + state.originY })) })
@@ -59,32 +74,45 @@ export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, a
     window.removeEventListener('pointermove', handlePointerMove)
     window.removeEventListener('pointerup', handlePointerUp)
     dragRef.current = null
+    setLiveDraft(null)
 
     if (!state) return
 
     if (state.kind === 'box') {
-      setLiveDraft((draft) => {
-        const tooSmall = draft && draft.w < MIN_BOX_SIZE && draft.h < MIN_BOX_SIZE
-        // A plain click (no drag) with the Text tool still places a
-        // default-sized box — every other box tool discards a too-small drag
-        // as an accidental click.
-        if (draft && (!tooSmall || state.tool === TOOLS.TEXT)) {
-          const id = annotationsApi.addAnnotation({
-            type: state.tool,
-            page: pageNumber,
-            x: draft.x,
-            y: draft.y,
-            w: tooSmall ? 160 : draft.w,
-            h: tooSmall ? 32 : draft.h,
-            ...DEFAULT_ANNOTATION_STYLE[state.tool],
-          })
-          if (state.tool === TOOLS.TEXT) {
-            setJustCreatedId(id)
-            onAnnotationCreated?.(id)
-          }
+      // handlePointerUp is attached to `window` once at pointerdown time and
+      // keeps running for the whole drag, so by mouseup its own closure over
+      // `liveDraft` React state is stale (frozen at the render before the
+      // drag started). Reading `state.current` instead — mutated in place on
+      // dragRef.current by handlePointerMove above — is always synchronously
+      // fresh, since ref writes aren't subject to React's render/state
+      // scheduling at all. (An earlier version read this via setLiveDraft's
+      // functional-update form instead; that also needs React to have
+      // actually processed the update by the time it's read back, which
+      // isn't guaranteed on the very next line, and nesting the
+      // annotationsApi.addAnnotation call — a *different* component's
+      // setState, since useAnnotations() is owned by index.jsx — inside that
+      // updater triggered React's render-phase-update warning besides.)
+      const draft = state.current
+      const tooSmall = draft && draft.w < MIN_BOX_SIZE && draft.h < MIN_BOX_SIZE
+      // A plain click (no drag, so handlePointerMove never ran and `draft`
+      // is the zero-size box handlePointerDown seeded) with the Text tool
+      // still places a default-sized box — every other box tool discards a
+      // too-small drag as an accidental click.
+      if (draft && (!tooSmall || state.tool === TOOLS.TEXT)) {
+        const id = annotationsApi.addAnnotation({
+          type: state.tool,
+          page: pageNumber,
+          x: draft.x,
+          y: draft.y,
+          w: tooSmall ? 160 : draft.w,
+          h: tooSmall ? 32 : draft.h,
+          ...DEFAULT_ANNOTATION_STYLE[state.tool],
+        })
+        if (state.tool === TOOLS.TEXT) {
+          setJustCreatedId(id)
+          onAnnotationCreated?.(id)
         }
-        return null
-      })
+      }
     } else if (state.kind === 'freehand' && state.points.length > 1) {
       const xs = state.points.map((p) => p.x + state.originX)
       const ys = state.points.map((p) => p.y + state.originY)
@@ -102,9 +130,6 @@ export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, a
         points: state.points.map((p) => ({ x: p.x + state.originX - minX, y: p.y + state.originY - minY })),
         ...DEFAULT_ANNOTATION_STYLE[state.tool],
       })
-      setLiveDraft(null)
-    } else {
-      setLiveDraft(null)
     }
   }
 
@@ -130,8 +155,9 @@ export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, a
     }
 
     if (BOX_DRAG_TOOLS.has(activeTool)) {
-      dragRef.current = { kind: 'box', tool: activeTool, startX: x, startY: y }
-      setLiveDraft({ type: activeTool, x, y, w: 0, h: 0 })
+      const initialBox = { type: activeTool, x, y, w: 0, h: 0 }
+      dragRef.current = { kind: 'box', tool: activeTool, startX: x, startY: y, current: initialBox }
+      setLiveDraft(initialBox)
     } else if (FREEHAND_TOOLS.has(activeTool)) {
       dragRef.current = { kind: 'freehand', tool: activeTool, points: [{ x: 0, y: 0 }], originX: x, originY: y }
       setLiveDraft({ type: activeTool, points: [{ x, y }] })

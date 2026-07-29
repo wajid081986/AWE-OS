@@ -18,13 +18,19 @@ export function usePdfDoc() {
   const [status, setStatus] = useState('idle') // 'idle' | 'loading' | 'ready' | 'error'
   const [error, setError] = useState('')
   const pageCache = useRef(new Map()) // pageNumber -> PDFPageProxy
+  const renderTasks = useRef(new WeakMap()) // canvas element -> in-flight pdf.js RenderTask
 
   const loadFromBytes = useCallback(async (bytes, name = '') => {
     setStatus('loading')
     setError('')
     pageCache.current.clear()
     try {
-      const pdf = await pdfjsLib.getDocument({ data: bytes }).promise
+      // pdf.js transfers the underlying ArrayBuffer to its worker for `data`
+      // (a zero-copy optimization) — the caller's own `bytes` would be left
+      // detached/zero-length afterward. index.jsx keeps `bytes` around in
+      // originalBytesRef for the pdf-lib flatten-on-download step, so pdf.js
+      // gets an independent copy here instead of the original.
+      const pdf = await pdfjsLib.getDocument({ data: bytes.slice() }).promise
       setDoc(pdf)
       setPageCount(pdf.numPages)
       setFileName(name)
@@ -49,14 +55,38 @@ export function usePdfDoc() {
     return page
   }, [doc])
 
+  // pdf.js throws "Cannot use the same canvas during multiple render()
+  // operations" if a second render starts on a canvas before the first
+  // finishes — which React 18 StrictMode's double-invoked effects trigger
+  // on every mount in dev, and which a rapid pageNumber/zoom change could
+  // trigger in production too. Cancelling any in-flight task for that exact
+  // canvas before starting a new one make this safe either way.
   const renderPageToCanvas = useCallback(async (pageNumber, canvas, scale = 1) => {
     const page = await getPage(pageNumber)
     if (!page || !canvas) return null
+
+    const inFlight = renderTasks.current.get(canvas)
+    if (inFlight) {
+      inFlight.cancel()
+      await inFlight.promise.catch(() => {}) // expected RenderingCancelledException
+    }
+
     const viewport = page.getViewport({ scale })
     canvas.width = viewport.width
     canvas.height = viewport.height
     const ctx = canvas.getContext('2d')
-    await page.render({ canvasContext: ctx, viewport }).promise
+    const renderTask = page.render({ canvasContext: ctx, viewport })
+    renderTasks.current.set(canvas, renderTask)
+    try {
+      await renderTask.promise
+    } catch (err) {
+      // A later call cancelled *this* task (see the guard above) — expected,
+      // not an error. Any other rejection is a real failure and re-throws.
+      if (err?.name === 'RenderingCancelledException') return null
+      throw err
+    } finally {
+      if (renderTasks.current.get(canvas) === renderTask) renderTasks.current.delete(canvas)
+    }
     return viewport
   }, [getPage])
 
