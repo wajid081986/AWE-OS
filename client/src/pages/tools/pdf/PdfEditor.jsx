@@ -2,8 +2,9 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import * as pdfjsLib from 'pdfjs-dist'
 import pdfjsWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib'
+import JSZip from 'jszip'
 import ToolPageShell from '../ToolPageShell'
-import { downloadFile, downloadBlob, isPdfFile } from './pdfUtils'
+import { downloadFile, downloadBlob, isPdfFile, parsePageRanges } from './pdfUtils'
 import { savePdfSession, evictOldPdfSessions } from './pdfEditorSession'
 import { TOOL_ABOUT } from '../../../data/toolPageContent'
 import DisabledToolButton from '../../../components/pdf-editor/DisabledToolButton'
@@ -149,6 +150,7 @@ const RIBBON_TABS = [
     { id:'_pg-down',    icon:'↓',  label:'Move Down',   act:'pg-down',   cls:'text-2xl' },
     'sep',
     { id:'_pg-extr',    icon:'📤', label:'Extract',     act:'pg-extract',cls:'text-lg' },
+    { id:'_pg-split',   icon:'✂️', label:'Split/Extract',act:'pg-split', cls:'text-lg' },
   ]},
   { id:'security', label:'Security', tools:[
     { id:'_password',   icon:'🔒', label:'Password',   act:'pwd-open',    cls:'text-lg' },
@@ -470,6 +472,49 @@ function DlRangeModal({ total, from, to, setFrom, setTo, onConfirm, onClose }) {
         <div className="px-5 pb-5 flex gap-3 justify-end">
           <button onClick={onClose} className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
           <button onClick={onConfirm} className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">Download</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Split / Extract Modal ──────────────────────────────────────────────────────
+// Same 3-mode UX as the standalone SplitPDF.jsx tool, but processes the
+// editor's own in-session pages (annotations/rotations/reordering included).
+function SplitModal({ total, splitting, onSplit, onClose }) {
+  const [mode, setMode] = useState('all')
+  const [rangeInput, setRangeInput] = useState('')
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl">
+        <div className="flex items-center justify-between px-5 py-4 border-b">
+          <h3 className="font-semibold text-gray-900">Split / Extract Pages</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+        </div>
+        <div className="p-5 space-y-3">
+          <p className="text-xs text-gray-500">{total} pages in this document</p>
+          {[['all','✂️ Split into individual pages (one PDF per page)'],
+            ['range','📑 Split by ranges (e.g. 1-3; 4-6; 7-10)'],
+            ['pages','🔢 Extract specific pages into one PDF (e.g. 1, 3, 5-7)']
+          ].map(([val,lbl])=>(
+            <label key={val} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${mode===val?'border-blue-400 bg-blue-50':'border-gray-200 hover:border-blue-200'}`}>
+              <input type="radio" value={val} checked={mode===val} onChange={()=>{setMode(val);setRangeInput('')}} className="accent-blue-600" />
+              <span className="text-xs text-gray-700">{lbl}</span>
+            </label>
+          ))}
+          {(mode==='range'||mode==='pages') && (
+            <input value={rangeInput} onChange={e=>setRangeInput(e.target.value)}
+              placeholder={mode==='range'?'1-3; 4-6; 7-10':'1, 3, 5-7'}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          )}
+        </div>
+        <div className="px-5 pb-5 flex gap-3 justify-end">
+          <button onClick={onClose} className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+          <button onClick={()=>onSplit(mode,rangeInput)} disabled={splitting}
+            className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-medium flex items-center gap-2">
+            {splitting && <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+            {splitting?'Splitting…':'Split'}
+          </button>
         </div>
       </div>
     </div>
@@ -978,6 +1023,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   const [viewMode, setViewMode]       = useState('continuous')
   const [darkCanvas, setDarkCanvas]   = useState(false)
   const [cursorPos, setCursorPos]     = useState({ x:0, y:0 })
+  const [dragOverDi, setDragOverDi]   = useState(null)
 
   // Tool properties
   const [fontColor, setFontColor]           = useState('#111827')
@@ -1056,6 +1102,8 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   const [extractOpen, setExtractOpen]     = useState(false)
   const [extractedText, setExtractedText] = useState('')
   const [extracting, setExtracting]       = useState(false)
+  const [splitOpen, setSplitOpen]         = useState(false)
+  const [splitting, setSplitting]         = useState(false)
 
   // Upload state — new-tab flow
   const [uploadError,  setUploadError]  = useState(null)
@@ -1070,6 +1118,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   const pageElRefs    = useRef({})
   const dragRef       = useRef(null)
   const resizeRef     = useRef(null)
+  const dragPageRef   = useRef(null)
   const imageInputRef = useRef(null)
   const fromFileRef   = useRef(null)
   const pendingImg    = useRef(null)
@@ -1302,7 +1351,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       if (meta && e.key==='d' && selectedId) { e.preventDefault(); duplicateAnn(selectedId); return }
       if (e.key==='Escape') {
         setDownloadOpen(false); setSelectedId(null); setActiveTool(null); setPolyPts([])
-        setWmOpen(false); setHfOpen(false); setPwdOpen(false); setSigOpen(false); setExtractOpen(false); setDlRangeOpen(false)
+        setWmOpen(false); setHfOpen(false); setPwdOpen(false); setSigOpen(false); setExtractOpen(false); setDlRangeOpen(false); setSplitOpen(false)
         return
       }
       if ((e.key==='Delete'||e.key==='Backspace') && selectedId && tag!=='INPUT' && tag!=='TEXTAREA') {
@@ -1378,6 +1427,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       case 'pg-ins-before': insertBlankPage('before'); break
       case 'pg-ins-after':  insertBlankPage('after'); break
       case 'pg-extract':    extractCurrentPage(); break
+      case 'pg-split':      setSplitOpen(true); break
       case 'watermark-open':setWmOpen(true); break
       case 'hf-open':       setHfOpen(true); break
       case 'pwd-open':      setPwdOpen(true); break
@@ -1614,6 +1664,14 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
     ;[newOrder[currentPage],newOrder[currentPage+1]]=[newOrder[currentPage+1],newOrder[currentPage]]
     setPageOrder(newOrder); setCurrentPage(c=>c+1)
   }
+  function reorderPage(from, to) {
+    if(from===to||from==null||to==null) return
+    pushHistory()
+    const newOrder=[...pageOrder]
+    const[moved]=newOrder.splice(from,1)
+    newOrder.splice(to,0,moved)
+    setPageOrder(newOrder); setCurrentPage(to)
+  }
   async function extractCurrentPage() {
     if(!pdfBytes) return; setPhase('saving')
     try {
@@ -1729,6 +1787,53 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       warnIfEmbedFailures(failCount)
     } catch(err){console.error('[pdf-editor] page download error',err)}
     setPhase('ready')
+  }
+
+  // ── Split / Multi-range Extract ──────────────────────────────────────────────
+  // Reuses buildDoc() per output group (rather than re-loading the raw upload,
+  // like the standalone SplitPDF.jsx tool does) so results include whatever
+  // annotations/rotations/reordering already exist in this editing session.
+  async function handleSplit(mode, rangeInput) {
+    if(!pdfBytes) return
+    setSplitting(true)
+    try {
+      const total = pageOrder.length
+      const zip = new JSZip()
+      let failCount = 0
+
+      if (mode==='all') {
+        for (let di=0; di<total; di++) {
+          const {bytes,failCount:fc} = await buildDoc([di])
+          zip.file(`${downloadName}-p${di+1}.pdf`, bytes)
+          failCount += fc
+        }
+      } else if (mode==='range') {
+        const ranges = rangeInput.split(';').map(s=>s.trim()).filter(Boolean)
+        if(!ranges.length){ setSplitting(false); showToast('Enter at least one range.','error'); return }
+        for (const range of ranges) {
+          const pages = parsePageRanges(range, total)
+          if(!pages.length) continue
+          const {bytes,failCount:fc} = await buildDoc(pages.map(p=>p-1))
+          zip.file(`${downloadName}-pages${range.replace(/\s/g,'')}.pdf`, bytes)
+          failCount += fc
+        }
+      } else {
+        const pages = parsePageRanges(rangeInput, total)
+        if(!pages.length){ setSplitting(false); showToast('Enter valid page numbers.','error'); return }
+        const {bytes,failCount:fc} = await buildDoc(pages.map(p=>p-1))
+        zip.file(`${downloadName}-extracted.pdf`, bytes)
+        failCount += fc
+      }
+
+      const blob = await zip.generateAsync({ type:'blob' })
+      downloadBlob(blob, `${downloadName}-split.zip`)
+      warnIfEmbedFailures(failCount)
+      setSplitOpen(false)
+    } catch(err) {
+      console.error('[pdf-editor] split error', err)
+      showToast('Failed to split PDF. Please try again.', 'error')
+    }
+    setSplitting(false)
   }
 
   // ── Render ────────────────────────────────────────────────────────────────────
@@ -1926,7 +2031,13 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
               const isCurrent=currentPage===di
               return (
                 <div key={`${pi}-${di}`}
-                  className={`relative group cursor-pointer rounded-lg overflow-hidden transition-all duration-150 ${isCurrent?'ring-2 ring-blue-400 ring-offset-2 ring-offset-gray-900':'hover:ring-1 hover:ring-white/30 hover:ring-offset-1 hover:ring-offset-gray-900'}`}
+                  draggable
+                  onDragStart={()=>{dragPageRef.current=di}}
+                  onDragOver={e=>{e.preventDefault();if(dragOverDi!==di)setDragOverDi(di)}}
+                  onDragLeave={()=>setDragOverDi(v=>v===di?null:v)}
+                  onDrop={e=>{e.preventDefault();reorderPage(dragPageRef.current,di);dragPageRef.current=null;setDragOverDi(null)}}
+                  onDragEnd={()=>{dragPageRef.current=null;setDragOverDi(null)}}
+                  className={`relative group cursor-grab active:cursor-grabbing rounded-lg overflow-hidden transition-all duration-150 ${dragOverDi===di?'ring-2 ring-blue-500 ring-offset-2 ring-offset-gray-900':isCurrent?'ring-2 ring-blue-400 ring-offset-2 ring-offset-gray-900':'hover:ring-1 hover:ring-white/30 hover:ring-offset-1 hover:ring-offset-gray-900'}`}
                   onClick={()=>{setCurrentPage(di);pageElRefs.current[pi]?.scrollIntoView({behavior:'smooth',block:'start'})}}>
                   <div className="bg-white overflow-hidden relative" style={{paddingBottom:`${(dim.height/dim.width)*100}%`}}>
                     <canvas ref={el=>{if(el){thumbRefs.current[pi]=el;renderThumb(pi)}}} className="absolute inset-0 w-full h-full" />
@@ -2313,6 +2424,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
         setFrom={setDlFrom} setTo={setDlTo}
         onConfirm={handleDownloadRange} onClose={()=>setDlRangeOpen(false)} />}
       {extractOpen&&<ExtractTextModal text={extractedText} loading={extracting} onClose={()=>setExtractOpen(false)} />}
+      {splitOpen&&<SplitModal total={pageOrder.length} splitting={splitting} onSplit={handleSplit} onClose={()=>setSplitOpen(false)} />}
     </div>
   )
 }
