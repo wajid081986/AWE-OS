@@ -76,3 +76,9 @@ export const DEFAULT_ANNOTATION_STYLE = {
 }
 
 export const MAX_PDF_SIZE_MB = 25
+
+// Fixed internal render/coordinate scale — annotation x/y/w/h are always
+// stored in this space regardless of the visual zoom level (PageCanvas.jsx
+// applies zoom as a pure CSS transform), so the pdf-lib flatten step
+// (index.jsx) has one unambiguous scale to convert from.
+export const RENDER_SCALE = 1.5

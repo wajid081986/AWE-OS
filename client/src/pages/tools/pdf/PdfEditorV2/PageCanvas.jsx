@@ -1,15 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import AnnotationLayer from './AnnotationLayer'
-import { TOOLS, BOX_DRAG_TOOLS, FREEHAND_TOOLS, CLICK_TOOLS, DEFAULT_ANNOTATION_STYLE } from './constants'
+import { TOOLS, BOX_DRAG_TOOLS, FREEHAND_TOOLS, CLICK_TOOLS, DEFAULT_ANNOTATION_STYLE, RENDER_SCALE } from './constants'
 
 const MIN_BOX_SIZE = 6
-
-// Fixed internal render/coordinate scale — annotation x/y/w/h are always
-// stored in this space, regardless of the visual `zoom` prop. `zoom` is
-// applied purely as a CSS transform on the inner layer below, so changing
-// zoom after placing an annotation never shifts or misscales it (and the
-// pdf-lib flatten step in index.jsx can rely on one fixed coordinate space).
-const RENDER_SCALE = 1.5
 
 /**
  * One PDF.js-rendered page plus its annotation overlay. Owns pointer
