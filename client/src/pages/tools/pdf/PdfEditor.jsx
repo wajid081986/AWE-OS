@@ -8,6 +8,7 @@ import { savePdfSession, evictOldPdfSessions } from './pdfEditorSession'
 import { TOOL_ABOUT } from '../../../data/toolPageContent'
 import DisabledToolButton from '../../../components/pdf-editor/DisabledToolButton'
 import { useToast } from '../../../shared/components/ToastContext'
+import { loadSignatures, saveSignature, deleteSignature } from './pdfSignatureStore'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerSrc
 
@@ -174,6 +175,8 @@ function SignatureModal({ onInsert, onClose }) {
   const [tab, setTab]     = useState('draw')
   const [typed, setTyped] = useState('')
   const [sigFont, setSigFont] = useState('italic 52px Georgia,serif')
+  const [saveForReuse, setSaveForReuse] = useState(false)
+  const [savedSigs, setSavedSigs] = useState(() => loadSignatures())
   const canvasRef = useRef(null)
   const drawing   = useRef(false)
   const lastPt    = useRef(null)
@@ -205,7 +208,11 @@ function SignatureModal({ onInsert, onClose }) {
     ctx.strokeStyle='#1e3a8a'; ctx.lineWidth=2.5; ctx.lineCap='round'; ctx.lineJoin='round'
   }
   const insert = () => {
-    if (tab === 'draw') { onInsert(canvasRef.current.toDataURL('image/png')); return }
+    if (tab === 'draw') {
+      const url = canvasRef.current.toDataURL('image/png')
+      if (saveForReuse) setSavedSigs(saveSignature(url))
+      onInsert(url); return
+    }
     if (tab === 'type') {
       if (!typed.trim()) return
       const c=document.createElement('canvas'); c.width=420; c.height=110
@@ -213,9 +220,13 @@ function SignatureModal({ onInsert, onClose }) {
       ctx.fillStyle='#fff'; ctx.fillRect(0,0,420,110)
       ctx.fillStyle='#1e3a8a'; ctx.font=sigFont; ctx.textBaseline='middle'; ctx.textAlign='center'
       ctx.fillText(typed.slice(0,40), 210, 55)
-      onInsert(c.toDataURL('image/png'))
+      const url = c.toDataURL('image/png')
+      if (saveForReuse) setSavedSigs(saveSignature(url))
+      onInsert(url)
     }
   }
+  const useSaved = (dataUrl) => onInsert(dataUrl)
+  const removeSaved = (id) => setSavedSigs(deleteSignature(id))
   const FONTS = [
     { label:'Cursive',f:'italic 52px Georgia,serif' },
     { label:'Bold',   f:'bold 44px Arial,sans-serif' },
@@ -229,7 +240,7 @@ function SignatureModal({ onInsert, onClose }) {
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
         </div>
         <div className="flex border-b">
-          {[['draw','✍️ Draw'],['type','⌨️ Type'],['upload','📁 Upload']].map(([t,l]) => (
+          {[['draw','✍️ Draw'],['type','⌨️ Type'],['upload','📁 Upload'],['saved',`💾 Saved${savedSigs.length?` (${savedSigs.length})`:''}`]].map(([t,l]) => (
             <button key={t} onClick={()=>setTab(t)}
               className={`flex-1 py-2.5 text-sm font-medium transition-colors ${tab===t?'border-b-2 border-blue-600 text-blue-600':'text-gray-500 hover:text-gray-700'}`}>{l}</button>
           ))}
@@ -259,16 +270,37 @@ function SignatureModal({ onInsert, onClose }) {
           {tab==='upload' && <>
             <p className="text-xs text-gray-500 mb-3">Upload a PNG or JPG signature image</p>
             <input ref={uploadRef} type="file" accept="image/png,image/jpeg" className="hidden"
-              onChange={e => { const f=e.target.files[0]; if(f){const r=new FileReader();r.onload=ev=>onInsert(ev.target.result);r.readAsDataURL(f)} }} />
+              onChange={e => { const f=e.target.files[0]; if(f){const r=new FileReader();r.onload=ev=>{if(saveForReuse)setSavedSigs(saveSignature(ev.target.result));onInsert(ev.target.result)};r.readAsDataURL(f)} }} />
             <button onClick={()=>uploadRef.current?.click()}
               className="w-full py-10 border-2 border-dashed border-gray-300 rounded-xl text-center text-gray-500 hover:border-blue-400 hover:bg-blue-50 transition-colors text-sm">
               📁 Click to browse image
             </button>
           </>}
+          {tab==='saved' && (
+            savedSigs.length ? (
+              <div className="grid grid-cols-3 gap-3">
+                {savedSigs.map(s => (
+                  <div key={s.id} className="relative group border border-gray-200 rounded-lg p-2 hover:border-blue-400 cursor-pointer transition-colors" onClick={()=>useSaved(s.dataUrl)}>
+                    <img src={s.dataUrl} alt="Saved signature" className="w-full h-12 object-contain" />
+                    <button onClick={e=>{e.stopPropagation();removeSaved(s.id)}} onMouseDown={e=>e.stopPropagation()}
+                      className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full text-[9px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">✕</button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400 text-center py-8">No saved signatures yet. Draw, type, or upload one and check "Save for reuse" to keep it here.</p>
+            )
+          )}
+          {tab!=='saved' && (
+            <div className="flex items-center gap-2 mt-3">
+              <input type="checkbox" id="sig-save" checked={saveForReuse} onChange={e=>setSaveForReuse(e.target.checked)} className="w-3.5 h-3.5 rounded accent-blue-600" />
+              <label htmlFor="sig-save" className="text-xs text-gray-600 cursor-pointer select-none">💾 Save this signature for reuse</label>
+            </div>
+          )}
         </div>
         <div className="px-5 pb-5 flex gap-3 justify-end">
           <button onClick={onClose} className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
-          {tab!=='upload' && <button onClick={insert} className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">Insert</button>}
+          {tab!=='upload'&&tab!=='saved' && <button onClick={insert} className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">Insert</button>}
         </div>
       </div>
     </div>
@@ -542,12 +574,12 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
 
   // Rect / Circle
   if (type==='rect') return (
-    <div style={{ ...base, border:`${sw}px solid ${sc}`, background:ann.fillColor||'transparent', borderRadius:ann.cornerRadius||0 }} onMouseDown={onDown} onContextMenu={onCtx}>
+    <div style={{ ...base, border:`${sw}px solid ${sc}`, background:ann.fillColor||'transparent', borderRadius:ann.cornerRadius||0, opacity:ann.opacity??1 }} onMouseDown={onDown} onContextMenu={onCtx}>
       {selected && <ResizeHandles onResize={onResizeStart} onDelete={onDelete} />}
     </div>
   )
   if (type==='circle') return (
-    <div style={{ ...base, border:`${sw}px solid ${sc}`, background:ann.fillColor||'transparent', borderRadius:'50%' }} onMouseDown={onDown} onContextMenu={onCtx}>
+    <div style={{ ...base, border:`${sw}px solid ${sc}`, background:ann.fillColor||'transparent', borderRadius:'50%', opacity:ann.opacity??1 }} onMouseDown={onDown} onContextMenu={onCtx}>
       {selected && <ResizeHandles onResize={onResizeStart} onDelete={onDelete} />}
     </div>
   )
@@ -571,7 +603,7 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
     </>
     if (type==='checkmark') shape = <polyline points={`${sw*2},${H/2} ${W*0.38},${H-sw*2} ${W-sw*2},${sw*2}`} fill="none" stroke={sc} strokeWidth={sw*1.5} strokeLinecap="round" strokeLinejoin="round" />
     return (
-      <div style={{ ...base }} onMouseDown={onDown} onContextMenu={onCtx}>
+      <div style={{ ...base, opacity:ann.opacity??1 }} onMouseDown={onDown} onContextMenu={onCtx}>
         <svg width={W} height={H} style={{ position:'absolute', top:0, left:0, overflow:'visible', pointerEvents:'none' }}>{shape}</svg>
         {selected && <ResizeHandles onResize={onResizeStart} onDelete={onDelete} />}
       </div>
@@ -695,7 +727,7 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
 }
 
 // ── Draw Preview ──────────────────────────────────────────────────────────────
-function DrawPreview({ tool, start, end, pageW, pageH, zoom, strokeColor, fillColor, strokeWidth, highlightColor, opacity, polyPts }) {
+function DrawPreview({ tool, start, end, pageW, pageH, zoom, strokeColor, fillColor, strokeWidth, highlightColor, opacity, shapeOpacity, polyPts }) {
   if (!start || !end) return null
   const x = Math.min(start.xf, end.xf) * pageW * zoom
   const y = Math.min(start.yf, end.yf) * pageH * zoom
@@ -714,8 +746,8 @@ function DrawPreview({ tool, start, end, pageW, pageH, zoom, strokeColor, fillCo
       </div>
     )
   }
-  if (tool==='rect')   return <div style={{ ...base, border:`${sw}px solid ${sc}`, background:fillColor }} />
-  if (tool==='circle') return <div style={{ ...base, border:`${sw}px solid ${sc}`, background:fillColor, borderRadius:'50%' }} />
+  if (tool==='rect')   return <div style={{ ...base, border:`${sw}px solid ${sc}`, background:fillColor, opacity:shapeOpacity??1 }} />
+  if (tool==='circle') return <div style={{ ...base, border:`${sw}px solid ${sc}`, background:fillColor, borderRadius:'50%', opacity:shapeOpacity??1 }} />
   if (['triangle','diamond','star','cloud','cross','checkmark'].includes(tool)) {
     let shape = null
     if (tool==='triangle') shape = <polygon points={`${w/2},${sw} ${sw},${h-sw} ${w-sw},${h-sw}`} fill={fillColor} stroke={sc} strokeWidth={sw} />
@@ -733,7 +765,7 @@ function DrawPreview({ tool, start, end, pageW, pageH, zoom, strokeColor, fillCo
     </>
     if (tool==='checkmark') shape = <polyline points={`${sw*2},${h/2} ${w*0.38},${h-sw*2} ${w-sw*2},${sw*2}`} fill="none" stroke={sc} strokeWidth={sw*1.5} strokeLinecap="round" strokeLinejoin="round" />
     return (
-      <div style={{ ...base }}>
+      <div style={{ ...base, opacity:shapeOpacity??1 }}>
         <svg width={w} height={h} style={{ position:'absolute', overflow:'visible' }}>{shape}</svg>
       </div>
     )
@@ -818,35 +850,35 @@ async function embedAnnotation(page, ann, W, H, font, fontB, pdfDoc) {
     const yM = yBL+hPt/2
     page.drawLine({ start:{x:xPt,y:yM}, end:{x:xPt+wPt,y:yM}, thickness:(ann.strokeWidth||2)+1, color:rgb(c.r,c.g,c.b) })
   } else if (type==='rect') {
-    const opts = { x:xPt, y:yBL, width:wPt, height:hPt, borderColor:rgb(sc.r,sc.g,sc.b), borderWidth:ann.strokeWidth||2 }
+    const opts = { x:xPt, y:yBL, width:wPt, height:hPt, borderColor:rgb(sc.r,sc.g,sc.b), borderWidth:ann.strokeWidth||2, opacity:ann.opacity??1, borderOpacity:ann.opacity??1 }
     if (ann.fillColor && ann.fillColor!=='transparent') opts.color=rgb(fc.r,fc.g,fc.b)
     page.drawRectangle(opts)
   } else if (type==='circle') {
-    const opts = { x:xPt+wPt/2, y:yBL+hPt/2, xScale:wPt/2, yScale:hPt/2, borderColor:rgb(sc.r,sc.g,sc.b), borderWidth:ann.strokeWidth||2 }
+    const opts = { x:xPt+wPt/2, y:yBL+hPt/2, xScale:wPt/2, yScale:hPt/2, borderColor:rgb(sc.r,sc.g,sc.b), borderWidth:ann.strokeWidth||2, opacity:ann.opacity??1, borderOpacity:ann.opacity??1 }
     if (ann.fillColor && ann.fillColor!=='transparent') opts.color=rgb(fc.r,fc.g,fc.b)
     page.drawEllipse(opts)
   } else if (type==='triangle') {
-    const cx=xPt+wPt/2
-    page.drawLine({ start:{x:cx,y:yBL+hPt}, end:{x:xPt,y:yBL}, thickness:ann.strokeWidth||2, color:rgb(sc.r,sc.g,sc.b) })
-    page.drawLine({ start:{x:xPt,y:yBL}, end:{x:xPt+wPt,y:yBL}, thickness:ann.strokeWidth||2, color:rgb(sc.r,sc.g,sc.b) })
-    page.drawLine({ start:{x:xPt+wPt,y:yBL}, end:{x:cx,y:yBL+hPt}, thickness:ann.strokeWidth||2, color:rgb(sc.r,sc.g,sc.b) })
+    const cx=xPt+wPt/2, op=ann.opacity??1
+    page.drawLine({ start:{x:cx,y:yBL+hPt}, end:{x:xPt,y:yBL}, thickness:ann.strokeWidth||2, color:rgb(sc.r,sc.g,sc.b), opacity:op })
+    page.drawLine({ start:{x:xPt,y:yBL}, end:{x:xPt+wPt,y:yBL}, thickness:ann.strokeWidth||2, color:rgb(sc.r,sc.g,sc.b), opacity:op })
+    page.drawLine({ start:{x:xPt+wPt,y:yBL}, end:{x:cx,y:yBL+hPt}, thickness:ann.strokeWidth||2, color:rgb(sc.r,sc.g,sc.b), opacity:op })
   } else if (type==='diamond') {
-    const cx=xPt+wPt/2, cy=yBL+hPt/2
-    page.drawLine({ start:{x:cx,y:yBL}, end:{x:xPt,y:cy}, thickness:ann.strokeWidth||2, color:rgb(sc.r,sc.g,sc.b) })
-    page.drawLine({ start:{x:xPt,y:cy}, end:{x:cx,y:yBL+hPt}, thickness:ann.strokeWidth||2, color:rgb(sc.r,sc.g,sc.b) })
-    page.drawLine({ start:{x:cx,y:yBL+hPt}, end:{x:xPt+wPt,y:cy}, thickness:ann.strokeWidth||2, color:rgb(sc.r,sc.g,sc.b) })
-    page.drawLine({ start:{x:xPt+wPt,y:cy}, end:{x:cx,y:yBL}, thickness:ann.strokeWidth||2, color:rgb(sc.r,sc.g,sc.b) })
+    const cx=xPt+wPt/2, cy=yBL+hPt/2, op=ann.opacity??1
+    page.drawLine({ start:{x:cx,y:yBL}, end:{x:xPt,y:cy}, thickness:ann.strokeWidth||2, color:rgb(sc.r,sc.g,sc.b), opacity:op })
+    page.drawLine({ start:{x:xPt,y:cy}, end:{x:cx,y:yBL+hPt}, thickness:ann.strokeWidth||2, color:rgb(sc.r,sc.g,sc.b), opacity:op })
+    page.drawLine({ start:{x:cx,y:yBL+hPt}, end:{x:xPt+wPt,y:cy}, thickness:ann.strokeWidth||2, color:rgb(sc.r,sc.g,sc.b), opacity:op })
+    page.drawLine({ start:{x:xPt+wPt,y:cy}, end:{x:cx,y:yBL}, thickness:ann.strokeWidth||2, color:rgb(sc.r,sc.g,sc.b), opacity:op })
   } else if (type==='star' || type==='cloud') {
-    const opts = { x:xPt+wPt/2, y:yBL+hPt/2, xScale:wPt/2, yScale:hPt/2, borderColor:rgb(sc.r,sc.g,sc.b), borderWidth:ann.strokeWidth||2 }
+    const opts = { x:xPt+wPt/2, y:yBL+hPt/2, xScale:wPt/2, yScale:hPt/2, borderColor:rgb(sc.r,sc.g,sc.b), borderWidth:ann.strokeWidth||2, opacity:ann.opacity??1, borderOpacity:ann.opacity??1 }
     page.drawEllipse(opts)
   } else if (type==='cross') {
-    const t = (ann.strokeWidth||2)*1.5
-    page.drawLine({ start:{x:xPt,y:yBL}, end:{x:xPt+wPt,y:yBL+hPt}, thickness:t, color:rgb(sc.r,sc.g,sc.b) })
-    page.drawLine({ start:{x:xPt+wPt,y:yBL}, end:{x:xPt,y:yBL+hPt}, thickness:t, color:rgb(sc.r,sc.g,sc.b) })
+    const t = (ann.strokeWidth||2)*1.5, op=ann.opacity??1
+    page.drawLine({ start:{x:xPt,y:yBL}, end:{x:xPt+wPt,y:yBL+hPt}, thickness:t, color:rgb(sc.r,sc.g,sc.b), opacity:op })
+    page.drawLine({ start:{x:xPt+wPt,y:yBL}, end:{x:xPt,y:yBL+hPt}, thickness:t, color:rgb(sc.r,sc.g,sc.b), opacity:op })
   } else if (type==='checkmark') {
-    const t = (ann.strokeWidth||2)*1.5
-    page.drawLine({ start:{x:xPt,y:yBL+hPt*0.5}, end:{x:xPt+wPt*0.38,y:yBL}, thickness:t, color:rgb(sc.r,sc.g,sc.b) })
-    page.drawLine({ start:{x:xPt+wPt*0.38,y:yBL}, end:{x:xPt+wPt,y:yBL+hPt}, thickness:t, color:rgb(sc.r,sc.g,sc.b) })
+    const t = (ann.strokeWidth||2)*1.5, op=ann.opacity??1
+    page.drawLine({ start:{x:xPt,y:yBL+hPt*0.5}, end:{x:xPt+wPt*0.38,y:yBL}, thickness:t, color:rgb(sc.r,sc.g,sc.b), opacity:op })
+    page.drawLine({ start:{x:xPt+wPt*0.38,y:yBL}, end:{x:xPt+wPt,y:yBL+hPt}, thickness:t, color:rgb(sc.r,sc.g,sc.b), opacity:op })
   } else if (type==='line' || type==='arrow' || type==='measure') {
     const x1=ann.x*W, y1=(1-ann.y)*H
     const x2=(ann.x2f??(ann.x+ann.w))*W, y2=(1-(ann.y2f??(ann.y+ann.h)))*H
@@ -959,6 +991,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   const [fillColor, setFillColor]           = useState('#ffffff')
   const [hasFill, setHasFill]               = useState(false)
   const [strokeWidth, setStrokeWidth]       = useState(2)
+  const [shapeOpacity, setShapeOpacity]     = useState(1.0)
   const [highlightColor, setHighlightColor] = useState('#fef08a')
   const [hlOpacity, setHlOpacity]           = useState(0.5)
   const [drawOpacity, setDrawOpacity]       = useState(1.0)
@@ -1489,10 +1522,10 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       pendingImg.current={pi,xf:s.xf,yf:s.yf,wf,hf}
       imageInputRef.current?.click()
     }
-    else if (activeTool==='rect')      addAnn(pi,{...base,type:'rect',strokeColor,fillColor:hasFill?fillColor:'transparent',strokeWidth})
-    else if (activeTool==='circle')    addAnn(pi,{...base,type:'circle',strokeColor,fillColor:hasFill?fillColor:'transparent',strokeWidth})
+    else if (activeTool==='rect')      addAnn(pi,{...base,type:'rect',strokeColor,fillColor:hasFill?fillColor:'transparent',strokeWidth,opacity:shapeOpacity})
+    else if (activeTool==='circle')    addAnn(pi,{...base,type:'circle',strokeColor,fillColor:hasFill?fillColor:'transparent',strokeWidth,opacity:shapeOpacity})
     else if (['triangle','diamond','star','cloud','cross','checkmark'].includes(activeTool))
-      addAnn(pi,{...base,type:activeTool,strokeColor,fillColor:hasFill?fillColor:'transparent',strokeWidth})
+      addAnn(pi,{...base,type:activeTool,strokeColor,fillColor:hasFill?fillColor:'transparent',strokeWidth,opacity:shapeOpacity})
     else if (activeTool==='line'||activeTool==='arrow'||activeTool==='dashed'||activeTool==='measure')
       addAnn(pi,{...base,type:activeTool,x:s.xf,y:s.yf,w:wf,h:hf,x2f:en.xf,y2f:en.yf,strokeColor,strokeWidth})
     setDrawStart(null); setDrawEnd(null)
@@ -1701,6 +1734,8 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   // ── Render ────────────────────────────────────────────────────────────────────
   const totalAnns = Object.values(annotations).reduce((s,a)=>s+a.length,0)
   const selAnn    = selectedId ? Object.values(annotations).flat().find(a=>a.id===selectedId) : null
+  // Commits a change directly onto the selected annotation (as opposed to updateAnn's raw form, this always logs one undo step per call).
+  function updateSelAnn(upd) { if(!selAnn) return; pushHistory(); updateAnn(selAnn.page, selAnn.id, upd) }
   const activeTools = RIBBON_TABS.find(t=>t.id===activeTab)?.tools || []
 
   // Which pages to show
@@ -1955,6 +1990,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                         pageW={dim.width} pageH={dim.height} zoom={zoom}
                         strokeColor={strokeColor} fillColor={hasFill?fillColor:'transparent'}
                         strokeWidth={strokeWidth} highlightColor={highlightColor} opacity={hlOpacity}
+                        shapeOpacity={shapeOpacity}
                         polyPts={polyPts} />
                     )}
                     <div className="absolute inset-0"
@@ -2007,31 +2043,9 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
 
                 {/* Text / Typewriter */}
                 {(activeTool==='text'||activeTool==='typewriter'||activeTool==='callout'||activeTool==='edit-text')&&!showPgNumPanel&&<>
-                  <PropSection label="Font">
-                    <select value={fontFamily} onChange={e=>setFontFamily(e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg text-xs px-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2">
-                      {FONT_FAMILIES.map(f=><option key={f} value={f}>{f}</option>)}
-                    </select>
-                    <select value={fontSize} onChange={e=>setFontSize(+e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg text-xs px-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                      {FONT_SIZES.map(s=><option key={s} value={s}>{s}px</option>)}
-                    </select>
-                  </PropSection>
-                  <PropSection label="Color"><ColorGrid value={fontColor} onChange={setFontColor} /></PropSection>
-                  <PropSection label="Style">
-                    <div className="flex gap-1.5 mb-2">
-                      {[['B','Bold',bold,setBold,'font-bold'],['I','Italic',italic,setItalic,'italic'],['U','Underline',underlineText,setUnderlineText,'underline']].map(([l,t,v,fn,cls])=>(
-                        <button key={l} onClick={()=>fn(x=>!x)} title={t}
-                          className={`flex-1 py-2 text-xs rounded-lg border transition-colors ${cls} ${v?'bg-gray-900 text-white border-gray-900':'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>{l}</button>
-                      ))}
-                    </div>
-                    <div className="flex gap-1">
-                      {[['left','←'],['center','↔'],['right','→']].map(([a,l])=>(
-                        <button key={a} onClick={()=>setTextAlign(a)}
-                          className={`flex-1 py-1.5 text-xs rounded-lg border transition-colors ${textAlign===a?'bg-gray-900 text-white border-gray-900':'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>{l}</button>
-                      ))}
-                    </div>
-                  </PropSection>
+                  <FontControls fontFamily={fontFamily} onFontFamily={setFontFamily} fontSize={fontSize} onFontSize={setFontSize}
+                    fontColor={fontColor} onFontColor={setFontColor} bold={bold} onBold={setBold} italic={italic} onItalic={setItalic}
+                    underlineText={underlineText} onUnderline={setUnderlineText} textAlign={textAlign} onTextAlign={setTextAlign} />
                   {activeTool==='callout'&&<PropSection label="Border Color"><ColorGrid value={strokeColor} onChange={setStrokeColor} /></PropSection>}
                 </>}
 
@@ -2091,17 +2105,11 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                 </>}
 
                 {/* Shapes */}
-                {(['rect','circle','triangle','diamond','star','cloud','cross','checkmark'].includes(activeTool))&&!showPgNumPanel&&<>
-                  <PropSection label="Stroke Color"><ColorGrid value={strokeColor} onChange={setStrokeColor} /></PropSection>
-                  <PropSection label="Stroke Width"><WidthPicker value={strokeWidth} onChange={setStrokeWidth} /></PropSection>
-                  <PropSection label="Fill">
-                    <div className="flex items-center gap-2 mb-2">
-                      <input type="checkbox" id="hf-fill" checked={hasFill} onChange={e=>setHasFill(e.target.checked)} className="w-3.5 h-3.5 rounded accent-blue-600" />
-                      <label htmlFor="hf-fill" className="text-xs text-gray-600 cursor-pointer select-none">Fill color</label>
-                    </div>
-                    {hasFill&&<ColorGrid value={fillColor} onChange={setFillColor} />}
-                  </PropSection>
-                </>}
+                {(['rect','circle','triangle','diamond','star','cloud','cross','checkmark'].includes(activeTool))&&!showPgNumPanel&&(
+                  <ShapeControls strokeColor={strokeColor} onStrokeColor={setStrokeColor} strokeWidth={strokeWidth} onStrokeWidth={setStrokeWidth}
+                    hasFill={hasFill} onHasFill={setHasFill} fillColor={fillColor} onFillColor={setFillColor}
+                    opacity={shapeOpacity} onOpacity={setShapeOpacity} />
+                )}
 
                 {/* Draw / Arrow / Line / Dashed / Measure / Polyline */}
                 {(['draw','arrow','line','dashed','measure','polyline'].includes(activeTool))&&!showPgNumPanel&&<>
@@ -2168,6 +2176,44 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                     </select>
                   </PropSection>
                 </>}
+
+                {/* Selected Text/Typewriter — edit font/color/style on an already-placed box */}
+                {!activeTool&&selAnn&&(selAnn.type==='text'||selAnn.type==='typewriter')&&!showPgNumPanel&&(
+                  <div className="space-y-2 pb-4 border-b border-gray-100 mb-2">
+                    <FontControls fontFamily={selAnn.fontFamily||'Helvetica'} onFontFamily={v=>updateSelAnn({fontFamily:v})}
+                      fontSize={selAnn.fontSize||14} onFontSize={v=>updateSelAnn({fontSize:v})}
+                      fontColor={selAnn.fontColor||'#111827'} onFontColor={v=>updateSelAnn({fontColor:v})}
+                      bold={!!selAnn.bold} onBold={v=>updateSelAnn({bold:v})}
+                      italic={!!selAnn.italic} onItalic={v=>updateSelAnn({italic:v})}
+                      underlineText={!!selAnn.underlineText} onUnderline={v=>updateSelAnn({underlineText:v})}
+                      textAlign={selAnn.textAlign||'left'} onTextAlign={v=>updateSelAnn({textAlign:v})} />
+                  </div>
+                )}
+
+                {/* Selected Note/Callout — only font size + color actually render live for these two types */}
+                {!activeTool&&selAnn&&(selAnn.type==='note'||selAnn.type==='callout')&&!showPgNumPanel&&(
+                  <div className="space-y-2 pb-4 border-b border-gray-100 mb-2">
+                    <PropSection label="Color"><ColorGrid value={selAnn.fontColor||(selAnn.type==='note'?'#78350f':'#111827')} onChange={v=>updateSelAnn({fontColor:v})} /></PropSection>
+                    <PropSection label="Font Size">
+                      <select value={selAnn.fontSize||(selAnn.type==='note'?11:13)} onChange={e=>updateSelAnn({fontSize:+e.target.value})}
+                        className="w-full border border-gray-200 rounded-lg text-xs px-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        {FONT_SIZES.map(s=><option key={s} value={s}>{s}px</option>)}
+                      </select>
+                    </PropSection>
+                  </div>
+                )}
+
+                {/* Selected Shape — stroke/fill/opacity on an already-placed shape */}
+                {!activeTool&&selAnn&&(['rect','circle','triangle','diamond','star','cloud','cross','checkmark'].includes(selAnn.type))&&!showPgNumPanel&&(
+                  <div className="space-y-2 pb-4 border-b border-gray-100 mb-2">
+                    <ShapeControls strokeColor={selAnn.strokeColor||'#1e3a8a'} onStrokeColor={v=>updateSelAnn({strokeColor:v})}
+                      strokeWidth={selAnn.strokeWidth||2} onStrokeWidth={v=>updateSelAnn({strokeWidth:v})}
+                      hasFill={!!selAnn.fillColor&&selAnn.fillColor!=='transparent'} onHasFill={v=>updateSelAnn({fillColor:v?(selAnn.fillColor&&selAnn.fillColor!=='transparent'?selAnn.fillColor:'#ffffff'):'transparent'})}
+                      fillColor={selAnn.fillColor&&selAnn.fillColor!=='transparent'?selAnn.fillColor:'#ffffff'} onFillColor={v=>updateSelAnn({fillColor:v})}
+                      opacity={selAnn.opacity??1} onOpacity={v=>updateAnn(selAnn.page,selAnn.id,{opacity:v})}
+                      opacityInputProps={{onMouseDown:()=>pushHistory(),onTouchStart:()=>pushHistory()}} />
+                  </div>
+                )}
 
                 {/* Selected annotation actions */}
                 {selAnn&&!showPgNumPanel&&(
@@ -2339,6 +2385,60 @@ function PropSection({ label, children }) {
       <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">{label}</label>
       {children}
     </div>
+  )
+}
+
+// Shared by the tool-prep "next new annotation" panel and the "selected annotation" panel.
+function FontControls({ fontFamily, onFontFamily, fontSize, onFontSize, fontColor, onFontColor, bold, onBold, italic, onItalic, underlineText, onUnderline, textAlign, onTextAlign }) {
+  return (
+    <>
+      <PropSection label="Font">
+        <select value={fontFamily} onChange={e=>onFontFamily(e.target.value)}
+          className="w-full border border-gray-200 rounded-lg text-xs px-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2">
+          {FONT_FAMILIES.map(f=><option key={f} value={f}>{f}</option>)}
+        </select>
+        <select value={fontSize} onChange={e=>onFontSize(+e.target.value)}
+          className="w-full border border-gray-200 rounded-lg text-xs px-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+          {FONT_SIZES.map(s=><option key={s} value={s}>{s}px</option>)}
+        </select>
+      </PropSection>
+      <PropSection label="Color"><ColorGrid value={fontColor} onChange={onFontColor} /></PropSection>
+      <PropSection label="Style">
+        <div className="flex gap-1.5 mb-2">
+          {[['B','Bold',bold,onBold,'font-bold'],['I','Italic',italic,onItalic,'italic'],['U','Underline',underlineText,onUnderline,'underline']].map(([l,t,v,fn,cls])=>(
+            <button key={l} onClick={()=>fn(!v)} title={t}
+              className={`flex-1 py-2 text-xs rounded-lg border transition-colors ${cls} ${v?'bg-gray-900 text-white border-gray-900':'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>{l}</button>
+          ))}
+        </div>
+        <div className="flex gap-1">
+          {[['left','←'],['center','↔'],['right','→']].map(([a,l])=>(
+            <button key={a} onClick={()=>onTextAlign(a)}
+              className={`flex-1 py-1.5 text-xs rounded-lg border transition-colors ${textAlign===a?'bg-gray-900 text-white border-gray-900':'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>{l}</button>
+          ))}
+        </div>
+      </PropSection>
+    </>
+  )
+}
+
+// Shared by the tool-prep "next new shape" panel and the "selected shape" panel.
+function ShapeControls({ strokeColor, onStrokeColor, strokeWidth, onStrokeWidth, hasFill, onHasFill, fillColor, onFillColor, opacity, onOpacity, opacityInputProps }) {
+  return (
+    <>
+      <PropSection label="Stroke Color"><ColorGrid value={strokeColor} onChange={onStrokeColor} /></PropSection>
+      <PropSection label="Stroke Width"><WidthPicker value={strokeWidth} onChange={onStrokeWidth} /></PropSection>
+      <PropSection label="Fill">
+        <div className="flex items-center gap-2 mb-2">
+          <input type="checkbox" id="hf-fill" checked={hasFill} onChange={e=>onHasFill(e.target.checked)} className="w-3.5 h-3.5 rounded accent-blue-600" />
+          <label htmlFor="hf-fill" className="text-xs text-gray-600 cursor-pointer select-none">Fill color</label>
+        </div>
+        {hasFill&&<ColorGrid value={fillColor} onChange={onFillColor} />}
+      </PropSection>
+      <PropSection label={`Opacity: ${Math.round(opacity*100)}%`}>
+        <input type="range" min={10} max={100} value={Math.round(opacity*100)} onChange={e=>onOpacity(e.target.value/100)}
+          className="w-full accent-blue-600" {...opacityInputProps} />
+      </PropSection>
+    </>
   )
 }
 
