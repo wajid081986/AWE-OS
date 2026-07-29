@@ -2,30 +2,15 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import ToolPageShell from '../../ToolPageShell'
 import PageCanvas from './PageCanvas'
+import Toolbar from './Toolbar'
+import PagePanel from './PagePanel'
+import PropertiesPanel from './PropertiesPanel'
 import { usePdfDoc } from './usePdfDoc'
 import { useAnnotations } from './useAnnotations'
 import { TOOLS, KEYBOARD_SHORTCUTS, ZOOM_LEVELS, DEFAULT_ZOOM, RENDER_SCALE } from './constants'
 import { downloadFile, isPdfFile } from '../pdfUtils'
 import { TOOL_ABOUT } from '../../../../data/toolPageContent'
 import { useToast } from '../../../../shared/components/ToastContext'
-
-// Minimal, flat tool list for phase 3 — becomes Toolbar.jsx in a later phase
-// once PagePanel/PropertiesPanel land (see docs/batches/batch-35-plan.md).
-const TOOL_BUTTONS = [
-  { id: TOOLS.SELECT, label: 'Select', icon: '↖', key: 'V' },
-  { id: TOOLS.TEXT, label: 'Text', icon: 'T', key: 'T' },
-  { id: TOOLS.HIGHLIGHT, label: 'Highlight', icon: '▮', key: 'H' },
-  { id: TOOLS.UNDERLINE, label: 'Underline', icon: 'U', key: '' },
-  { id: TOOLS.STRIKETHROUGH, label: 'Strike', icon: 'S̶', key: '' },
-  { id: TOOLS.DRAW, label: 'Draw', icon: '✎', key: 'D' },
-  { id: TOOLS.ARROW, label: 'Arrow', icon: '↗', key: 'A' },
-  { id: TOOLS.RECTANGLE, label: 'Rectangle', icon: '▭', key: 'R' },
-  { id: TOOLS.ELLIPSE, label: 'Ellipse', icon: '◯', key: 'E' },
-  { id: TOOLS.NOTE, label: 'Note', icon: '🗒️', key: 'N' },
-  { id: TOOLS.WHITEOUT, label: 'Whiteout', icon: '▢', key: 'W' },
-  { id: TOOLS.STAMP, label: 'Stamp', icon: '⏹', key: 'S' },
-  { id: TOOLS.SIGNATURE, label: 'Signature', icon: '✒', key: '' },
-]
 
 const STEPS = [
   'Upload a PDF — it never leaves your browser.',
@@ -160,9 +145,12 @@ export default function PdfEditorV2() {
   const annotationsApi = useAnnotations()
   const originalBytesRef = useRef(null)
   const fileInputRef = useRef(null)
+  const viewerRef = useRef(null)
 
   const [activeTool, setActiveTool] = useState(TOOLS.SELECT)
   const [zoom, setZoom] = useState(DEFAULT_ZOOM)
+  const [activePage, setActivePage] = useState(1)
+  const [pagePanelCollapsed, setPagePanelCollapsed] = useState(false)
 
   const handleFileChange = useCallback(async (e) => {
     const file = e.target.files?.[0]
@@ -173,6 +161,7 @@ export default function PdfEditorV2() {
       return
     }
     annotationsApi.reset()
+    setActivePage(1)
     const bytes = await pdfDoc.loadFromFile(file)
     originalBytesRef.current = bytes
   }, [pdfDoc, annotationsApi, showToast])
@@ -183,6 +172,21 @@ export default function PdfEditorV2() {
       const nextIdx = idx === -1 ? ZOOM_LEVELS.indexOf(DEFAULT_ZOOM) : idx + direction
       return ZOOM_LEVELS[Math.max(0, Math.min(ZOOM_LEVELS.length - 1, nextIdx))]
     })
+  }, [])
+
+  const jumpToPage = useCallback((pageNumber) => {
+    setActivePage(pageNumber)
+    // Not target.scrollIntoView() — that bubbles up through every scrollable
+    // ancestor including the window itself, so clicking a thumbnail scrolled
+    // the whole page and hid the sticky Toolbar above the viewer entirely.
+    // Scrolling viewerRef's own scrollTop by the measured delta keeps the
+    // jump contained to this panel.
+    const container = viewerRef.current
+    const target = document.getElementById(`pdf-editor-page-${pageNumber}`)
+    if (container && target) {
+      const delta = target.getBoundingClientRect().top - container.getBoundingClientRect().top
+      container.scrollTo({ top: container.scrollTop + delta, behavior: 'smooth' })
+    }
   }, [])
 
   const handleDownload = useCallback(async () => {
@@ -264,41 +268,58 @@ export default function PdfEditorV2() {
         </button>
       ) : (
         <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-2 sticky top-0 z-10 bg-card border border-line rounded-m p-2">
-            {TOOL_BUTTONS.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                title={t.key ? `${t.label} (${t.key})` : t.label}
-                onClick={() => setActiveTool(t.id)}
-                className={`px-2.5 py-1.5 rounded-s text-sm ${activeTool === t.id ? 'bg-cobalt text-white' : 'hover:bg-cobalt-tint'}`}
-              >
-                <span aria-hidden>{t.icon}</span>
-                <span className="sr-only">{t.label}</span>
-              </button>
-            ))}
-            <div className="ml-auto flex items-center gap-1">
-              <button type="button" onClick={() => zoomBy(-1)} className="px-2 py-1.5 rounded-s hover:bg-cobalt-tint" aria-label="Zoom out">−</button>
-              <span className="text-xs text-ink-soft w-12 text-center">{Math.round(zoom * 100)}%</span>
-              <button type="button" onClick={() => zoomBy(1)} className="px-2 py-1.5 rounded-s hover:bg-cobalt-tint" aria-label="Zoom in">+</button>
-              <button type="button" onClick={annotationsApi.undo} disabled={!annotationsApi.canUndo} className="px-2.5 py-1.5 rounded-s hover:bg-cobalt-tint disabled:opacity-40">Undo</button>
-              <button type="button" onClick={annotationsApi.redo} disabled={!annotationsApi.canRedo} className="px-2.5 py-1.5 rounded-s hover:bg-cobalt-tint disabled:opacity-40">Redo</button>
-              <button type="button" onClick={handleDownload} className="px-3 py-1.5 rounded-s bg-cobalt text-white text-sm font-medium">Download</button>
-            </div>
-          </div>
+          <Toolbar
+            activeTool={activeTool}
+            onToolChange={setActiveTool}
+            zoom={zoom}
+            onZoomIn={() => zoomBy(1)}
+            onZoomOut={() => zoomBy(-1)}
+            canUndo={annotationsApi.canUndo}
+            canRedo={annotationsApi.canRedo}
+            onUndo={annotationsApi.undo}
+            onRedo={annotationsApi.redo}
+            onDownload={handleDownload}
+          />
 
-          <div className="flex flex-col items-center gap-6 bg-canvas p-6 rounded-m overflow-auto">
-            {Array.from({ length: pdfDoc.pageCount }, (_, i) => i + 1).map((pageNumber) => (
-              <PageCanvas
-                key={pageNumber}
-                pageNumber={pageNumber}
-                zoom={zoom}
-                pdfDoc={pdfDoc}
-                annotationsApi={annotationsApi}
-                activeTool={activeTool}
-                onAnnotationCreated={() => setActiveTool(TOOLS.SELECT)}
-              />
-            ))}
+          <div className="flex gap-4 items-start">
+            <PagePanel
+              pdfDoc={pdfDoc}
+              pageCount={pdfDoc.pageCount}
+              activePage={activePage}
+              onJumpToPage={jumpToPage}
+              collapsed={pagePanelCollapsed}
+              onToggleCollapsed={() => setPagePanelCollapsed((c) => !c)}
+            />
+
+            {/* items-start (not items-center): PagePanel + PropertiesPanel narrow
+                this column enough that a standard page at 100% zoom (918px,
+                RENDER_SCALE 1.5x612pt) is often wider than what's left —
+                center-alignment on an overflowing child scrolls symmetrically,
+                so the initial view started mid-page instead of at its left
+                edge. Left-aligned means pages narrower than the column sit
+                flush left (an acceptable tradeoff without a "fit width" zoom
+                mode) and wider ones overflow only to the right, so the page's
+                own left edge is always the default view. */}
+            <div ref={viewerRef} className="flex-1 flex flex-col items-start gap-6 bg-canvas p-6 rounded-m overflow-auto max-h-[75vh]">
+              {Array.from({ length: pdfDoc.pageCount }, (_, i) => i + 1).map((pageNumber) => (
+                <div key={pageNumber} id={`pdf-editor-page-${pageNumber}`}>
+                  <PageCanvas
+                    pageNumber={pageNumber}
+                    zoom={zoom}
+                    pdfDoc={pdfDoc}
+                    annotationsApi={annotationsApi}
+                    activeTool={activeTool}
+                    onAnnotationCreated={() => setActiveTool(TOOLS.SELECT)}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <PropertiesPanel
+              annotation={annotationsApi.selected}
+              onChange={annotationsApi.updateAnnotation}
+              onDelete={annotationsApi.deleteAnnotation}
+            />
           </div>
         </div>
       )}
