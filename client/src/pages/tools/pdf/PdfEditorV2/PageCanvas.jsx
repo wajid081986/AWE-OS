@@ -4,12 +4,19 @@ import { TOOLS, BOX_DRAG_TOOLS, FREEHAND_TOOLS, CLICK_TOOLS, DEFAULT_ANNOTATION_
 
 const MIN_BOX_SIZE = 6
 
+// Fixed internal render/coordinate scale — annotation x/y/w/h are always
+// stored in this space, regardless of the visual `zoom` prop. `zoom` is
+// applied purely as a CSS transform on the inner layer below, so changing
+// zoom after placing an annotation never shifts or misscales it (and the
+// pdf-lib flatten step in index.jsx can rely on one fixed coordinate space).
+const RENDER_SCALE = 1.5
+
 /**
  * One PDF.js-rendered page plus its annotation overlay. Owns pointer
  * handling for *creating* new annotations (drag-a-box, click-to-place,
  * freehand path); moving/editing existing ones is AnnotationLayer's job.
  */
-export default function PageCanvas({ pageNumber, scale, pdfDoc, annotationsApi, activeTool, onAnnotationCreated }) {
+export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, activeTool, onAnnotationCreated }) {
   const canvasRef = useRef(null)
   const wrapperRef = useRef(null)
   const dragRef = useRef(null)
@@ -20,16 +27,19 @@ export default function PageCanvas({ pageNumber, scale, pdfDoc, annotationsApi, 
   useEffect(() => {
     let cancelled = false
     async function render() {
-      const viewport = await pdfDoc.renderPageToCanvas(pageNumber, canvasRef.current, scale)
+      const viewport = await pdfDoc.renderPageToCanvas(pageNumber, canvasRef.current, RENDER_SCALE)
       if (!cancelled && viewport) setDims({ width: viewport.width, height: viewport.height })
     }
     if (pdfDoc.isReady) render()
     return () => { cancelled = true }
-  }, [pdfDoc, pageNumber, scale])
+  }, [pdfDoc, pageNumber])
 
+  // Outer wrapper is sized to the zoomed visual box; the inner layer (canvas +
+  // annotations) stays at native `dims` and is scaled via CSS transform, so
+  // dividing by zoom here maps a screen click back to RENDER_SCALE-space.
   function pointFromEvent(e) {
     const rect = wrapperRef.current.getBoundingClientRect()
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top }
+    return { x: (e.clientX - rect.left) / zoom, y: (e.clientY - rect.top) / zoom }
   }
 
   function handlePointerMove(e) {
@@ -143,22 +153,28 @@ export default function PageCanvas({ pageNumber, scale, pdfDoc, annotationsApi, 
   return (
     <div
       ref={wrapperRef}
-      className="relative inline-block bg-white shadow-sm"
-      style={{ cursor: activeTool === TOOLS.SELECT ? 'default' : 'crosshair' }}
+      className="relative inline-block bg-white shadow-sm overflow-hidden"
+      style={{
+        width: dims.width * zoom,
+        height: dims.height * zoom,
+        cursor: activeTool === TOOLS.SELECT ? 'default' : 'crosshair',
+      }}
       onPointerDown={handlePointerDown}
     >
-      <canvas ref={canvasRef} className="block" />
-      <AnnotationLayer
-        width={dims.width}
-        height={dims.height}
-        annotations={annotationsApi.getPageAnnotations(pageNumber)}
-        liveDraft={liveDraft}
-        selectedId={annotationsApi.selectedId}
-        activeTool={activeTool}
-        justCreatedId={justCreatedId}
-        onSelect={annotationsApi.selectAnnotation}
-        onUpdate={annotationsApi.updateAnnotation}
-      />
+      <div style={{ width: dims.width, height: dims.height, transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
+        <canvas ref={canvasRef} className="block" />
+        <AnnotationLayer
+          width={dims.width}
+          height={dims.height}
+          annotations={annotationsApi.getPageAnnotations(pageNumber)}
+          liveDraft={liveDraft}
+          selectedId={annotationsApi.selectedId}
+          activeTool={activeTool}
+          justCreatedId={justCreatedId}
+          onSelect={annotationsApi.selectAnnotation}
+          onUpdate={annotationsApi.updateAnnotation}
+        />
+      </div>
     </div>
   )
 }
