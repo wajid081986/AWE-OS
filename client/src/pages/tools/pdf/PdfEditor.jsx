@@ -771,6 +771,31 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
   return null
 }
 
+// ── Form Field Overlay (batch-26) ─────────────────────────────────────────────
+// Placeholder for a detected-but-not-yet-filled AcroForm field. Clicking it
+// creates a real annotation (text/checkmark) at that position via the
+// existing annotation pipeline — see onFillFormText/onToggleFormCheckbox/
+// setRadioSelection in PdfEditorTool. Once filled, the real annotation takes
+// over and this placeholder stops rendering (filtered out by formFieldId).
+function FormFieldEl({ field, zoom, pageW, pageH, onFillText, onToggleCheck, onSelectRadio }) {
+  const L = field.xf * pageW * zoom, T = field.yf * pageH * zoom
+  const W = Math.max(4, field.wf * pageW * zoom), H = Math.max(4, field.hf * pageH * zoom)
+  const base = { position:'absolute', left:L, top:T, width:W, height:H, zIndex:4, boxSizing:'border-box' }
+  if (field.fieldType==='Tx') return (
+    <div style={{ ...base, border:'1.5px dashed #3b82f6', background:'rgba(59,130,246,0.08)', cursor:'text' }}
+      onClick={()=>onFillText(field)} title={`Form field: ${field.fieldName}`} />
+  )
+  if (field.checkBox) return (
+    <div style={{ ...base, border:'1.5px dashed #3b82f6', background:'rgba(59,130,246,0.08)', cursor:'pointer' }}
+      onClick={()=>onToggleCheck(field)} title={`Checkbox: ${field.fieldName}`} />
+  )
+  if (field.radioButton) return (
+    <div style={{ ...base, border:'1.5px dashed #3b82f6', borderRadius:'50%', background:'rgba(59,130,246,0.08)', cursor:'pointer' }}
+      onClick={()=>onSelectRadio(field)} title={`Radio: ${field.fieldName}`} />
+  )
+  return null
+}
+
 // ── Draw Preview ──────────────────────────────────────────────────────────────
 function DrawPreview({ tool, start, end, pageW, pageH, zoom, strokeColor, fillColor, strokeWidth, highlightColor, opacity, shapeOpacity, polyPts }) {
   if (!start || !end) return null
@@ -1013,6 +1038,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   const [pageDims, setPageDims]           = useState({})
   const [pageOrder, setPageOrder]         = useState([])
   const [pageRotations, setPageRotations] = useState({})
+  const [formFields, setFormFields]       = useState({})
   const [phase, setPhase]                 = useState('idle')
 
   // View
@@ -1152,12 +1178,31 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
     try {
       const doc = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise
       const dims = {}
+      const fields = {}
       for (let i = 0; i < doc.numPages; i++) {
         const pg = await doc.getPage(i + 1)
         const vp = pg.getViewport({ scale: 1 })
         dims[i] = { width: vp.width, height: vp.height }
+
+        // Detect AcroForm widget fields for the cover-and-place fill flow (batch-26).
+        const pageAnnos = await pg.getAnnotations()
+        const detected = pageAnnos
+          .filter(a => a.annotationType===pdfjsLib.AnnotationType.WIDGET && !a.readOnly &&
+            (a.fieldType==='Tx' || (a.fieldType==='Btn' && (a.checkBox||a.radioButton))))
+          .map(a => {
+            const [rx1,ry1,rx2,ry2] = a.rect
+            const x1=Math.min(rx1,rx2), x2=Math.max(rx1,rx2), y1=Math.min(ry1,ry2), y2=Math.max(ry1,ry2)
+            return {
+              id:a.id, fieldName:a.fieldName, fieldType:a.fieldType,
+              checkBox:!!a.checkBox, radioButton:!!a.radioButton,
+              exportValue:a.exportValue, buttonValue:a.buttonValue, fieldValue:a.fieldValue,
+              multiLine:!!a.multiLine, maxLen:a.maxLen,
+              xf:x1/vp.width, yf:(vp.height-y2)/vp.height, wf:(x2-x1)/vp.width, hf:(y2-y1)/vp.height,
+            }
+          })
+        if (detected.length) fields[i] = detected
       }
-      setPdfBytes(buf); setPdfjsDoc(doc); setPageDims(dims)
+      setPdfBytes(buf); setPdfjsDoc(doc); setPageDims(dims); setFormFields(fields)
       setPageOrder(Array.from({ length: doc.numPages }, (_, i) => i))
       setPageRotations({}); setAnnotations({})
       setPast([]); setFuture([])
@@ -1165,6 +1210,9 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       setDownloadName((fileName || 'document').replace(/\.pdf$/i, '') + '-edited')
       setDlTo(doc.numPages)
       setPhase('ready')
+
+      const totalFields = Object.values(fields).reduce((s,a)=>s+a.length,0)
+      if (totalFields>0) showToast(`This PDF has ${totalFields} fillable field${totalFields>1?'s':''} — detected automatically.`)
     } catch (err) {
       console.error('[pdf-editor] load error:', err); setPhase('idle')
     }
@@ -1380,6 +1428,28 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   function addAnn(pi, ann) { pushHistory(); setAnnotations(prev=>({...prev,[pi]:[...(prev[pi]||[]),ann]})); setSelectedId(ann.id) }
   // Adds multiple annotations as one history entry (e.g. Edit Text's whiteout+textbox pair) so one Undo reverts the whole action.
   function addAnns(pi, anns) { pushHistory(); setAnnotations(prev=>({...prev,[pi]:[...(prev[pi]||[]),...anns]})); setSelectedId(anns[anns.length-1].id) }
+  // ── Form field fill (batch-26) — converts a detected field into a real annotation ──
+  function onFillFormText(pi, field) {
+    const dim = pageDims[pi]||{width:595,height:842}
+    const size = Math.max(8, Math.min(14, Math.round(field.hf*dim.height*0.6)))
+    addAnn(pi,{id:uid(),page:pi,type:'text',x:field.xf,y:field.yf,w:field.wf,h:field.hf,
+      text:field.fieldValue||'',fontSize:size,fontFamily:'Helvetica',fontColor:'#111827',
+      bold:false,italic:false,underlineText:false,textAlign:'left',formFieldId:field.id})
+  }
+  function onToggleFormCheckbox(pi, field) {
+    addAnn(pi,{id:uid(),page:pi,type:'checkmark',x:field.xf,y:field.yf,w:field.wf,h:field.hf,
+      strokeColor:'#111827',strokeWidth:2,formFieldId:field.id})
+  }
+  function setRadioSelection(pi, field) {
+    pushHistory()
+    setAnnotations(prev=>{
+      const arr=(prev[pi]||[]).filter(a=>a.formFieldGroup!==field.fieldName)
+      const newAnn={id:uid(),page:pi,type:'checkmark',x:field.xf,y:field.yf,w:field.wf,h:field.hf,
+        strokeColor:'#111827',strokeWidth:2,formFieldId:field.id,formFieldGroup:field.fieldName}
+      return {...prev,[pi]:[...arr,newAnn]}
+    })
+    setSelectedId(null)
+  }
   function updateAnn(pi, id, upd) { setAnnotations(prev=>({...prev,[pi]:(prev[pi]||[]).map(a=>a.id===id?{...a,...upd}:a)})) }
   function deleteAnn(id) { pushHistory(); setAnnotations(prev=>{const n={};for(const[k,arr]of Object.entries(prev))n[k]=arr.filter(a=>a.id!==id);return n}); setSelectedId(null) }
   function duplicateAnn(id) {
@@ -2095,6 +2165,10 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                         onChange={upd=>{pushHistory();updateAnn(pi,ann.id,upd)}}
                         onContextMenu={(cx,cy)=>setCtxMenu({x:cx,y:cy,id:ann.id})}
                       />
+                    ))}
+                    {!activeTool&&(formFields[pi]||[]).filter(f=>!pageAnns.some(a=>a.formFieldId===f.id)).map(field=>(
+                      <FormFieldEl key={field.id} field={field} zoom={zoom} pageW={dim.width} pageH={dim.height}
+                        onFillText={f=>onFillFormText(pi,f)} onToggleCheck={f=>onToggleFormCheckbox(pi,f)} onSelectRadio={f=>setRadioSelection(pi,f)} />
                     ))}
                     {isDrawing&&drawPage===pi&&!['draw','hlpen','eraser'].includes(activeTool)&&(
                       <DrawPreview tool={activeTool} start={drawStart} end={drawEnd}
