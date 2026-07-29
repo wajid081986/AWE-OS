@@ -169,6 +169,11 @@ const RIBBON_TABS = [
     { id:'_dark',       icon:'🌙', label:'Dark Mode', act:'dark-mode',   cls:'text-lg' },
     'sep',
     { id:'_extract-txt',icon:'📋', label:'Extract Text', act:'extract-text', cls:'text-lg' },
+    'sep',
+    { id:'_find',       icon:'🔍', label:'Find Text',  act:'find-open',   cls:'text-lg' },
+    'sep',
+    { id:'_export-anns',icon:'📤', label:'Export Anns',act:'export-anns', cls:'text-lg' },
+    { id:'_import-anns',icon:'📥', label:'Import Anns',act:'import-anns', cls:'text-lg' },
   ]},
 ]
 
@@ -1131,6 +1136,13 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   const [splitOpen, setSplitOpen]         = useState(false)
   const [splitting, setSplitting]         = useState(false)
 
+  // Find in PDF (batch-27)
+  const [findOpen, setFindOpen]     = useState(false)
+  const [findQuery, setFindQuery]   = useState('')
+  const [findMatches, setFindMatches] = useState([])
+  const [findIndex, setFindIndex]   = useState(0)
+  const [finding, setFinding]       = useState(false)
+
   // Upload state — new-tab flow
   const [uploadError,  setUploadError]  = useState(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -1147,6 +1159,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   const dragPageRef   = useRef(null)
   const imageInputRef = useRef(null)
   const fromFileRef   = useRef(null)
+  const annImportRef  = useRef(null)
   const pendingImg    = useRef(null)
   const centerRef     = useRef(null)
   const downloadRef   = useRef(null)
@@ -1399,7 +1412,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       if (meta && e.key==='d' && selectedId) { e.preventDefault(); duplicateAnn(selectedId); return }
       if (e.key==='Escape') {
         setDownloadOpen(false); setSelectedId(null); setActiveTool(null); setPolyPts([])
-        setWmOpen(false); setHfOpen(false); setPwdOpen(false); setSigOpen(false); setExtractOpen(false); setDlRangeOpen(false); setSplitOpen(false)
+        setWmOpen(false); setHfOpen(false); setPwdOpen(false); setSigOpen(false); setExtractOpen(false); setDlRangeOpen(false); setSplitOpen(false); setFindOpen(false)
         return
       }
       if ((e.key==='Delete'||e.key==='Backspace') && selectedId && tag!=='INPUT' && tag!=='TEXTAREA') {
@@ -1510,6 +1523,9 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       case 'dark-mode':     setDarkCanvas(v=>!v); break
       case 'toggle-meta':   setStripMeta(v=>!v); break
       case 'extract-text':  extractAllText(); break
+      case 'find-open':     setFindOpen(v=>!v); break
+      case 'export-anns':   exportAnnotationsJson(); break
+      case 'import-anns':   annImportRef.current?.click(); break
       case 'edit-text-hint':  break  // disabled — button shows tooltip instead
       case 'edit-image-hint': break  // disabled — button shows tooltip instead
       default: break
@@ -1783,6 +1799,91 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
     setExtracting(false)
   }
 
+  // ── Find in PDF (batch-27) ───────────────────────────────────────────────────
+  function goToMatch(match) {
+    const di = pageOrder.indexOf(match.page)
+    if (di<0) return
+    setCurrentPage(di)
+    pageElRefs.current[match.page]?.scrollIntoView({ behavior:'smooth', block:'center' })
+  }
+  async function runFind(query) {
+    const q = query.trim().toLowerCase()
+    if (!pdfjsDoc || !q) { setFindMatches([]); setFindIndex(0); return }
+    setFinding(true)
+    try {
+      const matches = []
+      for (let pi=0; pi<pdfjsDoc.numPages; pi++) {
+        const pg = await pdfjsDoc.getPage(pi+1)
+        const content = await pg.getTextContent()
+        const dim = pageDims[pi]||{width:595,height:842}
+        for (const item of content.items) {
+          const str = item.str||''
+          const lower = str.toLowerCase()
+          let idx = 0
+          while (true) {
+            const found = lower.indexOf(q, idx)
+            if (found===-1) break
+            const [,,,,e,f] = item.transform
+            const startRatio = str.length ? found/str.length : 0
+            const widthRatio = str.length ? q.length/str.length : 0
+            const x = e + startRatio*(item.width||0)
+            const w = Math.max(2, widthRatio*(item.width||0))
+            const h = item.height || 10
+            matches.push({ page:pi, xf:x/dim.width, yf:(dim.height-(f+h))/dim.height, wf:w/dim.width, hf:h/dim.height })
+            idx = found + q.length
+          }
+        }
+      }
+      matches.sort((a,b)=>pageOrder.indexOf(a.page)-pageOrder.indexOf(b.page))
+      setFindMatches(matches); setFindIndex(0)
+      if (matches.length) goToMatch(matches[0])
+      else showToast('No matches found.', 'error')
+    } catch (err) { console.error('[pdf-editor] find error:', err) }
+    setFinding(false)
+  }
+  function findNext() {
+    if (!findMatches.length) return
+    const next = (findIndex+1)%findMatches.length
+    setFindIndex(next); goToMatch(findMatches[next])
+  }
+  function findPrev() {
+    if (!findMatches.length) return
+    const prev = (findIndex-1+findMatches.length)%findMatches.length
+    setFindIndex(prev); goToMatch(findMatches[prev])
+  }
+
+  // ── Export / Import Annotations as JSON (batch-27) ───────────────────────────
+  function exportAnnotationsJson() {
+    const payload = { version:1, pageCount:pageOrder.length, exportedAt:new Date().toISOString(), annotations }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' })
+    downloadBlob(blob, `${downloadName}-annotations.json`)
+  }
+  function onImportAnnotationsFile(e) {
+    const file = e.target.files[0]; if (!file) return; e.target.value=''
+    const reader = new FileReader()
+    reader.onload = ev => {
+      try {
+        const parsed = JSON.parse(ev.target.result)
+        const imported = parsed && typeof parsed==='object' && parsed.annotations && typeof parsed.annotations==='object'
+          ? parsed.annotations : parsed
+        if (!imported || typeof imported!=='object' || !Object.values(imported).every(v=>Array.isArray(v))) {
+          showToast('Invalid annotations file format.', 'error'); return
+        }
+        if (parsed?.pageCount && parsed.pageCount!==pageOrder.length) {
+          showToast(`Imported file was exported from a ${parsed.pageCount}-page document (this one has ${pageOrder.length}) — annotations may land on the wrong page.`, 'error')
+        }
+        pushHistory()
+        setAnnotations(imported)
+        setSelectedId(null)
+        showToast('Annotations imported.')
+      } catch (err) {
+        console.error('[pdf-editor] import annotations error:', err)
+        showToast('Could not read that file — is it a valid annotations JSON export?', 'error')
+      }
+    }
+    reader.readAsText(file)
+  }
+
   // ── Navigation / Fit ────────────────────────────────────────────────────────
   function goToPage(di) {
     const c=Math.max(0,Math.min(pageOrder.length-1,di)); setCurrentPage(c)
@@ -1970,6 +2071,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
     <div className={fullScreen ? 'flex flex-col w-full h-screen overflow-hidden' : 'overflow-hidden rounded-xl border border-gray-200 shadow-2xl flex flex-col'} style={{ background:'#fff', ...(fullScreen ? {} : { minWidth:900 }) }}>
       <input ref={imageInputRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={onImageSelect} />
       <input ref={fromFileRef} type="file" accept=".pdf,application/pdf" className="hidden" onChange={onFromFile} />
+      <input ref={annImportRef} type="file" accept=".json,application/json" className="hidden" onChange={onImportAnnotationsFile} />
 
       {/* ══ TOP BAR ═══════════════════════════════════════════════════════════ */}
       <div className="flex items-center h-12 px-3 gap-2 flex-shrink-0" style={{ background:C.topBar }}>
@@ -2170,6 +2272,16 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                       <FormFieldEl key={field.id} field={field} zoom={zoom} pageW={dim.width} pageH={dim.height}
                         onFillText={f=>onFillFormText(pi,f)} onToggleCheck={f=>onToggleFormCheckbox(pi,f)} onSelectRadio={f=>setRadioSelection(pi,f)} />
                     ))}
+                    {findMatches.filter(m=>m.page===pi).map((m,mi)=>{
+                      const globalIdx = findMatches.indexOf(m)
+                      const isActive = globalIdx===findIndex
+                      return (
+                        <div key={mi} style={{ position:'absolute', left:m.xf*dim.width*zoom, top:m.yf*dim.height*zoom,
+                          width:Math.max(2,m.wf*dim.width*zoom), height:Math.max(2,m.hf*dim.height*zoom),
+                          background:isActive?'rgba(249,115,22,0.55)':'rgba(250,204,21,0.45)',
+                          outline:isActive?'2px solid #f97316':'none', zIndex:6, pointerEvents:'none' }} />
+                      )
+                    })}
                     {isDrawing&&drawPage===pi&&!['draw','hlpen','eraser'].includes(activeTool)&&(
                       <DrawPreview tool={activeTool} start={drawStart} end={drawEnd}
                         pageW={dim.width} pageH={dim.height} zoom={zoom}
@@ -2464,6 +2576,27 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
           <span className="text-gray-400 tabular-nums text-[10px] ml-1">{cursorPos.x},{cursorPos.y}</span>
         </div>
       </div>
+
+      {/* ══ FIND BAR ══════════════════════════════════════════════════════════ */}
+      {findOpen && (
+        <div className="fixed top-16 right-6 z-50 bg-white rounded-xl shadow-2xl border border-gray-200 p-3 flex items-center gap-2" style={{minWidth:340}}>
+          <input autoFocus value={findQuery} onChange={e=>setFindQuery(e.target.value)}
+            onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault(); e.shiftKey?findPrev():(findMatches.length?findNext():runFind(findQuery))}}}
+            placeholder="Find in document…"
+            className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <button onClick={()=>runFind(findQuery)} disabled={finding}
+            className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-medium whitespace-nowrap">
+            {finding?'…':'Find'}
+          </button>
+          <span className="text-xs text-gray-500 whitespace-nowrap">{findMatches.length?`${findIndex+1}/${findMatches.length}`:'0/0'}</span>
+          <button onClick={findPrev} disabled={!findMatches.length} title="Previous"
+            className="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded disabled:opacity-30">↑</button>
+          <button onClick={findNext} disabled={!findMatches.length} title="Next"
+            className="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded disabled:opacity-30">↓</button>
+          <button onClick={()=>{setFindOpen(false);setFindMatches([]);setFindQuery('')}} title="Close"
+            className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-gray-600 rounded">✕</button>
+        </div>
+      )}
 
       {/* ══ CONTEXT MENU ═════════════════════════════════════════════════════ */}
       {ctxMenu&&(
