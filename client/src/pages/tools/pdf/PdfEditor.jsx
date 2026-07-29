@@ -781,7 +781,7 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
     const isTypew = type==='typewriter'
     return (
       <div style={{ ...base, minWidth:60, minHeight:18 }} onMouseDown={onDown} onContextMenu={onCtx} {...a11yProps}>
-        <textarea defaultValue={ann.text} key={ann.id}
+        <textarea defaultValue={ann.text} key={ann.id} autoFocus={selected}
           onChange={e=>onChange({text:e.target.value})}
           onMouseDown={e=>{e.stopPropagation();onSelect()}}
           placeholder="Type here…"
@@ -803,7 +803,7 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
       <div style={{ height:`${14*zoom}px`, background:'rgba(234,179,8,0.35)', borderRadius:'2px 2px 0 0', display:'flex', alignItems:'center', padding:'0 4px', userSelect:'none' }}>
         <span style={{ fontSize:`${9*zoom}px` }}>📝</span>
       </div>
-      <textarea defaultValue={ann.text} key={ann.id}
+      <textarea defaultValue={ann.text} key={ann.id} autoFocus={selected}
         onChange={e=>onChange({text:e.target.value})}
         onMouseDown={e=>{e.stopPropagation();onSelect()}}
         style={{ width:'100%', height:`calc(100% - ${14*zoom}px)`, fontSize:`${(ann.fontSize||11)*zoom*0.85}px`, color:ann.fontColor||'#78350f', background:'transparent', border:'none', resize:'none', padding:'2px 4px', cursor:'text', outline:'none' }} />
@@ -815,7 +815,7 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
   if (type==='callout') return (
     <div style={{ ...base, minWidth:80, minHeight:30 }} onMouseDown={onDown} onContextMenu={onCtx} {...a11yProps}>
       <div style={{ position:'absolute', top:0, left:0, width:W, height:H, background:'rgba(255,255,255,0.96)', border:`2px solid ${ann.strokeColor||'#3b82f6'}`, borderRadius:6, padding:4 }}>
-        <textarea defaultValue={ann.text} key={ann.id}
+        <textarea defaultValue={ann.text} key={ann.id} autoFocus={selected}
           onChange={e=>onChange({text:e.target.value})}
           onMouseDown={e=>{e.stopPropagation();onSelect()}}
           placeholder="Callout text…"
@@ -1713,6 +1713,11 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   function onPageDown(e, pi) {
     if (!activeTool || activeTool==='hand') return
     e.stopPropagation()
+    // Found via live QA: without this, the browser's own post-mousedown default focus handling
+    // (which runs after our synchronous React re-render/autoFocus already ran) moves focus back
+    // to <body>, silently undoing autoFocus on a freshly placed text/typewriter/note/callout
+    // annotation's textarea. preventDefault suppresses that competing default action.
+    e.preventDefault()
     const {xf,yf} = posFrac(e,pi)
 
     if (activeTool==='text'||activeTool==='typewriter') {
