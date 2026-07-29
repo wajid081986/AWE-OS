@@ -561,6 +561,43 @@ function ExtractTextModal({ text, loading, onClose }) {
   )
 }
 
+// ── Keyboard Shortcuts Modal (batch-28) ───────────────────────────────────────
+const SHORTCUT_GROUPS = [
+  { label:'Tools', items:[['V','Select'],['H','Hand'],['T','Text'],['I','Highlight'],['U','Underline'],['D','Draw'],['E','Eraser'],['N','Note'],['A','Arrow'],['R','Rectangle'],['W','Whiteout'],['S','Stamp']] },
+  { label:'Edit', items:[['Ctrl+Z','Undo'],['Ctrl+Y / Ctrl+Shift+Z','Redo'],['Ctrl+C','Copy annotation'],['Ctrl+V','Paste annotation'],['Ctrl+D','Duplicate annotation'],['Delete / Backspace','Delete annotation'],['Escape','Deselect / close panel']] },
+  { label:'View', items:[['+ / -','Zoom in/out'],['Ctrl+ / Ctrl-','Zoom in/out'],['[ / ]','Previous/next page'],['Ctrl+S','Download']] },
+]
+function ShortcutsModal({ onClose }) {
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+        <div className="flex items-center justify-between px-5 py-4 border-b">
+          <h3 className="font-semibold text-gray-900">Keyboard Shortcuts</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+        </div>
+        <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+          {SHORTCUT_GROUPS.map(g=>(
+            <div key={g.label}>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">{g.label}</p>
+              <div className="space-y-1">
+                {g.items.map(([key,desc])=>(
+                  <div key={key} className="flex items-center justify-between text-xs">
+                    <span className="text-gray-600">{desc}</span>
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px] font-mono text-gray-700">{key}</kbd>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="px-5 pb-5 flex justify-end">
+          <button onClick={onClose} className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">Close</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Resize Handles ────────────────────────────────────────────────────────────
 function ResizeHandles({ onResize, onDelete }) {
   return (
@@ -1055,6 +1092,9 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   const [darkCanvas, setDarkCanvas]   = useState(false)
   const [cursorPos, setCursorPos]     = useState({ x:0, y:0 })
   const [dragOverDi, setDragOverDi]   = useState(null)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
 
   // Tool properties
   const [fontColor, setFontColor]           = useState('#111827')
@@ -1162,6 +1202,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   const annImportRef  = useRef(null)
   const pendingImg    = useRef(null)
   const centerRef     = useRef(null)
+  const editorRootRef = useRef(null)
   const downloadRef   = useRef(null)
   const initLoadDone  = useRef(false)
 
@@ -1175,6 +1216,14 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
     document.addEventListener('mousedown', h)
     return () => document.removeEventListener('mousedown', h)
   }, [downloadOpen, ctxMenu])
+
+  // Keep the fullscreen button's icon/label in sync (batch-28) — also catches the
+  // browser's own native Escape-exits-fullscreen behavior, no extra code needed for that.
+  useEffect(() => {
+    const h = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', h)
+    return () => document.removeEventListener('fullscreenchange', h)
+  }, [])
 
   // Auto-load bytes when mounted as standalone (new-tab) editor
   useEffect(() => {
@@ -1306,7 +1355,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       const newIndices = Array.from({ length: numNew }, (_, i) => orig + i)
       const newOrder   = [...pageOrder]
       newOrder.splice(currentPage + 1, 0, ...newIndices)
-      pushHistory()
+      pushHistory('Insert from file')
       setPdfBytes(newBytes); setPdfjsDoc(newDoc); setPageDims(newDims); setPageOrder(newOrder)
     } catch (err) { console.error('[pdf-editor] from-file error', err) }
   }
@@ -1359,8 +1408,8 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   // duplicated in memory when a page op changes it (currently: insert from
   // file), since unrelated snapshots keep pointing at the same array.
   const snapshot = () => ({ annotations, pageOrder, pageRotations, pageDims, pdfBytes })
-  const pushHistory = useCallback(() => {
-    setPast(p => [...p.slice(-49), snapshot()]); setFuture([])
+  const pushHistory = useCallback((label='Edit') => {
+    setPast(p => [...p.slice(-49), { ...snapshot(), label }]); setFuture([])
   }, [annotations, pageOrder, pageRotations, pageDims, pdfBytes])
   const restoreSnapshot = useCallback(async (snap) => {
     setAnnotations(snap.annotations); setPageOrder(snap.pageOrder)
@@ -1376,15 +1425,36 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   const undo = useCallback(() => {
     if (!past.length) return
     const prevSnap = past[past.length-1]
-    setFuture(f => [snapshot(), ...f]); setPast(p => p.slice(0, -1))
+    setFuture(f => [{ ...snapshot(), label:prevSnap.label }, ...f]); setPast(p => p.slice(0, -1))
     restoreSnapshot(prevSnap)
   }, [past, annotations, pageOrder, pageRotations, pageDims, pdfBytes, restoreSnapshot])
   const redo = useCallback(() => {
     if (!future.length) return
     const nextSnap = future[0]
-    setPast(p => [...p, snapshot()]); setFuture(f => f.slice(1))
+    setPast(p => [...p, { ...snapshot(), label:nextSnap.label }]); setFuture(f => f.slice(1))
     restoreSnapshot(nextSnap)
   }, [future, annotations, pageOrder, pageRotations, pageDims, pdfBytes, restoreSnapshot])
+  // Jump directly to any history entry (history panel, batch-28). Math verified against
+  // worked examples: past/future stay in chronological order (oldest-first for past,
+  // nearest-future-first for future), matching what repeated undo()/redo() calls would produce.
+  const jumpToHistoryIndex = useCallback(async (i) => {
+    if (i<0 || i>=past.length) return
+    const target = past[i]
+    const toFuture = past.slice(i+1)
+    const currentLabel = past[past.length-1]?.label || 'Edit'
+    setPast(past.slice(0, i))
+    setFuture([...toFuture, { ...snapshot(), label:currentLabel }, ...future])
+    await restoreSnapshot(target)
+  }, [past, future, annotations, pageOrder, pageRotations, pageDims, pdfBytes, restoreSnapshot])
+  const jumpToFutureIndex = useCallback(async (i) => {
+    if (i<0 || i>=future.length) return
+    const target = future[i]
+    const toPast = future.slice(0, i)
+    const currentLabel = future[0]?.label || 'Edit'
+    setFuture(future.slice(i+1))
+    setPast([...past, { ...snapshot(), label:currentLabel }, ...toPast])
+    await restoreSnapshot(target)
+  }, [past, future, annotations, pageOrder, pageRotations, pageDims, pdfBytes, restoreSnapshot])
 
   // ── Keyboard Shortcuts ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -1405,14 +1475,14 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       if (meta && e.key==='v' && copiedAnn) {
         e.preventDefault()
         const n={...copiedAnn,id:uid(),x:Math.min(0.9,copiedAnn.x+0.03),y:Math.min(0.9,copiedAnn.y+0.03)}
-        pushHistory()
+        pushHistory('Paste annotation')
         setAnnotations(prev=>({...prev,[n.page]:[...(prev[n.page]||[]),n]}))
         setSelectedId(n.id); return
       }
       if (meta && e.key==='d' && selectedId) { e.preventDefault(); duplicateAnn(selectedId); return }
       if (e.key==='Escape') {
         setDownloadOpen(false); setSelectedId(null); setActiveTool(null); setPolyPts([])
-        setWmOpen(false); setHfOpen(false); setPwdOpen(false); setSigOpen(false); setExtractOpen(false); setDlRangeOpen(false); setSplitOpen(false); setFindOpen(false)
+        setWmOpen(false); setHfOpen(false); setPwdOpen(false); setSigOpen(false); setExtractOpen(false); setDlRangeOpen(false); setSplitOpen(false); setFindOpen(false); setHistoryOpen(false); setShortcutsOpen(false)
         return
       }
       if ((e.key==='Delete'||e.key==='Backspace') && selectedId && tag!=='INPUT' && tag!=='TEXTAREA') {
@@ -1438,9 +1508,9 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   }, [undo, redo, selectedId, copiedAnn, annotations, currentPage])
 
   // ── Annotation Helpers ──────────────────────────────────────────────────────
-  function addAnn(pi, ann) { pushHistory(); setAnnotations(prev=>({...prev,[pi]:[...(prev[pi]||[]),ann]})); setSelectedId(ann.id) }
+  function addAnn(pi, ann) { pushHistory(`Add ${ann.type}`); setAnnotations(prev=>({...prev,[pi]:[...(prev[pi]||[]),ann]})); setSelectedId(ann.id) }
   // Adds multiple annotations as one history entry (e.g. Edit Text's whiteout+textbox pair) so one Undo reverts the whole action.
-  function addAnns(pi, anns) { pushHistory(); setAnnotations(prev=>({...prev,[pi]:[...(prev[pi]||[]),...anns]})); setSelectedId(anns[anns.length-1].id) }
+  function addAnns(pi, anns) { pushHistory(`Add ${anns[anns.length-1].type}`); setAnnotations(prev=>({...prev,[pi]:[...(prev[pi]||[]),...anns]})); setSelectedId(anns[anns.length-1].id) }
   // ── Form field fill (batch-26) — converts a detected field into a real annotation ──
   function onFillFormText(pi, field) {
     const dim = pageDims[pi]||{width:595,height:842}
@@ -1454,7 +1524,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       strokeColor:'#111827',strokeWidth:2,formFieldId:field.id})
   }
   function setRadioSelection(pi, field) {
-    pushHistory()
+    pushHistory('Select radio option')
     setAnnotations(prev=>{
       const arr=(prev[pi]||[]).filter(a=>a.formFieldGroup!==field.fieldName)
       const newAnn={id:uid(),page:pi,type:'checkmark',x:field.xf,y:field.yf,w:field.wf,h:field.hf,
@@ -1464,10 +1534,10 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
     setSelectedId(null)
   }
   function updateAnn(pi, id, upd) { setAnnotations(prev=>({...prev,[pi]:(prev[pi]||[]).map(a=>a.id===id?{...a,...upd}:a)})) }
-  function deleteAnn(id) { pushHistory(); setAnnotations(prev=>{const n={};for(const[k,arr]of Object.entries(prev))n[k]=arr.filter(a=>a.id!==id);return n}); setSelectedId(null) }
+  function deleteAnn(id) { pushHistory('Delete annotation'); setAnnotations(prev=>{const n={};for(const[k,arr]of Object.entries(prev))n[k]=arr.filter(a=>a.id!==id);return n}); setSelectedId(null) }
   function duplicateAnn(id) {
     const ann=Object.values(annotations).flat().find(a=>a.id===id); if(!ann) return
-    pushHistory()
+    pushHistory('Duplicate annotation')
     const n={...ann,id:uid(),x:Math.min(0.9,ann.x+0.02),y:Math.min(0.9,ann.y+0.02)}
     setAnnotations(prev=>({...prev,[ann.page]:[...(prev[ann.page]||[]),n]})); setSelectedId(n.id)
   }
@@ -1711,10 +1781,10 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   }
 
   // ── Page Operations ─────────────────────────────────────────────────────────
-  function rotatePage(pi, dir) { pushHistory(); setPageRotations(prev=>({...prev,[pi]:((prev[pi]||0)+(dir==='cw'?90:270))%360})) }
+  function rotatePage(pi, dir) { pushHistory('Rotate page'); setPageRotations(prev=>({...prev,[pi]:((prev[pi]||0)+(dir==='cw'?90:270))%360})) }
   function deletePage(pi) {
     if(pageOrder.length<=1) return
-    pushHistory()
+    pushHistory('Delete page')
     setPageOrder(prev=>prev.filter(i=>i!==pi))
     setAnnotations(prev=>{const n={...prev};delete n[pi];return n})
     setCurrentPage(c=>Math.min(c,pageOrder.length-2))
@@ -1722,7 +1792,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   function insertBlankPage(position) {
     const newPi=-(Date.now())
     const refDim=pageDims[pageOrder[0]]||{width:595,height:842}
-    pushHistory()
+    pushHistory('Insert blank page')
     setPageDims(prev=>({...prev,[newPi]:refDim}))
     const idx=Math.max(0,currentPage)
     const newOrder=[...pageOrder]
@@ -1730,7 +1800,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
     setPageOrder(newOrder)
   }
   function duplicatePage() {
-    pushHistory()
+    pushHistory('Duplicate page')
     const pi=pageOrder[currentPage]
     const newOrder=[...pageOrder]
     newOrder.splice(currentPage+1,0,pi)
@@ -1738,21 +1808,21 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   }
   function movePageUp() {
     if(currentPage<=0) return
-    pushHistory()
+    pushHistory('Move page up')
     const newOrder=[...pageOrder]
     ;[newOrder[currentPage-1],newOrder[currentPage]]=[newOrder[currentPage],newOrder[currentPage-1]]
     setPageOrder(newOrder); setCurrentPage(c=>c-1)
   }
   function movePageDown() {
     if(currentPage>=pageOrder.length-1) return
-    pushHistory()
+    pushHistory('Move page down')
     const newOrder=[...pageOrder]
     ;[newOrder[currentPage],newOrder[currentPage+1]]=[newOrder[currentPage+1],newOrder[currentPage]]
     setPageOrder(newOrder); setCurrentPage(c=>c+1)
   }
   function reorderPage(from, to) {
     if(from===to||from==null||to==null) return
-    pushHistory()
+    pushHistory('Reorder pages')
     const newOrder=[...pageOrder]
     const[moved]=newOrder.splice(from,1)
     newOrder.splice(to,0,moved)
@@ -1872,7 +1942,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
         if (parsed?.pageCount && parsed.pageCount!==pageOrder.length) {
           showToast(`Imported file was exported from a ${parsed.pageCount}-page document (this one has ${pageOrder.length}) — annotations may land on the wrong page.`, 'error')
         }
-        pushHistory()
+        pushHistory('Import annotations')
         setAnnotations(imported)
         setSelectedId(null)
         showToast('Annotations imported.')
@@ -1898,6 +1968,22 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
     if(!Object.keys(pageDims).length||!centerRef.current) return
     const dim=pageDims[pageOrder[currentPage]]||pageDims[0]||{width:595,height:842}
     setZoom(Math.max(0.25,Math.min(3.0,+(Math.min((centerRef.current.clientWidth-80)/dim.width,(centerRef.current.clientHeight-80)/dim.height)).toFixed(2))))
+  }
+  function zoomToSelection() {
+    if (!selAnn || !centerRef.current) return
+    const dim = pageDims[selAnn.page]||{width:595,height:842}
+    const boxW = selAnn.w*dim.width, boxH = selAnn.h*dim.height
+    if (boxW<=0||boxH<=0) return
+    const availW = centerRef.current.clientWidth-160, availH = centerRef.current.clientHeight-160
+    const z = Math.max(0.25, Math.min(3.0, Math.min(availW/boxW, availH/boxH)))
+    setZoom(+z.toFixed(2))
+    setCurrentPage(pageOrder.indexOf(selAnn.page))
+    // Waits a tick for the zoom-triggered re-render/resize to land before scrolling to the new layout.
+    setTimeout(()=>pageElRefs.current[selAnn.page]?.scrollIntoView({behavior:'smooth',block:'center'}), 60)
+  }
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) editorRootRef.current?.requestFullscreen?.().catch(()=>{})
+    else document.exitFullscreen?.().catch(()=>{})
   }
 
   // ── Download ─────────────────────────────────────────────────────────────────
@@ -2011,7 +2097,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   const totalAnns = Object.values(annotations).reduce((s,a)=>s+a.length,0)
   const selAnn    = selectedId ? Object.values(annotations).flat().find(a=>a.id===selectedId) : null
   // Commits a change directly onto the selected annotation (as opposed to updateAnn's raw form, this always logs one undo step per call).
-  function updateSelAnn(upd) { if(!selAnn) return; pushHistory(); updateAnn(selAnn.page, selAnn.id, upd) }
+  function updateSelAnn(upd) { if(!selAnn) return; pushHistory('Edit annotation'); updateAnn(selAnn.page, selAnn.id, upd) }
   const activeTools = RIBBON_TABS.find(t=>t.id===activeTab)?.tools || []
 
   // Which pages to show
@@ -2068,7 +2154,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   )
 
   return (
-    <div className={fullScreen ? 'flex flex-col w-full h-screen overflow-hidden' : 'overflow-hidden rounded-xl border border-gray-200 shadow-2xl flex flex-col'} style={{ background:'#fff', ...(fullScreen ? {} : { minWidth:900 }) }}>
+    <div ref={editorRootRef} className={fullScreen ? 'flex flex-col w-full h-screen overflow-hidden' : 'overflow-hidden rounded-xl border border-gray-200 shadow-2xl flex flex-col'} style={{ background:'#fff', ...(fullScreen ? {} : { minWidth:900 }) }}>
       <input ref={imageInputRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={onImageSelect} />
       <input ref={fromFileRef} type="file" accept=".pdf,application/pdf" className="hidden" onChange={onFromFile} />
       <input ref={annImportRef} type="file" accept=".json,application/json" className="hidden" onChange={onImportAnnotationsFile} />
@@ -2096,6 +2182,8 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
           </button>
           <button onClick={redo} disabled={!future.length} title="Redo (Ctrl+Y)"
             className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-300 hover:text-white hover:bg-white/10 disabled:opacity-25 transition-colors text-base">↪</button>
+          <button onClick={()=>setHistoryOpen(v=>!v)} disabled={!past.length&&!future.length} title="History panel"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-300 hover:text-white hover:bg-white/10 disabled:opacity-25 transition-colors text-sm">📜</button>
           <div className="h-5 w-px bg-white/20 mx-1" />
           <button onClick={()=>setZoom(z=>Math.max(0.25,+(z-0.25).toFixed(2)))} title="Zoom out"
             className="w-7 h-7 flex items-center justify-center rounded text-gray-300 hover:text-white hover:bg-white/10 font-bold transition-colors">−</button>
@@ -2115,6 +2203,12 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
             className="w-7 h-7 flex items-center justify-center rounded text-gray-300 hover:text-white hover:bg-white/10 disabled:opacity-25 transition-colors text-xl leading-none">›</button>
         </div>
         {totalAnns>0&&<span className="text-[10px] bg-blue-600/40 text-blue-200 rounded-full px-2 py-0.5 flex-shrink-0 hidden sm:inline">{totalAnns} ann</span>}
+        <button onClick={toggleFullscreen} title={isFullscreen?'Exit fullscreen':'Fullscreen'}
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors text-sm flex-shrink-0">
+          {isFullscreen?'⤡':'⤢'}
+        </button>
+        <button onClick={()=>setShortcutsOpen(true)} title="Keyboard shortcuts"
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors text-sm font-bold flex-shrink-0">?</button>
         <div ref={downloadRef} className="relative flex-shrink-0 ml-1">
           <button onClick={()=>setDownloadOpen(v=>!v)} disabled={phase==='saving'}
             className="flex items-center gap-2 px-4 h-8 rounded-lg text-white text-sm font-semibold disabled:opacity-50 transition-colors"
@@ -2264,7 +2358,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                         onDelete={()=>deleteAnn(ann.id)}
                         onDragStart={e=>{e.stopPropagation();setSelectedId(ann.id);dragRef.current={id:ann.id,pi,sx:e.clientX,sy:e.clientY,ox:ann.x,oy:ann.y}}}
                         onResizeStart={(e,handle)=>{e.stopPropagation();resizeRef.current={id:ann.id,pi,handle,sx:e.clientX,sy:e.clientY,ox:ann.x,oy:ann.y,ow:ann.w,oh:ann.h}}}
-                        onChange={upd=>{pushHistory();updateAnn(pi,ann.id,upd)}}
+                        onChange={upd=>{pushHistory('Edit text');updateAnn(pi,ann.id,upd)}}
                         onContextMenu={(cx,cy)=>setCtxMenu({x:cx,y:cy,id:ann.id})}
                       />
                     ))}
@@ -2508,7 +2602,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                       hasFill={!!selAnn.fillColor&&selAnn.fillColor!=='transparent'} onHasFill={v=>updateSelAnn({fillColor:v?(selAnn.fillColor&&selAnn.fillColor!=='transparent'?selAnn.fillColor:'#ffffff'):'transparent'})}
                       fillColor={selAnn.fillColor&&selAnn.fillColor!=='transparent'?selAnn.fillColor:'#ffffff'} onFillColor={v=>updateSelAnn({fillColor:v})}
                       opacity={selAnn.opacity??1} onOpacity={v=>updateAnn(selAnn.page,selAnn.id,{opacity:v})}
-                      opacityInputProps={{onMouseDown:()=>pushHistory(),onTouchStart:()=>pushHistory()}} />
+                      opacityInputProps={{onMouseDown:()=>pushHistory('Change opacity'),onTouchStart:()=>pushHistory('Change opacity')}} />
                   </div>
                 )}
 
@@ -2522,6 +2616,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                     <button onClick={()=>duplicateAnn(selectedId)} className="w-full py-2 text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition-colors font-medium">⧉ Duplicate</button>
                     <button onClick={()=>bringToFront(selectedId)} className="w-full py-2 text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition-colors font-medium">↑ Bring to Front</button>
                     <button onClick={()=>sendToBack(selectedId)}  className="w-full py-2 text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition-colors font-medium">↓ Send to Back</button>
+                    <button onClick={zoomToSelection} className="w-full py-2 text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition-colors font-medium">🔍 Zoom to Selection</button>
                     <button onClick={()=>deleteAnn(selectedId)}   className="w-full py-2 text-xs bg-red-50 hover:bg-red-100 text-red-600 rounded-lg border border-red-200 transition-colors font-medium">🗑 Delete</button>
                   </div>
                 )}
@@ -2576,6 +2671,40 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
           <span className="text-gray-400 tabular-nums text-[10px] ml-1">{cursorPos.x},{cursorPos.y}</span>
         </div>
       </div>
+
+      {/* ══ HISTORY PANEL ═════════════════════════════════════════════════════ */}
+      {historyOpen && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-white rounded-xl shadow-2xl border border-gray-200 w-72 max-h-[70vh] flex flex-col overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+            <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">History</p>
+            <button onClick={()=>setHistoryOpen(false)} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
+          </div>
+          <div className="overflow-y-auto py-1">
+            {future.slice().reverse().map((snap,ri)=>{
+              const i = future.length-1-ri
+              return (
+                <button key={`f${i}`} onClick={()=>jumpToFutureIndex(i)}
+                  className="w-full text-left px-4 py-2 text-xs text-gray-400 hover:bg-gray-50 transition-colors flex items-center gap-2">
+                  <span className="w-4 text-center">↷</span>{snap.label}
+                </button>
+              )
+            })}
+            <div className="px-4 py-2 text-xs font-semibold text-blue-600 bg-blue-50 flex items-center gap-2">
+              <span className="w-4 text-center">●</span>Current
+            </div>
+            {past.slice(-20).reverse().map((snap,ri)=>{
+              const i = past.length-1-ri
+              return (
+                <button key={`p${i}`} onClick={()=>jumpToHistoryIndex(i)}
+                  className="w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2">
+                  <span className="w-4 text-center">↶</span>{snap.label}
+                </button>
+              )
+            })}
+            {!past.length&&!future.length&&<p className="px-4 py-6 text-xs text-gray-400 text-center">No history yet.</p>}
+          </div>
+        </div>
+      )}
 
       {/* ══ FIND BAR ══════════════════════════════════════════════════════════ */}
       {findOpen && (
@@ -2632,6 +2761,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
         onConfirm={handleDownloadRange} onClose={()=>setDlRangeOpen(false)} />}
       {extractOpen&&<ExtractTextModal text={extractedText} loading={extracting} onClose={()=>setExtractOpen(false)} />}
       {splitOpen&&<SplitModal total={pageOrder.length} splitting={splitting} onSplit={handleSplit} onClose={()=>setSplitOpen(false)} />}
+      {shortcutsOpen&&<ShortcutsModal onClose={()=>setShortcutsOpen(false)} />}
     </div>
   )
 }
