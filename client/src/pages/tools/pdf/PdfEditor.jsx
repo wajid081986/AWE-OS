@@ -7,6 +7,7 @@ import { downloadFile, downloadBlob, isPdfFile } from './pdfUtils'
 import { savePdfSession, evictOldPdfSessions } from './pdfEditorSession'
 import { TOOL_ABOUT } from '../../../data/toolPageContent'
 import DisabledToolButton from '../../../components/pdf-editor/DisabledToolButton'
+import { useToast } from '../../../shared/components/ToastContext'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerSrc
 
@@ -632,7 +633,7 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
       <div style={{ ...base, minWidth:60, minHeight:18 }} onMouseDown={onDown} onContextMenu={onCtx}>
         <textarea defaultValue={ann.text} key={ann.id}
           onChange={e=>onChange({text:e.target.value})}
-          onMouseDown={e=>e.stopPropagation()}
+          onMouseDown={e=>{e.stopPropagation();onSelect()}}
           placeholder="Type here…"
           style={{ width:'100%', height:'100%', fontSize:`${(ann.fontSize||14)*zoom*0.85}px`,
             fontFamily:ann.fontFamily||'Helvetica,Arial,sans-serif', color:ann.fontColor||'#111827',
@@ -654,7 +655,7 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
       </div>
       <textarea defaultValue={ann.text} key={ann.id}
         onChange={e=>onChange({text:e.target.value})}
-        onMouseDown={e=>e.stopPropagation()}
+        onMouseDown={e=>{e.stopPropagation();onSelect()}}
         style={{ width:'100%', height:`calc(100% - ${14*zoom}px)`, fontSize:`${(ann.fontSize||11)*zoom*0.85}px`, color:ann.fontColor||'#78350f', background:'transparent', border:'none', resize:'none', padding:'2px 4px', cursor:'text', outline:'none' }} />
       {selected && <ResizeHandles onResize={onResizeStart} onDelete={onDelete} />}
     </div>
@@ -666,7 +667,7 @@ function AnnotationEl({ ann, zoom, pageW, pageH, selected, onSelect, onDragStart
       <div style={{ position:'absolute', top:0, left:0, width:W, height:H, background:'rgba(255,255,255,0.96)', border:`2px solid ${ann.strokeColor||'#3b82f6'}`, borderRadius:6, padding:4 }}>
         <textarea defaultValue={ann.text} key={ann.id}
           onChange={e=>onChange({text:e.target.value})}
-          onMouseDown={e=>e.stopPropagation()}
+          onMouseDown={e=>{e.stopPropagation();onSelect()}}
           placeholder="Callout text…"
           style={{ width:'100%', height:'100%', fontSize:`${(ann.fontSize||13)*zoom*0.85}px`, color:ann.fontColor||'#111827', background:'transparent', border:'none', resize:'none', outline:'none', overflow:'hidden' }} />
       </div>
@@ -926,6 +927,8 @@ async function applyGlobalSettings(doc, font, wm, hf, pgNum) {
 
 // ── Main Editor Component ─────────────────────────────────────────────────────
 function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOnUpload = false, fullScreen = false }) {
+  const { showToast } = useToast()
+
   // File
   const [pdfFile, setPdfFile]             = useState(null)
   const [pdfBytes, setPdfBytes]           = useState(null)
@@ -1160,6 +1163,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       const newIndices = Array.from({ length: numNew }, (_, i) => orig + i)
       const newOrder   = [...pageOrder]
       newOrder.splice(currentPage + 1, 0, ...newIndices)
+      pushHistory()
       setPdfBytes(newBytes); setPdfjsDoc(newDoc); setPageDims(newDims); setPageOrder(newOrder)
     } catch (err) { console.error('[pdf-editor] from-file error', err) }
   }
@@ -1204,21 +1208,40 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   useEffect(() => { if (phase==='ready') pageOrder.forEach(pi => renderThumb(pi)) }, [phase, pdfjsDoc, pageOrder, renderThumb])
 
   // ── Undo / Redo ─────────────────────────────────────────────────────────────
-  const pushHistory = useCallback((snap) => { setPast(p => [...p.slice(-49), snap]); setFuture([]) }, [])
+  // Snapshots cover the full document/annotation state (not just annotations)
+  // so page ops (rotate/delete/duplicate/move/insert/insert-from-file) are
+  // genuinely undoable, not just annotation edits. Fields are stored by
+  // reference (every setter already replaces rather than mutates), so most
+  // snapshots cost only a few pointers — pdfBytes is only actually
+  // duplicated in memory when a page op changes it (currently: insert from
+  // file), since unrelated snapshots keep pointing at the same array.
+  const snapshot = () => ({ annotations, pageOrder, pageRotations, pageDims, pdfBytes })
+  const pushHistory = useCallback(() => {
+    setPast(p => [...p.slice(-49), snapshot()]); setFuture([])
+  }, [annotations, pageOrder, pageRotations, pageDims, pdfBytes])
+  const restoreSnapshot = useCallback(async (snap) => {
+    setAnnotations(snap.annotations); setPageOrder(snap.pageOrder)
+    setPageRotations(snap.pageRotations); setPageDims(snap.pageDims)
+    setSelectedId(null)
+    if (snap.pdfBytes !== pdfBytes) {
+      try {
+        const doc = await pdfjsLib.getDocument({ data: snap.pdfBytes.slice(0) }).promise
+        setPdfBytes(snap.pdfBytes); setPdfjsDoc(doc)
+      } catch (err) { console.error('[pdf-editor] undo/redo re-parse error:', err) }
+    }
+  }, [pdfBytes])
   const undo = useCallback(() => {
-    setPast(p => {
-      if (!p.length) return p
-      setFuture(f => [annotations, ...f]); setAnnotations(p[p.length-1]); setSelectedId(null)
-      return p.slice(0, -1)
-    })
-  }, [annotations])
+    if (!past.length) return
+    const prevSnap = past[past.length-1]
+    setFuture(f => [snapshot(), ...f]); setPast(p => p.slice(0, -1))
+    restoreSnapshot(prevSnap)
+  }, [past, annotations, pageOrder, pageRotations, pageDims, pdfBytes, restoreSnapshot])
   const redo = useCallback(() => {
-    setFuture(f => {
-      if (!f.length) return f
-      setPast(p => [...p, annotations]); setAnnotations(f[0]); setSelectedId(null)
-      return f.slice(1)
-    })
-  }, [annotations])
+    if (!future.length) return
+    const nextSnap = future[0]
+    setPast(p => [...p, snapshot()]); setFuture(f => f.slice(1))
+    restoreSnapshot(nextSnap)
+  }, [future, annotations, pageOrder, pageRotations, pageDims, pdfBytes, restoreSnapshot])
 
   // ── Keyboard Shortcuts ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -1239,12 +1262,16 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       if (meta && e.key==='v' && copiedAnn) {
         e.preventDefault()
         const n={...copiedAnn,id:uid(),x:Math.min(0.9,copiedAnn.x+0.03),y:Math.min(0.9,copiedAnn.y+0.03)}
-        pushHistory(annotations)
+        pushHistory()
         setAnnotations(prev=>({...prev,[n.page]:[...(prev[n.page]||[]),n]}))
         setSelectedId(n.id); return
       }
       if (meta && e.key==='d' && selectedId) { e.preventDefault(); duplicateAnn(selectedId); return }
-      if (e.key==='Escape') { setDownloadOpen(false); setSelectedId(null); setActiveTool(null); setPolyPts([]); return }
+      if (e.key==='Escape') {
+        setDownloadOpen(false); setSelectedId(null); setActiveTool(null); setPolyPts([])
+        setWmOpen(false); setHfOpen(false); setPwdOpen(false); setSigOpen(false); setExtractOpen(false); setDlRangeOpen(false)
+        return
+      }
       if ((e.key==='Delete'||e.key==='Backspace') && selectedId && tag!=='INPUT' && tag!=='TEXTAREA') {
         e.preventDefault(); deleteAnn(selectedId); return
       }
@@ -1268,12 +1295,14 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   }, [undo, redo, selectedId, copiedAnn, annotations, currentPage])
 
   // ── Annotation Helpers ──────────────────────────────────────────────────────
-  function addAnn(pi, ann) { pushHistory(annotations); setAnnotations(prev=>({...prev,[pi]:[...(prev[pi]||[]),ann]})); setSelectedId(ann.id) }
+  function addAnn(pi, ann) { pushHistory(); setAnnotations(prev=>({...prev,[pi]:[...(prev[pi]||[]),ann]})); setSelectedId(ann.id) }
+  // Adds multiple annotations as one history entry (e.g. Edit Text's whiteout+textbox pair) so one Undo reverts the whole action.
+  function addAnns(pi, anns) { pushHistory(); setAnnotations(prev=>({...prev,[pi]:[...(prev[pi]||[]),...anns]})); setSelectedId(anns[anns.length-1].id) }
   function updateAnn(pi, id, upd) { setAnnotations(prev=>({...prev,[pi]:(prev[pi]||[]).map(a=>a.id===id?{...a,...upd}:a)})) }
-  function deleteAnn(id) { pushHistory(annotations); setAnnotations(prev=>{const n={};for(const[k,arr]of Object.entries(prev))n[k]=arr.filter(a=>a.id!==id);return n}); setSelectedId(null) }
+  function deleteAnn(id) { pushHistory(); setAnnotations(prev=>{const n={};for(const[k,arr]of Object.entries(prev))n[k]=arr.filter(a=>a.id!==id);return n}); setSelectedId(null) }
   function duplicateAnn(id) {
     const ann=Object.values(annotations).flat().find(a=>a.id===id); if(!ann) return
-    pushHistory(annotations)
+    pushHistory()
     const n={...ann,id:uid(),x:Math.min(0.9,ann.x+0.02),y:Math.min(0.9,ann.y+0.02)}
     setAnnotations(prev=>({...prev,[ann.page]:[...(prev[ann.page]||[]),n]})); setSelectedId(n.id)
   }
@@ -1449,8 +1478,10 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
     else if (activeTool==='whiteout')  addAnn(pi,{...base,type:'whiteout',opacity:1})
     else if (activeTool==='redact')    addAnn(pi,{...base,type:'redact'})
     else if (activeTool==='edit-text') {
-      addAnn(pi,{...base,type:'whiteout',opacity:1})
-      addAnn(pi,{id:uid(),page:pi,type:'text',x:xf,y:yf,w:wf,h:hf,text:'',fontSize,fontFamily,fontColor,bold,italic,underlineText,textAlign})
+      addAnns(pi,[
+        {...base,type:'whiteout',opacity:1},
+        {id:uid(),page:pi,type:'text',x:xf,y:yf,w:wf,h:hf,text:'',fontSize,fontFamily,fontColor,bold,italic,underlineText,textAlign}
+      ])
       setActiveTool(null)   // one-shot, like the plain Text tool — lets the user click straight into the textarea
     }
     else if (activeTool==='edit-image') {
@@ -1511,10 +1542,10 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   }
 
   // ── Page Operations ─────────────────────────────────────────────────────────
-  function rotatePage(pi, dir) { pushHistory(annotations); setPageRotations(prev=>({...prev,[pi]:((prev[pi]||0)+(dir==='cw'?90:270))%360})) }
+  function rotatePage(pi, dir) { pushHistory(); setPageRotations(prev=>({...prev,[pi]:((prev[pi]||0)+(dir==='cw'?90:270))%360})) }
   function deletePage(pi) {
     if(pageOrder.length<=1) return
-    pushHistory(annotations)
+    pushHistory()
     setPageOrder(prev=>prev.filter(i=>i!==pi))
     setAnnotations(prev=>{const n={...prev};delete n[pi];return n})
     setCurrentPage(c=>Math.min(c,pageOrder.length-2))
@@ -1522,7 +1553,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   function insertBlankPage(position) {
     const newPi=-(Date.now())
     const refDim=pageDims[pageOrder[0]]||{width:595,height:842}
-    pushHistory(annotations)
+    pushHistory()
     setPageDims(prev=>({...prev,[newPi]:refDim}))
     const idx=Math.max(0,currentPage)
     const newOrder=[...pageOrder]
@@ -1530,7 +1561,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
     setPageOrder(newOrder)
   }
   function duplicatePage() {
-    pushHistory(annotations)
+    pushHistory()
     const pi=pageOrder[currentPage]
     const newOrder=[...pageOrder]
     newOrder.splice(currentPage+1,0,pi)
@@ -1538,14 +1569,14 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   }
   function movePageUp() {
     if(currentPage<=0) return
-    pushHistory(annotations)
+    pushHistory()
     const newOrder=[...pageOrder]
     ;[newOrder[currentPage-1],newOrder[currentPage]]=[newOrder[currentPage],newOrder[currentPage-1]]
     setPageOrder(newOrder); setCurrentPage(c=>c-1)
   }
   function movePageDown() {
     if(currentPage>=pageOrder.length-1) return
-    pushHistory(annotations)
+    pushHistory()
     const newOrder=[...pageOrder]
     ;[newOrder[currentPage],newOrder[currentPage+1]]=[newOrder[currentPage+1],newOrder[currentPage]]
     setPageOrder(newOrder); setCurrentPage(c=>c+1)
@@ -1563,9 +1594,11 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       const fontB=await newDoc.embedFont(StandardFonts.HelveticaBold)
       const page=newDoc.getPages()[0]; const{width:W,height:H}=page.getSize()
       const rot=pageRotations[pi]||0; if(rot)page.setRotation(degrees(rot))
-      for(const ann of(annotations[pi]||[])){try{await embedAnnotation(page,ann,W,H,font,fontB,newDoc)}catch{}}
+      let failCount=0
+      for(const ann of(annotations[pi]||[])){try{await embedAnnotation(page,ann,W,H,font,fontB,newDoc)}catch(err){console.error('[pdf-editor] embed annotation failed:',ann.type,err);failCount++}}
       downloadFile(await newDoc.save(),`${downloadName}-p${pi+1}.pdf`)
-    } catch{}
+      warnIfEmbedFailures(failCount)
+    } catch(err){console.error('[pdf-editor] extract page error',err)}
     setPhase('ready')
   }
 
@@ -1611,6 +1644,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
     const newDoc=await PDFDocument.create()
     const font=await newDoc.embedFont(StandardFonts.Helvetica)
     const fontB=await newDoc.embedFont(StandardFonts.HelveticaBold)
+    let failCount=0
     for(const di of diRange) {
       const pi=pageOrder[di]
       if(pi===undefined) continue
@@ -1623,36 +1657,43 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
         const page=newDoc.getPages()[newDoc.getPageCount()-1]
         const{width:W,height:H}=page.getSize()
         const rot=pageRotations[pi]||0; if(rot)page.setRotation(degrees(rot))
-        for(const ann of(annotations[pi]||[])){try{await embedAnnotation(page,ann,W,H,font,fontB,newDoc)}catch{}}
+        for(const ann of(annotations[pi]||[])){try{await embedAnnotation(page,ann,W,H,font,fontB,newDoc)}catch(err){console.error('[pdf-editor] embed annotation failed:',ann.type,err);failCount++}}
       }
     }
     await applyGlobalSettings(newDoc,font,wm,hf,pgNum)
     if(stripMeta){newDoc.setTitle('');newDoc.setAuthor('');newDoc.setSubject('');newDoc.setKeywords([]);newDoc.setCreator('AWE-OS');newDoc.setProducer('')}
-    return newDoc.save()
+    return { bytes: await newDoc.save(), failCount }
+  }
+
+  function warnIfEmbedFailures(failCount) {
+    if (failCount > 0) showToast(`${failCount} annotation${failCount>1?'s':''} couldn't be added to the exported PDF and ${failCount>1?'were':'was'} skipped.`, 'error')
   }
 
   async function handleDownload() {
     if(!pdfBytes) return; setPhase('saving'); setDownloadOpen(false)
     try {
-      const bytes=await buildDoc(Array.from({length:pageOrder.length},(_,i)=>i))
+      const {bytes,failCount}=await buildDoc(Array.from({length:pageOrder.length},(_,i)=>i))
       const fname=`${downloadName||'edited'}${pwd.enabled?'_protected':''}.pdf`
       downloadFile(bytes,fname)
+      warnIfEmbedFailures(failCount)
     } catch(err){console.error('[pdf-editor] download error',err)}
     setPhase('ready')
   }
   async function handleDownloadRange() {
     if(!pdfBytes) return; setPhase('saving'); setDlRangeOpen(false)
     try {
-      const bytes=await buildDoc(Array.from({length:dlTo-dlFrom+1},(_,i)=>dlFrom-1+i))
+      const {bytes,failCount}=await buildDoc(Array.from({length:dlTo-dlFrom+1},(_,i)=>dlFrom-1+i))
       downloadFile(bytes,`${downloadName}-pages${dlFrom}-${dlTo}.pdf`)
+      warnIfEmbedFailures(failCount)
     } catch(err){console.error('[pdf-editor] range download error',err)}
     setPhase('ready')
   }
   async function handleDownloadCurrentPage() {
     if(!pdfBytes) return; setPhase('saving'); setDownloadOpen(false)
     try {
-      const bytes=await buildDoc([currentPage])
+      const {bytes,failCount}=await buildDoc([currentPage])
       downloadFile(bytes,`${downloadName}-p${currentPage+1}.pdf`)
+      warnIfEmbedFailures(failCount)
     } catch(err){console.error('[pdf-editor] page download error',err)}
     setPhase('ready')
   }
@@ -1905,7 +1946,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                         onDelete={()=>deleteAnn(ann.id)}
                         onDragStart={e=>{e.stopPropagation();setSelectedId(ann.id);dragRef.current={id:ann.id,pi,sx:e.clientX,sy:e.clientY,ox:ann.x,oy:ann.y}}}
                         onResizeStart={(e,handle)=>{e.stopPropagation();resizeRef.current={id:ann.id,pi,handle,sx:e.clientX,sy:e.clientY,ox:ann.x,oy:ann.y,ow:ann.w,oh:ann.h}}}
-                        onChange={upd=>{pushHistory(annotations);updateAnn(pi,ann.id,upd)}}
+                        onChange={upd=>{pushHistory();updateAnn(pi,ann.id,upd)}}
                         onContextMenu={(cx,cy)=>setCtxMenu({x:cx,y:cy,id:ann.id})}
                       />
                     ))}
@@ -1917,7 +1958,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                         polyPts={polyPts} />
                     )}
                     <div className="absolute inset-0"
-                      style={{zIndex:activeTool&&activeTool!=='hand'?20:0,cursor:activeTool?(CURSORS[activeTool]||'crosshair'):'default',pointerEvents:activeTool&&activeTool!=='hand'?'auto':'none'}}
+                      style={{zIndex:activeTool&&activeTool!=='hand'?1:0,cursor:activeTool?(CURSORS[activeTool]||'crosshair'):'default',pointerEvents:activeTool&&activeTool!=='hand'?'auto':'none'}}
                       onMouseDown={e=>onPageDown(e,pi)}
                       onMouseMove={e=>onPageMove(e,pi)}
                       onMouseUp={e=>onPageUp(e,pi)} />
