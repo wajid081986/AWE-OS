@@ -1789,6 +1789,10 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
 
   function onPageUp(e, pi) {
     if (!isDrawing || drawPage!==pi) { setIsDrawing(false); return }
+    // Same fix as onPageDown's preventDefault (batch-30 QA): edit-text creates its textbox
+    // here on mouseup rather than on mousedown, so without suppressing the browser's default
+    // post-mouseup/click focus handling, it steals focus back right after our autoFocus runs.
+    e.preventDefault()
     setIsDrawing(false)
     const s=drawStart, en=drawEnd||drawStart; if(!s) return
 
