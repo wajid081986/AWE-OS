@@ -61,6 +61,7 @@ const CURSORS = {
   polyline:'crosshair', dashed:'crosshair', measure:'crosshair',
   arrow:'crosshair', line:'crosshair', note:'copy', callout:'crosshair',
   image:'copy', signature:'copy', stamp:'copy', whiteout:'crosshair', redact:'crosshair',
+  'edit-text':'crosshair', 'edit-image':'crosshair',
   hand:'grab',
 }
 
@@ -125,8 +126,8 @@ const RIBBON_TABS = [
     { id:'_from-file',  icon:'📂', label:'From File',  act:'from-file',      cls:'text-lg' },
   ]},
   { id:'edit', label:'Edit PDF', tools:[
-    { id:'_edit-text',  icon:'📝', label:'Edit Text',  act:'edit-text-hint',  cls:'text-lg', disabled:true, disabledTip:'Direct PDF text editing coming soon. Use Text Box tool instead.' },
-    { id:'_edit-img',   icon:'🖼', label:'Edit Image', act:'edit-image-hint', cls:'text-lg', disabled:true, disabledTip:'Image replacement coming soon.' },
+    { id:'edit-text',   icon:'📝', label:'Edit Text',  key:'',  cls:'text-lg' },
+    { id:'edit-image',  icon:'🖼', label:'Edit Image', key:'',  cls:'text-lg' },
     'sep',
     { id:'whiteout',    icon:'□',  label:'Whiteout',   key:'W', cls:'text-xl' },
     { id:'redact',      icon:'■',  label:'Redact',     key:'',  cls:'text-xl' },
@@ -1447,6 +1448,16 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       addAnn(pi,{...base,type:activeTool,color:highlightColor,opacity:hlOpacity,strokeWidth})
     else if (activeTool==='whiteout')  addAnn(pi,{...base,type:'whiteout',opacity:1})
     else if (activeTool==='redact')    addAnn(pi,{...base,type:'redact'})
+    else if (activeTool==='edit-text') {
+      addAnn(pi,{...base,type:'whiteout',opacity:1})
+      addAnn(pi,{id:uid(),page:pi,type:'text',x:xf,y:yf,w:wf,h:hf,text:'',fontSize,fontFamily,fontColor,bold,italic,underlineText,textAlign})
+      setActiveTool(null)   // one-shot, like the plain Text tool — lets the user click straight into the textarea
+    }
+    else if (activeTool==='edit-image') {
+      addAnn(pi,{...base,type:'whiteout',opacity:1})
+      pendingImg.current={pi,xf:s.xf,yf:s.yf,wf,hf}
+      imageInputRef.current?.click()
+    }
     else if (activeTool==='rect')      addAnn(pi,{...base,type:'rect',strokeColor,fillColor:hasFill?fillColor:'transparent',strokeWidth})
     else if (activeTool==='circle')    addAnn(pi,{...base,type:'circle',strokeColor,fillColor:hasFill?fillColor:'transparent',strokeWidth})
     else if (['triangle','diamond','star','cloud','cross','checkmark'].includes(activeTool))
@@ -1486,8 +1497,8 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
     const file=e.target.files[0]; if(!file||!pendingImg.current) return
     const reader=new FileReader()
     reader.onload=ev=>{
-      const{pi,xf,yf}=pendingImg.current
-      addAnn(pi,{id:uid(),type:'image',page:pi,x:xf,y:yf,w:0.22,h:0.18,imageUrl:ev.target.result})
+      const{pi,xf,yf,wf,hf}=pendingImg.current
+      addAnn(pi,{id:uid(),type:'image',page:pi,x:xf,y:yf,w:wf??0.22,h:hf??0.18,imageUrl:ev.target.result})
       pendingImg.current=null
     }
     reader.readAsDataURL(file); e.target.value=''
@@ -1954,7 +1965,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                 </>}
 
                 {/* Text / Typewriter */}
-                {(activeTool==='text'||activeTool==='typewriter'||activeTool==='callout')&&!showPgNumPanel&&<>
+                {(activeTool==='text'||activeTool==='typewriter'||activeTool==='callout'||activeTool==='edit-text')&&!showPgNumPanel&&<>
                   <PropSection label="Font">
                     <select value={fontFamily} onChange={e=>setFontFamily(e.target.value)}
                       className="w-full border border-gray-200 rounded-lg text-xs px-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2">
@@ -2089,6 +2100,15 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                 {(activeTool==='whiteout'||activeTool==='redact')&&!showPgNumPanel&&(
                   <p className="text-xs text-gray-500 bg-gray-50 rounded-xl p-3 leading-relaxed">
                     {activeTool==='whiteout'?'Drag to draw a white rectangle that permanently covers content on download.':'Drag to draw a black rectangle that permanently redacts content on download.'}
+                  </p>
+                )}
+
+                {/* Edit Text / Edit Image */}
+                {(activeTool==='edit-text'||activeTool==='edit-image')&&!showPgNumPanel&&(
+                  <p className="text-xs text-gray-500 bg-gray-50 rounded-xl p-3 leading-relaxed">
+                    {activeTool==='edit-text'
+                      ? 'Drag over existing text to cover it and type a replacement using the font settings below.'
+                      : 'Drag over an existing image to cover it, then choose a replacement image to place in the same spot.'}
                   </p>
                 )}
 
