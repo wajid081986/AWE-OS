@@ -44,6 +44,7 @@ function uint8ToBase64(arr) {
 const C = {
   topBar:'#1f2937', sidebar:'#111827', canvas:'#e5e7eb',
   ribbon:'#f9fafb', download:'#16a34a', downloadH:'#15803d',
+  ribbonTabsDark:'#1f2937', ribbonDark:'#1f2937', panelDark:'#111827',
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -2233,6 +2234,14 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
   // Commits a change directly onto the selected annotation (as opposed to updateAnn's raw form, this always logs one undo step per call).
   function updateSelAnn(upd) { if(!selAnn) return; pushHistory('Edit annotation'); updateAnn(selAnn.page, selAnn.id, upd) }
   const activeTools = RIBBON_TABS.find(t=>t.id===activeTab)?.tools || []
+  // Shared by the many plain <select>/<input> fields in the right panel — batch-32 dark theme.
+  const fieldCls = darkCanvas
+    ? 'w-full border border-white/15 rounded-lg text-xs px-2 py-2 bg-[#1f2937] text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500'
+    : 'w-full border border-gray-200 rounded-lg text-xs px-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500'
+  const hintBoxBg = darkCanvas ? 'bg-white/5' : 'bg-gray-50'
+  const actionBtnCls = darkCanvas
+    ? 'w-full py-2 text-xs bg-white/5 hover:bg-white/10 text-gray-200 rounded-lg border border-white/15 transition-colors font-medium'
+    : 'w-full py-2 text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition-colors font-medium'
 
   // Which pages to show
   const pagesToShow = viewMode==='single'
@@ -2395,21 +2404,25 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
       </div>
 
       {/* ══ RIBBON TABS ═══════════════════════════════════════════════════════ */}
-      <div className="flex border-b border-gray-200 flex-shrink-0" style={{background:'#f1f5f9'}}>
+      <div className={`flex flex-shrink-0 border-b ${darkCanvas?'border-white/10':'border-gray-200'}`} style={{background:darkCanvas?C.ribbonTabsDark:'#f1f5f9'}}>
         {RIBBON_TABS.map(tab=>(
           <button key={tab.id} onClick={()=>setActiveTab(tab.id)}
-            className={`px-3.5 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap border-b-2 ${activeTab===tab.id?'bg-white border-blue-600 text-blue-700':'border-transparent text-gray-500 hover:text-gray-800 hover:bg-white/60'}`}>
+            className={`px-3.5 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap border-b-2 ${
+              activeTab===tab.id
+                ? (darkCanvas?'bg-white/10 border-blue-400 text-blue-300':'bg-white border-blue-600 text-blue-700')
+                : (darkCanvas?'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5':'border-transparent text-gray-500 hover:text-gray-800 hover:bg-white/60')
+            }`}>
             {tab.label}
           </button>
         ))}
       </div>
 
       {/* ══ TOOL RIBBON ═══════════════════════════════════════════════════════ */}
-      <div className="flex items-center h-14 px-3 border-b border-gray-200 gap-0.5 overflow-x-auto flex-shrink-0"
-        style={{background:C.ribbon}}>
+      <div className={`flex items-center h-14 px-3 border-b gap-0.5 overflow-x-auto flex-shrink-0 ${darkCanvas?'border-white/10':'border-gray-200'}`}
+        style={{background:darkCanvas?C.ribbonDark:C.ribbon}}>
         {activeTools.map((item,i)=>
           item==='sep'
-            ? <div key={`s${i}`} className="h-8 w-px bg-gray-300 mx-1.5 flex-shrink-0" />
+            ? <div key={`s${i}`} className={`h-8 w-px mx-1.5 flex-shrink-0 ${darkCanvas?'bg-white/15':'bg-gray-300'}`} />
             : item.disabled
               ? <DisabledToolButton key={item.id} icon={item.icon} label={item.label} tooltip={item.disabledTip || item.label} />
               : <ToolBtn key={item.id} tool={item} activeTool={activeTool} viewMode={viewMode} darkCanvas={darkCanvas} stripMeta={stripMeta} onSelect={handleToolSelect} onAction={handleAction} />
@@ -2534,15 +2547,15 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
         </div>
 
         {/* RIGHT PROPERTIES PANEL */}
-        <div className="w-[220px] flex-shrink-0 border-l border-gray-200 bg-white flex flex-col overflow-hidden">
+        <div className={`w-[220px] flex-shrink-0 border-l flex flex-col overflow-hidden ${darkCanvas?'border-white/10':'border-gray-200 bg-white'}`} style={darkCanvas?{background:C.panelDark}:undefined}>
           {(activeTool||selAnn||showPgNumPanel) ? (
             <>
-              <div className="px-4 py-3 border-b border-gray-100 flex-shrink-0 flex items-center justify-between">
-                <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+              <div className={`px-4 py-3 border-b flex-shrink-0 flex items-center justify-between ${darkCanvas?'border-white/10':'border-gray-100'}`}>
+                <p className={`text-xs font-bold uppercase tracking-wide ${darkCanvas?'text-gray-200':'text-gray-700'}`}>
                   {showPgNumPanel?'Page Numbers':activeTool?(activeTool.charAt(0).toUpperCase()+activeTool.slice(1)+' Tool'):'Selected'}
                 </p>
                 <button onClick={()=>{setActiveTool(null);setShowPgNumPanel(false)}}
-                  className="text-[10px] text-gray-400 hover:text-gray-600 px-1.5 py-0.5 rounded hover:bg-gray-100">Esc</button>
+                  className={`text-[10px] px-1.5 py-0.5 rounded ${darkCanvas?'text-gray-400 hover:text-gray-200 hover:bg-white/10':'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}>Esc</button>
               </div>
               <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
 
@@ -2550,12 +2563,11 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                 {showPgNumPanel && <>
                   <div className="flex items-center gap-2">
                     <input type="checkbox" id="pgn-en" checked={pgNum.enabled} onChange={e=>setPgNum({enabled:e.target.checked})} className="w-4 h-4 accent-blue-600" />
-                    <label htmlFor="pgn-en" className="text-sm font-medium text-gray-700">Enable Page Numbers</label>
+                    <label htmlFor="pgn-en" className={`text-sm font-medium ${darkCanvas?'text-gray-200':'text-gray-700'}`}>Enable Page Numbers</label>
                   </div>
                   {pgNum.enabled && <>
                     <PropSection label="Position">
-                      <select value={pgNum.pos} onChange={e=>setPgNum({pos:e.target.value})}
-                        className="w-full border border-gray-200 rounded-lg text-xs px-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <select value={pgNum.pos} onChange={e=>setPgNum({pos:e.target.value})} className={fieldCls}>
                         {['bottom-center','bottom-left','bottom-right','top-center','top-left','top-right'].map(p=><option key={p} value={p}>{p.replace('-',' ').replace(/\b\w/g,c=>c.toUpperCase())}</option>)}
                       </select>
                     </PropSection>
@@ -2563,8 +2575,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                       <input type="range" min={8} max={24} value={pgNum.size} onChange={e=>setPgNum({size:+e.target.value})} className="w-full accent-blue-600" />
                     </PropSection>
                     <PropSection label="Start At">
-                      <input type="number" min={1} value={pgNum.start} onChange={e=>setPgNum({start:+e.target.value})}
-                        className="w-full border border-gray-200 rounded-lg text-xs px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      <input type="number" min={1} value={pgNum.start} onChange={e=>setPgNum({start:+e.target.value})} className={fieldCls} />
                     </PropSection>
                   </>}
                 </>}
@@ -2573,7 +2584,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                 {(activeTool==='text'||activeTool==='typewriter'||activeTool==='callout'||activeTool==='edit-text')&&!showPgNumPanel&&<>
                   <FontControls fontFamily={fontFamily} onFontFamily={setFontFamily} fontSize={fontSize} onFontSize={setFontSize}
                     fontColor={fontColor} onFontColor={setFontColor} bold={bold} onBold={setBold} italic={italic} onItalic={setItalic}
-                    underlineText={underlineText} onUnderline={setUnderlineText} textAlign={textAlign} onTextAlign={setTextAlign} />
+                    underlineText={underlineText} onUnderline={setUnderlineText} textAlign={textAlign} onTextAlign={setTextAlign} dark={darkCanvas} />
                   {activeTool==='callout'&&<PropSection label="Border Color"><ColorGrid value={strokeColor} onChange={setStrokeColor} /></PropSection>}
                 </>}
 
@@ -2593,20 +2604,19 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                     <div className="flex gap-1">
                       {[0.25,0.5,0.75,1.0].map(o=>(
                         <button key={o} onClick={()=>setHlOpacity(o)}
-                          className={`flex-1 py-1.5 text-xs rounded-lg border transition-colors font-medium ${hlOpacity===o?'bg-gray-900 text-white border-gray-900':'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                          className={`flex-1 py-1.5 text-xs rounded-lg border transition-colors font-medium ${hlOpacity===o?'bg-gray-900 text-white border-gray-900':darkCanvas?'border-white/15 text-gray-300 hover:bg-white/10':'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
                           {Math.round(o*100)}%
                         </button>
                       ))}
                     </div>
                   </PropSection>
-                  <PropSection label="Width"><WidthPicker value={strokeWidth} onChange={setStrokeWidth} /></PropSection>
+                  <PropSection label="Width"><WidthPicker value={strokeWidth} onChange={setStrokeWidth} dark={darkCanvas} /></PropSection>
                 </>}
 
                 {/* Stamp */}
                 {activeTool==='stamp'&&!showPgNumPanel&&<>
                   <PropSection label="Stamp Type">
-                    <select value={stampType} onChange={e=>setStampType(e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg text-xs px-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select value={stampType} onChange={e=>setStampType(e.target.value)} className={fieldCls}>
                       {STAMP_TYPES.map(s=><option key={s} value={s}>{s}</option>)}
                     </select>
                   </PropSection>
@@ -2625,7 +2635,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                   <PropSection label={`Rotation: ${stampRotation}°`}>
                     <input type="range" min={-45} max={45} value={stampRotation} onChange={e=>setStampRotation(+e.target.value)} className="w-full accent-blue-600" />
                   </PropSection>
-                  <div className="p-3 border border-gray-100 rounded-xl bg-gray-50 flex items-center justify-center" style={{height:56}}>
+                  <div className={`p-3 border rounded-xl flex items-center justify-center ${darkCanvas?'border-white/10 bg-white/5':'border-gray-100 bg-gray-50'}`} style={{height:56}}>
                     <span style={{color:STAMP_COLS[stampColorKey],fontWeight:900,fontSize:14,fontFamily:'Arial,sans-serif',letterSpacing:'0.08em',opacity:stampOpacity,transform:`rotate(${stampRotation}deg)`,display:'inline-block'}}>
                       {stampType}
                     </span>
@@ -2636,20 +2646,20 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                 {(['rect','circle','triangle','diamond','star','cloud','cross','checkmark'].includes(activeTool))&&!showPgNumPanel&&(
                   <ShapeControls strokeColor={strokeColor} onStrokeColor={setStrokeColor} strokeWidth={strokeWidth} onStrokeWidth={setStrokeWidth}
                     hasFill={hasFill} onHasFill={setHasFill} fillColor={fillColor} onFillColor={setFillColor}
-                    opacity={shapeOpacity} onOpacity={setShapeOpacity} />
+                    opacity={shapeOpacity} onOpacity={setShapeOpacity} dark={darkCanvas} />
                 )}
 
                 {/* Draw / Arrow / Line / Dashed / Measure / Polyline */}
                 {(['draw','arrow','line','dashed','measure','polyline'].includes(activeTool))&&!showPgNumPanel&&<>
                   <PropSection label="Color"><ColorGrid value={strokeColor} onChange={setStrokeColor} /></PropSection>
-                  <PropSection label="Width"><WidthPicker value={strokeWidth} onChange={setStrokeWidth} /></PropSection>
+                  <PropSection label="Width"><WidthPicker value={strokeWidth} onChange={setStrokeWidth} dark={darkCanvas} /></PropSection>
                   {activeTool==='draw'&&(
                     <PropSection label={`Opacity: ${Math.round(drawOpacity*100)}%`}>
                       <input type="range" min={10} max={100} value={Math.round(drawOpacity*100)} onChange={e=>setDrawOpacity(e.target.value/100)} className="w-full accent-blue-600" />
                     </PropSection>
                   )}
-                  {activeTool==='polyline'&&<p className="text-[10px] text-gray-400 bg-gray-50 rounded-lg p-2">Drag to draw a freehand polyline path. For click-by-click lines, chain multiple Line tools.</p>}
-                  {activeTool==='measure'&&<p className="text-[10px] text-gray-400 bg-gray-50 rounded-lg p-2">Draws a line with a pixel-length label. Actual measurement depends on page DPI.</p>}
+                  {activeTool==='polyline'&&<p className={`text-[10px] text-gray-400 ${hintBoxBg} rounded-lg p-2`}>Drag to draw a freehand polyline path. For click-by-click lines, chain multiple Line tools.</p>}
+                  {activeTool==='measure'&&<p className={`text-[10px] text-gray-400 ${hintBoxBg} rounded-lg p-2`}>Draws a line with a pixel-length label. Actual measurement depends on page DPI.</p>}
                 </>}
 
                 {/* Highlighter Pen */}
@@ -2662,7 +2672,7 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
                       ))}
                     </div>
                   </PropSection>
-                  <PropSection label="Width"><WidthPicker value={strokeWidth} onChange={setStrokeWidth} /></PropSection>
+                  <PropSection label="Width"><WidthPicker value={strokeWidth} onChange={setStrokeWidth} dark={darkCanvas} /></PropSection>
                 </>}
 
                 {/* Eraser */}
@@ -2675,14 +2685,14 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
 
                 {/* Whiteout / Redact */}
                 {(activeTool==='whiteout'||activeTool==='redact')&&!showPgNumPanel&&(
-                  <p className="text-xs text-gray-500 bg-gray-50 rounded-xl p-3 leading-relaxed">
+                  <p className={`text-xs text-gray-500 ${hintBoxBg} rounded-xl p-3 leading-relaxed`}>
                     {activeTool==='whiteout'?'Drag to draw a white rectangle that permanently covers content on download.':'Drag to draw a black rectangle that permanently redacts content on download.'}
                   </p>
                 )}
 
                 {/* Edit Text / Edit Image */}
                 {(activeTool==='edit-text'||activeTool==='edit-image')&&!showPgNumPanel&&(
-                  <p className="text-xs text-gray-500 bg-gray-50 rounded-xl p-3 leading-relaxed">
+                  <p className={`text-xs text-gray-500 ${hintBoxBg} rounded-xl p-3 leading-relaxed`}>
                     {activeTool==='edit-text'
                       ? 'Drag over existing text to cover it and type a replacement using the font settings below.'
                       : 'Drag over an existing image to cover it, then choose a replacement image to place in the same spot.'}
@@ -2691,15 +2701,14 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
 
                 {/* Hand tool */}
                 {activeTool==='hand'&&!showPgNumPanel&&(
-                  <p className="text-xs text-gray-500 bg-gray-50 rounded-xl p-3 leading-relaxed">Hand/Pan mode: scroll the canvas freely without accidentally selecting or placing annotations.</p>
+                  <p className={`text-xs text-gray-500 ${hintBoxBg} rounded-xl p-3 leading-relaxed`}>Hand/Pan mode: scroll the canvas freely without accidentally selecting or placing annotations.</p>
                 )}
 
                 {/* Note */}
                 {activeTool==='note'&&!showPgNumPanel&&<>
                   <PropSection label="Color"><ColorGrid value={fontColor} onChange={setFontColor} /></PropSection>
                   <PropSection label="Font Size">
-                    <select value={fontSize} onChange={e=>setFontSize(+e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg text-xs px-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select value={fontSize} onChange={e=>setFontSize(+e.target.value)} className={fieldCls}>
                       {FONT_SIZES.map(s=><option key={s} value={s}>{s}px</option>)}
                     </select>
                   </PropSection>
@@ -2707,24 +2716,24 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
 
                 {/* Selected Text/Typewriter — edit font/color/style on an already-placed box */}
                 {!activeTool&&selAnn&&(selAnn.type==='text'||selAnn.type==='typewriter')&&!showPgNumPanel&&(
-                  <div className="space-y-2 pb-4 border-b border-gray-100 mb-2">
+                  <div className={`space-y-2 pb-4 border-b mb-2 ${darkCanvas?'border-white/10':'border-gray-100'}`}>
                     <FontControls fontFamily={selAnn.fontFamily||'Helvetica'} onFontFamily={v=>updateSelAnn({fontFamily:v})}
                       fontSize={selAnn.fontSize||14} onFontSize={v=>updateSelAnn({fontSize:v})}
                       fontColor={selAnn.fontColor||'#111827'} onFontColor={v=>updateSelAnn({fontColor:v})}
                       bold={!!selAnn.bold} onBold={v=>updateSelAnn({bold:v})}
                       italic={!!selAnn.italic} onItalic={v=>updateSelAnn({italic:v})}
                       underlineText={!!selAnn.underlineText} onUnderline={v=>updateSelAnn({underlineText:v})}
-                      textAlign={selAnn.textAlign||'left'} onTextAlign={v=>updateSelAnn({textAlign:v})} />
+                      textAlign={selAnn.textAlign||'left'} onTextAlign={v=>updateSelAnn({textAlign:v})} dark={darkCanvas} />
                   </div>
                 )}
 
                 {/* Selected Note/Callout — only font size + color actually render live for these two types */}
                 {!activeTool&&selAnn&&(selAnn.type==='note'||selAnn.type==='callout')&&!showPgNumPanel&&(
-                  <div className="space-y-2 pb-4 border-b border-gray-100 mb-2">
+                  <div className={`space-y-2 pb-4 border-b mb-2 ${darkCanvas?'border-white/10':'border-gray-100'}`}>
                     <PropSection label="Color"><ColorGrid value={selAnn.fontColor||(selAnn.type==='note'?'#78350f':'#111827')} onChange={v=>updateSelAnn({fontColor:v})} /></PropSection>
                     <PropSection label="Font Size">
                       <select value={selAnn.fontSize||(selAnn.type==='note'?11:13)} onChange={e=>updateSelAnn({fontSize:+e.target.value})}
-                        className="w-full border border-gray-200 rounded-lg text-xs px-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        className={darkCanvas?'w-full border border-white/15 rounded-lg text-xs px-2 py-2 bg-[#1f2937] text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500':'w-full border border-gray-200 rounded-lg text-xs px-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500'}>
                         {FONT_SIZES.map(s=><option key={s} value={s}>{s}px</option>)}
                       </select>
                     </PropSection>
@@ -2733,28 +2742,28 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
 
                 {/* Selected Shape — stroke/fill/opacity on an already-placed shape */}
                 {!activeTool&&selAnn&&(['rect','circle','triangle','diamond','star','cloud','cross','checkmark'].includes(selAnn.type))&&!showPgNumPanel&&(
-                  <div className="space-y-2 pb-4 border-b border-gray-100 mb-2">
+                  <div className={`space-y-2 pb-4 border-b mb-2 ${darkCanvas?'border-white/10':'border-gray-100'}`}>
                     <ShapeControls strokeColor={selAnn.strokeColor||'#1e3a8a'} onStrokeColor={v=>updateSelAnn({strokeColor:v})}
                       strokeWidth={selAnn.strokeWidth||2} onStrokeWidth={v=>updateSelAnn({strokeWidth:v})}
                       hasFill={!!selAnn.fillColor&&selAnn.fillColor!=='transparent'} onHasFill={v=>updateSelAnn({fillColor:v?(selAnn.fillColor&&selAnn.fillColor!=='transparent'?selAnn.fillColor:'#ffffff'):'transparent'})}
                       fillColor={selAnn.fillColor&&selAnn.fillColor!=='transparent'?selAnn.fillColor:'#ffffff'} onFillColor={v=>updateSelAnn({fillColor:v})}
                       opacity={selAnn.opacity??1} onOpacity={v=>updateAnn(selAnn.page,selAnn.id,{opacity:v})}
-                      opacityInputProps={{onMouseDown:()=>pushHistory('Change opacity'),onTouchStart:()=>pushHistory('Change opacity')}} />
+                      opacityInputProps={{onMouseDown:()=>pushHistory('Change opacity'),onTouchStart:()=>pushHistory('Change opacity')}} dark={darkCanvas} />
                   </div>
                 )}
 
                 {/* Selected annotation actions */}
                 {selAnn&&!showPgNumPanel&&(
-                  <div className={`space-y-2 ${activeTool?'border-t border-gray-100 pt-4':''}`}>
+                  <div className={`space-y-2 ${activeTool?`border-t pt-4 ${darkCanvas?'border-white/10':'border-gray-100'}`:''}`}>
                     {!activeTool&&<div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-gray-700 capitalize">{selAnn.type}</span>
-                      <button onClick={()=>setSelectedId(null)} className="text-[10px] text-gray-400 hover:text-gray-600" aria-label="Deselect">✕</button>
+                      <span className={`text-xs font-semibold capitalize ${darkCanvas?'text-gray-200':'text-gray-700'}`}>{selAnn.type}</span>
+                      <button onClick={()=>setSelectedId(null)} className={`text-[10px] ${darkCanvas?'text-gray-500 hover:text-gray-300':'text-gray-400 hover:text-gray-600'}`} aria-label="Deselect">✕</button>
                     </div>}
-                    <button onClick={()=>duplicateAnn(selectedId)} className="w-full py-2 text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition-colors font-medium">⧉ Duplicate</button>
-                    <button onClick={()=>bringToFront(selectedId)} className="w-full py-2 text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition-colors font-medium">↑ Bring to Front</button>
-                    <button onClick={()=>sendToBack(selectedId)}  className="w-full py-2 text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition-colors font-medium">↓ Send to Back</button>
-                    <button onClick={zoomToSelection} className="w-full py-2 text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition-colors font-medium">🔍 Zoom to Selection</button>
-                    <button onClick={()=>deleteAnn(selectedId)}   className="w-full py-2 text-xs bg-red-50 hover:bg-red-100 text-red-600 rounded-lg border border-red-200 transition-colors font-medium">🗑 Delete</button>
+                    <button onClick={()=>duplicateAnn(selectedId)} className={actionBtnCls}>⧉ Duplicate</button>
+                    <button onClick={()=>bringToFront(selectedId)} className={actionBtnCls}>↑ Bring to Front</button>
+                    <button onClick={()=>sendToBack(selectedId)}  className={actionBtnCls}>↓ Send to Back</button>
+                    <button onClick={zoomToSelection} className={actionBtnCls}>🔍 Zoom to Selection</button>
+                    <button onClick={()=>deleteAnn(selectedId)}   className={darkCanvas?'w-full py-2 text-xs bg-red-950/40 hover:bg-red-950/60 text-red-400 rounded-lg border border-red-900 transition-colors font-medium':'w-full py-2 text-xs bg-red-50 hover:bg-red-100 text-red-600 rounded-lg border border-red-200 transition-colors font-medium'}>🗑 Delete</button>
                   </div>
                 )}
               </div>
@@ -2762,15 +2771,15 @@ function PdfEditorTool({ initialBytes = null, initialFileName = '', openNewTabOn
           ) : (
             /* Empty state shortcuts */
             <div className="flex-1 flex flex-col items-center justify-center p-5 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center text-2xl mb-3 shadow-sm">✏️</div>
-              <p className="text-sm font-semibold text-gray-700 mb-0.5">No Tool Selected</p>
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-sm ${darkCanvas?'bg-white/10':'bg-gray-100'}`}>✏️</div>
+              <p className={`text-sm font-semibold mb-0.5 ${darkCanvas?'text-gray-200':'text-gray-700'}`}>No Tool Selected</p>
               <p className="text-xs text-gray-400 leading-relaxed mb-4">Pick a tool from the ribbon to annotate</p>
-              <div className="w-full space-y-1 text-left border border-gray-100 rounded-xl p-3 bg-gray-50">
+              <div className={`w-full space-y-1 text-left rounded-xl p-3 border ${darkCanvas?'border-white/10 bg-white/5':'border-gray-100 bg-gray-50'}`}>
                 <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Shortcuts</p>
                 {[['V','Select'],['H','Hand/Pan'],['T','Text'],['I','Highlight'],['U','Underline'],['D','Pencil'],['E','Eraser'],['S','Stamp'],['W','Whiteout'],['N','Note'],['A','Arrow'],['R','Rect'],['[/]','Prev/Next page'],['Del','Delete'],['Ctrl+Z','Undo'],['Ctrl+Y','Redo'],['Ctrl+C/V','Copy/Paste'],['Ctrl+S','Download']].map(([k,d])=>(
                   <div key={k} className="flex items-center justify-between">
                     <span className="text-[10px] text-gray-500">{d}</span>
-                    <kbd className="text-[9px] bg-white border border-gray-200 text-gray-500 rounded px-1.5 py-0.5 font-mono shadow-sm">{k}</kbd>
+                    <kbd className={`text-[9px] rounded px-1.5 py-0.5 font-mono shadow-sm border ${darkCanvas?'bg-white/10 border-white/15 text-gray-300':'bg-white border-gray-200 text-gray-500'}`}>{k}</kbd>
                   </div>
                 ))}
               </div>
@@ -2921,15 +2930,18 @@ function ToolBtn({ tool, activeTool, viewMode, darkCanvas, stripMeta, onSelect, 
     ? (tool.act==='view-single'&&viewMode==='single')||(tool.act==='view-cont'&&viewMode==='continuous')||(tool.act==='view-two'&&viewMode==='two-page')||(tool.act==='dark-mode'&&darkCanvas)||(tool.act==='toggle-meta'&&stripMeta)
     : (targetId==='select' ? activeTool===null : activeTool===targetId)
   const isHL = tool.isHL
+  const inactiveCls = darkCanvas
+    ? 'text-gray-300 border-transparent hover:bg-white/10 hover:text-blue-300 hover:border-white/10'
+    : 'text-gray-600 border-transparent hover:bg-blue-50 hover:text-blue-700 hover:border-blue-100'
   return (
     <button
       onClick={()=>isAction?onAction(tool.act):onSelect(targetId)}
       title={tool.key?`${tool.label} (${tool.key})`:tool.label}
       className={`flex flex-col items-center justify-center gap-0.5 rounded-xl min-w-[52px] px-2 py-1.5 transition-all select-none flex-shrink-0 border ${
-        isActive?'bg-blue-600 text-white border-blue-700 shadow-md shadow-blue-200':'text-gray-600 border-transparent hover:bg-blue-50 hover:text-blue-700 hover:border-blue-100'
+        isActive?'bg-blue-600 text-white border-blue-700 shadow-md shadow-blue-200':inactiveCls
       }`}>
       {isHL&&!isActive
-        ? <span className="relative leading-none text-xl font-bold text-gray-600">H<span className="absolute inset-x-0 bottom-0 h-1 rounded-sm" style={{background:'#fef08a'}} /></span>
+        ? <span className={`relative leading-none text-xl font-bold ${darkCanvas?'text-gray-300':'text-gray-600'}`}>H<span className="absolute inset-x-0 bottom-0 h-1 rounded-sm" style={{background:'#fef08a'}} /></span>
         : <span className={`leading-none ${tool.cls||'text-lg'}`}>{tool.icon}</span>
       }
       <span className="text-[10px] font-medium leading-none whitespace-nowrap">{tool.label}</span>
@@ -2952,12 +2964,12 @@ function ColorGrid({ value, onChange }) {
   )
 }
 
-function WidthPicker({ value, onChange }) {
+function WidthPicker({ value, onChange, dark }) {
   return (
     <div className="flex gap-1">
       {[1,2,4,6,8,12].map(w=>(
         <button key={w} onClick={()=>onChange(w)} aria-label={`Width ${w}px`} aria-pressed={value===w}
-          className={`flex-1 py-1.5 text-xs rounded-lg border font-medium transition-colors ${value===w?'bg-gray-900 text-white border-gray-900':'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
+          className={`flex-1 py-1.5 text-xs rounded-lg border font-medium transition-colors ${value===w?'bg-gray-900 text-white border-gray-900':dark?'border-white/15 text-gray-300 hover:bg-white/10':'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
           {w}
         </button>
       ))}
@@ -2975,16 +2987,18 @@ function PropSection({ label, children }) {
 }
 
 // Shared by the tool-prep "next new annotation" panel and the "selected annotation" panel.
-function FontControls({ fontFamily, onFontFamily, fontSize, onFontSize, fontColor, onFontColor, bold, onBold, italic, onItalic, underlineText, onUnderline, textAlign, onTextAlign }) {
+function FontControls({ fontFamily, onFontFamily, fontSize, onFontSize, fontColor, onFontColor, bold, onBold, italic, onItalic, underlineText, onUnderline, textAlign, onTextAlign, dark }) {
+  const selectCls = dark
+    ? 'w-full border border-white/15 rounded-lg text-xs px-2 py-2 bg-[#1f2937] text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500'
+    : 'w-full border border-gray-200 rounded-lg text-xs px-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500'
+  const btnCls = active => `flex-1 py-2 text-xs rounded-lg border transition-colors ${active?'bg-gray-900 text-white border-gray-900':dark?'border-white/15 text-gray-300 hover:bg-white/10':'border-gray-200 text-gray-700 hover:bg-gray-50'}`
   return (
     <>
       <PropSection label="Font">
-        <select value={fontFamily} onChange={e=>onFontFamily(e.target.value)}
-          className="w-full border border-gray-200 rounded-lg text-xs px-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2">
+        <select value={fontFamily} onChange={e=>onFontFamily(e.target.value)} className={`${selectCls} mb-2`}>
           {FONT_FAMILIES.map(f=><option key={f} value={f}>{f}</option>)}
         </select>
-        <select value={fontSize} onChange={e=>onFontSize(+e.target.value)}
-          className="w-full border border-gray-200 rounded-lg text-xs px-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <select value={fontSize} onChange={e=>onFontSize(+e.target.value)} className={selectCls}>
           {FONT_SIZES.map(s=><option key={s} value={s}>{s}px</option>)}
         </select>
       </PropSection>
@@ -2992,14 +3006,12 @@ function FontControls({ fontFamily, onFontFamily, fontSize, onFontSize, fontColo
       <PropSection label="Style">
         <div className="flex gap-1.5 mb-2">
           {[['B','Bold',bold,onBold,'font-bold'],['I','Italic',italic,onItalic,'italic'],['U','Underline',underlineText,onUnderline,'underline']].map(([l,t,v,fn,cls])=>(
-            <button key={l} onClick={()=>fn(!v)} title={t} aria-label={t} aria-pressed={v}
-              className={`flex-1 py-2 text-xs rounded-lg border transition-colors ${cls} ${v?'bg-gray-900 text-white border-gray-900':'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>{l}</button>
+            <button key={l} onClick={()=>fn(!v)} title={t} aria-label={t} aria-pressed={v} className={`${btnCls(v)} ${cls}`}>{l}</button>
           ))}
         </div>
         <div className="flex gap-1">
           {[['left','←','Align left'],['center','↔','Align center'],['right','→','Align right']].map(([a,l,label])=>(
-            <button key={a} onClick={()=>onTextAlign(a)} aria-label={label} aria-pressed={textAlign===a}
-              className={`flex-1 py-1.5 text-xs rounded-lg border transition-colors ${textAlign===a?'bg-gray-900 text-white border-gray-900':'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>{l}</button>
+            <button key={a} onClick={()=>onTextAlign(a)} aria-label={label} aria-pressed={textAlign===a} className={btnCls(textAlign===a)}>{l}</button>
           ))}
         </div>
       </PropSection>
@@ -3008,15 +3020,15 @@ function FontControls({ fontFamily, onFontFamily, fontSize, onFontSize, fontColo
 }
 
 // Shared by the tool-prep "next new shape" panel and the "selected shape" panel.
-function ShapeControls({ strokeColor, onStrokeColor, strokeWidth, onStrokeWidth, hasFill, onHasFill, fillColor, onFillColor, opacity, onOpacity, opacityInputProps }) {
+function ShapeControls({ strokeColor, onStrokeColor, strokeWidth, onStrokeWidth, hasFill, onHasFill, fillColor, onFillColor, opacity, onOpacity, opacityInputProps, dark }) {
   return (
     <>
       <PropSection label="Stroke Color"><ColorGrid value={strokeColor} onChange={onStrokeColor} /></PropSection>
-      <PropSection label="Stroke Width"><WidthPicker value={strokeWidth} onChange={onStrokeWidth} /></PropSection>
+      <PropSection label="Stroke Width"><WidthPicker value={strokeWidth} onChange={onStrokeWidth} dark={dark} /></PropSection>
       <PropSection label="Fill">
         <div className="flex items-center gap-2 mb-2">
           <input type="checkbox" id="hf-fill" checked={hasFill} onChange={e=>onHasFill(e.target.checked)} className="w-3.5 h-3.5 rounded accent-blue-600" />
-          <label htmlFor="hf-fill" className="text-xs text-gray-600 cursor-pointer select-none">Fill color</label>
+          <label htmlFor="hf-fill" className={`text-xs cursor-pointer select-none ${dark?'text-gray-300':'text-gray-600'}`}>Fill color</label>
         </div>
         {hasFill&&<ColorGrid value={fillColor} onChange={onFillColor} />}
       </PropSection>
