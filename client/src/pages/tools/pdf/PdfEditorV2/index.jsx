@@ -8,11 +8,13 @@ import PropertiesPanel from './PropertiesPanel'
 import ProfileModal from './ProfileModal'
 import AiConsentModal from './AiConsentModal'
 import AiResultModal from './AiResultModal'
+import FindReplaceBar from './FindReplaceBar'
 import { usePdfDoc } from './usePdfDoc'
 import { useAnnotations } from './useAnnotations'
 import { useFormFields } from './useFormFields'
 import { useAutoFillProfile } from './useAutoFillProfile'
 import { useAiTools } from './useAiTools'
+import { useFindReplace } from './useFindReplace'
 import { TOOLS, KEYBOARD_SHORTCUTS, ZOOM_LEVELS, DEFAULT_ZOOM, RENDER_SCALE, DEFAULT_ANNOTATION_STYLE, MAX_IMAGE_SIZE_MB } from './constants'
 import { downloadFile, downloadBlob, isPdfFile, isImageFile, readImageDimensions, cropImageToBytes, tablesToCsv } from '../pdfUtils'
 import { TOOL_ABOUT } from '../../../../data/toolPageContent'
@@ -159,6 +161,7 @@ export default function PdfEditorV2() {
   const formFieldsApi = useFormFields()
   const autoFillApi = useAutoFillProfile()
   const aiApi = useAiTools()
+  const findReplace = useFindReplace(pdfDoc)
   const originalBytesRef = useRef(null)
   const fileInputRef = useRef(null)
   const imageInputRef = useRef(null)
@@ -178,6 +181,7 @@ export default function PdfEditorV2() {
   const [pendingImage, setPendingImage] = useState(null)
   const [croppingId, setCroppingId] = useState(null)
   const [aiResult, setAiResult] = useState(null)
+  const [showFindReplace, setShowFindReplace] = useState(false)
 
   // localStorage read — effect, not render body, so it never runs during SSR.
   useEffect(() => { autoFillApi.load() }, [])
@@ -330,6 +334,41 @@ export default function PdfEditorV2() {
       showToast(err?.message || 'Failed to extract tables.', 'error')
     }
   }, [pdfDoc, aiApi, showToast])
+
+  // Replace All reuses the exact same whiteout+pre-filled-text-overlay trick
+  // the Text tool's click-to-edit path already uses (PageCanvas.jsx) — this
+  // is NOT true content-stream text editing (pdf-lib has no API for that;
+  // see docs/batches/batch-35-inline-text-plan.md), just automated cover +
+  // replace, applied to every match instead of one clicked item. All matches
+  // are recorded as a single addAnnotations call, so one Ctrl+Z undoes the
+  // whole Replace All.
+  const handleReplaceAll = useCallback(async (searchTerm, replacement) => {
+    const matches = await findReplace.findMatches(searchTerm)
+    if (!matches.length) {
+      showToast('No matches found.', 'info')
+      setShowFindReplace(false)
+      return
+    }
+    const pattern = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')
+    const partials = []
+    for (const { page, item } of matches) {
+      partials.push({
+        type: TOOLS.WHITEOUT, page,
+        x: item.x, y: item.y, w: item.width, h: item.height,
+        ...DEFAULT_ANNOTATION_STYLE[TOOLS.WHITEOUT],
+      })
+      partials.push({
+        type: TOOLS.TEXT, page,
+        x: item.x, y: item.y, w: Math.max(item.width, 60), h: Math.max(item.height + 6, 22),
+        text: item.str.replace(pattern, replacement),
+        ...DEFAULT_ANNOTATION_STYLE[TOOLS.TEXT],
+        fontSize: Math.max(8, Math.round(item.height)),
+      })
+    }
+    annotationsApi.addAnnotations(partials)
+    setShowFindReplace(false)
+    showToast(`Replaced ${matches.length} match(es).`, 'success')
+  }, [findReplace, annotationsApi, showToast])
 
   // Dismiss the "click a tool to start editing" hint automatically once the
   // user has actually placed one — it's only useful before their first move.
@@ -494,6 +533,11 @@ export default function PdfEditorV2() {
         handleDownload()
         return
       }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+        e.preventDefault()
+        setShowFindReplace(true)
+        return
+      }
       if (inTextField) return
       if (e.key === 'Escape') {
         annotationsApi.clearSelection()
@@ -535,6 +579,7 @@ export default function PdfEditorV2() {
         onTranslateHindi={() => handleTranslate('hi')}
         onTranslateUrdu={() => handleTranslate('ur')}
         onExtractTables={handleExtractTables}
+        onFindReplaceClick={() => setShowFindReplace(true)}
       />
 
       {showOnboardingHint && (
@@ -682,6 +727,9 @@ export default function PdfEditorV2() {
     )}
     {aiResult && (
       <AiResultModal title={aiResult.title} content={aiResult.content} onClose={() => setAiResult(null)} />
+    )}
+    {showFindReplace && (
+      <FindReplaceBar onReplaceAll={handleReplaceAll} onClose={() => setShowFindReplace(false)} />
     )}
     </>
   )

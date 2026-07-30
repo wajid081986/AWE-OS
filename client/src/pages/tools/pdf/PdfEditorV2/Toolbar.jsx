@@ -66,6 +66,7 @@ export default function Toolbar({
   activeTool, onToolChange, zoom, onZoomIn, onZoomOut, canUndo, canRedo, onUndo, onRedo, onDownload,
   isFullscreen, onToggleFullscreen, fullscreenBtnRef, onInsertImageClick,
   aiLoading, onSummarize, onTranslateHindi, onTranslateUrdu, onExtractTables,
+  onFindReplaceClick,
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2 sticky top-0 z-10 bg-card border border-line rounded-m p-2">
@@ -100,6 +101,9 @@ export default function Toolbar({
         <button type="button" onClick={onZoomIn} className="px-2 py-1.5 rounded-s hover:bg-cobalt-tint" aria-label="Zoom in">+</button>
         <button type="button" onClick={onUndo} disabled={!canUndo} className="px-2.5 py-1.5 rounded-s hover:bg-cobalt-tint disabled:opacity-40">Undo</button>
         <button type="button" onClick={onRedo} disabled={!canRedo} className="px-2.5 py-1.5 rounded-s hover:bg-cobalt-tint disabled:opacity-40">Redo</button>
+        <button type="button" onClick={onFindReplaceClick} title="Find & Replace (Ctrl+F)" className="px-2.5 py-1.5 rounded-s hover:bg-cobalt-tint" aria-label="Find & Replace">
+          <span aria-hidden>🔍</span>
+        </button>
         <AiToolsMenu
           disabled={aiLoading}
           onSummarize={onSummarize}
