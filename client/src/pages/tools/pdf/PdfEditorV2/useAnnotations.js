@@ -90,6 +90,24 @@ export function useAnnotations() {
     [annotations],
   )
 
+  // Applies a page-management structural change (insert/duplicate/delete/
+  // move) — mapFn(oldPage) returns the annotation's new page number, or null
+  // if that page was deleted (the annotation is dropped with it). History is
+  // cleared rather than remapped: existing undo/redo closures capture the
+  // pre-rebuild page numbers, and replaying one after a rebuild would put an
+  // annotation back on a page number that may no longer mean the same page
+  // (or may not exist at all).
+  const remapPages = useCallback((mapFn) => {
+    setAnnotations((prev) => prev
+      .map((a) => {
+        const newPage = mapFn(a.page)
+        return newPage == null ? null : { ...a, page: newPage }
+      })
+      .filter(Boolean))
+    setSelectedId(null)
+    history.clear()
+  }, [history])
+
   const reset = useCallback(() => {
     setAnnotations([])
     setSelectedId(null)
@@ -110,6 +128,7 @@ export function useAnnotations() {
     updateAnnotation,
     deleteAnnotation,
     deleteSelected,
+    remapPages,
     reset,
     undo: history.undo,
     redo: history.redo,

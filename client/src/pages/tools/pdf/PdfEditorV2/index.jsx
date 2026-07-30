@@ -9,12 +9,14 @@ import ProfileModal from './ProfileModal'
 import AiConsentModal from './AiConsentModal'
 import AiResultModal from './AiResultModal'
 import FindReplaceBar from './FindReplaceBar'
+import ConfirmModal from './ConfirmModal'
 import { usePdfDoc } from './usePdfDoc'
 import { useAnnotations } from './useAnnotations'
 import { useFormFields } from './useFormFields'
 import { useAutoFillProfile } from './useAutoFillProfile'
 import { useAiTools } from './useAiTools'
 import { useFindReplace } from './useFindReplace'
+import { usePageManager, buildPageRemap } from './usePageManager'
 import { exportPdfToDocx, exportTablesToXlsx } from './pdfExport'
 import { TOOLS, KEYBOARD_SHORTCUTS, ZOOM_LEVELS, DEFAULT_ZOOM, RENDER_SCALE, DEFAULT_ANNOTATION_STYLE, MAX_IMAGE_SIZE_MB } from './constants'
 import { downloadFile, downloadBlob, isPdfFile, isImageFile, readImageDimensions, cropImageToBytes, tablesToCsv } from '../pdfUtils'
@@ -164,6 +166,7 @@ export default function PdfEditorV2() {
   const aiApi = useAiTools()
   const findReplace = useFindReplace(pdfDoc)
   const originalBytesRef = useRef(null)
+  const pageManagerApi = usePageManager({ originalBytesRef, pdfDoc })
   const fileInputRef = useRef(null)
   const imageInputRef = useRef(null)
   const viewerRef = useRef(null)
@@ -183,6 +186,8 @@ export default function PdfEditorV2() {
   const [croppingId, setCroppingId] = useState(null)
   const [aiResult, setAiResult] = useState(null)
   const [showFindReplace, setShowFindReplace] = useState(false)
+  const [extractSelected, setExtractSelected] = useState(new Set())
+  const [pendingDeletePosition, setPendingDeletePosition] = useState(null)
 
   // localStorage read — effect, not render body, so it never runs during SSR.
   useEffect(() => { autoFillApi.load() }, [])
@@ -198,12 +203,15 @@ export default function PdfEditorV2() {
     annotationsApi.reset()
     formFieldsApi.reset()
     setActivePage(1)
+    setExtractSelected(new Set())
     const bytes = await pdfDoc.loadFromFile(file)
     originalBytesRef.current = bytes
     await formFieldsApi.detect(bytes)
+    const tmpDoc = await PDFDocument.load(bytes.slice())
+    pageManagerApi.initFromPageCount(tmpDoc.getPageCount())
     setIsFullscreen(true)
     setShowOnboardingHint(true)
-  }, [pdfDoc, annotationsApi, formFieldsApi, showToast])
+  }, [pdfDoc, annotationsApi, formFieldsApi, pageManagerApi, showToast])
 
   const armImage = useCallback(async (file) => {
     if (!isImageFile(file)) {
@@ -403,6 +411,145 @@ export default function PdfEditorV2() {
     setShowFindReplace(false)
     showToast(`Replaced ${matches.length} match(es).`, 'success')
   }, [findReplace, annotationsApi, showToast])
+
+  // Shared tail of every page-management op (insert/duplicate/delete/move):
+  // remaps annotations to follow their page across the rebuild, re-detects
+  // AcroForm fields from the rebuilt bytes (positions may have shifted) while
+  // preserving whatever the user had already typed — detect() itself always
+  // resets values to the fresh document's own defaults, which would
+  // otherwise silently wipe in-progress form input — and clamps activePage
+  // back into range if the page count shrank.
+  const afterRebuild = useCallback(async (oldOrder, newOrder) => {
+    const mapFn = buildPageRemap(oldOrder, newOrder)
+    const hadHistory = annotationsApi.canUndo || annotationsApi.canRedo
+    annotationsApi.remapPages(mapFn)
+    const prevValues = formFieldsApi.values
+    await formFieldsApi.detect(originalBytesRef.current)
+    formFieldsApi.setValuesBulk(prevValues)
+    setActivePage((p) => Math.min(p, newOrder.length))
+    if (hadHistory) showToast('Page structure changed — undo history for annotations was cleared.', 'info')
+  }, [annotationsApi, formFieldsApi, showToast])
+
+  const handleInsertBlank = useCallback(async (position0) => {
+    try {
+      const { oldOrder, newOrder } = await pageManagerApi.insertBlankPage(position0)
+      await afterRebuild(oldOrder, newOrder)
+      showToast('Blank page inserted.', 'success')
+    } catch (err) {
+      showToast(err?.message || 'Failed to insert page.', 'error')
+    }
+  }, [pageManagerApi, afterRebuild, showToast])
+
+  // Also clones the source page's own annotations onto the new copy — pdf-lib
+  // only duplicates the page's original content; without this, "duplicate"
+  // would visibly drop whatever the user had already drawn on that page.
+  const handleDuplicatePage = useCallback(async (position0) => {
+    const sourceAnnotations = annotationsApi.getPageAnnotations(position0 + 1)
+    try {
+      const { oldOrder, newOrder, newPosition } = await pageManagerApi.duplicatePage(position0)
+      await afterRebuild(oldOrder, newOrder)
+      if (sourceAnnotations.length) {
+        annotationsApi.addAnnotations(sourceAnnotations.map(({ id, ...rest }) => ({ ...rest, page: newPosition })))
+      }
+      showToast('Page duplicated.', 'success')
+    } catch (err) {
+      showToast(err?.message || 'Failed to duplicate page.', 'error')
+    }
+  }, [annotationsApi, pageManagerApi, afterRebuild, showToast])
+
+  const handleMovePage = useCallback(async (from0, to0) => {
+    if (from0 === to0 || to0 < 0 || to0 >= pageManagerApi.pageOrder.length) return
+    try {
+      const { oldOrder, newOrder } = await pageManagerApi.movePage(from0, to0)
+      await afterRebuild(oldOrder, newOrder)
+    } catch (err) {
+      showToast(err?.message || 'Failed to move page.', 'error')
+    }
+  }, [pageManagerApi, afterRebuild, showToast])
+
+  const performDeletePage = useCallback(async (position0) => {
+    try {
+      const { oldOrder, newOrder } = await pageManagerApi.deletePage(position0)
+      await afterRebuild(oldOrder, newOrder)
+      showToast('Page deleted.', 'success')
+    } catch (err) {
+      showToast(err?.message || 'Failed to delete page.', 'error')
+    } finally {
+      setPendingDeletePosition(null)
+    }
+  }, [pageManagerApi, afterRebuild, showToast])
+
+  // Skips the confirm dialog entirely for an empty page — it's only there to
+  // stop an accidental click from silently discarding a page the user has
+  // actually annotated.
+  const requestDeletePage = useCallback((position0) => {
+    if (pageManagerApi.pageOrder.length <= 1) {
+      showToast("Can't delete the only page.", 'error')
+      return
+    }
+    const count = annotationsApi.getPageAnnotations(position0 + 1).length
+    if (count > 0) setPendingDeletePosition(position0)
+    else performDeletePage(position0)
+  }, [pageManagerApi, annotationsApi, performDeletePage, showToast])
+
+  const toggleExtractSelect = useCallback((position0) => {
+    setExtractSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(position0)) next.delete(position0)
+      else next.add(position0)
+      return next
+    })
+  }, [])
+
+  // Shared by Extract and Split: builds a standalone PDFDocument for the
+  // given (0-indexed) positions and flattens each extracted page's own
+  // annotations onto it — same drawAnnotation used by the main Download
+  // button, so an extracted/split file isn't silently missing whatever the
+  // user has drawn on those pages.
+  const buildFlattenedSubsetPdf = useCallback(async (positions0) => {
+    const { pdfLibDoc: newPdf, oldPageNumbers } = await pageManagerApi.buildSubsetPdf(positions0)
+    for (let i = 0; i < oldPageNumbers.length; i++) {
+      const page = newPdf.getPage(i)
+      const anns = annotationsApi.getPageAnnotations(oldPageNumbers[i])
+      for (const ann of anns) {
+        // eslint-disable-next-line no-await-in-loop -- annotations must draw in creation order, same as handleDownload
+        await drawAnnotation(newPdf, page, ann)
+      }
+    }
+    return newPdf.save()
+  }, [pageManagerApi, annotationsApi])
+
+  const handleExtractSelected = useCallback(async () => {
+    const positions0 = [...extractSelected].sort((a, b) => a - b)
+    if (!positions0.length) return
+    try {
+      const bytes = await buildFlattenedSubsetPdf(positions0)
+      const baseName = (pdfDoc.fileName || 'document').replace(/\.pdf$/i, '')
+      downloadFile(bytes, `${baseName}-extracted.pdf`)
+      setExtractSelected(new Set())
+      showToast(`${positions0.length} page(s) extracted.`, 'success')
+    } catch (err) {
+      showToast(err?.message || 'Failed to extract pages.', 'error')
+    }
+  }, [extractSelected, buildFlattenedSubsetPdf, pdfDoc.fileName, showToast])
+
+  const handleSplitAfter = useCallback(async (position0) => {
+    const total = pageManagerApi.pageOrder.length
+    if (position0 >= total - 1) {
+      showToast('Choose a page that is not the last page.', 'error')
+      return
+    }
+    try {
+      const baseName = (pdfDoc.fileName || 'document').replace(/\.pdf$/i, '')
+      const firstBytes = await buildFlattenedSubsetPdf(Array.from({ length: position0 + 1 }, (_, i) => i))
+      downloadFile(firstBytes, `${baseName}-part1.pdf`)
+      const secondBytes = await buildFlattenedSubsetPdf(Array.from({ length: total - position0 - 1 }, (_, i) => position0 + 1 + i))
+      downloadFile(secondBytes, `${baseName}-part2.pdf`)
+      showToast('PDF split into 2 files.', 'success')
+    } catch (err) {
+      showToast(err?.message || 'Failed to split PDF.', 'error')
+    }
+  }, [pageManagerApi, buildFlattenedSubsetPdf, pdfDoc.fileName, showToast])
 
   // Dismiss the "click a tool to start editing" hint automatically once the
   // user has actually placed one — it's only useful before their first move.
@@ -656,6 +803,14 @@ export default function PdfEditorV2() {
           onJumpToPage={jumpToPage}
           collapsed={pagePanelCollapsed}
           onToggleCollapsed={() => setPagePanelCollapsed((c) => !c)}
+          selectedForExtract={extractSelected}
+          onToggleExtractSelect={toggleExtractSelect}
+          onExtractSelected={handleExtractSelected}
+          onInsertBlank={handleInsertBlank}
+          onDuplicate={handleDuplicatePage}
+          onRequestDelete={requestDeletePage}
+          onMovePage={handleMovePage}
+          onSplitAfter={handleSplitAfter}
         />
 
         {/* items-start (not items-center): center-alignment on an
@@ -766,6 +921,15 @@ export default function PdfEditorV2() {
     )}
     {showFindReplace && (
       <FindReplaceBar onReplaceAll={handleReplaceAll} onClose={() => setShowFindReplace(false)} />
+    )}
+    {pendingDeletePosition != null && (
+      <ConfirmModal
+        title="Delete this page?"
+        message={`This page has ${annotationsApi.getPageAnnotations(pendingDeletePosition + 1).length} annotation(s) on it — they will be deleted along with the page. This can't be undone.`}
+        confirmLabel="Delete page"
+        onConfirm={() => performDeletePage(pendingDeletePosition)}
+        onCancel={() => setPendingDeletePosition(null)}
+      />
     )}
     </>
   )
