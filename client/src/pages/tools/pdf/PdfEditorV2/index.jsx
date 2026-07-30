@@ -11,7 +11,6 @@ import AiResultModal from './AiResultModal'
 import FindReplaceBar from './FindReplaceBar'
 import ConfirmModal from './ConfirmModal'
 import DocumentToolsModal from './DocumentToolsModal'
-import SecurityModal from './SecurityModal'
 import { usePdfDoc } from './usePdfDoc'
 import { useAnnotations } from './useAnnotations'
 import { useFormFields } from './useFormFields'
@@ -241,8 +240,6 @@ export default function PdfEditorV2() {
   const [pendingDeletePosition, setPendingDeletePosition] = useState(null)
   const [documentToolMode, setDocumentToolMode] = useState(null)
   const [documentToolLoading, setDocumentToolLoading] = useState(false)
-  const [showSecurityModal, setShowSecurityModal] = useState(false)
-  const [securityLoading, setSecurityLoading] = useState(false)
 
   // localStorage read — effect, not render body, so it never runs during SSR.
   useEffect(() => { autoFillApi.load() }, [])
@@ -801,28 +798,6 @@ export default function PdfEditorV2() {
     }
   }, [buildFlattenedPdfLibDoc, pdfDoc.fileName, showToast])
 
-  // Terminal, one-shot action (matches ProtectPDF.jsx's standalone tool) —
-  // downloads a separate encrypted copy rather than reloading the encrypted
-  // bytes back into the live pdf.js canvas (pdf.js re-rendering an encrypted
-  // buffer for continued editing is real added complexity for no workflow
-  // benefit; ProtectPDF.jsx/UnlockPDF.jsx don't do this either).
-  const handleApplyProtection = useCallback(async (settings) => {
-    setSecurityLoading(true)
-    try {
-      const pdfLibDoc = await buildFlattenedPdfLibDoc()
-      await pdfLibDoc.encrypt(settings)
-      const bytes = await pdfLibDoc.save()
-      const baseName = (pdfDoc.fileName || 'document').replace(/\.pdf$/i, '')
-      downloadFile(bytes, `${baseName}-protected.pdf`)
-      setShowSecurityModal(false)
-      showToast('Protected copy downloaded.', 'success')
-    } catch (err) {
-      showToast(err?.message || 'Failed to protect the PDF.', 'error')
-    } finally {
-      setSecurityLoading(false)
-    }
-  }, [buildFlattenedPdfLibDoc, pdfDoc.fileName, showToast])
-
   useEffect(() => {
     function onKeyDown(e) {
       const tag = document.activeElement?.tagName
@@ -902,7 +877,6 @@ export default function PdfEditorV2() {
         onFindReplaceClick={() => setShowFindReplace(true)}
         onExportWord={handleExportWord}
         onDocumentToolPick={setDocumentToolMode}
-        onProtectClick={() => setShowSecurityModal(true)}
       />
 
       {showOnboardingHint && (
@@ -1086,13 +1060,6 @@ export default function PdfEditorV2() {
         loading={documentToolLoading}
         onApply={handleApplyDocumentTool}
         onClose={() => setDocumentToolMode(null)}
-      />
-    )}
-    {showSecurityModal && (
-      <SecurityModal
-        loading={securityLoading}
-        onApply={handleApplyProtection}
-        onClose={() => setShowSecurityModal(false)}
       />
     )}
     </>
