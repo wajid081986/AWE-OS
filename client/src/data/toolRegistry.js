@@ -499,10 +499,10 @@ export const TOOL_REGISTRY = [
     category: 'pdf',
     subcategory: 'Edit PDF',
     icon: '✏️',
-    isFeatured: false,
-    isNew: false,
+    isFeatured: true,
+    isNew: true,
     isPremium: false,
-    comingSoon: true,
+    comingSoon: false,
     tags: ['pdf editor', 'edit pdf', 'annotate pdf', 'pdf annotator', 'sign pdf', 'fill pdf form'],
     relatedSlugs: ['watermark-pdf', 'protect-pdf', 'merge-pdf'],
     seo: {
