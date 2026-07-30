@@ -227,6 +227,32 @@ export default function PdfEditorV2() {
     }
   }, [isFullscreen])
 
+  // Fit-to-width default zoom: 100% was routinely wider than the available
+  // viewer column (see the items-start comment below), leaving the page
+  // "cut off" on the right with no visible way to discover the horizontal
+  // scrollbar. Depends on isFullscreen too — re-fits when toggling view
+  // modes, since the available width changes a lot between embedded and
+  // fullscreen (this does mean a manual zoom resets on toggling fullscreen;
+  // accepted tradeoff for always landing on a sane default in both modes).
+  const { isReady, getPage } = pdfDoc
+  useEffect(() => {
+    if (!isReady) return
+    let cancelled = false
+    async function fitToWidth() {
+      const page = await getPage(1)
+      const container = viewerRef.current
+      if (cancelled || !page || !container) return
+      const nativeWidth = page.getViewport({ scale: RENDER_SCALE }).width
+      const available = container.clientWidth - 48 // p-6 padding, 24px each side
+      if (available > 0 && nativeWidth > 0) {
+        const fitZoom = available / nativeWidth
+        setZoom(Math.max(ZOOM_LEVELS[0], Math.min(ZOOM_LEVELS[ZOOM_LEVELS.length - 1], fitZoom)))
+      }
+    }
+    fitToWidth()
+    return () => { cancelled = true }
+  }, [isReady, getPage, isFullscreen])
+
   const zoomBy = useCallback((direction) => {
     setZoom((current) => {
       const idx = ZOOM_LEVELS.indexOf(current)
@@ -348,15 +374,13 @@ export default function PdfEditorV2() {
           onToggleCollapsed={() => setPagePanelCollapsed((c) => !c)}
         />
 
-        {/* items-start (not items-center): a standard page at 100% zoom
-            (918px, RENDER_SCALE 1.5x612pt) is routinely wider than what's
-            left once PagePanel + PropertiesPanel take their share —
-            center-alignment on an overflowing child scrolls symmetrically,
-            so the initial view started mid-page instead of at its left
-            edge. Left-aligned means pages narrower than the column sit
-            flush left and wider ones overflow only to the right, so the
-            page's own left edge is always the default view. (Phase 4 adds
-            a fit-to-width default zoom to close the gap properly.) */}
+        {/* items-start (not items-center): center-alignment on an
+            overflowing child scrolls symmetrically, which started the view
+            mid-page rather than at its left edge whenever the page was
+            wider than the available column. The fit-to-width effect above
+            now sizes the default zoom to actually fit, but items-start
+            stays as the fallback for whatever doesn't (very narrow windows,
+            a manual zoom-in past the fit level). */}
         <div ref={viewerRef} className="flex-1 flex flex-col items-start gap-6 bg-canvas p-6 rounded-m overflow-auto max-h-[75vh]">
           {Array.from({ length: pdfDoc.pageCount }, (_, i) => i + 1).map((pageNumber) => (
             <div key={pageNumber} id={`pdf-editor-page-${pageNumber}`}>
