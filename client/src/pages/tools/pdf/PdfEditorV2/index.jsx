@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
+import { PDFDocument, StandardFonts, rgb, PDFTextField, PDFCheckBox, PDFRadioGroup, PDFDropdown } from 'pdf-lib'
 import ToolPageShell from '../../ToolPageShell'
 import PageCanvas from './PageCanvas'
 import Toolbar from './Toolbar'
 import PagePanel from './PagePanel'
 import PropertiesPanel from './PropertiesPanel'
+import ProfileModal from './ProfileModal'
 import { usePdfDoc } from './usePdfDoc'
 import { useAnnotations } from './useAnnotations'
+import { useFormFields } from './useFormFields'
+import { useAutoFillProfile } from './useAutoFillProfile'
 import { TOOLS, KEYBOARD_SHORTCUTS, ZOOM_LEVELS, DEFAULT_ZOOM, RENDER_SCALE } from './constants'
 import { downloadFile, isPdfFile } from '../pdfUtils'
 import { TOOL_ABOUT } from '../../../../data/toolPageContent'
@@ -143,6 +146,8 @@ export default function PdfEditorV2() {
   const { showToast } = useToast()
   const pdfDoc = usePdfDoc()
   const annotationsApi = useAnnotations()
+  const formFieldsApi = useFormFields()
+  const autoFillApi = useAutoFillProfile()
   const originalBytesRef = useRef(null)
   const fileInputRef = useRef(null)
   const viewerRef = useRef(null)
@@ -155,6 +160,10 @@ export default function PdfEditorV2() {
   const [pagePanelCollapsed, setPagePanelCollapsed] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showOnboardingHint, setShowOnboardingHint] = useState(false)
+  const [showProfileModal, setShowProfileModal] = useState(false)
+
+  // localStorage read — effect, not render body, so it never runs during SSR.
+  useEffect(() => { autoFillApi.load() }, [])
 
   const handleFileChange = useCallback(async (e) => {
     const file = e.target.files?.[0]
@@ -165,12 +174,14 @@ export default function PdfEditorV2() {
       return
     }
     annotationsApi.reset()
+    formFieldsApi.reset()
     setActivePage(1)
     const bytes = await pdfDoc.loadFromFile(file)
     originalBytesRef.current = bytes
+    await formFieldsApi.detect(bytes)
     setIsFullscreen(true)
     setShowOnboardingHint(true)
-  }, [pdfDoc, annotationsApi, showToast])
+  }, [pdfDoc, annotationsApi, formFieldsApi, showToast])
 
   // Dismiss the "click a tool to start editing" hint automatically once the
   // user has actually placed one — it's only useful before their first move.
@@ -286,6 +297,26 @@ export default function PdfEditorV2() {
         // creation order so overlapping shapes stack the same as on-screen
         await drawAnnotation(pdfLibDoc, page, ann)
       }
+      if (formFieldsApi.hasFields) {
+        const form = pdfLibDoc.getForm()
+        for (const [name, value] of Object.entries(formFieldsApi.values)) {
+          try {
+            const field = form.getField(name)
+            if (field instanceof PDFTextField) field.setText(value ? String(value) : undefined)
+            else if (field instanceof PDFCheckBox) { if (value) field.check(); else field.uncheck() }
+            else if ((field instanceof PDFRadioGroup || field instanceof PDFDropdown) && value) field.select(value)
+          } catch {
+            // A field detected on-screen that pdf-lib's own getField(name)
+            // can't find (shouldn't happen, but this is user-facing data
+            // loss territory) — skip that one field rather than abort the
+            // whole download.
+          }
+        }
+        // Matches the annotation-flatten philosophy already used for
+        // drawAnnotation above (batch-36-plan.md's Phase 1 decision):
+        // filled values become permanent static content.
+        form.flatten()
+      }
       const bytes = await pdfLibDoc.save()
       const baseName = (pdfDoc.fileName || 'document').replace(/\.pdf$/i, '')
       downloadFile(bytes, `${baseName}-edited.pdf`)
@@ -293,7 +324,7 @@ export default function PdfEditorV2() {
     } catch (err) {
       showToast(err?.message || 'Failed to generate the PDF.', 'error')
     }
-  }, [annotationsApi.annotations, pdfDoc.fileName, showToast])
+  }, [annotationsApi.annotations, formFieldsApi.hasFields, formFieldsApi.values, pdfDoc.fileName, showToast])
 
   useEffect(() => {
     function onKeyDown(e) {
@@ -364,6 +395,22 @@ export default function PdfEditorV2() {
         </div>
       )}
 
+      {formFieldsApi.hasFields && (
+        <div className="flex items-center justify-between gap-3 bg-cobalt-tint text-cobalt text-sm rounded-m px-4 py-2">
+          <span>
+            📝 This PDF has {new Set(formFieldsApi.fields.map((f) => f.name)).size} fillable field(s) —
+            fill them directly on the page, or use your saved profile.
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowProfileModal(true)}
+            className="shrink-0 px-3 py-1 rounded-s bg-cobalt text-white text-xs font-medium whitespace-nowrap"
+          >
+            Autofill
+          </button>
+        </div>
+      )}
+
       <div className="flex gap-4 items-start">
         <PagePanel
           pdfDoc={pdfDoc}
@@ -389,6 +436,7 @@ export default function PdfEditorV2() {
                 zoom={zoom}
                 pdfDoc={pdfDoc}
                 annotationsApi={annotationsApi}
+                formFieldsApi={formFieldsApi}
                 activeTool={activeTool}
                 onAnnotationCreated={() => setActiveTool(TOOLS.SELECT)}
               />
@@ -406,6 +454,7 @@ export default function PdfEditorV2() {
   )
 
   return (
+    <>
     <ToolPageShell
       slug="pdf-editor"
       name="PDF Editor"
@@ -451,5 +500,20 @@ export default function PdfEditorV2() {
         editorBody
       )}
     </ToolPageShell>
+    {showProfileModal && (
+      <ProfileModal
+        profile={autoFillApi.profile}
+        onSave={autoFillApi.save}
+        onSaveAndAutofill={(draft) => {
+          autoFillApi.save(draft)
+          const patch = autoFillApi.matchFields(formFieldsApi.fields, draft)
+          formFieldsApi.setValuesBulk(patch)
+          setShowProfileModal(false)
+          showToast('Profile applied — check the filled fields.', 'success')
+        }}
+        onClose={() => setShowProfileModal(false)}
+      />
+    )}
+    </>
   )
 }

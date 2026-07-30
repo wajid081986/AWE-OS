@@ -77,6 +77,24 @@ export const DEFAULT_ANNOTATION_STYLE = {
 
 export const MAX_PDF_SIZE_MB = 25
 
+// Auto-fill profile fields (useAutoFillProfile.js) and the keywords used to
+// match a detected AcroForm field's internal name to one of them
+// (useFormFields.js's autofill()). Best-effort only — real-world PDF field
+// names vary too much for a general solution; every match stays manually
+// editable afterward in FormFieldLayer.
+export const PROFILE_FIELDS = ['name', 'email', 'phone', 'address', 'city', 'state', 'pin', 'dob']
+
+export const PROFILE_FIELD_KEYWORDS = {
+  name: ['name', 'fullname', 'applicant'],
+  email: ['email', 'e-mail'],
+  phone: ['phone', 'mobile', 'contact', 'tel'],
+  address: ['address', 'addr', 'street'],
+  city: ['city', 'town'],
+  state: ['state', 'province'],
+  pin: ['pin', 'pincode', 'zip', 'postal'],
+  dob: ['dob', 'birth', 'dateofbirth'],
+}
+
 // Fixed internal render/coordinate scale — annotation x/y/w/h are always
 // stored in this space regardless of the visual zoom level (PageCanvas.jsx
 // applies zoom as a pure CSS transform), so the pdf-lib flatten step

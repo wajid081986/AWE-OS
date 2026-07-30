@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import AnnotationLayer from './AnnotationLayer'
+import FormFieldLayer from './FormFieldLayer'
 import { TOOLS, BOX_DRAG_TOOLS, FREEHAND_TOOLS, CLICK_TOOLS, DEFAULT_ANNOTATION_STYLE, RENDER_SCALE } from './constants'
 
 const MIN_BOX_SIZE = 6
@@ -9,7 +10,7 @@ const MIN_BOX_SIZE = 6
  * handling for *creating* new annotations (drag-a-box, click-to-place,
  * freehand path); moving/editing existing ones is AnnotationLayer's job.
  */
-export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, activeTool, onAnnotationCreated }) {
+export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, formFieldsApi, activeTool, onAnnotationCreated }) {
   const canvasRef = useRef(null)
   const wrapperRef = useRef(null)
   const dragRef = useRef(null)
@@ -240,6 +241,13 @@ export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, a
           onSelect={annotationsApi.selectAnnotation}
           onUpdate={annotationsApi.updateAnnotation}
         />
+        {formFieldsApi && (
+          <FormFieldLayer
+            fields={formFieldsApi.getPageFields(pageNumber)}
+            values={formFieldsApi.values}
+            onChange={formFieldsApi.setValue}
+          />
+        )}
       </div>
     </div>
   )
