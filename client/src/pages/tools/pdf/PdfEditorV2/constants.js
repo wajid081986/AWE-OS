@@ -17,6 +17,8 @@ export const TOOLS = {
   SIGNATURE: 'signature',
   IMAGE: 'image',
   REDACT: 'redact',
+  CALLOUT: 'callout',
+  LINK: 'link',
 }
 
 // Tools that draw by dragging a bounding box (as opposed to a single click,
@@ -24,6 +26,7 @@ export const TOOLS = {
 export const BOX_DRAG_TOOLS = new Set([
   TOOLS.TEXT, TOOLS.HIGHLIGHT, TOOLS.UNDERLINE, TOOLS.STRIKETHROUGH,
   TOOLS.ARROW, TOOLS.RECTANGLE, TOOLS.ELLIPSE, TOOLS.WHITEOUT, TOOLS.REDACT,
+  TOOLS.CALLOUT, TOOLS.LINK,
 ])
 
 export const FREEHAND_TOOLS = new Set([TOOLS.DRAW, TOOLS.SIGNATURE])
@@ -47,6 +50,8 @@ export const KEYBOARD_SHORTCUTS = {
   s: TOOLS.STAMP,
   n: TOOLS.NOTE,
   x: TOOLS.REDACT,
+  c: TOOLS.CALLOUT,
+  l: TOOLS.LINK,
 }
 
 export const PALETTE = [
@@ -83,6 +88,15 @@ export const DEFAULT_ANNOTATION_STYLE = {
   // (PropertiesPanel.jsx, drawAnnotation in index.jsx), since a redaction
   // that can be made translucent defeats the purpose.
   [TOOLS.REDACT]: { color: '#000000' },
+  // anchorDx/anchorDy are the leader-line tip's offset from the box's own
+  // top-left corner (canvas/display units, RENDER_SCALE space) — an
+  // offset, not an absolute point, so moving or duplicating the whole
+  // callout carries the anchor with it.
+  [TOOLS.CALLOUT]: { color: '#111827', fill: '#fef9c3', fontSize: 12, text: '', anchorDx: -40, anchorDy: 40 },
+  // url/targetPage are mutually exclusive — PropertiesPanel.jsx clears one
+  // when the other is edited, and drawAnnotation's TOOLS.LINK case only
+  // ever builds one kind of action from whichever is set.
+  [TOOLS.LINK]: { url: '', targetPage: null },
   [TOOLS.STAMP]: { text: STAMP_PRESETS[0], color: STAMP_COLORS.red },
   [TOOLS.SIGNATURE]: { color: '#111827', strokeWidth: 2 },
   [TOOLS.IMAGE]: { opacity: 1 },

@@ -131,6 +131,46 @@ export default function PropertiesPanel({ annotation, onChange, onDelete, isCrop
         <Row label="Color"><ColorGrid value={annotation.fill} onChange={(c) => set({ fill: c })} /></Row>
       )}
 
+      {type === TOOLS.CALLOUT && (
+        <>
+          <Row label="Text">
+            <textarea
+              value={annotation.text}
+              onChange={(e) => set({ text: e.target.value })}
+              className="w-full text-sm border border-line rounded-s px-2 py-1 h-20 resize-none"
+            />
+          </Row>
+          <Row label="Text / border color"><ColorGrid value={annotation.color} onChange={(c) => set({ color: c })} /></Row>
+          <Row label="Fill color"><ColorGrid value={annotation.fill} onChange={(c) => set({ fill: c })} /></Row>
+          <p className="text-xs text-ink-soft">Drag the small circle handle on the canvas to point the callout at something.</p>
+        </>
+      )}
+
+      {type === TOOLS.LINK && (
+        <>
+          <Row label="Link to URL">
+            <input
+              type="url"
+              value={annotation.url || ''}
+              onChange={(e) => set({ url: e.target.value, targetPage: e.target.value ? null : annotation.targetPage })}
+              placeholder="https://…"
+              className="w-full text-sm border border-line rounded-s px-2 py-1"
+            />
+          </Row>
+          <Row label="Or jump to page">
+            <input
+              type="number"
+              min={1}
+              value={annotation.targetPage || ''}
+              onChange={(e) => set({ targetPage: e.target.value ? Number(e.target.value) : null, url: e.target.value ? '' : annotation.url })}
+              placeholder="Page #"
+              className="w-full text-sm border border-line rounded-s px-2 py-1"
+            />
+          </Row>
+          <p className="text-xs text-ink-soft">Invisible in the downloaded PDF — only the clickable hotspot is real; set one of URL or page, not both.</p>
+        </>
+      )}
+
       {type === TOOLS.REDACT && (
         <p className="text-xs text-ink-soft">
           Solid black cover, baked into the download. Like Whiteout, this is

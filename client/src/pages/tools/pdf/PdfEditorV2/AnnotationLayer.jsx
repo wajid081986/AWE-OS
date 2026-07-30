@@ -243,6 +243,87 @@ function ImageShape({ ann, isCropping, onApplyCrop, onCancelCrop }) {
   return <img src={src} alt="" draggable={false} className="w-full h-full object-fill pointer-events-none select-none" />
 }
 
+function LinkShape({ ann }) {
+  const label = ann.url || (ann.targetPage ? `Jumps to page ${ann.targetPage}` : 'Link — set a URL or page in the panel')
+  return (
+    <div
+      className="w-full h-full flex items-center justify-center rounded-sm border-2 border-dashed"
+      style={{ borderColor: '#3b82f6', background: 'rgba(59,130,246,0.08)' }}
+      title={label}
+    >
+      <span aria-hidden className="text-xs">🔗</span>
+    </div>
+  )
+}
+
+// Speech-bubble text box with a leader line to a separately draggable
+// anchor point — special-cased in AnnotationItem (like TextShape) rather
+// than living in the generic SHAPES map, since it needs onUpdate/
+// isSelected/justCreated. The leader line always starts at the box's own
+// top-left corner (0,0 in this shell's local coordinate space); dragging
+// the small circle handle updates anchorDx/anchorDy (an offset from that
+// same corner, matching constants.js's DEFAULT_ANNOTATION_STYLE comment).
+function CalloutShape({ ann, isSelected, justCreated, onUpdate }) {
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (justCreated && ref.current) ref.current.focus()
+  }, [justCreated])
+
+  const anchorX = ann.anchorDx ?? -40
+  const anchorY = ann.anchorDy ?? 40
+
+  function startAnchorDrag(e) {
+    e.stopPropagation()
+    e.preventDefault()
+    const startX = e.clientX
+    const startY = e.clientY
+    const startDx = anchorX
+    const startDy = anchorY
+    function onMove(moveEvent) {
+      onUpdate(ann.id, {
+        anchorDx: startDx + (moveEvent.clientX - startX),
+        anchorDy: startDy + (moveEvent.clientY - startY),
+      })
+    }
+    function onUp() {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+    }
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+  }
+
+  return (
+    <>
+      <svg className="absolute overflow-visible" style={{ left: 0, top: 0, width: 1, height: 1, pointerEvents: 'none' }}>
+        <line x1={0} y1={0} x2={anchorX} y2={anchorY} stroke={ann.color ?? '#111827'} strokeWidth={2} />
+      </svg>
+      <div
+        onPointerDown={startAnchorDrag}
+        title="Drag to point the callout"
+        className="absolute w-3 h-3 rounded-full bg-white border-2 cursor-move"
+        style={{ left: anchorX - 6, top: anchorY - 6, borderColor: ann.color ?? '#111827', pointerEvents: 'auto' }}
+      />
+      <textarea
+        ref={ref}
+        value={ann.text ?? ''}
+        placeholder="Callout text…"
+        onChange={(e) => onUpdate(ann.id, { text: e.target.value })}
+        onPointerDown={(e) => e.stopPropagation()}
+        className="w-full h-full outline-none resize-none rounded-s px-2 py-1 text-sm"
+        style={{
+          color: ann.color ?? '#111827',
+          background: ann.fill ?? '#fef9c3',
+          border: `1.5px solid ${isSelected ? '#3b82f6' : (ann.color ?? '#111827')}`,
+          fontSize: ann.fontSize ?? 12,
+          pointerEvents: 'auto',
+        }}
+      />
+    </>
+  )
+}
+
 function TextShape({ ann, isSelected, justCreated, onUpdate }) {
   const ref = useRef(null)
 
@@ -279,6 +360,7 @@ const SHAPES = {
   [TOOLS.STRIKETHROUGH]: StrikethroughShape,
   [TOOLS.WHITEOUT]: WhiteoutShape,
   [TOOLS.REDACT]: RedactShape,
+  [TOOLS.LINK]: LinkShape,
   [TOOLS.STAMP]: StampShape,
   [TOOLS.NOTE]: NoteShape,
   [TOOLS.DRAW]: DrawShape,
@@ -286,16 +368,19 @@ const SHAPES = {
   [TOOLS.ARROW]: ArrowShape,
 }
 
-// Text boxes own their pointer-down (so a click focuses the cursor instead of
-// starting a move-drag) — dragging a text box is deferred to a later phase
-// (a dedicated handle, once PropertiesPanel/Toolbar land). Every other shape
-// is move-draggable by its body when the Select tool is active.
+// Text (and Callout, same reasoning) own their pointer-down (so a click
+// focuses the cursor instead of starting a move-drag) — dragging a text/
+// callout box is deferred to a later phase (a dedicated handle, once
+// PropertiesPanel/Toolbar land). Every other shape is move-draggable by its
+// body when the Select tool is active.
+const BODY_UNDRAGGABLE = new Set([TOOLS.TEXT, TOOLS.CALLOUT])
+
 function AnnotationItem({ ann, isSelected, activeTool, justCreated, isCropping, onSelect, onUpdate, onApplyCrop, onCancelCrop }) {
   const dragState = useRef(null)
 
   const handlePointerDown = (e) => {
     onSelect(ann.id)
-    if (activeTool !== TOOLS.SELECT || ann.type === TOOLS.TEXT) return
+    if (activeTool !== TOOLS.SELECT || BODY_UNDRAGGABLE.has(ann.type)) return
     e.stopPropagation()
     dragState.current = { startX: e.clientX, startY: e.clientY, originX: ann.x, originY: ann.y }
 
@@ -327,13 +412,15 @@ function AnnotationItem({ ann, isSelected, activeTool, justCreated, isCropping, 
         width: ann.w,
         height: ann.h,
         pointerEvents: 'auto',
-        cursor: activeTool === TOOLS.SELECT && ann.type !== TOOLS.TEXT ? 'move' : 'auto',
-        outline: isSelected && ann.type !== TOOLS.TEXT ? '2px solid #3b82f6' : 'none',
+        cursor: activeTool === TOOLS.SELECT && !BODY_UNDRAGGABLE.has(ann.type) ? 'move' : 'auto',
+        outline: isSelected && !BODY_UNDRAGGABLE.has(ann.type) ? '2px solid #3b82f6' : 'none',
         outlineOffset: 2,
       }}
     >
       {ann.type === TOOLS.TEXT ? (
         <TextShape ann={ann} isSelected={isSelected} justCreated={justCreated} onUpdate={onUpdate} />
+      ) : ann.type === TOOLS.CALLOUT ? (
+        <CalloutShape ann={ann} isSelected={isSelected} justCreated={justCreated} onUpdate={onUpdate} />
       ) : ann.type === TOOLS.IMAGE ? (
         <ImageShape ann={ann} isCropping={isCropping} onApplyCrop={onApplyCrop} onCancelCrop={onCancelCrop} />
       ) : Shape ? (

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { PDFDocument, StandardFonts, rgb, PDFTextField, PDFCheckBox, PDFRadioGroup, PDFDropdown } from 'pdf-lib'
+import { PDFDocument, StandardFonts, rgb, PDFTextField, PDFCheckBox, PDFRadioGroup, PDFDropdown, PDFString } from 'pdf-lib'
 import ToolPageShell from '../../ToolPageShell'
 import PageCanvas from './PageCanvas'
 import Toolbar from './Toolbar'
@@ -113,6 +113,47 @@ async function drawAnnotation(pdfLibDoc, page, ann) {
       // shape here which respects the user's chosen style.
       page.drawRectangle({ x, y: yBottom, width: w, height: h, color: rgb(0, 0, 0), opacity: 1 })
       break
+    case TOOLS.CALLOUT: {
+      const font = await pdfLibDoc.embedFont(StandardFonts.Helvetica)
+      const size = toPt(ann.fontSize ?? 12)
+      page.drawRectangle({
+        x, y: yBottom, width: w, height: h,
+        color: hexToRgb(ann.fill ?? '#fef9c3'),
+        borderColor: hexToRgb(ann.color ?? '#111827'), borderWidth: 1.5,
+      })
+      const lines = (ann.text ?? '').split('\n')
+      lines.forEach((line, i) => {
+        page.drawText(line, { x: x + 6, y: yTop - size * (i + 1) - 2, size, font, color: hexToRgb(ann.color ?? '#111827') })
+      })
+      // Leader line to the anchor point — anchorDx/anchorDy are an offset
+      // from the box's own top-left corner in canvas/display units
+      // (constants.js), so they go through the same toPt conversion as
+      // every other coordinate here before becoming a PDF-space point.
+      const anchorX = toPt(ann.x + (ann.anchorDx ?? -40))
+      const anchorY = pageH - toPt(ann.y + (ann.anchorDy ?? 40))
+      page.drawLine({ start: { x, y: yTop }, end: { x: anchorX, y: anchorY }, thickness: 1.5, color: hexToRgb(ann.color ?? '#111827') })
+      break
+    }
+    case TOOLS.LINK: {
+      // Low-level pdf-lib annotation API — there's no high-level "add a
+      // link" helper (only PDFForm's widget helpers reach this deep
+      // elsewhere in the codebase). Border [0,0,0] keeps it fully invisible
+      // in the exported PDF; it's a real clickable hotspot, not a visible
+      // box, matching the on-canvas dashed-outline being edit-only chrome.
+      const rect = pdfLibDoc.context.obj([x, yBottom, x + w, yTop])
+      let action = null
+      if (ann.url) {
+        action = pdfLibDoc.context.obj({ Type: 'Action', S: 'URI', URI: PDFString.of(ann.url) })
+      } else if (ann.targetPage >= 1 && ann.targetPage <= pdfLibDoc.getPageCount()) {
+        const targetRef = pdfLibDoc.getPage(ann.targetPage - 1).ref
+        action = pdfLibDoc.context.obj({ Type: 'Action', S: 'GoTo', D: [targetRef, 'XYZ', null, null, null] })
+      }
+      if (action) {
+        const annotDict = pdfLibDoc.context.obj({ Type: 'Annot', Subtype: 'Link', Rect: rect, Border: [0, 0, 0], A: action })
+        page.node.addAnnot(pdfLibDoc.context.register(annotDict))
+      }
+      break
+    }
     case TOOLS.NOTE:
       page.drawRectangle({ x, y: yBottom, width: w, height: h, color: hexToRgb(ann.color), opacity: 0.9 })
       break

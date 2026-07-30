@@ -12,6 +12,8 @@ const TOOL_BUTTONS = [
   { id: TOOLS.RECTANGLE, label: 'Rectangle', icon: '▭', key: 'R' },
   { id: TOOLS.ELLIPSE, label: 'Ellipse', icon: '◯', key: 'E' },
   { id: TOOLS.NOTE, label: 'Note', icon: '🗒️', key: 'N' },
+  { id: TOOLS.CALLOUT, label: 'Callout', icon: '💬', key: 'C' },
+  { id: TOOLS.LINK, label: 'Link', icon: '🔗', key: 'L' },
   { id: TOOLS.WHITEOUT, label: 'Whiteout', icon: '▢', key: 'W' },
   { id: TOOLS.REDACT, label: 'Redact', icon: '⬛', key: 'X' },
   { id: TOOLS.STAMP, label: 'Stamp', icon: '⏹', key: 'S' },
