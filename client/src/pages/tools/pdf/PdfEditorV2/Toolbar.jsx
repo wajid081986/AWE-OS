@@ -16,8 +16,11 @@ const TOOL_BUTTONS = [
   { id: TOOLS.SIGNATURE, label: 'Signature', icon: '✒', key: '' },
 ]
 
-/** Sticky top toolbar: tool selection, zoom, undo/redo, download. */
-export default function Toolbar({ activeTool, onToolChange, zoom, onZoomIn, onZoomOut, canUndo, canRedo, onUndo, onRedo, onDownload }) {
+/** Sticky top toolbar: tool selection, zoom, undo/redo, download, fullscreen. */
+export default function Toolbar({
+  activeTool, onToolChange, zoom, onZoomIn, onZoomOut, canUndo, canRedo, onUndo, onRedo, onDownload,
+  isFullscreen, onToggleFullscreen, fullscreenBtnRef,
+}) {
   return (
     <div className="flex flex-wrap items-center gap-2 sticky top-0 z-10 bg-card border border-line rounded-m p-2">
       {TOOL_BUTTONS.map((t) => (
@@ -26,10 +29,11 @@ export default function Toolbar({ activeTool, onToolChange, zoom, onZoomIn, onZo
           type="button"
           title={t.key ? `${t.label} (${t.key})` : t.label}
           onClick={() => onToolChange(t.id)}
-          className={`px-2.5 py-1.5 rounded-s text-sm ${activeTool === t.id ? 'bg-cobalt text-white' : 'hover:bg-cobalt-tint'}`}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-s text-sm whitespace-nowrap ${activeTool === t.id ? 'bg-cobalt text-white' : 'text-ink hover:bg-cobalt-tint'}`}
         >
           <span aria-hidden>{t.icon}</span>
-          <span className="sr-only">{t.label}</span>
+          <span>{t.label}</span>
+          {t.key && <span className={activeTool === t.id ? 'text-white/70' : 'text-ink-soft'}>({t.key})</span>}
         </button>
       ))}
       <div className="ml-auto flex items-center gap-1">
@@ -39,6 +43,16 @@ export default function Toolbar({ activeTool, onToolChange, zoom, onZoomIn, onZo
         <button type="button" onClick={onUndo} disabled={!canUndo} className="px-2.5 py-1.5 rounded-s hover:bg-cobalt-tint disabled:opacity-40">Undo</button>
         <button type="button" onClick={onRedo} disabled={!canRedo} className="px-2.5 py-1.5 rounded-s hover:bg-cobalt-tint disabled:opacity-40">Redo</button>
         <button type="button" onClick={onDownload} className="px-3 py-1.5 rounded-s bg-cobalt text-white text-sm font-medium">Download</button>
+        <button
+          ref={fullscreenBtnRef}
+          type="button"
+          onClick={onToggleFullscreen}
+          className="px-2.5 py-1.5 rounded-s hover:bg-cobalt-tint"
+          aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+          title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+        >
+          <span aria-hidden>{isFullscreen ? '✕' : '⛶'}</span>
+        </button>
       </div>
     </div>
   )

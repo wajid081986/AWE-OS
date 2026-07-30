@@ -146,11 +146,14 @@ export default function PdfEditorV2() {
   const originalBytesRef = useRef(null)
   const fileInputRef = useRef(null)
   const viewerRef = useRef(null)
+  const overlayRef = useRef(null)
+  const fullscreenBtnRef = useRef(null)
 
   const [activeTool, setActiveTool] = useState(TOOLS.SELECT)
   const [zoom, setZoom] = useState(DEFAULT_ZOOM)
   const [activePage, setActivePage] = useState(1)
   const [pagePanelCollapsed, setPagePanelCollapsed] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
 
   const handleFileChange = useCallback(async (e) => {
     const file = e.target.files?.[0]
@@ -164,7 +167,57 @@ export default function PdfEditorV2() {
     setActivePage(1)
     const bytes = await pdfDoc.loadFromFile(file)
     originalBytesRef.current = bytes
+    setIsFullscreen(true)
   }, [pdfDoc, annotationsApi, showToast])
+
+  const toggleFullscreen = useCallback(() => setIsFullscreen((f) => !f), [])
+
+  // Body scroll lock while the fullscreen overlay is open — matches
+  // Header.jsx's existing mobile-nav-sheet pattern.
+  useEffect(() => {
+    document.body.style.overflow = isFullscreen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [isFullscreen])
+
+  // Focus the dialog on entering fullscreen, trap Tab within it, and return
+  // focus to the toggle button on exit — same idiom as Header.jsx's mobile
+  // nav sheet. Escape is deliberately NOT bound here: it already has a job
+  // (deselect / reset tool, in the keydown handler below) and overloading it
+  // to also close fullscreen would surprise a user mid-edit. Closing is via
+  // the toggle button only.
+  useEffect(() => {
+    if (!isFullscreen) return
+    const overlay = overlayRef.current
+    if (!overlay) return
+    overlay.focus()
+
+    function getFocusable() {
+      return Array.from(
+        overlay.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'),
+      ).filter((el) => el.offsetParent !== null)
+    }
+
+    function onKeyDown(e) {
+      if (e.key !== 'Tab') return
+      const items = getFocusable()
+      if (items.length === 0) return
+      const first = items[0]
+      const last = items[items.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      fullscreenBtnRef.current?.focus()
+    }
+  }, [isFullscreen])
 
   const zoomBy = useCallback((direction) => {
     setZoom((current) => {
@@ -245,6 +298,67 @@ export default function PdfEditorV2() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [annotationsApi, handleDownload])
 
+  const editorBody = (
+    <div className="space-y-4">
+      <Toolbar
+        activeTool={activeTool}
+        onToolChange={setActiveTool}
+        zoom={zoom}
+        onZoomIn={() => zoomBy(1)}
+        onZoomOut={() => zoomBy(-1)}
+        canUndo={annotationsApi.canUndo}
+        canRedo={annotationsApi.canRedo}
+        onUndo={annotationsApi.undo}
+        onRedo={annotationsApi.redo}
+        onDownload={handleDownload}
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={toggleFullscreen}
+        fullscreenBtnRef={fullscreenBtnRef}
+      />
+
+      <div className="flex gap-4 items-start">
+        <PagePanel
+          pdfDoc={pdfDoc}
+          pageCount={pdfDoc.pageCount}
+          activePage={activePage}
+          onJumpToPage={jumpToPage}
+          collapsed={pagePanelCollapsed}
+          onToggleCollapsed={() => setPagePanelCollapsed((c) => !c)}
+        />
+
+        {/* items-start (not items-center): a standard page at 100% zoom
+            (918px, RENDER_SCALE 1.5x612pt) is routinely wider than what's
+            left once PagePanel + PropertiesPanel take their share —
+            center-alignment on an overflowing child scrolls symmetrically,
+            so the initial view started mid-page instead of at its left
+            edge. Left-aligned means pages narrower than the column sit
+            flush left and wider ones overflow only to the right, so the
+            page's own left edge is always the default view. (Phase 4 adds
+            a fit-to-width default zoom to close the gap properly.) */}
+        <div ref={viewerRef} className="flex-1 flex flex-col items-start gap-6 bg-canvas p-6 rounded-m overflow-auto max-h-[75vh]">
+          {Array.from({ length: pdfDoc.pageCount }, (_, i) => i + 1).map((pageNumber) => (
+            <div key={pageNumber} id={`pdf-editor-page-${pageNumber}`}>
+              <PageCanvas
+                pageNumber={pageNumber}
+                zoom={zoom}
+                pdfDoc={pdfDoc}
+                annotationsApi={annotationsApi}
+                activeTool={activeTool}
+                onAnnotationCreated={() => setActiveTool(TOOLS.SELECT)}
+              />
+            </div>
+          ))}
+        </div>
+
+        <PropertiesPanel
+          annotation={annotationsApi.selected}
+          onChange={annotationsApi.updateAnnotation}
+          onDelete={annotationsApi.deleteAnnotation}
+        />
+      </div>
+    </div>
+  )
+
   return (
     <ToolPageShell
       slug="pdf-editor"
@@ -266,62 +380,23 @@ export default function PdfEditorV2() {
         >
           {pdfDoc.status === 'loading' ? 'Loading…' : 'Choose a PDF file to edit'}
         </button>
-      ) : (
-        <div className="space-y-4">
-          <Toolbar
-            activeTool={activeTool}
-            onToolChange={setActiveTool}
-            zoom={zoom}
-            onZoomIn={() => zoomBy(1)}
-            onZoomOut={() => zoomBy(-1)}
-            canUndo={annotationsApi.canUndo}
-            canRedo={annotationsApi.canRedo}
-            onUndo={annotationsApi.undo}
-            onRedo={annotationsApi.redo}
-            onDownload={handleDownload}
-          />
-
-          <div className="flex gap-4 items-start">
-            <PagePanel
-              pdfDoc={pdfDoc}
-              pageCount={pdfDoc.pageCount}
-              activePage={activePage}
-              onJumpToPage={jumpToPage}
-              collapsed={pagePanelCollapsed}
-              onToggleCollapsed={() => setPagePanelCollapsed((c) => !c)}
-            />
-
-            {/* items-start (not items-center): PagePanel + PropertiesPanel narrow
-                this column enough that a standard page at 100% zoom (918px,
-                RENDER_SCALE 1.5x612pt) is often wider than what's left —
-                center-alignment on an overflowing child scrolls symmetrically,
-                so the initial view started mid-page instead of at its left
-                edge. Left-aligned means pages narrower than the column sit
-                flush left (an acceptable tradeoff without a "fit width" zoom
-                mode) and wider ones overflow only to the right, so the page's
-                own left edge is always the default view. */}
-            <div ref={viewerRef} className="flex-1 flex flex-col items-start gap-6 bg-canvas p-6 rounded-m overflow-auto max-h-[75vh]">
-              {Array.from({ length: pdfDoc.pageCount }, (_, i) => i + 1).map((pageNumber) => (
-                <div key={pageNumber} id={`pdf-editor-page-${pageNumber}`}>
-                  <PageCanvas
-                    pageNumber={pageNumber}
-                    zoom={zoom}
-                    pdfDoc={pdfDoc}
-                    annotationsApi={annotationsApi}
-                    activeTool={activeTool}
-                    onAnnotationCreated={() => setActiveTool(TOOLS.SELECT)}
-                  />
-                </div>
-              ))}
-            </div>
-
-            <PropertiesPanel
-              annotation={annotationsApi.selected}
-              onChange={annotationsApi.updateAnnotation}
-              onDelete={annotationsApi.deleteAnnotation}
-            />
-          </div>
+      ) : isFullscreen ? (
+        // Reuses Header.jsx's exact full-screen-overlay idiom (fixed inset-0,
+        // z-[var(--z-modal)], dialog semantics) rather than a new pattern —
+        // see docs/backlog.md for why this exists outside Blueprint §10's
+        // closed Phase-1 component list.
+        <div
+          ref={overlayRef}
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          aria-label="PDF Editor — fullscreen"
+          className="fixed inset-0 z-[var(--z-modal)] bg-paper overflow-y-auto p-4"
+        >
+          {editorBody}
         </div>
+      ) : (
+        editorBody
       )}
     </ToolPageShell>
   )
