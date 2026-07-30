@@ -6,12 +6,15 @@ import Toolbar from './Toolbar'
 import PagePanel from './PagePanel'
 import PropertiesPanel from './PropertiesPanel'
 import ProfileModal from './ProfileModal'
+import AiConsentModal from './AiConsentModal'
+import AiResultModal from './AiResultModal'
 import { usePdfDoc } from './usePdfDoc'
 import { useAnnotations } from './useAnnotations'
 import { useFormFields } from './useFormFields'
 import { useAutoFillProfile } from './useAutoFillProfile'
+import { useAiTools } from './useAiTools'
 import { TOOLS, KEYBOARD_SHORTCUTS, ZOOM_LEVELS, DEFAULT_ZOOM, RENDER_SCALE, DEFAULT_ANNOTATION_STYLE, MAX_IMAGE_SIZE_MB } from './constants'
-import { downloadFile, isPdfFile, isImageFile, readImageDimensions, cropImageToBytes } from '../pdfUtils'
+import { downloadFile, downloadBlob, isPdfFile, isImageFile, readImageDimensions, cropImageToBytes, tablesToCsv } from '../pdfUtils'
 import { TOOL_ABOUT } from '../../../../data/toolPageContent'
 import { useToast } from '../../../../shared/components/ToastContext'
 
@@ -155,6 +158,7 @@ export default function PdfEditorV2() {
   const annotationsApi = useAnnotations()
   const formFieldsApi = useFormFields()
   const autoFillApi = useAutoFillProfile()
+  const aiApi = useAiTools()
   const originalBytesRef = useRef(null)
   const fileInputRef = useRef(null)
   const imageInputRef = useRef(null)
@@ -173,6 +177,7 @@ export default function PdfEditorV2() {
   // TOOLS.IMAGE so the next canvas click places it (PageCanvas.jsx).
   const [pendingImage, setPendingImage] = useState(null)
   const [croppingId, setCroppingId] = useState(null)
+  const [aiResult, setAiResult] = useState(null)
 
   // localStorage read — effect, not render body, so it never runs during SSR.
   useEffect(() => { autoFillApi.load() }, [])
@@ -287,6 +292,44 @@ export default function PdfEditorV2() {
       setCroppingId(null)
     }
   }, [annotationsApi, showToast])
+
+  const handleSummarize = useCallback(async () => {
+    try {
+      const text = await pdfDoc.getAllText()
+      const result = await aiApi.summarize(text)
+      if (result) setAiResult({ title: 'Summary', content: result })
+    } catch (err) {
+      showToast(err?.message || 'Failed to summarize.', 'error')
+    }
+  }, [pdfDoc, aiApi, showToast])
+
+  const handleTranslate = useCallback(async (targetLang) => {
+    try {
+      const text = await pdfDoc.getAllText()
+      const result = await aiApi.translate(text, targetLang)
+      if (result) setAiResult({ title: targetLang === 'hi' ? 'Translation (Hindi)' : 'Translation (Urdu)', content: result })
+    } catch (err) {
+      showToast(err?.message || 'Failed to translate.', 'error')
+    }
+  }, [pdfDoc, aiApi, showToast])
+
+  const handleExtractTables = useCallback(async () => {
+    try {
+      const text = await pdfDoc.getAllText()
+      const result = await aiApi.extractTables(text)
+      if (!result) return
+      if (!result.tables?.length) {
+        showToast('No tables found in this PDF.', 'info')
+        return
+      }
+      const csv = tablesToCsv(result.tables)
+      const baseName = (pdfDoc.fileName || 'document').replace(/\.pdf$/i, '')
+      downloadBlob(new Blob([csv], { type: 'text/csv' }), `${baseName}-tables.csv`)
+      showToast(`${result.tables.length} table(s) exported.`, 'success')
+    } catch (err) {
+      showToast(err?.message || 'Failed to extract tables.', 'error')
+    }
+  }, [pdfDoc, aiApi, showToast])
 
   // Dismiss the "click a tool to start editing" hint automatically once the
   // user has actually placed one — it's only useful before their first move.
@@ -487,6 +530,11 @@ export default function PdfEditorV2() {
         onToggleFullscreen={toggleFullscreen}
         fullscreenBtnRef={fullscreenBtnRef}
         onInsertImageClick={() => imageInputRef.current?.click()}
+        aiLoading={aiApi.loading}
+        onSummarize={handleSummarize}
+        onTranslateHindi={() => handleTranslate('hi')}
+        onTranslateUrdu={() => handleTranslate('ur')}
+        onExtractTables={handleExtractTables}
       />
 
       {showOnboardingHint && (
@@ -628,6 +676,12 @@ export default function PdfEditorV2() {
         }}
         onClose={() => setShowProfileModal(false)}
       />
+    )}
+    {aiApi.showConsent && (
+      <AiConsentModal onAccept={aiApi.onAcceptConsent} onClose={aiApi.onCancelConsent} />
+    )}
+    {aiResult && (
+      <AiResultModal title={aiResult.title} content={aiResult.content} onClose={() => setAiResult(null)} />
     )}
     </>
   )

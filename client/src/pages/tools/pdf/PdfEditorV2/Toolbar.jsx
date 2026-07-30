@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { TOOLS } from './constants'
 
 const TOOL_BUTTONS = [
@@ -16,10 +17,55 @@ const TOOL_BUTTONS = [
   { id: TOOLS.SIGNATURE, label: 'Signature', icon: '✒', key: '' },
 ]
 
+/** Dropdown menu for the AI Tools button — Summarize/Translate/Extract Tables
+ * are the only PdfEditorV2 features that send anything to a server, hence a
+ * single menu instead of 3 more buttons in an already-dense tool row. */
+function AiToolsMenu({ disabled, onSummarize, onTranslateHindi, onTranslateUrdu, onExtractTables }) {
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    function onPointerDown(e) {
+      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [open])
+
+  function pick(action) {
+    setOpen(false)
+    action()
+  }
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        disabled={disabled}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-s text-sm whitespace-nowrap text-ink hover:bg-cobalt-tint disabled:opacity-40"
+      >
+        <span aria-hidden>✨</span>
+        <span>AI Tools</span>
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-1 w-48 bg-card border border-line rounded-m shadow-card z-20 py-1">
+          <button type="button" onClick={() => pick(onSummarize)} className="w-full text-left px-3 py-1.5 text-sm text-ink hover:bg-cobalt-tint">Summarize</button>
+          <button type="button" onClick={() => pick(onTranslateHindi)} className="w-full text-left px-3 py-1.5 text-sm text-ink hover:bg-cobalt-tint">Translate to Hindi</button>
+          <button type="button" onClick={() => pick(onTranslateUrdu)} className="w-full text-left px-3 py-1.5 text-sm text-ink hover:bg-cobalt-tint">Translate to Urdu</button>
+          <button type="button" onClick={() => pick(onExtractTables)} className="w-full text-left px-3 py-1.5 text-sm text-ink hover:bg-cobalt-tint">Extract Tables (CSV)</button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 /** Sticky top toolbar: tool selection, zoom, undo/redo, download, fullscreen. */
 export default function Toolbar({
   activeTool, onToolChange, zoom, onZoomIn, onZoomOut, canUndo, canRedo, onUndo, onRedo, onDownload,
   isFullscreen, onToggleFullscreen, fullscreenBtnRef, onInsertImageClick,
+  aiLoading, onSummarize, onTranslateHindi, onTranslateUrdu, onExtractTables,
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2 sticky top-0 z-10 bg-card border border-line rounded-m p-2">
@@ -54,6 +100,13 @@ export default function Toolbar({
         <button type="button" onClick={onZoomIn} className="px-2 py-1.5 rounded-s hover:bg-cobalt-tint" aria-label="Zoom in">+</button>
         <button type="button" onClick={onUndo} disabled={!canUndo} className="px-2.5 py-1.5 rounded-s hover:bg-cobalt-tint disabled:opacity-40">Undo</button>
         <button type="button" onClick={onRedo} disabled={!canRedo} className="px-2.5 py-1.5 rounded-s hover:bg-cobalt-tint disabled:opacity-40">Redo</button>
+        <AiToolsMenu
+          disabled={aiLoading}
+          onSummarize={onSummarize}
+          onTranslateHindi={onTranslateHindi}
+          onTranslateUrdu={onTranslateUrdu}
+          onExtractTables={onExtractTables}
+        />
         <button type="button" onClick={onDownload} className="px-3 py-1.5 rounded-s bg-cobalt text-white text-sm font-medium">Download</button>
         <button
           ref={fullscreenBtnRef}

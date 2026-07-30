@@ -63,6 +63,7 @@ const adminContentIntelRoutes        = require('./routes/admin-content-intellige
 const adminTrafficAlertsRoutes       = require('./routes/admin-traffic-alerts');
 const socialPublishRoutes            = require('./routes/social-publish');
 const autoCampaignRoutes             = require('./routes/auto-campaign');
+const pdfAiToolsRoutes                = require('./routes/pdf-ai-tools.routes');
 const { initializeRuntime, shutdownRuntime } = require('./runtime');
 const { initializeMemory, shutdownMemory }   = require('./memory');
 const { initializeLearning, shutdownLearning } = require('./learning');
@@ -135,6 +136,9 @@ const authLimiter    = rateLimit({ windowMs: 15*60*1000, max: 20,  standardHeade
 const paymentLimiter = rateLimit({ windowMs: 60*60*1000, max: 10,  standardHeaders: true, legacyHeaders: false, message: { success: false, error: 'Too many payment attempts.' } });
 const adminLimiter   = rateLimit({ windowMs: 15*60*1000, max: 60,  standardHeaders: true, legacyHeaders: false, message: { success: false, error: 'Too many admin requests.' } });
 const storeDownloadLimiter = rateLimit({ windowMs: 15*60*1000, max: 20, standardHeaders: true, legacyHeaders: false, message: { success: false, error: 'Too many download attempts.' } });
+// Public + unauthenticated (PdfEditorV2's AI Tools), but each call is a real
+// Claude API request — tighter than adminLimiter since there's no auth wall.
+const pdfAiLimiter    = rateLimit({ windowMs: 15*60*1000, max: 15,  standardHeaders: true, legacyHeaders: false, message: { success: false, error: 'Too many AI requests, try again later.' } });
 
 app.use(globalLimiter);
 
@@ -254,6 +258,7 @@ app.use('/api/revenue',        revenueRouter);
 app.use('/api/decision',       decisionRoutes);
 app.use('/api/tools',          toolRoutes);
 app.use('/api/tools/generate', toolsGenerateRoutes);
+app.use('/api/pdf-ai',         pdfAiLimiter, pdfAiToolsRoutes);
 app.use('/api/agents',         agentsRoutes);
 app.use('/api/blog',             blogPublicRoutes);
 app.use('/api/admin/blog',       adminLimiter, adminBlogRoutes);

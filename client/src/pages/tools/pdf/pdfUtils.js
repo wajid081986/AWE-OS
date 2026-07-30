@@ -96,6 +96,23 @@ export const cropImageToBytes = (bytes, mimeType, cropRect) =>
     img.src = url
   })
 
+function csvEscape(value) {
+  const str = String(value ?? '')
+  return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str
+}
+
+// Converts the AI Extract Tables endpoint's `{ tables: [{ headers, rows }] }`
+// response into CSV text — this conversion runs entirely client-side; only
+// the extraction step (finding the tables) is server-side.
+export const tablesToCsv = (tables) =>
+  (tables || [])
+    .map((table) => {
+      const lines = [table.headers || [], ...(table.rows || [])]
+        .map((row) => row.map(csvEscape).join(','))
+      return lines.join('\n')
+    })
+    .join('\n\n')
+
 export const parsePageRanges = (rangeStr, totalPages) => {
   const pages = new Set()
   const parts = rangeStr.split(',').map(s => s.trim()).filter(Boolean)

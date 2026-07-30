@@ -21,6 +21,7 @@ export function usePdfDoc() {
   const pageCache = useRef(new Map()) // pageNumber -> PDFPageProxy
   const renderTasks = useRef(new WeakMap()) // canvas element -> in-flight pdf.js RenderTask
   const textItemsCache = useRef(new Map()) // pageNumber -> converted text item boxes
+  const pageTextCache = useRef(new Map()) // pageNumber -> flowing reading-order text
 
   const loadFromBytes = useCallback(async (bytes, name = '') => {
     setStatus('loading')
@@ -128,6 +129,29 @@ export function usePdfDoc() {
     return items
   }, [getPage])
 
+  // Flowing reading-order text for one page — distinct from getTextItems
+  // (positioned boxes for the Text tool's click-to-edit hit-testing). Used by
+  // the AI Tools feature (index.jsx's useAiTools.js), which needs plain text
+  // to send to the summarize/translate/extract-tables endpoints.
+  const getPageText = useCallback(async (pageNumber) => {
+    if (pageTextCache.current.has(pageNumber)) return pageTextCache.current.get(pageNumber)
+    const page = await getPage(pageNumber)
+    if (!page) return ''
+    const textContent = await page.getTextContent()
+    const text = textContent.items.map((item) => item.str).join(' ')
+    pageTextCache.current.set(pageNumber, text)
+    return text
+  }, [getPage])
+
+  const getAllText = useCallback(async () => {
+    const texts = []
+    for (let i = 1; i <= pageCount; i++) {
+      // eslint-disable-next-line no-await-in-loop -- pages must join in order
+      texts.push(await getPageText(i))
+    }
+    return texts.join('\n\n')
+  }, [pageCount, getPageText])
+
   const reset = useCallback(() => {
     setDoc(null)
     setPageCount(0)
@@ -136,6 +160,7 @@ export function usePdfDoc() {
     setError('')
     pageCache.current.clear()
     textItemsCache.current.clear()
+    pageTextCache.current.clear()
   }, [])
 
   return {
@@ -149,6 +174,8 @@ export function usePdfDoc() {
     loadFromBytes,
     getPage,
     getTextItems,
+    getPageText,
+    getAllText,
     renderPageToCanvas,
     reset,
   }
