@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import * as pdfjsLib from 'pdfjs-dist'
 import pdfjsWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+import { RENDER_SCALE } from './constants'
 
 // Sets a property on the imported pdfjs module object — not a window/document
 // read, so this is safe at module scope during SSR (mirrors v1's proven setup).
@@ -19,6 +20,7 @@ export function usePdfDoc() {
   const [error, setError] = useState('')
   const pageCache = useRef(new Map()) // pageNumber -> PDFPageProxy
   const renderTasks = useRef(new WeakMap()) // canvas element -> in-flight pdf.js RenderTask
+  const textItemsCache = useRef(new Map()) // pageNumber -> converted text item boxes
 
   const loadFromBytes = useCallback(async (bytes, name = '') => {
     setStatus('loading')
@@ -90,6 +92,42 @@ export function usePdfDoc() {
     return viewport
   }, [getPage])
 
+  // Existing text runs on the page, converted to RENDER_SCALE canvas-pixel
+  // boxes — used to detect a click on existing PDF text (for the Text
+  // tool's "click existing text to cover-and-edit" path). Same transform
+  // math pdf.js's own TextLayerBuilder uses internally (viewport.transform
+  // combined with each item's own transform via Util.transform), so this
+  // lines up with where the text actually renders. Only reliable for
+  // unrotated text — items with a non-zero angle are skipped rather than
+  // mis-measured, since supporting rotated-text hit-boxes correctly needs
+  // more than this approximation.
+  const getTextItems = useCallback(async (pageNumber) => {
+    if (textItemsCache.current.has(pageNumber)) return textItemsCache.current.get(pageNumber)
+    const page = await getPage(pageNumber)
+    if (!page) return []
+    const [textContent, viewport] = await Promise.all([
+      page.getTextContent(),
+      Promise.resolve(page.getViewport({ scale: RENDER_SCALE })),
+    ])
+    const items = []
+    for (const item of textContent.items) {
+      if (!item.str || !item.str.trim()) continue
+      const tx = pdfjsLib.Util.transform(viewport.transform, item.transform)
+      const angle = Math.atan2(tx[1], tx[0])
+      if (Math.abs(angle) > 0.01) continue // skip rotated/skewed runs
+      const fontHeight = Math.hypot(tx[2], tx[3])
+      items.push({
+        str: item.str,
+        x: tx[4],
+        y: tx[5] - fontHeight,
+        width: item.width * viewport.scale,
+        height: fontHeight,
+      })
+    }
+    textItemsCache.current.set(pageNumber, items)
+    return items
+  }, [getPage])
+
   const reset = useCallback(() => {
     setDoc(null)
     setPageCount(0)
@@ -97,6 +135,7 @@ export function usePdfDoc() {
     setStatus('idle')
     setError('')
     pageCache.current.clear()
+    textItemsCache.current.clear()
   }, [])
 
   return {
@@ -109,6 +148,7 @@ export function usePdfDoc() {
     loadFromFile,
     loadFromBytes,
     getPage,
+    getTextItems,
     renderPageToCanvas,
     reset,
   }

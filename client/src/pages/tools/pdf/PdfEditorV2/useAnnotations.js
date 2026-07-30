@@ -26,6 +26,22 @@ export function useAnnotations() {
     return annotation.id
   }, [history])
 
+  // Same as addAnnotation, but for multiple annotations created together as
+  // one user action (e.g. "cover existing text with a whiteout + drop a
+  // pre-filled text box on top") — recorded as a single history entry so one
+  // Ctrl+Z undoes the whole action, not just the last piece of it.
+  const addAnnotations = useCallback((partials) => {
+    const newAnnotations = partials.map((p) => ({ id: nextId(), ...p }))
+    const ids = newAnnotations.map((a) => a.id)
+    setAnnotations((prev) => [...prev, ...newAnnotations])
+    if (ids.length) setSelectedId(ids[ids.length - 1])
+    history.record({
+      undo: () => setAnnotations((prev) => prev.filter((a) => !ids.includes(a.id))),
+      redo: () => setAnnotations((prev) => [...prev, ...newAnnotations]),
+    })
+    return ids
+  }, [history])
+
   // Reads `annotations` (already-committed state, closed over below) directly
   // rather than mutating an outer variable from inside the setAnnotations
   // updater and reading it back immediately after — that pattern doesn't
@@ -90,6 +106,7 @@ export function useAnnotations() {
     selectAnnotation,
     clearSelection,
     addAnnotation,
+    addAnnotations,
     updateAnnotation,
     deleteAnnotation,
     deleteSelected,

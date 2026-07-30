@@ -16,6 +16,10 @@ export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, a
   const [dims, setDims] = useState({ width: 0, height: 0 })
   const [liveDraft, setLiveDraft] = useState(null)
   const [justCreatedId, setJustCreatedId] = useState(null)
+  // Existing PDF text boxes for this page, for the Text tool's "click
+  // existing text to cover-and-edit" path. A ref, not state — handlePointerDown
+  // needs to read it synchronously; see the same reasoning as dragRef below.
+  const textItemsRef = useRef([])
 
   // Depend on the specific stable values PageCanvas needs, not the whole
   // `pdfDoc` object — usePdfDoc() returns a fresh object every render, so
@@ -24,17 +28,19 @@ export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, a
   // every keystroke), continuously racing the render-cancel guard above.
   // `renderPageToCanvas`/`isReady` are themselves stable (memoized on
   // `doc`), so destructuring them out of the dependency array fixes it.
-  const { renderPageToCanvas, isReady } = pdfDoc
+  const { renderPageToCanvas, getTextItems, isReady } = pdfDoc
 
   useEffect(() => {
     let cancelled = false
     async function render() {
       const viewport = await renderPageToCanvas(pageNumber, canvasRef.current, RENDER_SCALE)
       if (!cancelled && viewport) setDims({ width: viewport.width, height: viewport.height })
+      const items = await getTextItems(pageNumber)
+      if (!cancelled) textItemsRef.current = items
     }
     if (isReady) render()
     return () => { cancelled = true }
-  }, [renderPageToCanvas, isReady, pageNumber])
+  }, [renderPageToCanvas, getTextItems, isReady, pageNumber])
 
   // Outer wrapper is sized to the zoomed visual box; the inner layer (canvas +
   // annotations) stays at native `dims` and is scaled via CSS transform, so
@@ -139,6 +145,47 @@ export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, a
       return
     }
     const { x, y } = pointFromEvent(e)
+
+    // Text tool on top of existing PDF text: cover it with a whiteout and
+    // drop a pre-filled, editable text annotation at the same position —
+    // this is NOT true content-stream text editing (pdf-lib has no API for
+    // that; see docs/batches/batch-35-inline-text-plan.md), it's cover +
+    // replace using the same mechanism Whiteout already uses, automated and
+    // pre-filled so it looks and feels like inline editing. Clicking empty
+    // space falls through to the normal blank-box placement below.
+    if (activeTool === TOOLS.TEXT) {
+      const hit = textItemsRef.current.find(
+        (it) => x >= it.x && x <= it.x + it.width && y >= it.y && y <= it.y + it.height,
+      )
+      if (hit) {
+        // Same fix v1 needed for its focus bug (see project memory): without
+        // this, the browser's own default mousedown/click focus handling
+        // fires after React's effect-driven .focus() below and silently
+        // steals it back to <body>. The blank-box path avoids this by
+        // deferring focus to pointerup (after the click's default behavior
+        // already settled) — this path focuses immediately on pointerdown,
+        // so it needs the preventDefault() explicitly instead.
+        e.preventDefault()
+        const ids = annotationsApi.addAnnotations([
+          {
+            type: TOOLS.WHITEOUT, page: pageNumber,
+            x: hit.x, y: hit.y, w: hit.width, h: hit.height,
+            ...DEFAULT_ANNOTATION_STYLE[TOOLS.WHITEOUT],
+          },
+          {
+            type: TOOLS.TEXT, page: pageNumber,
+            x: hit.x, y: hit.y, w: Math.max(hit.width, 60), h: Math.max(hit.height + 6, 22),
+            text: hit.str,
+            ...DEFAULT_ANNOTATION_STYLE[TOOLS.TEXT],
+            fontSize: Math.max(8, Math.round(hit.height)),
+          },
+        ])
+        const textId = ids[ids.length - 1]
+        setJustCreatedId(textId)
+        onAnnotationCreated?.(textId)
+        return
+      }
+    }
 
     if (CLICK_TOOLS.has(activeTool)) {
       const id = annotationsApi.addAnnotation({
