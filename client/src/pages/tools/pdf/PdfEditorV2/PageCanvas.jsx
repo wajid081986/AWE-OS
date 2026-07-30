@@ -10,7 +10,7 @@ const MIN_BOX_SIZE = 6
  * handling for *creating* new annotations (drag-a-box, click-to-place,
  * freehand path); moving/editing existing ones is AnnotationLayer's job.
  */
-export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, formFieldsApi, activeTool, onAnnotationCreated }) {
+export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, formFieldsApi, activeTool, pendingImage, croppingId, onApplyCrop, onCancelCrop, onAnnotationCreated }) {
   const canvasRef = useRef(null)
   const wrapperRef = useRef(null)
   const dragRef = useRef(null)
@@ -147,6 +147,24 @@ export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, f
     }
     const { x, y } = pointFromEvent(e)
 
+    if (activeTool === TOOLS.IMAGE && pendingImage) {
+      const id = annotationsApi.addAnnotation({
+        type: TOOLS.IMAGE,
+        page: pageNumber,
+        x, y,
+        w: pendingImage.w,
+        h: pendingImage.h,
+        imageBytes: pendingImage.bytes,
+        mimeType: pendingImage.mimeType,
+        naturalWidth: pendingImage.naturalWidth,
+        naturalHeight: pendingImage.naturalHeight,
+        ...DEFAULT_ANNOTATION_STYLE[TOOLS.IMAGE],
+      })
+      annotationsApi.selectAnnotation(id)
+      onAnnotationCreated?.(id)
+      return
+    }
+
     // Text tool on top of existing PDF text: cover it with a whiteout and
     // drop a pre-filled, editable text annotation at the same position —
     // this is NOT true content-stream text editing (pdf-lib has no API for
@@ -238,8 +256,11 @@ export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, f
           selectedId={annotationsApi.selectedId}
           activeTool={activeTool}
           justCreatedId={justCreatedId}
+          croppingId={croppingId}
           onSelect={annotationsApi.selectAnnotation}
           onUpdate={annotationsApi.updateAnnotation}
+          onApplyCrop={onApplyCrop}
+          onCancelCrop={onCancelCrop}
         />
         {formFieldsApi && (
           <FormFieldLayer

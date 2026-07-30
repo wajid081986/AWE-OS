@@ -120,6 +120,122 @@ function ArrowShape({ ann }) {
   )
 }
 
+// Crop rect (`rect`) lives in the same display-space units as ann.w/ann.h
+// (the box drawn on screen), initialized to the image's full bounds. Apply
+// converts it to the source image's natural pixel space (index.jsx's
+// handleApplyCrop) since that's what canvas drawImage/pdfUtils.cropImageToBytes
+// need — this component only ever deals in display space.
+function CropOverlay({ ann, src, onApplyCrop, onCancelCrop }) {
+  const [rect, setRect] = useState({ x: 0, y: 0, w: ann.w, h: ann.h })
+
+  // Re-initialize to the full image bounds only when a *different* image
+  // annotation enters cropping mode — not on every ann.w/h change, since
+  // Apply itself changes w/h and shouldn't immediately reopen a
+  // full-bounds box on top of the just-cropped result.
+  useEffect(() => {
+    setRect({ x: 0, y: 0, w: ann.w, h: ann.h })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ann.id])
+
+  const MIN_CROP = 20
+  const CURSORS = { tl: 'nwse-resize', br: 'nwse-resize', tr: 'nesw-resize', bl: 'nesw-resize' }
+
+  function startHandleDrag(corner) {
+    return (e) => {
+      e.stopPropagation()
+      e.preventDefault()
+      const startX = e.clientX
+      const startY = e.clientY
+      const startRect = rect
+      function onMove(moveEvent) {
+        const dx = moveEvent.clientX - startX
+        const dy = moveEvent.clientY - startY
+        let { x, y, w, h } = startRect
+        if (corner.includes('l')) { x = startRect.x + dx; w = startRect.w - dx }
+        if (corner.includes('r')) { w = startRect.w + dx }
+        if (corner.includes('t')) { y = startRect.y + dy; h = startRect.h - dy }
+        if (corner.includes('b')) { h = startRect.h + dy }
+        x = Math.max(0, Math.min(x, ann.w - MIN_CROP))
+        y = Math.max(0, Math.min(y, ann.h - MIN_CROP))
+        w = Math.max(MIN_CROP, Math.min(w, ann.w - x))
+        h = Math.max(MIN_CROP, Math.min(h, ann.h - y))
+        setRect({ x, y, w, h })
+      }
+      function onUp() {
+        window.removeEventListener('pointermove', onMove)
+        window.removeEventListener('pointerup', onUp)
+      }
+      window.addEventListener('pointermove', onMove)
+      window.addEventListener('pointerup', onUp)
+    }
+  }
+
+  return (
+    <>
+      <div
+        className="absolute inset-0 overflow-hidden"
+        style={{ pointerEvents: 'auto', cursor: 'default' }}
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        <img src={src} alt="" draggable={false} className="w-full h-full object-fill select-none" style={{ pointerEvents: 'none' }} />
+        <div
+          className="absolute border-2 border-cobalt"
+          style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h, boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)' }}
+        >
+          {Object.keys(CURSORS).map((corner) => (
+            <div
+              key={corner}
+              onPointerDown={startHandleDrag(corner)}
+              className="absolute w-3 h-3 bg-cobalt rounded-full"
+              style={{
+                cursor: CURSORS[corner],
+                top: corner.includes('t') ? -6 : undefined,
+                bottom: corner.includes('b') ? -6 : undefined,
+                left: corner.includes('l') ? -6 : undefined,
+                right: corner.includes('r') ? -6 : undefined,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+      <div
+        className="absolute -bottom-9 left-0 flex gap-2"
+        style={{ pointerEvents: 'auto' }}
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        <button type="button" onClick={() => onApplyCrop(ann, rect)} className="px-2.5 py-1 rounded-s bg-cobalt text-white text-xs font-medium">
+          Apply crop
+        </button>
+        <button type="button" onClick={onCancelCrop} className="px-2.5 py-1 rounded-s bg-white border border-line text-xs">
+          Cancel
+        </button>
+      </div>
+    </>
+  )
+}
+
+function ImageShape({ ann, isCropping, onApplyCrop, onCancelCrop }) {
+  const [src, setSrc] = useState(null)
+
+  useEffect(() => {
+    if (!ann.imageBytes) return
+    const url = URL.createObjectURL(new Blob([ann.imageBytes], { type: ann.mimeType || 'image/png' }))
+    setSrc(url)
+    return () => URL.revokeObjectURL(url)
+  }, [ann.imageBytes, ann.mimeType])
+
+  if (isCropping) {
+    return <CropOverlay ann={ann} src={src} onApplyCrop={onApplyCrop} onCancelCrop={onCancelCrop} />
+  }
+
+  // object-fill (not object-contain): ann.w/ann.h always matches the image's
+  // own aspect ratio (set at placement/crop time, and there's no resize
+  // handle to throw it off — see docs/backlog.md), so a plain stretch-to-box
+  // renders identically to pdf-lib's drawImage at download time, which has
+  // no aspect-preserving mode of its own.
+  return <img src={src} alt="" draggable={false} className="w-full h-full object-fill pointer-events-none select-none" />
+}
+
 function TextShape({ ann, isSelected, justCreated, onUpdate }) {
   const ref = useRef(null)
 
@@ -166,7 +282,7 @@ const SHAPES = {
 // starting a move-drag) — dragging a text box is deferred to a later phase
 // (a dedicated handle, once PropertiesPanel/Toolbar land). Every other shape
 // is move-draggable by its body when the Select tool is active.
-function AnnotationItem({ ann, isSelected, activeTool, justCreated, onSelect, onUpdate }) {
+function AnnotationItem({ ann, isSelected, activeTool, justCreated, isCropping, onSelect, onUpdate, onApplyCrop, onCancelCrop }) {
   const dragState = useRef(null)
 
   const handlePointerDown = (e) => {
@@ -210,6 +326,8 @@ function AnnotationItem({ ann, isSelected, activeTool, justCreated, onSelect, on
     >
       {ann.type === TOOLS.TEXT ? (
         <TextShape ann={ann} isSelected={isSelected} justCreated={justCreated} onUpdate={onUpdate} />
+      ) : ann.type === TOOLS.IMAGE ? (
+        <ImageShape ann={ann} isCropping={isCropping} onApplyCrop={onApplyCrop} onCancelCrop={onCancelCrop} />
       ) : Shape ? (
         <Shape ann={ann} />
       ) : null}
@@ -254,8 +372,11 @@ export default function AnnotationLayer({
   selectedId,
   activeTool,
   justCreatedId,
+  croppingId,
   onSelect,
   onUpdate,
+  onApplyCrop,
+  onCancelCrop,
 }) {
   return (
     <div className="absolute inset-0" style={{ width, height, pointerEvents: 'none' }}>
@@ -266,8 +387,11 @@ export default function AnnotationLayer({
           isSelected={ann.id === selectedId}
           activeTool={activeTool}
           justCreated={ann.id === justCreatedId}
+          isCropping={ann.id === croppingId}
           onSelect={onSelect}
           onUpdate={onUpdate}
+          onApplyCrop={onApplyCrop}
+          onCancelCrop={onCancelCrop}
         />
       ))}
       <LiveDraftPreview draft={liveDraft} />

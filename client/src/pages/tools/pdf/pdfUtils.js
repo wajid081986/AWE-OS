@@ -45,6 +45,57 @@ export const readFileAsArrayBuffer = (file) =>
     reader.readAsArrayBuffer(file)
   })
 
+// pdf-lib can only embed PNG/JPEG (PdfEditorV2's Image tool) — same
+// type-vs-extension fallback reasoning as isPdfFile above.
+export const isImageFile = (file) =>
+  !!file && (file.type === 'image/png' || file.type === 'image/jpeg' || /\.(png|jpe?g)$/i.test(file.name || ''))
+
+export const readImageDimensions = (bytes, mimeType) =>
+  new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(new Blob([bytes], { type: mimeType }))
+    const img = new Image()
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      resolve({ width: img.naturalWidth, height: img.naturalHeight })
+    }
+    img.onerror = (err) => {
+      URL.revokeObjectURL(url)
+      reject(err)
+    }
+    img.src = url
+  })
+
+// Re-rasterizes a cropped region into new PNG bytes for PdfEditorV2's Image
+// tool crop feature — cropping is implemented this way (rather than carrying
+// crop-rect metadata through to the pdf-lib download step) because pdf-lib's
+// drawImage always draws the whole embedded image scaled to a box; it has no
+// source-rect parameter. `cropRect` (x, y, width, height) must be in the
+// image's own natural pixel space, not display space.
+export const cropImageToBytes = (bytes, mimeType, cropRect) =>
+  new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(new Blob([bytes], { type: mimeType }))
+    const img = new Image()
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.max(1, Math.round(cropRect.width))
+      canvas.height = Math.max(1, Math.round(cropRect.height))
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, cropRect.x, cropRect.y, cropRect.width, cropRect.height, 0, 0, canvas.width, canvas.height)
+      canvas.toBlob((blob) => {
+        if (!blob) { reject(new Error('Crop failed.')); return }
+        blob.arrayBuffer()
+          .then((buf) => resolve({ bytes: new Uint8Array(buf), width: canvas.width, height: canvas.height }))
+          .catch(reject)
+      }, 'image/png')
+    }
+    img.onerror = (err) => {
+      URL.revokeObjectURL(url)
+      reject(err)
+    }
+    img.src = url
+  })
+
 export const parsePageRanges = (rangeStr, totalPages) => {
   const pages = new Set()
   const parts = rangeStr.split(',').map(s => s.trim()).filter(Boolean)

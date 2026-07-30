@@ -52,7 +52,7 @@ function StrokeWidthRow({ value, onChange }) {
 }
 
 /** Right sidebar: properties for the currently-selected annotation. */
-export default function PropertiesPanel({ annotation, onChange, onDelete }) {
+export default function PropertiesPanel({ annotation, onChange, onDelete, isCropping, onToggleCrop }) {
   if (!annotation) {
     return (
       <aside className="w-56 shrink-0 bg-card border border-line rounded-m p-4 text-sm text-ink-soft">
@@ -129,6 +129,19 @@ export default function PropertiesPanel({ annotation, onChange, onDelete }) {
 
       {type === TOOLS.WHITEOUT && (
         <Row label="Color"><ColorGrid value={annotation.fill} onChange={(c) => set({ fill: c })} /></Row>
+      )}
+
+      {type === TOOLS.IMAGE && (
+        <>
+          <OpacityRow value={annotation.opacity} onChange={(o) => set({ opacity: o })} />
+          <button
+            type="button"
+            onClick={onToggleCrop}
+            className={`w-full px-2.5 py-1.5 rounded-s text-sm border border-line ${isCropping ? 'bg-cobalt text-white' : 'text-ink hover:bg-cobalt-tint'}`}
+          >
+            {isCropping ? 'Cancel crop' : 'Crop image'}
+          </button>
+        </>
       )}
 
       {type === TOOLS.STAMP && (

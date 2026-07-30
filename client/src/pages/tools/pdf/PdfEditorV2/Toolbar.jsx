@@ -19,7 +19,7 @@ const TOOL_BUTTONS = [
 /** Sticky top toolbar: tool selection, zoom, undo/redo, download, fullscreen. */
 export default function Toolbar({
   activeTool, onToolChange, zoom, onZoomIn, onZoomOut, canUndo, canRedo, onUndo, onRedo, onDownload,
-  isFullscreen, onToggleFullscreen, fullscreenBtnRef,
+  isFullscreen, onToggleFullscreen, fullscreenBtnRef, onInsertImageClick,
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2 sticky top-0 z-10 bg-card border border-line rounded-m p-2">
@@ -36,6 +36,18 @@ export default function Toolbar({
           {t.key && <span className={activeTool === t.id ? 'text-white/70' : 'text-ink-soft'}>({t.key})</span>}
         </button>
       ))}
+      {/* Not a plain onToolChange button — picking a file arms the tool
+          (see index.jsx's handleImageFileChange), so this opens the hidden
+          file input instead of switching tools directly. */}
+      <button
+        type="button"
+        title="Insert Image"
+        onClick={onInsertImageClick}
+        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-s text-sm whitespace-nowrap ${activeTool === TOOLS.IMAGE ? 'bg-cobalt text-white' : 'text-ink hover:bg-cobalt-tint'}`}
+      >
+        <span aria-hidden>🖼️</span>
+        <span>Image</span>
+      </button>
       <div className="ml-auto flex items-center gap-1">
         <button type="button" onClick={onZoomOut} className="px-2 py-1.5 rounded-s hover:bg-cobalt-tint" aria-label="Zoom out">−</button>
         <span className="text-xs text-ink-soft w-12 text-center">{Math.round(zoom * 100)}%</span>

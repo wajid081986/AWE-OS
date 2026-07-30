@@ -10,8 +10,8 @@ import { usePdfDoc } from './usePdfDoc'
 import { useAnnotations } from './useAnnotations'
 import { useFormFields } from './useFormFields'
 import { useAutoFillProfile } from './useAutoFillProfile'
-import { TOOLS, KEYBOARD_SHORTCUTS, ZOOM_LEVELS, DEFAULT_ZOOM, RENDER_SCALE } from './constants'
-import { downloadFile, isPdfFile } from '../pdfUtils'
+import { TOOLS, KEYBOARD_SHORTCUTS, ZOOM_LEVELS, DEFAULT_ZOOM, RENDER_SCALE, DEFAULT_ANNOTATION_STYLE, MAX_IMAGE_SIZE_MB } from './constants'
+import { downloadFile, isPdfFile, isImageFile, readImageDimensions, cropImageToBytes } from '../pdfUtils'
 import { TOOL_ABOUT } from '../../../../data/toolPageContent'
 import { useToast } from '../../../../shared/components/ToastContext'
 
@@ -137,6 +137,13 @@ async function drawAnnotation(pdfLibDoc, page, ann) {
       }
       break
     }
+    case TOOLS.IMAGE: {
+      const image = ann.mimeType === 'image/jpeg' || ann.mimeType === 'image/jpg'
+        ? await pdfLibDoc.embedJpg(ann.imageBytes)
+        : await pdfLibDoc.embedPng(ann.imageBytes)
+      page.drawImage(image, { x, y: yBottom, width: w, height: h, opacity: ann.opacity ?? 1 })
+      break
+    }
     default:
       break
   }
@@ -150,6 +157,7 @@ export default function PdfEditorV2() {
   const autoFillApi = useAutoFillProfile()
   const originalBytesRef = useRef(null)
   const fileInputRef = useRef(null)
+  const imageInputRef = useRef(null)
   const viewerRef = useRef(null)
   const overlayRef = useRef(null)
   const fullscreenBtnRef = useRef(null)
@@ -161,6 +169,10 @@ export default function PdfEditorV2() {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showOnboardingHint, setShowOnboardingHint] = useState(false)
   const [showProfileModal, setShowProfileModal] = useState(false)
+  // Set once a file is picked via Toolbar's Insert Image button — arms
+  // TOOLS.IMAGE so the next canvas click places it (PageCanvas.jsx).
+  const [pendingImage, setPendingImage] = useState(null)
+  const [croppingId, setCroppingId] = useState(null)
 
   // localStorage read — effect, not render body, so it never runs during SSR.
   useEffect(() => { autoFillApi.load() }, [])
@@ -182,6 +194,99 @@ export default function PdfEditorV2() {
     setIsFullscreen(true)
     setShowOnboardingHint(true)
   }, [pdfDoc, annotationsApi, formFieldsApi, showToast])
+
+  const armImage = useCallback(async (file) => {
+    if (!isImageFile(file)) {
+      showToast('Please choose a PNG or JPEG image.', 'error')
+      return
+    }
+    if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+      showToast(`Image is too large (max ${MAX_IMAGE_SIZE_MB}MB).`, 'error')
+      return
+    }
+    const bytes = new Uint8Array(await file.arrayBuffer())
+    const mimeType = file.type || (/\.png$/i.test(file.name) ? 'image/png' : 'image/jpeg')
+    try {
+      const { width, height } = await readImageDimensions(bytes, mimeType)
+      const w = Math.min(240, width)
+      const h = w * (height / width)
+      setPendingImage({ bytes, mimeType, naturalWidth: width, naturalHeight: height, w, h })
+      setActiveTool(TOOLS.IMAGE)
+    } catch {
+      showToast('Failed to read that image.', 'error')
+    }
+  }, [showToast])
+
+  const handleImageFileChange = useCallback(async (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (file) await armImage(file)
+  }, [armImage])
+
+  // Ctrl+V: places an image directly on the active page at a default
+  // position — unlike the toolbar's insert flow, paste has no "click point"
+  // to arm-and-wait-for, so it places immediately (matches normal paste UX).
+  useEffect(() => {
+    async function onPaste(e) {
+      if (!pdfDoc.isReady) return
+      const tag = document.activeElement?.tagName
+      if (tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SELECT') return
+      const item = Array.from(e.clipboardData?.items || []).find((it) => it.type.startsWith('image/'))
+      if (!item) return
+      e.preventDefault()
+      const file = item.getAsFile()
+      if (!file || file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+        if (file) showToast(`Image is too large (max ${MAX_IMAGE_SIZE_MB}MB).`, 'error')
+        return
+      }
+      const bytes = new Uint8Array(await file.arrayBuffer())
+      const mimeType = file.type || 'image/png'
+      try {
+        const { width, height } = await readImageDimensions(bytes, mimeType)
+        const w = Math.min(240, width)
+        const h = w * (height / width)
+        annotationsApi.addAnnotation({
+          type: TOOLS.IMAGE, page: activePage,
+          x: 40, y: 40, w, h,
+          imageBytes: bytes, mimeType, naturalWidth: width, naturalHeight: height,
+          ...DEFAULT_ANNOTATION_STYLE[TOOLS.IMAGE],
+        })
+        showToast('Image pasted.', 'success')
+      } catch {
+        showToast('Failed to paste that image.', 'error')
+      }
+    }
+    window.addEventListener('paste', onPaste)
+    return () => window.removeEventListener('paste', onPaste)
+  }, [pdfDoc.isReady, activePage, annotationsApi, showToast])
+
+  const handleApplyCrop = useCallback(async (ann, displayRect) => {
+    try {
+      const scaleX = (ann.naturalWidth ?? ann.w) / ann.w
+      const scaleY = (ann.naturalHeight ?? ann.h) / ann.h
+      const naturalRect = {
+        x: displayRect.x * scaleX,
+        y: displayRect.y * scaleY,
+        width: displayRect.w * scaleX,
+        height: displayRect.h * scaleY,
+      }
+      const { bytes, width, height } = await cropImageToBytes(ann.imageBytes, ann.mimeType, naturalRect)
+      annotationsApi.updateAnnotation(ann.id, {
+        imageBytes: bytes,
+        mimeType: 'image/png',
+        naturalWidth: width,
+        naturalHeight: height,
+        x: ann.x + displayRect.x,
+        y: ann.y + displayRect.y,
+        w: displayRect.w,
+        h: displayRect.h,
+      })
+    } catch (err) {
+      showToast(err?.message || 'Failed to crop image.', 'error')
+    } finally {
+      setCroppingId(null)
+    }
+  }, [annotationsApi, showToast])
 
   // Dismiss the "click a tool to start editing" hint automatically once the
   // user has actually placed one — it's only useful before their first move.
@@ -350,6 +455,8 @@ export default function PdfEditorV2() {
       if (e.key === 'Escape') {
         annotationsApi.clearSelection()
         setActiveTool(TOOLS.SELECT)
+        setPendingImage(null)
+        setCroppingId(null)
         return
       }
       if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -379,6 +486,7 @@ export default function PdfEditorV2() {
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
         fullscreenBtnRef={fullscreenBtnRef}
+        onInsertImageClick={() => imageInputRef.current?.click()}
       />
 
       {showOnboardingHint && (
@@ -438,7 +546,11 @@ export default function PdfEditorV2() {
                 annotationsApi={annotationsApi}
                 formFieldsApi={formFieldsApi}
                 activeTool={activeTool}
-                onAnnotationCreated={() => setActiveTool(TOOLS.SELECT)}
+                pendingImage={pendingImage}
+                croppingId={croppingId}
+                onApplyCrop={handleApplyCrop}
+                onCancelCrop={() => setCroppingId(null)}
+                onAnnotationCreated={() => { setActiveTool(TOOLS.SELECT); setPendingImage(null) }}
               />
             </div>
           ))}
@@ -448,6 +560,8 @@ export default function PdfEditorV2() {
           annotation={annotationsApi.selected}
           onChange={annotationsApi.updateAnnotation}
           onDelete={annotationsApi.deleteAnnotation}
+          isCropping={annotationsApi.selected?.id === croppingId}
+          onToggleCrop={() => setCroppingId((id) => (id === annotationsApi.selected?.id ? null : annotationsApi.selected?.id))}
         />
       </div>
     </div>
@@ -466,6 +580,7 @@ export default function PdfEditorV2() {
       limitation="Adds new text, drawings, and highlights on top of the PDF — it cannot edit or delete the PDF's original text."
     >
       <input ref={fileInputRef} type="file" accept="application/pdf,.pdf" onChange={handleFileChange} className="hidden" />
+      <input ref={imageInputRef} type="file" accept="image/png,image/jpeg" onChange={handleImageFileChange} className="hidden" />
 
       {!pdfDoc.isReady ? (
         <div className="space-y-3">

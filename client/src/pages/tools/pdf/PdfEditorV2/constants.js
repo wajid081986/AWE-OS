@@ -15,6 +15,7 @@ export const TOOLS = {
   WHITEOUT: 'whiteout',
   STAMP: 'stamp',
   SIGNATURE: 'signature',
+  IMAGE: 'image',
 }
 
 // Tools that draw by dragging a bounding box (as opposed to a single click,
@@ -26,6 +27,11 @@ export const BOX_DRAG_TOOLS = new Set([
 
 export const FREEHAND_TOOLS = new Set([TOOLS.DRAW, TOOLS.SIGNATURE])
 export const CLICK_TOOLS = new Set([TOOLS.NOTE, TOOLS.STAMP])
+
+// TOOLS.IMAGE is deliberately in none of the sets above — it has its own
+// two-step placement flow (choose a file, which arms the tool, then click to
+// place at a size derived from the image's own aspect ratio) handled directly
+// in PageCanvas.jsx, gated on a "pendingImage" the file picker fills in.
 
 // key -> tool id. Checked only when focus isn't inside a text input/textarea.
 export const KEYBOARD_SHORTCUTS = {
@@ -73,9 +79,11 @@ export const DEFAULT_ANNOTATION_STYLE = {
   [TOOLS.WHITEOUT]: { fill: '#ffffff' },
   [TOOLS.STAMP]: { text: STAMP_PRESETS[0], color: STAMP_COLORS.red },
   [TOOLS.SIGNATURE]: { color: '#111827', strokeWidth: 2 },
+  [TOOLS.IMAGE]: { opacity: 1 },
 }
 
 export const MAX_PDF_SIZE_MB = 25
+export const MAX_IMAGE_SIZE_MB = 15
 
 // Auto-fill profile fields (useAutoFillProfile.js) and the keywords used to
 // match a detected AcroForm field's internal name to one of them
