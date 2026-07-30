@@ -15,6 +15,7 @@ import { useFormFields } from './useFormFields'
 import { useAutoFillProfile } from './useAutoFillProfile'
 import { useAiTools } from './useAiTools'
 import { useFindReplace } from './useFindReplace'
+import { exportPdfToDocx, exportTablesToXlsx } from './pdfExport'
 import { TOOLS, KEYBOARD_SHORTCUTS, ZOOM_LEVELS, DEFAULT_ZOOM, RENDER_SCALE, DEFAULT_ANNOTATION_STYLE, MAX_IMAGE_SIZE_MB } from './constants'
 import { downloadFile, downloadBlob, isPdfFile, isImageFile, readImageDimensions, cropImageToBytes, tablesToCsv } from '../pdfUtils'
 import { TOOL_ABOUT } from '../../../../data/toolPageContent'
@@ -335,6 +336,39 @@ export default function PdfEditorV2() {
     }
   }, [pdfDoc, aiApi, showToast])
 
+  // Fully client-side (no server call, no consent needed) — best-effort text
+  // reflow via the already-installed `docx` package, no layout/table/image
+  // fidelity. See docs/batches/batch-36-plan.md's Phase 5.
+  const handleExportWord = useCallback(async () => {
+    try {
+      const baseName = (pdfDoc.fileName || 'document').replace(/\.pdf$/i, '')
+      await exportPdfToDocx(pdfDoc, baseName)
+      showToast('Word document downloaded.', 'success')
+    } catch (err) {
+      showToast(err?.message || 'Failed to export to Word.', 'error')
+    }
+  }, [pdfDoc, showToast])
+
+  // Reuses the same server-side table detection as Extract Tables (CSV) —
+  // only the output format differs (a real .xlsx via the already-installed
+  // `xlsx` package instead of plain CSV text).
+  const handleExtractTablesXlsx = useCallback(async () => {
+    try {
+      const text = await pdfDoc.getAllText()
+      const result = await aiApi.extractTables(text)
+      if (!result) return
+      if (!result.tables?.length) {
+        showToast('No tables found in this PDF.', 'info')
+        return
+      }
+      const baseName = (pdfDoc.fileName || 'document').replace(/\.pdf$/i, '')
+      exportTablesToXlsx(result.tables, baseName)
+      showToast(`${result.tables.length} table(s) exported.`, 'success')
+    } catch (err) {
+      showToast(err?.message || 'Failed to extract tables.', 'error')
+    }
+  }, [pdfDoc, aiApi, showToast])
+
   // Replace All reuses the exact same whiteout+pre-filled-text-overlay trick
   // the Text tool's click-to-edit path already uses (PageCanvas.jsx) — this
   // is NOT true content-stream text editing (pdf-lib has no API for that;
@@ -579,7 +613,9 @@ export default function PdfEditorV2() {
         onTranslateHindi={() => handleTranslate('hi')}
         onTranslateUrdu={() => handleTranslate('ur')}
         onExtractTables={handleExtractTables}
+        onExtractTablesXlsx={handleExtractTablesXlsx}
         onFindReplaceClick={() => setShowFindReplace(true)}
+        onExportWord={handleExportWord}
       />
 
       {showOnboardingHint && (

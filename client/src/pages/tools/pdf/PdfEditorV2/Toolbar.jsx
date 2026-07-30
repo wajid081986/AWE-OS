@@ -20,7 +20,7 @@ const TOOL_BUTTONS = [
 /** Dropdown menu for the AI Tools button — Summarize/Translate/Extract Tables
  * are the only PdfEditorV2 features that send anything to a server, hence a
  * single menu instead of 3 more buttons in an already-dense tool row. */
-function AiToolsMenu({ disabled, onSummarize, onTranslateHindi, onTranslateUrdu, onExtractTables }) {
+function AiToolsMenu({ disabled, onSummarize, onTranslateHindi, onTranslateUrdu, onExtractTables, onExtractTablesXlsx }) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef(null)
 
@@ -55,6 +55,7 @@ function AiToolsMenu({ disabled, onSummarize, onTranslateHindi, onTranslateUrdu,
           <button type="button" onClick={() => pick(onTranslateHindi)} className="w-full text-left px-3 py-1.5 text-sm text-ink hover:bg-cobalt-tint">Translate to Hindi</button>
           <button type="button" onClick={() => pick(onTranslateUrdu)} className="w-full text-left px-3 py-1.5 text-sm text-ink hover:bg-cobalt-tint">Translate to Urdu</button>
           <button type="button" onClick={() => pick(onExtractTables)} className="w-full text-left px-3 py-1.5 text-sm text-ink hover:bg-cobalt-tint">Extract Tables (CSV)</button>
+          <button type="button" onClick={() => pick(onExtractTablesXlsx)} className="w-full text-left px-3 py-1.5 text-sm text-ink hover:bg-cobalt-tint">Extract Tables (Excel)</button>
         </div>
       )}
     </div>
@@ -65,8 +66,8 @@ function AiToolsMenu({ disabled, onSummarize, onTranslateHindi, onTranslateUrdu,
 export default function Toolbar({
   activeTool, onToolChange, zoom, onZoomIn, onZoomOut, canUndo, canRedo, onUndo, onRedo, onDownload,
   isFullscreen, onToggleFullscreen, fullscreenBtnRef, onInsertImageClick,
-  aiLoading, onSummarize, onTranslateHindi, onTranslateUrdu, onExtractTables,
-  onFindReplaceClick,
+  aiLoading, onSummarize, onTranslateHindi, onTranslateUrdu, onExtractTables, onExtractTablesXlsx,
+  onFindReplaceClick, onExportWord,
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2 sticky top-0 z-10 bg-card border border-line rounded-m p-2">
@@ -110,7 +111,13 @@ export default function Toolbar({
           onTranslateHindi={onTranslateHindi}
           onTranslateUrdu={onTranslateUrdu}
           onExtractTables={onExtractTables}
+          onExtractTablesXlsx={onExtractTablesXlsx}
         />
+        {/* Client-side only (no server call, no consent needed) — text-only
+            reflow via docx, unlike the AI Tools menu's server-backed items. */}
+        <button type="button" onClick={onExportWord} title="Export to Word (text only, no layout)" className="px-2.5 py-1.5 rounded-s hover:bg-cobalt-tint text-sm whitespace-nowrap">
+          Export Word
+        </button>
         <button type="button" onClick={onDownload} className="px-3 py-1.5 rounded-s bg-cobalt text-white text-sm font-medium">Download</button>
         <button
           ref={fullscreenBtnRef}
