@@ -11,6 +11,7 @@ import AiResultModal from './AiResultModal'
 import FindReplaceBar from './FindReplaceBar'
 import ConfirmModal from './ConfirmModal'
 import DocumentToolsModal from './DocumentToolsModal'
+import SecurityModal from './SecurityModal'
 import { usePdfDoc } from './usePdfDoc'
 import { useAnnotations } from './useAnnotations'
 import { useFormFields } from './useFormFields'
@@ -106,6 +107,12 @@ async function drawAnnotation(pdfLibDoc, page, ann) {
     case TOOLS.WHITEOUT:
       page.drawRectangle({ x, y: yBottom, width: w, height: h, color: hexToRgb(ann.fill ?? '#ffffff') })
       break
+    case TOOLS.REDACT:
+      // Always fully opaque solid black — ignores ann.opacity/ann.color on
+      // purpose (see constants.js/PropertiesPanel.jsx), unlike every other
+      // shape here which respects the user's chosen style.
+      page.drawRectangle({ x, y: yBottom, width: w, height: h, color: rgb(0, 0, 0), opacity: 1 })
+      break
     case TOOLS.NOTE:
       page.drawRectangle({ x, y: yBottom, width: w, height: h, color: hexToRgb(ann.color), opacity: 0.9 })
       break
@@ -193,6 +200,8 @@ export default function PdfEditorV2() {
   const [pendingDeletePosition, setPendingDeletePosition] = useState(null)
   const [documentToolMode, setDocumentToolMode] = useState(null)
   const [documentToolLoading, setDocumentToolLoading] = useState(false)
+  const [showSecurityModal, setShowSecurityModal] = useState(false)
+  const [securityLoading, setSecurityLoading] = useState(false)
 
   // localStorage read — effect, not render body, so it never runs during SSR.
   useEffect(() => { autoFillApi.load() }, [])
@@ -684,36 +693,46 @@ export default function PdfEditorV2() {
     }
   }, [])
 
+  // Shared by Download and Protect (Phase 9): loads a fresh pdf-lib doc from
+  // the pristine source, draws every annotation in creation order, and
+  // fills+flattens any AcroForm values — everything short of the final
+  // `.save()`, since Download saves plain and Protect additionally calls
+  // `.encrypt()` first.
+  const buildFlattenedPdfLibDoc = useCallback(async () => {
+    const pdfLibDoc = await PDFDocument.load(originalBytesRef.current)
+    for (const ann of annotationsApi.annotations) {
+      const page = pdfLibDoc.getPage(ann.page - 1)
+      // eslint-disable-next-line no-await-in-loop -- annotations must draw in
+      // creation order so overlapping shapes stack the same as on-screen
+      await drawAnnotation(pdfLibDoc, page, ann)
+    }
+    if (formFieldsApi.hasFields) {
+      const form = pdfLibDoc.getForm()
+      for (const [name, value] of Object.entries(formFieldsApi.values)) {
+        try {
+          const field = form.getField(name)
+          if (field instanceof PDFTextField) field.setText(value ? String(value) : undefined)
+          else if (field instanceof PDFCheckBox) { if (value) field.check(); else field.uncheck() }
+          else if ((field instanceof PDFRadioGroup || field instanceof PDFDropdown) && value) field.select(value)
+        } catch {
+          // A field detected on-screen that pdf-lib's own getField(name)
+          // can't find (shouldn't happen, but this is user-facing data
+          // loss territory) — skip that one field rather than abort the
+          // whole download.
+        }
+      }
+      // Matches the annotation-flatten philosophy already used for
+      // drawAnnotation above (batch-36-plan.md's Phase 1 decision):
+      // filled values become permanent static content.
+      form.flatten()
+    }
+    return pdfLibDoc
+  }, [annotationsApi.annotations, formFieldsApi.hasFields, formFieldsApi.values])
+
   const handleDownload = useCallback(async () => {
     if (!originalBytesRef.current) return
     try {
-      const pdfLibDoc = await PDFDocument.load(originalBytesRef.current)
-      for (const ann of annotationsApi.annotations) {
-        const page = pdfLibDoc.getPage(ann.page - 1)
-        // eslint-disable-next-line no-await-in-loop -- annotations must draw in
-        // creation order so overlapping shapes stack the same as on-screen
-        await drawAnnotation(pdfLibDoc, page, ann)
-      }
-      if (formFieldsApi.hasFields) {
-        const form = pdfLibDoc.getForm()
-        for (const [name, value] of Object.entries(formFieldsApi.values)) {
-          try {
-            const field = form.getField(name)
-            if (field instanceof PDFTextField) field.setText(value ? String(value) : undefined)
-            else if (field instanceof PDFCheckBox) { if (value) field.check(); else field.uncheck() }
-            else if ((field instanceof PDFRadioGroup || field instanceof PDFDropdown) && value) field.select(value)
-          } catch {
-            // A field detected on-screen that pdf-lib's own getField(name)
-            // can't find (shouldn't happen, but this is user-facing data
-            // loss territory) — skip that one field rather than abort the
-            // whole download.
-          }
-        }
-        // Matches the annotation-flatten philosophy already used for
-        // drawAnnotation above (batch-36-plan.md's Phase 1 decision):
-        // filled values become permanent static content.
-        form.flatten()
-      }
+      const pdfLibDoc = await buildFlattenedPdfLibDoc()
       const bytes = await pdfLibDoc.save()
       const baseName = (pdfDoc.fileName || 'document').replace(/\.pdf$/i, '')
       downloadFile(bytes, `${baseName}-edited.pdf`)
@@ -721,7 +740,29 @@ export default function PdfEditorV2() {
     } catch (err) {
       showToast(err?.message || 'Failed to generate the PDF.', 'error')
     }
-  }, [annotationsApi.annotations, formFieldsApi.hasFields, formFieldsApi.values, pdfDoc.fileName, showToast])
+  }, [buildFlattenedPdfLibDoc, pdfDoc.fileName, showToast])
+
+  // Terminal, one-shot action (matches ProtectPDF.jsx's standalone tool) —
+  // downloads a separate encrypted copy rather than reloading the encrypted
+  // bytes back into the live pdf.js canvas (pdf.js re-rendering an encrypted
+  // buffer for continued editing is real added complexity for no workflow
+  // benefit; ProtectPDF.jsx/UnlockPDF.jsx don't do this either).
+  const handleApplyProtection = useCallback(async (settings) => {
+    setSecurityLoading(true)
+    try {
+      const pdfLibDoc = await buildFlattenedPdfLibDoc()
+      await pdfLibDoc.encrypt(settings)
+      const bytes = await pdfLibDoc.save()
+      const baseName = (pdfDoc.fileName || 'document').replace(/\.pdf$/i, '')
+      downloadFile(bytes, `${baseName}-protected.pdf`)
+      setShowSecurityModal(false)
+      showToast('Protected copy downloaded.', 'success')
+    } catch (err) {
+      showToast(err?.message || 'Failed to protect the PDF.', 'error')
+    } finally {
+      setSecurityLoading(false)
+    }
+  }, [buildFlattenedPdfLibDoc, pdfDoc.fileName, showToast])
 
   useEffect(() => {
     function onKeyDown(e) {
@@ -793,6 +834,7 @@ export default function PdfEditorV2() {
         onFindReplaceClick={() => setShowFindReplace(true)}
         onExportWord={handleExportWord}
         onDocumentToolPick={setDocumentToolMode}
+        onProtectClick={() => setShowSecurityModal(true)}
       />
 
       {showOnboardingHint && (
@@ -967,6 +1009,13 @@ export default function PdfEditorV2() {
         loading={documentToolLoading}
         onApply={handleApplyDocumentTool}
         onClose={() => setDocumentToolMode(null)}
+      />
+    )}
+    {showSecurityModal && (
+      <SecurityModal
+        loading={securityLoading}
+        onApply={handleApplyProtection}
+        onClose={() => setShowSecurityModal(false)}
       />
     )}
     </>

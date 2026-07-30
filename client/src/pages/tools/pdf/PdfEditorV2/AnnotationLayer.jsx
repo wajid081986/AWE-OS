@@ -55,6 +55,13 @@ function WhiteoutShape({ ann }) {
   return <div className="w-full h-full" style={{ background: ann.fill ?? '#ffffff' }} />
 }
 
+// Solid, opaque black — deliberately ignores ann.opacity (there isn't one
+// in DEFAULT_ANNOTATION_STYLE for TOOLS.REDACT and no control exposes it),
+// same reasoning as constants.js: a see-through "redaction" defeats the point.
+function RedactShape() {
+  return <div className="w-full h-full" style={{ background: '#000000' }} />
+}
+
 function StampShape({ ann }) {
   return (
     <div
@@ -271,6 +278,7 @@ const SHAPES = {
   [TOOLS.UNDERLINE]: UnderlineShape,
   [TOOLS.STRIKETHROUGH]: StrikethroughShape,
   [TOOLS.WHITEOUT]: WhiteoutShape,
+  [TOOLS.REDACT]: RedactShape,
   [TOOLS.STAMP]: StampShape,
   [TOOLS.NOTE]: NoteShape,
   [TOOLS.DRAW]: DrawShape,

@@ -131,6 +131,15 @@ export default function PropertiesPanel({ annotation, onChange, onDelete, isCrop
         <Row label="Color"><ColorGrid value={annotation.fill} onChange={(c) => set({ fill: c })} /></Row>
       )}
 
+      {type === TOOLS.REDACT && (
+        <p className="text-xs text-ink-soft">
+          Solid black cover, baked into the download. Like Whiteout, this is
+          a visual cover — pdf-lib can't strip the underlying PDF text from
+          the file, so a recipient extracting raw text from the PDF could
+          still recover what's underneath.
+        </p>
+      )}
+
       {type === TOOLS.IMAGE && (
         <>
           <OpacityRow value={annotation.opacity} onChange={(o) => set({ opacity: o })} />

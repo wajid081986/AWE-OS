@@ -13,6 +13,7 @@ const TOOL_BUTTONS = [
   { id: TOOLS.ELLIPSE, label: 'Ellipse', icon: '◯', key: 'E' },
   { id: TOOLS.NOTE, label: 'Note', icon: '🗒️', key: 'N' },
   { id: TOOLS.WHITEOUT, label: 'Whiteout', icon: '▢', key: 'W' },
+  { id: TOOLS.REDACT, label: 'Redact', icon: '⬛', key: 'X' },
   { id: TOOLS.STAMP, label: 'Stamp', icon: '⏹', key: 'S' },
   { id: TOOLS.SIGNATURE, label: 'Signature', icon: '✒', key: '' },
 ]
@@ -110,7 +111,7 @@ export default function Toolbar({
   activeTool, onToolChange, zoom, onZoomIn, onZoomOut, canUndo, canRedo, onUndo, onRedo, onDownload,
   isFullscreen, onToggleFullscreen, fullscreenBtnRef, onInsertImageClick,
   aiLoading, onSummarize, onTranslateHindi, onTranslateUrdu, onExtractTables, onExtractTablesXlsx,
-  onFindReplaceClick, onExportWord, onDocumentToolPick,
+  onFindReplaceClick, onExportWord, onDocumentToolPick, onProtectClick,
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2 sticky top-0 z-10 bg-card border border-line rounded-m p-2">
@@ -149,6 +150,14 @@ export default function Toolbar({
           <span aria-hidden>🔍</span>
         </button>
         <DocumentToolsMenu onPick={onDocumentToolPick} />
+        {/* Ends the editing session with an encrypted download (see
+            SecurityModal.jsx) rather than baking into the live document like
+            DocumentToolsMenu — kept as its own button, not folded into that
+            menu, so the two different mental models (keep editing vs. final
+            encrypted export) aren't implied to behave the same way. */}
+        <button type="button" onClick={onProtectClick} title="Password protect / permissions" className="px-2.5 py-1.5 rounded-s hover:bg-cobalt-tint" aria-label="Protect PDF">
+          <span aria-hidden>🔐</span>
+        </button>
         <AiToolsMenu
           disabled={aiLoading}
           onSummarize={onSummarize}

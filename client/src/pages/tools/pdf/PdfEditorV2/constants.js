@@ -16,13 +16,14 @@ export const TOOLS = {
   STAMP: 'stamp',
   SIGNATURE: 'signature',
   IMAGE: 'image',
+  REDACT: 'redact',
 }
 
 // Tools that draw by dragging a bounding box (as opposed to a single click,
 // like NOTE/STAMP, or a freehand path, like DRAW/SIGNATURE).
 export const BOX_DRAG_TOOLS = new Set([
   TOOLS.TEXT, TOOLS.HIGHLIGHT, TOOLS.UNDERLINE, TOOLS.STRIKETHROUGH,
-  TOOLS.ARROW, TOOLS.RECTANGLE, TOOLS.ELLIPSE, TOOLS.WHITEOUT,
+  TOOLS.ARROW, TOOLS.RECTANGLE, TOOLS.ELLIPSE, TOOLS.WHITEOUT, TOOLS.REDACT,
 ])
 
 export const FREEHAND_TOOLS = new Set([TOOLS.DRAW, TOOLS.SIGNATURE])
@@ -45,6 +46,7 @@ export const KEYBOARD_SHORTCUTS = {
   w: TOOLS.WHITEOUT,
   s: TOOLS.STAMP,
   n: TOOLS.NOTE,
+  x: TOOLS.REDACT,
 }
 
 export const PALETTE = [
@@ -77,6 +79,10 @@ export const DEFAULT_ANNOTATION_STYLE = {
   [TOOLS.ELLIPSE]: { stroke: '#111827', fill: 'transparent', strokeWidth: 2, opacity: 1 },
   [TOOLS.NOTE]: { color: HIGHLIGHT_COLORS[0], text: '' },
   [TOOLS.WHITEOUT]: { fill: '#ffffff' },
+  // Fixed solid black — no opacity/fill override exposed anywhere
+  // (PropertiesPanel.jsx, drawAnnotation in index.jsx), since a redaction
+  // that can be made translucent defeats the purpose.
+  [TOOLS.REDACT]: { color: '#000000' },
   [TOOLS.STAMP]: { text: STAMP_PRESETS[0], color: STAMP_COLORS.red },
   [TOOLS.SIGNATURE]: { color: '#111827', strokeWidth: 2 },
   [TOOLS.IMAGE]: { opacity: 1 },
