@@ -154,6 +154,7 @@ export default function PdfEditorV2() {
   const [activePage, setActivePage] = useState(1)
   const [pagePanelCollapsed, setPagePanelCollapsed] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showOnboardingHint, setShowOnboardingHint] = useState(false)
 
   const handleFileChange = useCallback(async (e) => {
     const file = e.target.files?.[0]
@@ -168,7 +169,14 @@ export default function PdfEditorV2() {
     const bytes = await pdfDoc.loadFromFile(file)
     originalBytesRef.current = bytes
     setIsFullscreen(true)
+    setShowOnboardingHint(true)
   }, [pdfDoc, annotationsApi, showToast])
+
+  // Dismiss the "click a tool to start editing" hint automatically once the
+  // user has actually placed one — it's only useful before their first move.
+  useEffect(() => {
+    if (annotationsApi.annotations.length > 0) setShowOnboardingHint(false)
+  }, [annotationsApi.annotations.length])
 
   const toggleFullscreen = useCallback(() => setIsFullscreen((f) => !f), [])
 
@@ -316,6 +324,20 @@ export default function PdfEditorV2() {
         fullscreenBtnRef={fullscreenBtnRef}
       />
 
+      {showOnboardingHint && (
+        <div className="flex items-center justify-between gap-3 bg-cobalt-tint text-cobalt text-sm rounded-m px-4 py-2">
+          <span>👆 Click a tool above to start editing — drag on the page to draw, or click to place text, notes, and stamps.</span>
+          <button
+            type="button"
+            onClick={() => setShowOnboardingHint(false)}
+            aria-label="Dismiss hint"
+            className="shrink-0 hover:opacity-70"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       <div className="flex gap-4 items-start">
         <PagePanel
           pdfDoc={pdfDoc}
@@ -373,13 +395,19 @@ export default function PdfEditorV2() {
       <input ref={fileInputRef} type="file" accept="application/pdf,.pdf" onChange={handleFileChange} className="hidden" />
 
       {!pdfDoc.isReady ? (
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="w-full border-2 border-dashed border-line rounded-m p-12 text-center text-ink-soft hover:border-cobalt hover:text-cobalt transition-colors"
-        >
-          {pdfDoc.status === 'loading' ? 'Loading…' : 'Choose a PDF file to edit'}
-        </button>
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full border-2 border-dashed border-line rounded-m p-12 text-center text-ink-soft hover:border-cobalt hover:text-cobalt transition-colors"
+          >
+            {pdfDoc.status === 'loading' ? 'Loading…' : 'Choose a PDF file to edit'}
+          </button>
+          <p className="text-sm text-ink-soft text-center">
+            Once uploaded, the editor opens full-screen with tools to highlight, draw, add text, sign, and more —
+            then download your edited copy. Nothing is uploaded to a server.
+          </p>
+        </div>
       ) : isFullscreen ? (
         // Reuses Header.jsx's exact full-screen-overlay idiom (fixed inset-0,
         // z-[var(--z-modal)], dialog semantics) rather than a new pattern —
