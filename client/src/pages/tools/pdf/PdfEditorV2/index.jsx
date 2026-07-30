@@ -10,6 +10,7 @@ import AiConsentModal from './AiConsentModal'
 import AiResultModal from './AiResultModal'
 import FindReplaceBar from './FindReplaceBar'
 import ConfirmModal from './ConfirmModal'
+import DocumentToolsModal from './DocumentToolsModal'
 import { usePdfDoc } from './usePdfDoc'
 import { useAnnotations } from './useAnnotations'
 import { useFormFields } from './useFormFields'
@@ -17,6 +18,7 @@ import { useAutoFillProfile } from './useAutoFillProfile'
 import { useAiTools } from './useAiTools'
 import { useFindReplace } from './useFindReplace'
 import { usePageManager, buildPageRemap } from './usePageManager'
+import { useDocumentTools } from './useDocumentTools'
 import { exportPdfToDocx, exportTablesToXlsx } from './pdfExport'
 import { TOOLS, KEYBOARD_SHORTCUTS, ZOOM_LEVELS, DEFAULT_ZOOM, RENDER_SCALE, DEFAULT_ANNOTATION_STYLE, MAX_IMAGE_SIZE_MB } from './constants'
 import { downloadFile, downloadBlob, isPdfFile, isImageFile, readImageDimensions, cropImageToBytes, tablesToCsv } from '../pdfUtils'
@@ -167,6 +169,7 @@ export default function PdfEditorV2() {
   const findReplace = useFindReplace(pdfDoc)
   const originalBytesRef = useRef(null)
   const pageManagerApi = usePageManager({ originalBytesRef, pdfDoc })
+  const documentToolsApi = useDocumentTools({ originalBytesRef, pdfDoc, formFieldsApi })
   const fileInputRef = useRef(null)
   const imageInputRef = useRef(null)
   const viewerRef = useRef(null)
@@ -188,6 +191,8 @@ export default function PdfEditorV2() {
   const [showFindReplace, setShowFindReplace] = useState(false)
   const [extractSelected, setExtractSelected] = useState(new Set())
   const [pendingDeletePosition, setPendingDeletePosition] = useState(null)
+  const [documentToolMode, setDocumentToolMode] = useState(null)
+  const [documentToolLoading, setDocumentToolLoading] = useState(false)
 
   // localStorage read — effect, not render body, so it never runs during SSR.
   useEffect(() => { autoFillApi.load() }, [])
@@ -551,6 +556,30 @@ export default function PdfEditorV2() {
     }
   }, [pageManagerApi, buildFlattenedSubsetPdf, pdfDoc.fileName, showToast])
 
+  // Whole-document tools (page numbers/header-footer/watermark/Bates) bake
+  // straight into the base document — no page-count change, so unlike Phase
+  // 7's ops this needs no annotation/page remap, just a toast that it isn't
+  // undoable (documentToolsApi.applyX already handled reloading pdfDoc and
+  // re-detecting form fields).
+  const handleApplyDocumentTool = useCallback(async (settings) => {
+    const apply = {
+      'page-numbers': documentToolsApi.applyPageNumbers,
+      bates: documentToolsApi.applyBatesNumbering,
+      'header-footer': documentToolsApi.applyHeaderFooter,
+      watermark: documentToolsApi.applyWatermark,
+    }[documentToolMode]
+    setDocumentToolLoading(true)
+    try {
+      await apply(settings)
+      setDocumentToolMode(null)
+      showToast('Applied — download to save a copy.', 'success')
+    } catch (err) {
+      showToast(err?.message || 'Failed to apply.', 'error')
+    } finally {
+      setDocumentToolLoading(false)
+    }
+  }, [documentToolMode, showToast, documentToolsApi])
+
   // Dismiss the "click a tool to start editing" hint automatically once the
   // user has actually placed one — it's only useful before their first move.
   useEffect(() => {
@@ -763,6 +792,7 @@ export default function PdfEditorV2() {
         onExtractTablesXlsx={handleExtractTablesXlsx}
         onFindReplaceClick={() => setShowFindReplace(true)}
         onExportWord={handleExportWord}
+        onDocumentToolPick={setDocumentToolMode}
       />
 
       {showOnboardingHint && (
@@ -929,6 +959,14 @@ export default function PdfEditorV2() {
         confirmLabel="Delete page"
         onConfirm={() => performDeletePage(pendingDeletePosition)}
         onCancel={() => setPendingDeletePosition(null)}
+      />
+    )}
+    {documentToolMode && (
+      <DocumentToolsModal
+        mode={documentToolMode}
+        loading={documentToolLoading}
+        onApply={handleApplyDocumentTool}
+        onClose={() => setDocumentToolMode(null)}
       />
     )}
     </>

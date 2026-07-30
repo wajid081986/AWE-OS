@@ -62,12 +62,55 @@ function AiToolsMenu({ disabled, onSummarize, onTranslateHindi, onTranslateUrdu,
   )
 }
 
+/** Dropdown menu for whole-document operations (Phase 8) — Page Numbers,
+ * Header/Footer, Watermark, Bates Numbering each open DocumentToolsModal in
+ * the matching mode. Same idiom as AiToolsMenu above. */
+function DocumentToolsMenu({ onPick }) {
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    function onPointerDown(e) {
+      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [open])
+
+  function pick(mode) {
+    setOpen(false)
+    onPick(mode)
+  }
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-s text-sm whitespace-nowrap text-ink hover:bg-cobalt-tint"
+      >
+        <span aria-hidden>📄</span>
+        <span>Document</span>
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-1 w-44 bg-card border border-line rounded-m shadow-card z-20 py-1">
+          <button type="button" onClick={() => pick('page-numbers')} className="w-full text-left px-3 py-1.5 text-sm text-ink hover:bg-cobalt-tint">Page Numbers</button>
+          <button type="button" onClick={() => pick('header-footer')} className="w-full text-left px-3 py-1.5 text-sm text-ink hover:bg-cobalt-tint">Header / Footer</button>
+          <button type="button" onClick={() => pick('watermark')} className="w-full text-left px-3 py-1.5 text-sm text-ink hover:bg-cobalt-tint">Watermark</button>
+          <button type="button" onClick={() => pick('bates')} className="w-full text-left px-3 py-1.5 text-sm text-ink hover:bg-cobalt-tint">Bates Numbering</button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 /** Sticky top toolbar: tool selection, zoom, undo/redo, download, fullscreen. */
 export default function Toolbar({
   activeTool, onToolChange, zoom, onZoomIn, onZoomOut, canUndo, canRedo, onUndo, onRedo, onDownload,
   isFullscreen, onToggleFullscreen, fullscreenBtnRef, onInsertImageClick,
   aiLoading, onSummarize, onTranslateHindi, onTranslateUrdu, onExtractTables, onExtractTablesXlsx,
-  onFindReplaceClick, onExportWord,
+  onFindReplaceClick, onExportWord, onDocumentToolPick,
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2 sticky top-0 z-10 bg-card border border-line rounded-m p-2">
@@ -105,6 +148,7 @@ export default function Toolbar({
         <button type="button" onClick={onFindReplaceClick} title="Find & Replace (Ctrl+F)" className="px-2.5 py-1.5 rounded-s hover:bg-cobalt-tint" aria-label="Find & Replace">
           <span aria-hidden>🔍</span>
         </button>
+        <DocumentToolsMenu onPick={onDocumentToolPick} />
         <AiToolsMenu
           disabled={aiLoading}
           onSummarize={onSummarize}
