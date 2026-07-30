@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { PDFDocument, StandardFonts, rgb, PDFTextField, PDFCheckBox, PDFRadioGroup, PDFDropdown, PDFString } from 'pdf-lib'
 import ToolPageShell from '../../ToolPageShell'
 import PageCanvas from './PageCanvas'
-import Toolbar from './Toolbar'
+import RibbonToolbar from './RibbonToolbar'
 import PagePanel from './PagePanel'
 import PropertiesPanel from './PropertiesPanel'
 import ProfileModal from './ProfileModal'
@@ -178,8 +178,12 @@ async function drawAnnotation(pdfLibDoc, page, ann) {
     }
     case TOOLS.DRAW:
     case TOOLS.SIGNATURE:
-    case TOOLS.ARROW: {
-      const points = ann.type === TOOLS.ARROW
+    case TOOLS.ARROW:
+    case TOOLS.LINE: {
+      // ARROW/LINE are box-drag tools (a straight segment from the box's
+      // corner to its opposite corner) and never have ann.points — only
+      // DRAW/SIGNATURE are freehand and carry a real points array.
+      const points = ann.type === TOOLS.ARROW || ann.type === TOOLS.LINE
         ? [{ x: 0, y: 0 }, { x: ann.w, y: ann.h }]
         : (ann.points ?? [])
       for (let i = 1; i < points.length; i++) {
@@ -256,6 +260,7 @@ export default function PdfEditorV2() {
     formFieldsApi.reset()
     setActivePage(1)
     setExtractSelected(new Set())
+    setViewRotation(0)
     const bytes = await pdfDoc.loadFromFile(file)
     originalBytesRef.current = bytes
     await formFieldsApi.detect(bytes)
@@ -585,6 +590,21 @@ export default function PdfEditorV2() {
     }
   }, [extractSelected, buildFlattenedSubsetPdf, pdfDoc.fileName, showToast])
 
+  // Pages ribbon's "Extract" button — extracts just the currently-active
+  // page, unlike handleExtractSelected which operates on PagePanel's
+  // checkbox selection. Reuses the same buildFlattenedSubsetPdf as every
+  // other extract/split path.
+  const handleExtractCurrentPage = useCallback(async () => {
+    try {
+      const bytes = await buildFlattenedSubsetPdf([activePage - 1])
+      const baseName = (pdfDoc.fileName || 'document').replace(/\.pdf$/i, '')
+      downloadFile(bytes, `${baseName}-page${activePage}.pdf`)
+      showToast('Page extracted.', 'success')
+    } catch (err) {
+      showToast(err?.message || 'Failed to extract page.', 'error')
+    }
+  }, [activePage, buildFlattenedSubsetPdf, pdfDoc.fileName, showToast])
+
   const handleSplitAfter = useCallback(async (position0) => {
     const total = pageManagerApi.pageOrder.length
     if (position0 >= total - 1) {
@@ -683,31 +703,54 @@ export default function PdfEditorV2() {
   }, [isFullscreen])
 
   const [viewMode, setViewMode] = useState('single')
+  // Display-only page rotation (View ribbon tab) — never baked into the
+  // downloaded PDF. Interaction (drawing/selecting/typing) is disabled
+  // while rotated (PageCanvas's `locked` prop skips rendering the
+  // annotation/form layers entirely) rather than trying to make the
+  // drag/crop/anchor pointer math rotation-aware, which would otherwise be
+  // a real source of silently-wrong annotation placement.
+  const [viewRotation, setViewRotation] = useState(0)
   const PAGE_ROW_GAP = 24 // matches the viewer div's gap-6 (used both ways)
 
   // Shared by the auto-fit effect below and the toolbar's explicit "Fit
-  // Width" button — `pagesPerRow` accounts for two-page view needing to fit
-  // N page widths plus the gaps between them, not just one page.
-  // Destructures `getPage`/`isReady` (not the whole `pdfDoc` object) for the
-  // same reason PageCanvas.jsx does — usePdfDoc() returns a fresh object
-  // every render, which would otherwise re-fire this on every unrelated
-  // state change.
+  // Width"/"Fit Page" buttons — `pagesPerRow` accounts for two-page view
+  // needing to fit N page widths plus the gaps between them, not just one
+  // page; `mode` picks whether height is also constrained (Fit Page) or
+  // only width (Fit Width, the existing default). Destructures
+  // `getPage`/`isReady` (not the whole `pdfDoc` object) for the same reason
+  // PageCanvas.jsx does — usePdfDoc() returns a fresh object every render,
+  // which would otherwise re-fire this on every unrelated state change.
   const { isReady, getPage } = pdfDoc
-  const computeFitWidth = useCallback(async (pagesPerRow) => {
+  const computeFit = useCallback(async (pagesPerRow, mode) => {
     const page = await getPage(1)
     const container = viewerRef.current
     if (!page || !container) return null
-    const nativeWidth = page.getViewport({ scale: RENDER_SCALE }).width
-    const available = container.clientWidth - 48 - PAGE_ROW_GAP * (pagesPerRow - 1) // p-6 padding, 24px each side
-    if (available <= 0 || nativeWidth <= 0) return null
-    const fitZoom = available / (nativeWidth * pagesPerRow)
+    const viewport = page.getViewport({ scale: RENDER_SCALE })
+    const availableWidth = container.clientWidth - 48 - PAGE_ROW_GAP * (pagesPerRow - 1) // p-6 padding, 24px each side
+    if (availableWidth <= 0 || viewport.width <= 0) return null
+    const widthZoom = availableWidth / (viewport.width * pagesPerRow)
+    let fitZoom = widthZoom
+    if (mode === 'page') {
+      const availableHeight = container.clientHeight - 48
+      if (availableHeight <= 0 || viewport.height <= 0) return null
+      fitZoom = Math.min(widthZoom, availableHeight / viewport.height)
+    }
     return Math.max(ZOOM_LEVELS[0], Math.min(ZOOM_LEVELS[ZOOM_LEVELS.length - 1], fitZoom))
   }, [getPage])
 
   const handleFitWidth = useCallback(async () => {
-    const fitZoom = await computeFitWidth(viewMode === 'two-page' ? 2 : 1)
+    const fitZoom = await computeFit(viewMode === 'two-page' ? 2 : 1, 'width')
     if (fitZoom != null) setZoom(fitZoom)
-  }, [computeFitWidth, viewMode])
+  }, [computeFit, viewMode])
+
+  const handleFitPage = useCallback(async () => {
+    const fitZoom = await computeFit(viewMode === 'two-page' ? 2 : 1, 'page')
+    if (fitZoom != null) setZoom(fitZoom)
+  }, [computeFit, viewMode])
+
+  const handleRotateView = useCallback(() => {
+    setViewRotation((r) => (r + 90) % 360)
+  }, [])
 
   // Fit-to-width default zoom: 100% was routinely wider than the available
   // viewer column (see the items-start comment below), leaving the page
@@ -716,15 +759,16 @@ export default function PdfEditorV2() {
   // toggling either, since the available-width-per-page changes a lot
   // between embedded/fullscreen and single/two-page (this does mean a
   // manual zoom resets on toggling either; accepted tradeoff for always
-  // landing on a sane default).
+  // landing on a sane default). Always fits to width, not page, on
+  // auto-fit — Fit Page stays an explicit opt-in from the View ribbon.
   useEffect(() => {
     if (!isReady) return
     let cancelled = false
-    computeFitWidth(viewMode === 'two-page' ? 2 : 1).then((fitZoom) => {
+    computeFit(viewMode === 'two-page' ? 2 : 1, 'width').then((fitZoom) => {
       if (!cancelled && fitZoom != null) setZoom(fitZoom)
     })
     return () => { cancelled = true }
-  }, [isReady, isFullscreen, viewMode, computeFitWidth])
+  }, [isReady, isFullscreen, viewMode, computeFit])
 
   const zoomBy = useCallback((direction) => {
     setZoom((current) => {
@@ -748,6 +792,19 @@ export default function PdfEditorV2() {
       container.scrollTo({ top: container.scrollTop + delta, behavior: 'smooth' })
     }
   }, [])
+
+  // Edit ribbon's "Form Fill" button — jumps to the first fillable field's
+  // page (fields are always fillable in place already, via FormFieldLayer;
+  // this just makes them discoverable from the ribbon instead of only via
+  // the contextual "this PDF has N fillable field(s)" banner).
+  const handleJumpToFirstField = useCallback(() => {
+    if (!formFieldsApi.hasFields) {
+      showToast('This PDF has no fillable form fields.', 'info')
+      return
+    }
+    const firstPage = formFieldsApi.fields[0]?.page
+    if (firstPage) jumpToPage(firstPage)
+  }, [formFieldsApi.hasFields, formFieldsApi.fields, jumpToPage, showToast])
 
   // Shared by Download and Protect (Phase 9): loads a fresh pdf-lib doc from
   // the pristine source, draws every annotation in creation order, and
@@ -850,15 +907,18 @@ export default function PdfEditorV2() {
 
   const editorBody = (
     <div className="space-y-4">
-      <Toolbar
+      <RibbonToolbar
         activeTool={activeTool}
         onToolChange={setActiveTool}
         zoom={zoom}
         onZoomIn={() => zoomBy(1)}
         onZoomOut={() => zoomBy(-1)}
         onFitWidth={handleFitWidth}
+        onFitPage={handleFitPage}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
+        viewRotation={viewRotation}
+        onRotateView={handleRotateView}
         canUndo={annotationsApi.canUndo}
         canRedo={annotationsApi.canRedo}
         onUndo={annotationsApi.undo}
@@ -877,7 +937,32 @@ export default function PdfEditorV2() {
         onFindReplaceClick={() => setShowFindReplace(true)}
         onExportWord={handleExportWord}
         onDocumentToolPick={setDocumentToolMode}
+        fileName={pdfDoc.fileName}
+        activePage={activePage}
+        pageCount={pdfDoc.pageCount}
+        onInsertBlank={handleInsertBlank}
+        onDuplicate={handleDuplicatePage}
+        onRequestDelete={requestDeletePage}
+        onMovePage={handleMovePage}
+        onSplitAfter={handleSplitAfter}
+        onExtractCurrentPage={handleExtractCurrentPage}
+        hasFormFields={formFieldsApi.hasFields}
+        onFormFillClick={handleJumpToFirstField}
+        onAutoFillClick={() => setShowProfileModal(true)}
       />
+
+      {viewRotation !== 0 && (
+        <div className="flex items-center justify-between gap-3 bg-amber-50 text-amber-700 text-sm rounded-m px-4 py-2 border border-amber-200">
+          <span>🔄 Viewing rotated {viewRotation}° — display-only (not saved to the PDF). Annotations and form fields are hidden while rotated; reset to 0° to edit.</span>
+          <button
+            type="button"
+            onClick={() => setViewRotation(0)}
+            className="shrink-0 px-3 py-1 rounded-s bg-amber-600 text-white text-xs font-medium whitespace-nowrap"
+          >
+            Reset rotation
+          </button>
+        </div>
+      )}
 
       {showOnboardingHint && (
         <div className="flex items-center justify-between gap-3 bg-cobalt-tint text-cobalt text-sm rounded-m px-4 py-2">
@@ -943,7 +1028,11 @@ export default function PdfEditorV2() {
           {pageRows.map((row) => (
             <div key={row[0]} className="flex items-start gap-6">
               {row.map((pageNumber) => (
-                <div key={pageNumber} id={`pdf-editor-page-${pageNumber}`}>
+                <div
+                  key={pageNumber}
+                  id={`pdf-editor-page-${pageNumber}`}
+                  style={viewRotation ? { transform: `rotate(${viewRotation}deg)` } : undefined}
+                >
                   <PageCanvas
                     pageNumber={pageNumber}
                     zoom={zoom}
@@ -956,6 +1045,7 @@ export default function PdfEditorV2() {
                     onApplyCrop={handleApplyCrop}
                     onCancelCrop={() => setCroppingId(null)}
                     onAnnotationCreated={() => { setActiveTool(TOOLS.SELECT); setPendingImage(null) }}
+                    locked={viewRotation !== 0}
                   />
                 </div>
               ))}

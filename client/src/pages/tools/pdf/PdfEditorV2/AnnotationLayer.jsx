@@ -105,6 +105,18 @@ function DrawShape({ ann }) {
   )
 }
 
+// Plain straight line, no arrowhead — the same box-to-line geometry as
+// ArrowShape below, just without the head triangle.
+function LineShape({ ann }) {
+  const w = ann.w || 1
+  const h = ann.h || 1
+  return (
+    <svg className="w-full h-full overflow-visible" style={{ pointerEvents: 'none' }}>
+      <line x1={0} y1={0} x2={w} y2={h} stroke={ann.color} strokeWidth={ann.strokeWidth ?? 2} />
+    </svg>
+  )
+}
+
 function ArrowShape({ ann }) {
   const w = ann.w || 1
   const h = ann.h || 1
@@ -366,6 +378,7 @@ const SHAPES = {
   [TOOLS.DRAW]: DrawShape,
   [TOOLS.SIGNATURE]: DrawShape,
   [TOOLS.ARROW]: ArrowShape,
+  [TOOLS.LINE]: LineShape,
 }
 
 // Text (and Callout, same reasoning) own their pointer-down (so a click

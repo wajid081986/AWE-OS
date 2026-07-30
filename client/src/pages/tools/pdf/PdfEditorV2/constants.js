@@ -19,6 +19,10 @@ export const TOOLS = {
   REDACT: 'redact',
   CALLOUT: 'callout',
   LINK: 'link',
+  // Plain straight line, no arrowhead — distinct from LINK (a clickable
+  // hyperlink hotspot); the ribbon's ANNOTATE/DRAW split named this "Line"
+  // vs. the arrow, so it needed its own id rather than reusing ARROW.
+  LINE: 'line',
 }
 
 // Tools that draw by dragging a bounding box (as opposed to a single click,
@@ -26,7 +30,7 @@ export const TOOLS = {
 export const BOX_DRAG_TOOLS = new Set([
   TOOLS.TEXT, TOOLS.HIGHLIGHT, TOOLS.UNDERLINE, TOOLS.STRIKETHROUGH,
   TOOLS.ARROW, TOOLS.RECTANGLE, TOOLS.ELLIPSE, TOOLS.WHITEOUT, TOOLS.REDACT,
-  TOOLS.CALLOUT, TOOLS.LINK,
+  TOOLS.CALLOUT, TOOLS.LINK, TOOLS.LINE,
 ])
 
 export const FREEHAND_TOOLS = new Set([TOOLS.DRAW, TOOLS.SIGNATURE])
@@ -100,6 +104,7 @@ export const DEFAULT_ANNOTATION_STYLE = {
   [TOOLS.STAMP]: { text: STAMP_PRESETS[0], color: STAMP_COLORS.red },
   [TOOLS.SIGNATURE]: { color: '#111827', strokeWidth: 2 },
   [TOOLS.IMAGE]: { opacity: 1 },
+  [TOOLS.LINE]: { color: '#111827', strokeWidth: 2 },
 }
 
 export const MAX_PDF_SIZE_MB = 25

@@ -10,7 +10,7 @@ const MIN_BOX_SIZE = 6
  * handling for *creating* new annotations (drag-a-box, click-to-place,
  * freehand path); moving/editing existing ones is AnnotationLayer's job.
  */
-export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, formFieldsApi, activeTool, pendingImage, croppingId, onApplyCrop, onCancelCrop, onAnnotationCreated }) {
+export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, formFieldsApi, activeTool, pendingImage, croppingId, onApplyCrop, onCancelCrop, onAnnotationCreated, locked }) {
   const canvasRef = useRef(null)
   const wrapperRef = useRef(null)
   const dragRef = useRef(null)
@@ -141,6 +141,11 @@ export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, f
   }
 
   function handlePointerDown(e) {
+    // View-rotation is display-only (index.jsx) — the annotation/form
+    // layers aren't even rendered while locked (below), but this guard
+    // also stops new-tool box-drag/freehand/click placement, whose pointer
+    // math assumes an unrotated coordinate space.
+    if (locked) return
     if (activeTool === TOOLS.SELECT) {
       annotationsApi.clearSelection()
       return
@@ -242,32 +247,42 @@ export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, f
       style={{
         width: dims.width * zoom,
         height: dims.height * zoom,
-        cursor: activeTool === TOOLS.SELECT ? 'default' : 'crosshair',
+        cursor: locked ? 'default' : activeTool === TOOLS.SELECT ? 'default' : 'crosshair',
       }}
       onPointerDown={handlePointerDown}
     >
       <div style={{ width: dims.width, height: dims.height, transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
         <canvas ref={canvasRef} className="block" />
-        <AnnotationLayer
-          width={dims.width}
-          height={dims.height}
-          annotations={annotationsApi.getPageAnnotations(pageNumber)}
-          liveDraft={liveDraft}
-          selectedId={annotationsApi.selectedId}
-          activeTool={activeTool}
-          justCreatedId={justCreatedId}
-          croppingId={croppingId}
-          onSelect={annotationsApi.selectAnnotation}
-          onUpdate={annotationsApi.updateAnnotation}
-          onApplyCrop={onApplyCrop}
-          onCancelCrop={onCancelCrop}
-        />
-        {formFieldsApi && (
-          <FormFieldLayer
-            fields={formFieldsApi.getPageFields(pageNumber)}
-            values={formFieldsApi.values}
-            onChange={formFieldsApi.setValue}
-          />
+        {/* Skipped entirely while locked (view-rotated), not just visually
+            hidden — TextShape/CalloutShape/FormFieldLayer inputs set their
+            own pointerEvents:'auto', which would override a parent
+            pointer-events:none, so not rendering them at all is the only
+            reliable way to stop editing under a rotation whose pointer math
+            isn't rotation-aware (see index.jsx's handleRotateView). */}
+        {!locked && (
+          <>
+            <AnnotationLayer
+              width={dims.width}
+              height={dims.height}
+              annotations={annotationsApi.getPageAnnotations(pageNumber)}
+              liveDraft={liveDraft}
+              selectedId={annotationsApi.selectedId}
+              activeTool={activeTool}
+              justCreatedId={justCreatedId}
+              croppingId={croppingId}
+              onSelect={annotationsApi.selectAnnotation}
+              onUpdate={annotationsApi.updateAnnotation}
+              onApplyCrop={onApplyCrop}
+              onCancelCrop={onCancelCrop}
+            />
+            {formFieldsApi && (
+              <FormFieldLayer
+                fields={formFieldsApi.getPageFields(pageNumber)}
+                values={formFieldsApi.values}
+                onChange={formFieldsApi.setValue}
+              />
+            )}
+          </>
         )}
       </div>
     </div>

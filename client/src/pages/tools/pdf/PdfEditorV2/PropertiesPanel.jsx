@@ -100,7 +100,7 @@ export default function PropertiesPanel({ annotation, onChange, onDelete, isCrop
         </>
       )}
 
-      {(type === TOOLS.UNDERLINE || type === TOOLS.STRIKETHROUGH || type === TOOLS.DRAW || type === TOOLS.SIGNATURE || type === TOOLS.ARROW) && (
+      {(type === TOOLS.UNDERLINE || type === TOOLS.STRIKETHROUGH || type === TOOLS.DRAW || type === TOOLS.SIGNATURE || type === TOOLS.ARROW || type === TOOLS.LINE) && (
         <>
           <Row label="Color"><ColorGrid value={annotation.color} onChange={(c) => set({ color: c })} /></Row>
           <StrokeWidthRow value={annotation.strokeWidth} onChange={(w) => set({ strokeWidth: w })} />
