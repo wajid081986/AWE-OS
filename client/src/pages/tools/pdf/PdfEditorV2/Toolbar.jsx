@@ -108,7 +108,7 @@ function DocumentToolsMenu({ onPick }) {
 
 /** Sticky top toolbar: tool selection, zoom, undo/redo, download, fullscreen. */
 export default function Toolbar({
-  activeTool, onToolChange, zoom, onZoomIn, onZoomOut, canUndo, canRedo, onUndo, onRedo, onDownload,
+  activeTool, onToolChange, zoom, onZoomIn, onZoomOut, onFitWidth, viewMode, onViewModeChange, canUndo, canRedo, onUndo, onRedo, onDownload,
   isFullscreen, onToggleFullscreen, fullscreenBtnRef, onInsertImageClick,
   aiLoading, onSummarize, onTranslateHindi, onTranslateUrdu, onExtractTables, onExtractTablesXlsx,
   onFindReplaceClick, onExportWord, onDocumentToolPick, onProtectClick,
@@ -144,6 +144,27 @@ export default function Toolbar({
         <button type="button" onClick={onZoomOut} className="px-2 py-1.5 rounded-s hover:bg-cobalt-tint" aria-label="Zoom out">−</button>
         <span className="text-xs text-ink-soft w-12 text-center">{Math.round(zoom * 100)}%</span>
         <button type="button" onClick={onZoomIn} className="px-2 py-1.5 rounded-s hover:bg-cobalt-tint" aria-label="Zoom in">+</button>
+        <button type="button" onClick={onFitWidth} title="Fit width" className="px-2.5 py-1.5 rounded-s hover:bg-cobalt-tint text-sm whitespace-nowrap">Fit Width</button>
+        <div className="flex rounded-s border border-line overflow-hidden" role="group" aria-label="Page view mode">
+          <button
+            type="button"
+            onClick={() => onViewModeChange('single')}
+            title="Single page"
+            aria-pressed={viewMode === 'single'}
+            className={`px-2 py-1.5 text-sm ${viewMode === 'single' ? 'bg-cobalt text-white' : 'text-ink hover:bg-cobalt-tint'}`}
+          >
+            <span aria-hidden>📄</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onViewModeChange('two-page')}
+            title="Two-page view"
+            aria-pressed={viewMode === 'two-page'}
+            className={`px-2 py-1.5 text-sm ${viewMode === 'two-page' ? 'bg-cobalt text-white' : 'text-ink hover:bg-cobalt-tint'}`}
+          >
+            <span aria-hidden>📑</span>
+          </button>
+        </div>
         <button type="button" onClick={onUndo} disabled={!canUndo} className="px-2.5 py-1.5 rounded-s hover:bg-cobalt-tint disabled:opacity-40">Undo</button>
         <button type="button" onClick={onRedo} disabled={!canRedo} className="px-2.5 py-1.5 rounded-s hover:bg-cobalt-tint disabled:opacity-40">Redo</button>
         <button type="button" onClick={onFindReplaceClick} title="Find & Replace (Ctrl+F)" className="px-2.5 py-1.5 rounded-s hover:bg-cobalt-tint" aria-label="Find & Replace">

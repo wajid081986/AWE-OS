@@ -644,31 +644,49 @@ export default function PdfEditorV2() {
     }
   }, [isFullscreen])
 
+  const [viewMode, setViewMode] = useState('single')
+  const PAGE_ROW_GAP = 24 // matches the viewer div's gap-6 (used both ways)
+
+  // Shared by the auto-fit effect below and the toolbar's explicit "Fit
+  // Width" button — `pagesPerRow` accounts for two-page view needing to fit
+  // N page widths plus the gaps between them, not just one page.
+  // Destructures `getPage`/`isReady` (not the whole `pdfDoc` object) for the
+  // same reason PageCanvas.jsx does — usePdfDoc() returns a fresh object
+  // every render, which would otherwise re-fire this on every unrelated
+  // state change.
+  const { isReady, getPage } = pdfDoc
+  const computeFitWidth = useCallback(async (pagesPerRow) => {
+    const page = await getPage(1)
+    const container = viewerRef.current
+    if (!page || !container) return null
+    const nativeWidth = page.getViewport({ scale: RENDER_SCALE }).width
+    const available = container.clientWidth - 48 - PAGE_ROW_GAP * (pagesPerRow - 1) // p-6 padding, 24px each side
+    if (available <= 0 || nativeWidth <= 0) return null
+    const fitZoom = available / (nativeWidth * pagesPerRow)
+    return Math.max(ZOOM_LEVELS[0], Math.min(ZOOM_LEVELS[ZOOM_LEVELS.length - 1], fitZoom))
+  }, [getPage])
+
+  const handleFitWidth = useCallback(async () => {
+    const fitZoom = await computeFitWidth(viewMode === 'two-page' ? 2 : 1)
+    if (fitZoom != null) setZoom(fitZoom)
+  }, [computeFitWidth, viewMode])
+
   // Fit-to-width default zoom: 100% was routinely wider than the available
   // viewer column (see the items-start comment below), leaving the page
   // "cut off" on the right with no visible way to discover the horizontal
-  // scrollbar. Depends on isFullscreen too — re-fits when toggling view
-  // modes, since the available width changes a lot between embedded and
-  // fullscreen (this does mean a manual zoom resets on toggling fullscreen;
-  // accepted tradeoff for always landing on a sane default in both modes).
-  const { isReady, getPage } = pdfDoc
+  // scrollbar. Depends on isFullscreen and viewMode too — re-fits when
+  // toggling either, since the available-width-per-page changes a lot
+  // between embedded/fullscreen and single/two-page (this does mean a
+  // manual zoom resets on toggling either; accepted tradeoff for always
+  // landing on a sane default).
   useEffect(() => {
     if (!isReady) return
     let cancelled = false
-    async function fitToWidth() {
-      const page = await getPage(1)
-      const container = viewerRef.current
-      if (cancelled || !page || !container) return
-      const nativeWidth = page.getViewport({ scale: RENDER_SCALE }).width
-      const available = container.clientWidth - 48 // p-6 padding, 24px each side
-      if (available > 0 && nativeWidth > 0) {
-        const fitZoom = available / nativeWidth
-        setZoom(Math.max(ZOOM_LEVELS[0], Math.min(ZOOM_LEVELS[ZOOM_LEVELS.length - 1], fitZoom)))
-      }
-    }
-    fitToWidth()
+    computeFitWidth(viewMode === 'two-page' ? 2 : 1).then((fitZoom) => {
+      if (!cancelled && fitZoom != null) setZoom(fitZoom)
+    })
     return () => { cancelled = true }
-  }, [isReady, getPage, isFullscreen])
+  }, [isReady, isFullscreen, viewMode, computeFitWidth])
 
   const zoomBy = useCallback((direction) => {
     setZoom((current) => {
@@ -808,6 +826,12 @@ export default function PdfEditorV2() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [annotationsApi, handleDownload])
 
+  const pagesPerRow = viewMode === 'two-page' ? 2 : 1
+  const pageRows = []
+  for (let n = 1; n <= pdfDoc.pageCount; n += pagesPerRow) {
+    pageRows.push(Array.from({ length: Math.min(pagesPerRow, pdfDoc.pageCount - n + 1) }, (_, i) => n + i))
+  }
+
   const editorBody = (
     <div className="space-y-4">
       <Toolbar
@@ -816,6 +840,9 @@ export default function PdfEditorV2() {
         zoom={zoom}
         onZoomIn={() => zoomBy(1)}
         onZoomOut={() => zoomBy(-1)}
+        onFitWidth={handleFitWidth}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
         canUndo={annotationsApi.canUndo}
         canRedo={annotationsApi.canRedo}
         onUndo={annotationsApi.undo}
@@ -893,21 +920,30 @@ export default function PdfEditorV2() {
             stays as the fallback for whatever doesn't (very narrow windows,
             a manual zoom-in past the fit level). */}
         <div ref={viewerRef} className="flex-1 flex flex-col items-start gap-6 bg-canvas p-6 rounded-m overflow-auto max-h-[75vh]">
-          {Array.from({ length: pdfDoc.pageCount }, (_, i) => i + 1).map((pageNumber) => (
-            <div key={pageNumber} id={`pdf-editor-page-${pageNumber}`}>
-              <PageCanvas
-                pageNumber={pageNumber}
-                zoom={zoom}
-                pdfDoc={pdfDoc}
-                annotationsApi={annotationsApi}
-                formFieldsApi={formFieldsApi}
-                activeTool={activeTool}
-                pendingImage={pendingImage}
-                croppingId={croppingId}
-                onApplyCrop={handleApplyCrop}
-                onCancelCrop={() => setCroppingId(null)}
-                onAnnotationCreated={() => { setActiveTool(TOOLS.SELECT); setPendingImage(null) }}
-              />
+          {/* Two-page mode groups pages into side-by-side rows (1-2, 3-4, ...
+              — no book-style cover-page offset, see docs/batches/batch-40-plan.md);
+              single mode is the same one-page-per-row shape as before. Every
+              page keeps its own id="pdf-editor-page-N" wrapper regardless of
+              mode, so jumpToPage's scroll targeting needs no changes. */}
+          {pageRows.map((row) => (
+            <div key={row[0]} className="flex items-start gap-6">
+              {row.map((pageNumber) => (
+                <div key={pageNumber} id={`pdf-editor-page-${pageNumber}`}>
+                  <PageCanvas
+                    pageNumber={pageNumber}
+                    zoom={zoom}
+                    pdfDoc={pdfDoc}
+                    annotationsApi={annotationsApi}
+                    formFieldsApi={formFieldsApi}
+                    activeTool={activeTool}
+                    pendingImage={pendingImage}
+                    croppingId={croppingId}
+                    onApplyCrop={handleApplyCrop}
+                    onCancelCrop={() => setCroppingId(null)}
+                    onAnnotationCreated={() => { setActiveTool(TOOLS.SELECT); setPendingImage(null) }}
+                  />
+                </div>
+              ))}
             </div>
           ))}
         </div>
