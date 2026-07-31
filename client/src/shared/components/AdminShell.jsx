@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { icon: '📊', label: 'Overview',         to: '/admin',               end: true },
   { icon: '⭐', label: 'Auto Campaign',    to: '/admin/auto-campaign', badge: 'NEW'  },
   { icon: '🤖', label: 'AI Factory',       to: '/admin/factory',       badge: '⚡'     },
+  { icon: '🖼️', label: 'Image Agent',     to: '/admin/image-agent',   badge: 'NEW'   },
   { icon: '🏗️', label: 'Landing Builder', to: '/admin/landing-builder'                 },
   { icon: '📣', label: 'Marketing',        to: '/admin/marketing'                      },
   { icon: '📈', label: 'Traffic Growth',   to: '/admin/traffic'                        },

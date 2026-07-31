@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWE-OS Audit Report v2.0 — 28/7/2026, 4:56:17 pm</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f172a;color:#e2e8f0;line-height:1.6}
+.wrap{max-width:1200px;margin:0 auto;padding:24px}
+h1{font-size:28px;font-weight:700;color:#fff;margin-bottom:4px}
+h2{font-size:18px;font-weight:600;color:#94a3b8;margin:32px 0 16px;border-bottom:1px solid #1e293b;padding-bottom:8px}
+h3{font-size:14px;font-weight:600;color:#cbd5e1;margin-bottom:8px}
+.meta{font-size:13px;color:#64748b;margin-bottom:32px}
+.scores{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:32px}
+.score-card{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:16px;text-align:center}
+.score-val{font-size:32px;font-weight:700;margin-bottom:4px}
+.score-label{font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.05em}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px}
+.stat{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:12px;text-align:center}
+.stat-val{font-size:22px;font-weight:700;color:#38bdf8}
+.stat-label{font-size:11px;color:#64748b}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:24px}
+th{background:#1e293b;color:#94a3b8;padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid #334155}
+td{padding:7px 10px;border-bottom:1px solid #1e293b;vertical-align:top}
+tr:hover td{background:#1e293b40}
+.ok{color:#10B981} .warn{color:#F59E0B} .fail{color:#EF4444}
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600}
+.badge-ok{background:#065F4620;color:#10B981;border:1px solid #10B98130}
+.badge-warn{background:#78350F20;color:#F59E0B;border:1px solid #F59E0B30}
+.badge-fail{background:#7F1D1D20;color:#EF4444;border:1px solid #EF444430}
+.section{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:20px;margin-bottom:20px}
+.check-row{display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:1px solid #0f172a}
+.check-row:last-child{border-bottom:none}
+.check-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.check-text{font-size:13px;color:#cbd5e1}
+.check-detail{font-size:11px;color:#64748b;margin-top:2px}
+.footer{text-align:center;padding:24px;font-size:12px;color:#475569}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔍 AWE-OS Audit Engine v2.0</h1>
+  <div class="meta">Generated: 28/7/2026, 4:56:17 pm · Site: https://www.awe-os.com · Pages audited: 40</div>
+
+  <div class="scores">
+    <div class="score-card"><div class="score-val" style="color:#F59E0B">65</div><div class="score-label">SEO</div></div>
+    <div class="score-card"><div class="score-val" style="color:#EF4444">20</div><div class="score-label">Content</div></div>
+    <div class="score-card"><div class="score-val" style="color:#F59E0B">60</div><div class="score-label">Technical</div></div>
+    <div class="score-card"><div class="score-val" style="color:#EF4444">30</div><div class="score-label">Accessibility</div></div>
+    <div class="score-card"><div class="score-val" style="color:#EF4444">45</div><div class="score-label">E-E-A-T</div></div>
+    <div class="score-card"><div class="score-val" style="color:#10B981">95%</div><div class="score-label">AdSense</div></div>
+    <div class="score-card"><div class="score-val" style="color:#EF4444">44</div><div class="score-label">Overall</div></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-val">40</div><div class="stat-label">Pages 200 OK</div></div>
+    <div class="stat"><div class="stat-val" style="color:#10B981">0</div><div class="stat-label">404 Errors</div></div>
+    <div class="stat"><div class="stat-val">79ms</div><div class="stat-label">Avg Response</div></div>
+    <div class="stat"><div class="stat-val" style="color:#10B981">0</div><div class="stat-label">Critical Issues</div></div>
+  </div>
+
+  <h2>📋 Page-by-Page Results</h2>
+  <table>
+    <tr><th>Page</th><th>Status</th><th>Time</th><th>Words</th><th>H1</th><th>OG</th><th>Schema</th><th>AI Risk</th><th>Issues</th></tr>
+    
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">92ms</td>
+      <td style="color:#10B981">1352</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/about</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">185ms</td>
+      <td style="color:#10B981">940</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-ok">LOW</span></td>
+      <td style="font-size:11px;color:#F59E0B"></td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/contact</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">174ms</td>
+      <td style="color:#10B981">443</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-ok">LOW</span></td>
+      <td style="font-size:11px;color:#F59E0B"></td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/privacy-policy</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">177ms</td>
+      <td style="color:#10B981">341</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-ok">LOW</span></td>
+      <td style="font-size:11px;color:#F59E0B"></td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/terms</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">80ms</td>
+      <td style="color:#10B981">329</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-ok">LOW</span></td>
+      <td style="font-size:11px;color:#F59E0B"></td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/disclaimer</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">78ms</td>
+      <td style="color:#10B981">321</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-ok">LOW</span></td>
+      <td style="font-size:11px;color:#F59E0B"></td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/editorial-policy</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">69ms</td>
+      <td style="color:#10B981">425</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-ok">LOW</span></td>
+      <td style="font-size:11px;color:#F59E0B"></td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/advertising-policy</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">73ms</td>
+      <td style="color:#10B981">327</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-ok">LOW</span></td>
+      <td style="font-size:11px;color:#F59E0B"></td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/blog</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">105ms</td>
+      <td style="color:#10B981">1592</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-fail">HIGH</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_HIGH</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">77ms</td>
+      <td style="color:#10B981">323</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-ok">LOW</span></td>
+      <td style="font-size:11px;color:#F59E0B"></td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/merge-pdf</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">80ms</td>
+      <td style="color:#10B981">1736</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/compress-pdf</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">67ms</td>
+      <td style="color:#10B981">1200</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/pdf-to-word</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">82ms</td>
+      <td style="color:#10B981">1281</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/word-to-pdf</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">66ms</td>
+      <td style="color:#10B981">1314</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/gst-calculator</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">73ms</td>
+      <td style="color:#10B981">1862</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/sip-calculator</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">102ms</td>
+      <td style="color:#10B981">2446</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-fail">HIGH</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_HIGH</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/tax-calculator</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">51ms</td>
+      <td style="color:#10B981">1474</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/loan-calculator</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">78ms</td>
+      <td style="color:#10B981">1422</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/qr-code-generator</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">60ms</td>
+      <td style="color:#10B981">1337</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/invoice-generator</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">67ms</td>
+      <td style="color:#10B981">1947</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/resume-builder</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">59ms</td>
+      <td style="color:#10B981">748</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-ok">LOW</span></td>
+      <td style="font-size:11px;color:#F59E0B"></td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/ai-content-writer</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">65ms</td>
+      <td style="color:#10B981">1285</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-ok">LOW</span></td>
+      <td style="font-size:11px;color:#F59E0B"></td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/bmi-calculator</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">77ms</td>
+      <td style="color:#10B981">1867</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/age-calculator</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">72ms</td>
+      <td style="color:#10B981">1590</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/currency-converter</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">63ms</td>
+      <td style="color:#10B981">1984</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-fail">HIGH</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_HIGH</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/image-compressor</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">57ms</td>
+      <td style="color:#10B981">1379</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/word-counter</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">76ms</td>
+      <td style="color:#10B981">1711</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/password-generator</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">71ms</td>
+      <td style="color:#10B981">1340</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/ppf-calculator</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">69ms</td>
+      <td style="color:#10B981">1964</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/tools/fd-calculator</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">87ms</td>
+      <td style="color:#10B981">1662</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/blog/how-to-create-a-budget-that-works-for-you-in-india</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">78ms</td>
+      <td style="color:#10B981">1429</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/blog/merge-pdf-files-for-bank-documents-india</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">83ms</td>
+      <td style="color:#10B981">1561</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/blog/gst-calculator-india-2026-complete-guide</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">49ms</td>
+      <td style="color:#10B981">1155</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-ok">LOW</span></td>
+      <td style="font-size:11px;color:#F59E0B"></td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/blog/sip-calculator-mutual-fund-returns-india</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">54ms</td>
+      <td style="color:#10B981">1381</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-fail">HIGH</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_HIGH</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/blog/free-ats-resume-builder-get-past-ats-systems</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">61ms</td>
+      <td style="color:#10B981">1514</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/blog/bmi-calculator-for-indians-icmr-vs-who</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">57ms</td>
+      <td style="color:#10B981">1275</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/blog/new-vs-old-tax-regime-fy-2025-26</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">62ms</td>
+      <td style="color:#10B981">1431</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:#7dd3fc">/blog/10-free-pdf-tools-you-need-in-2026</td>
+      <td><span class="badge badge-ok">200</span></td>
+      <td style="color:#10B981">66ms</td>
+      <td style="color:#10B981">1584</td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class='ok'>✓</span></td>
+      <td><span class="badge badge-warn">MEDIUM</span></td>
+      <td style="font-size:11px;color:#F59E0B">AI_CONTENT_RISK_MED</td>
+    </tr>
+  </table>
+
+  <h2>🔒 Security Headers</h2>
+  <div class="section">
+    
+    <div class="check-row">
+      <span class="check-icon">✅</span>
+      <div><div class="check-text">HSTS</div><div class="check-detail">max-age=63072000; includeSubDomains; preload</div></div>
+    </div>
+    <div class="check-row">
+      <span class="check-icon">✅</span>
+      <div><div class="check-text">CSP</div><div class="check-detail">default-src 'self'; script-src 'self' 'unsafe-inline' https://cloud.umami.is htt...</div></div>
+    </div>
+    <div class="check-row">
+      <span class="check-icon">✅</span>
+      <div><div class="check-text">XFRAME</div><div class="check-detail">DENY</div></div>
+    </div>
+    <div class="check-row">
+      <span class="check-icon">✅</span>
+      <div><div class="check-text">XCONTENTTYPE</div><div class="check-detail">nosniff</div></div>
+    </div>
+    <div class="check-row">
+      <span class="check-icon">✅</span>
+      <div><div class="check-text">REFERRER</div><div class="check-detail">strict-origin-when-cross-origin</div></div>
+    </div>
+    <div class="check-row">
+      <span class="check-icon">✅</span>
+      <div><div class="check-text">PERMISSIONS</div><div class="check-detail">camera=(), microphone=(), geolocation=()</div></div>
+    </div>
+  </div>
+
+  
+
+  <h2>🔗 External Links</h2><div class="section"><div class="check-row"><span class="check-icon">✅</span><div class="check-text">No broken external links detected</div></div></div>
+
+  <div class="footer">AWE-OS Audit Engine v2.0 · Run again: <code>node audit-awe-os-v2.js --html</code></div>
+</div>
+</body>
+</html>

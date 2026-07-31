@@ -6,6 +6,13 @@ with this file, STOP and ask the user instead of proceeding.
 
 ## Changelog
 
+- **2026-07-31** — §3 amended: carved out an explicit Admin Panel
+  exception (§3a) for new internal agent modules (Image Agent now, Video
+  Agent planned Phase 2), requested by the user after the Image Agent
+  build prompt conflicted with the blanket Admin Panel protection. Only
+  new, isolated module files are open; the four integration points
+  (sidebar, Overview.jsx, App.jsx, server app.js) stay protected except
+  for one additive line each. Everything else in §3 is unchanged.
 - **2026-07-12** — §5 rewritten: replaced Next.js-specific language
   ("Server components," `"use client"`/`components/islands/`) with the
   actual stack's model (Vite + React SPA, SSG via
@@ -64,6 +71,33 @@ report it and wait — do not "fix" documents or improvise around them.
 - **Privacy promise**: never add code that transmits user file names,
   file contents, or tool inputs to any server — including in analytics,
   error monitoring (beforeSend must scrub these), or logging.
+
+### 3a. Admin Panel — Allowed Scope (Internal Agent Modules)
+
+Narrow, explicit exception to §3's Admin Panel protection, for building
+new self-contained internal agent modules only.
+
+**Open** for Claude Code work:
+
+- `/admin/image-agent` (Image Agent module — new)
+- `/admin/video-agent` (Video Agent module — future Phase 2)
+- Any new agent module under `client/src/modules/admin/` that does NOT
+  modify existing agents
+- `server/routes/admin-image-agent.js` and similar NEW route files
+- `server/core/image-agent/` and similar NEW core directories
+
+**Still protected** (do not touch beyond the one additive line noted):
+
+- `AdminSidebar.jsx` — read-only to learn the pattern; add ONE new nav
+  entry only
+- `Overview.jsx` — read-only to learn the pattern; add ONE new card only
+- `App.jsx` — add ONE new route import + route only
+- `server/app.js` (or equivalent main server file) — add ONE new route
+  registration only
+- All existing agent files (CrawlEngine, BlogAssistant, etc.) — unchanged
+
+This exception does not reopen the rest of §3: public copy hygiene, the
+privacy promise, and the Login/auth restriction all still apply in full.
 
 ## 4. Design System Rules
 

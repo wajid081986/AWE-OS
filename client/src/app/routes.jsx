@@ -95,6 +95,7 @@ const CalculatorBuilder = lazy(() => import('../modules/admin/calculators/Calcul
 const UserManager       = lazy(() => import('../modules/admin/users/UserManager'))
 const RevenuePage       = lazy(() => import('../modules/admin/revenue/RevenuePage'))
 const AIFactoryPage       = lazy(() => import('../modules/admin/factory/AIFactoryPage'))
+const ImageAgentPage      = lazy(() => import('../modules/admin/image-agent/ImageAgent'))
 const MarketingAssistant  = lazy(() => import('../modules/admin/marketing/MarketingAssistant'))
 const BlogAssistant       = lazy(() => import('../modules/admin/blog/BlogAssistant'))
 const TrafficGrowth       = lazy(() => import('../modules/admin/traffic/TrafficGrowth'))
@@ -252,6 +253,7 @@ export default function AppRoutes() {
           <Route path="/admin/users"         element={lazy$(<UserManager />)} />
           <Route path="/admin/revenue"       element={lazy$(<RevenuePage />)} />
           <Route path="/admin/factory"       element={lazy$(<AIFactoryPage />)} />
+          <Route path="/admin/image-agent"   element={lazy$(<ImageAgentPage />)} />
           <Route path="/admin/marketing"     element={lazy$(<MarketingAssistant />)} />
           <Route path="/admin/traffic"       element={lazy$(<TrafficGrowth />)} />
           <Route path="/admin/blog"          element={lazy$(<BlogAssistant />)} />
