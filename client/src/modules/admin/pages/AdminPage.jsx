@@ -5,6 +5,7 @@ import api from '../../../services/api.service'
 const QUICK_ITEMS = [
   { icon: '🤖', label: 'AI Factory',       to: '/admin/factory'        },
   { icon: '🖼️', label: 'Image Agent',     to: '/admin/image-agent'    },
+  { icon: '🎬', label: 'Video Agent',     to: '/admin/video-agent'    },
   { icon: '📣', label: 'Marketing',        to: '/admin/marketing'      },
   { icon: '📈', label: 'Traffic Growth',   to: '/admin/traffic'         },
   { icon: '📊', label: 'SEO Dashboard',   to: '/admin/seo-dashboard'   },
