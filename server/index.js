@@ -18,6 +18,7 @@ const adminBlogRoutes                = require('./routes/admin-blog');
 const adminTrafficRoutes             = require('./routes/admin-traffic');
 const adminSeoRoutes                 = require('./routes/admin-seo');
 const adminImageAgentRoutes          = require('./routes/admin-image-agent');
+const adminVideoAgentRoutes          = require('./routes/admin-video-agent');
 const adminAutomationRoutes          = require('./routes/admin-automation');
 const adminContentRoutes             = require('./routes/admin-content');
 const blogPublicRoutes               = require('./routes/blog.public');
@@ -268,6 +269,10 @@ app.use('/api/social',          adminLimiter, socialPublishRoutes);
 app.use('/api/auto-campaign',   adminLimiter, autoCampaignRoutes);
 app.use('/api/admin/seo',       adminLimiter, adminSeoRoutes);
 app.use('/api/admin/image-agent', adminLimiter, adminImageAgentRoutes);
+// Video generation is long-running (2-5 min) — override the default socket
+// timeout for this one route, same pattern as /api/codegen/generate above.
+app.use('/api/admin/video-agent/generate', (req, res, next) => { req.setTimeout(300_000); res.setTimeout(300_000); next(); });
+app.use('/api/admin/video-agent', adminLimiter, adminVideoAgentRoutes);
 app.use('/api/admin/automation',adminLimiter, adminAutomationRoutes);
 app.use('/api/admin',           adminLimiter, adminWeeklyReportRoutes);
 app.use('/api/admin',           adminLimiter, adminContentIntelRoutes);
