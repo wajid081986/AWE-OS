@@ -166,9 +166,16 @@ async function drawAnnotation(pdfLibDoc, page, ann) {
       break
     }
     case TOOLS.TEXT: {
+      // A box the user never typed into (or cleared back out) still exists
+      // as an annotation with empty/placeholder text — TextShape.jsx's
+      // placeholder="Type here…" is CSS-only and never becomes ann.text,
+      // but skip both it and plain empty content defensively so no
+      // placeholder-lookalike ever gets embedded as real PDF text.
+      const trimmed = (ann.text ?? '').trim()
+      if (!trimmed || trimmed === 'Type here…' || trimmed === 'Type here...') break
       const font = await pickStandardFont(pdfLibDoc, ann.fontFamily, ann.bold, ann.italic)
       const size = toPt(ann.fontSize ?? 14)
-      const lines = (ann.text ?? '').split('\n')
+      const lines = trimmed.split('\n')
       lines.forEach((line, i) => {
         page.drawText(line, {
           x, y: yTop - size * (i + 1), size, font, color: hexToRgb(ann.color),
@@ -735,7 +742,14 @@ export default function PdfEditorV2() {
       if (availableHeight <= 0 || viewport.height <= 0) return null
       fitZoom = Math.min(widthZoom, availableHeight / viewport.height)
     }
-    return Math.max(ZOOM_LEVELS[0], Math.min(ZOOM_LEVELS[ZOOM_LEVELS.length - 1], fitZoom))
+    // Only clamp the upper end (so a tiny page doesn't zoom absurdly large) —
+    // clamping the lower end to ZOOM_LEVELS[0] (0.25) was the bug: a page
+    // wide enough that fitting it needs zoom below 0.25 (a wide/landscape
+    // page in a narrow embedded viewer, for example) got forced back up to
+    // 0.25, rendering wider than the available width and clipping its right
+    // side — "full page renders correctly" means this must never have a
+    // floor above what the container can actually show.
+    return Math.min(ZOOM_LEVELS[ZOOM_LEVELS.length - 1], fitZoom)
   }, [getPage])
 
   const handleFitWidth = useCallback(async () => {
