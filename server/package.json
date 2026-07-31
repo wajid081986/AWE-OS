@@ -29,6 +29,7 @@
     "openai": "^6.34.0",
     "pdfkit": "^0.14.0",
     "razorpay": "^2.9.2",
+    "replicate": "^1.4.0",
     "resend": "^6.16.0",
     "twitter-api-v2": "^1.29.0",
     "uuid": "^9.0.1",
