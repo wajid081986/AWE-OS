@@ -464,11 +464,15 @@ export default function PdfEditorV2() {
         ...DEFAULT_ANNOTATION_STYLE[TOOLS.WHITEOUT],
       })
       partials.push({
+        // Real (unpadded) glyph metrics, not the padded hit-box — same fix
+        // as PageCanvas.jsx's click-to-edit path (docs/batches/batch-44-plan.md).
         type: TOOLS.TEXT, page,
-        x: item.x, y: item.y, w: Math.max(item.width, 60), h: Math.max(item.height + 6, 22),
+        x: item.layoutX, y: item.layoutY,
+        w: Math.max(item.layoutWidth + 8, 60), h: Math.max(item.fontSize * 1.3, 22),
         text: item.str.replace(pattern, replacement),
         ...DEFAULT_ANNOTATION_STYLE[TOOLS.TEXT],
-        fontSize: Math.max(8, Math.round(item.height)),
+        fontSize: Math.max(8, Math.round(item.fontSize)),
+        fontFamily: item.fontFamily,
       })
     }
     annotationsApi.addAnnotations(partials)

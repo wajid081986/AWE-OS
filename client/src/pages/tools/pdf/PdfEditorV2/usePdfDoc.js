@@ -93,6 +93,19 @@ export function usePdfDoc() {
     return viewport
   }, [getPage])
 
+  // Best-effort map from pdf.js's TextStyle.fontFamily (a CSS font-family
+  // string — often a generic fallback like "sans-serif" for embedded/subset
+  // fonts, sometimes the real name for standard fonts) to one of this
+  // editor's own FONT_FAMILIES, which pickStandardFont (index.jsx) further
+  // collapses to pdf-lib's 14 standard PDF fonts. Defaults to Helvetica,
+  // same as before this existed, so an unrecognized family is a no-op.
+  function mapFontFamily(cssFamily) {
+    const f = (cssFamily || '').toLowerCase()
+    if (f.includes('courier') || f.includes('mono')) return 'Courier New'
+    if (f.includes('times') || f.includes('georgia') || f.includes('serif')) return 'Times New Roman'
+    return 'Helvetica'
+  }
+
   // Existing text runs on the page, converted to RENDER_SCALE canvas-pixel
   // boxes — used to detect a click on existing PDF text (for the Text
   // tool's "click existing text to cover-and-edit" path). Same transform
@@ -102,6 +115,14 @@ export function usePdfDoc() {
   // unrotated text — items with a non-zero angle are skipped rather than
   // mis-measured, since supporting rotated-text hit-boxes correctly needs
   // more than this approximation.
+  //
+  // Every item carries two boxes: the padded hit-box (x/y/width/height —
+  // padded ±0.5×fontHeight per side so descenders/ascenders and imprecise
+  // clicks still land) used for click detection and for the Text tool's
+  // whiteout cover, and the real, unpadded layout box (fontSize/layoutX/
+  // layoutY/layoutWidth) used to size and position the replacement text
+  // annotation itself. Reusing the padded box for both used to make edited
+  // text render ~2x too large and visibly offset from the original.
   const getTextItems = useCallback(async (pageNumber) => {
     if (textItemsCache.current.has(pageNumber)) return textItemsCache.current.get(pageNumber)
     const page = await getPage(pageNumber)
@@ -121,12 +142,18 @@ export function usePdfDoc() {
       // never pixel-perfect — without padding, the hit box (ascent-to-
       // baseline only) misses most real clicks on normal body text.
       const pad = fontHeight * 0.5
+      const layoutWidth = item.width * viewport.scale
       items.push({
         str: item.str,
         x: tx[4] - pad,
         y: tx[5] - fontHeight - pad,
-        width: item.width * viewport.scale + pad * 2,
+        width: layoutWidth + pad * 2,
         height: fontHeight + pad * 2,
+        fontSize: fontHeight,
+        layoutX: tx[4],
+        layoutY: tx[5] - fontHeight,
+        layoutWidth,
+        fontFamily: mapFontFamily(textContent.styles?.[item.fontName]?.fontFamily),
       })
     }
     textItemsCache.current.set(pageNumber, items)

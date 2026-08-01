@@ -153,10 +153,12 @@ export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, f
     const { x, y } = pointFromEvent(e)
 
     if (activeTool === TOOLS.IMAGE && pendingImage) {
+      // Center the image on the click point rather than using it as the
+      // top-left corner — matches the click-to-place UX users expect.
       const id = annotationsApi.addAnnotation({
         type: TOOLS.IMAGE,
         page: pageNumber,
-        x, y,
+        x: x - pendingImage.w / 2, y: y - pendingImage.h / 2,
         w: pendingImage.w,
         h: pendingImage.h,
         imageBytes: pendingImage.bytes,
@@ -197,11 +199,19 @@ export default function PageCanvas({ pageNumber, zoom, pdfDoc, annotationsApi, f
             ...DEFAULT_ANNOTATION_STYLE[TOOLS.WHITEOUT],
           },
           {
+            // Sized from the real (unpadded) glyph metrics, not the padded
+            // hit-box above — hit.width/hit.height are inflated for click
+            // tolerance and used to render ~2x too large, offset from the
+            // original text, and wrapped early (see docs/batches/
+            // batch-44-plan.md). A small width allowance (not the full
+            // click-padding) keeps the caret/glyph edges from being clipped.
             type: TOOLS.TEXT, page: pageNumber,
-            x: hit.x, y: hit.y, w: Math.max(hit.width, 60), h: Math.max(hit.height + 6, 22),
+            x: hit.layoutX, y: hit.layoutY,
+            w: Math.max(hit.layoutWidth + 8, 60), h: Math.max(hit.fontSize * 1.3, 22),
             text: hit.str,
             ...DEFAULT_ANNOTATION_STYLE[TOOLS.TEXT],
-            fontSize: Math.max(8, Math.round(hit.height)),
+            fontSize: Math.max(8, Math.round(hit.fontSize)),
+            fontFamily: hit.fontFamily,
           },
         ])
         const textId = ids[ids.length - 1]
