@@ -338,6 +338,11 @@ function CalloutShape({ ann, isSelected, justCreated, onUpdate }) {
 
 function TextShape({ ann, isSelected, justCreated, onUpdate }) {
   const ref = useRef(null)
+  // Placeholder only while this specific box is focused — otherwise an
+  // abandoned empty box (e.g. a stray click with the Text tool) would show
+  // "Type here…" forever, since a plain <textarea> renders its placeholder
+  // whenever the value is empty regardless of focus.
+  const [isFocused, setIsFocused] = useState(false)
 
   useEffect(() => {
     if (justCreated && ref.current) ref.current.focus()
@@ -347,7 +352,9 @@ function TextShape({ ann, isSelected, justCreated, onUpdate }) {
     <textarea
       ref={ref}
       value={ann.text ?? ''}
-      placeholder="Type here…"
+      placeholder={isFocused ? 'Type here…' : ''}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
       onChange={(e) => onUpdate(ann.id, { text: e.target.value })}
       onPointerDown={(e) => e.stopPropagation()}
       className="w-full h-full bg-transparent outline-none resize-none"

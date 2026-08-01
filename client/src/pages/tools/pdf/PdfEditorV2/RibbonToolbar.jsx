@@ -102,6 +102,8 @@ function InsertRibbon({ activeTool, onInsertImageClick, onDocumentToolPick }) {
 function EditRibbon({ onFindReplaceClick, activeTool, onToolChange, hasFormFields, onFormFillClick, onAutoFillClick }) {
   return (
     <>
+      <RibbonButton label="Edit Text" icon="✎" shortcut="T" desc="Click existing PDF text to edit it inline (cover + replace), or insert a new text box" active={activeTool === TOOLS.TEXT} onClick={() => onToolChange(TOOLS.TEXT)} />
+      <Divider />
       <RibbonButton label="Find & Replace" icon="🔍" desc="Find and replace text across the document (Ctrl+F)" onClick={onFindReplaceClick} />
       <Divider />
       <RibbonButton label="Whiteout" icon="▢" shortcut="W" desc="Cover an area with an opaque white box (does not remove the underlying PDF text)" active={activeTool === TOOLS.WHITEOUT} onClick={() => onToolChange(TOOLS.WHITEOUT)} />
