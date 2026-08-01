@@ -2,8 +2,8 @@
 
 const Replicate = require('replicate');
 
-const T2V_MODEL = 'wan-ai/wan2.7-t2v';
-const I2V_MODEL = 'wan-ai/wan2.7-i2v';
+const T2V_MODEL = 'wan-video/wan-2.7-t2v';
+const I2V_MODEL = 'wan-video/wan-2.7-i2v';
 
 // Generates a video via Replicate's Wan 2.7 models.
 // Wan 2.7 has no dedicated style param, so — same pattern as the Image
