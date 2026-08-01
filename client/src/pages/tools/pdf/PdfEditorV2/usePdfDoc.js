@@ -117,12 +117,16 @@ export function usePdfDoc() {
       const angle = Math.atan2(tx[1], tx[0])
       if (Math.abs(angle) > 0.01) continue // skip rotated/skewed runs
       const fontHeight = Math.hypot(tx[2], tx[3])
+      // Descenders (g/y/p/q/j) extend below the baseline, and clicks are
+      // never pixel-perfect — without padding, the hit box (ascent-to-
+      // baseline only) misses most real clicks on normal body text.
+      const pad = fontHeight * 0.5
       items.push({
         str: item.str,
-        x: tx[4],
-        y: tx[5] - fontHeight,
-        width: item.width * viewport.scale,
-        height: fontHeight,
+        x: tx[4] - pad,
+        y: tx[5] - fontHeight - pad,
+        width: item.width * viewport.scale + pad * 2,
+        height: fontHeight + pad * 2,
       })
     }
     textItemsCache.current.set(pageNumber, items)
