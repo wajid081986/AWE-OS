@@ -14,6 +14,8 @@
     { "source": "/tools/character-counter",     "destination": "/tools/word-counter",     "permanent": true },
     { "source": "/tools/image-resizer",         "destination": "/tools/image-compressor", "permanent": true },
 
+    { "source": "/calculators", "destination": "/tools/calculators", "permanent": true },
+
     { "source": "/bmi-calculator/visakhapatnam", "destination": "/tools/bmi-calculator", "permanent": true },
     { "source": "/bmi-calculator/coimbatore",    "destination": "/tools/bmi-calculator", "permanent": true },
     { "source": "/bmi-calculator/kochi",         "destination": "/tools/bmi-calculator", "permanent": true },
