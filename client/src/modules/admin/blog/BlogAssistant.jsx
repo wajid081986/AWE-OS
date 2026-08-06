@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import api from '../../../services/api.service'
 import KeywordResearchTab from './KeywordResearch'
 import SeoAuditor from './SeoAuditor'
@@ -865,6 +865,14 @@ function PublishedPostsTab() {
   const [humanizeError,   setHumanizeError]   = useState('')
   const [humanizeSaving,  setHumanizeSaving]  = useState(false)
 
+  // Sort + bulk humanize state
+  const [sortByScore,     setSortByScore]     = useState(false)
+  const [bulkConfirming,  setBulkConfirming]  = useState(false)
+  const [bulkRunning,     setBulkRunning]     = useState(false)
+  const [bulkProgress,    setBulkProgress]    = useState({ done: 0, total: 0 })
+  const [bulkSummary,     setBulkSummary]     = useState(null)
+  const bulkCancelRef = useRef(false)
+
   function showToast(msg) {
     setToast(msg)
     setTimeout(() => setToast(''), 2500)
@@ -968,6 +976,56 @@ function PublishedPostsTab() {
     }
   }
 
+  // "AI-ish" = never scored yet, or still reads AI-like after a prior pass
+  const eligibleForBulk = posts.filter(p => p.ai_score == null || p.ai_score >= 40)
+
+  async function runBulkHumanize() {
+    setBulkConfirming(false)
+    setBulkRunning(true)
+    bulkCancelRef.current = false
+    const targets = eligibleForBulk
+    let humanized = 0, skipped = 0, failed = 0
+    setBulkProgress({ done: 0, total: targets.length })
+    setBulkSummary(null)
+
+    for (let i = 0; i < targets.length; i++) {
+      if (bulkCancelRef.current) break
+      const post = targets[i]
+      try {
+        const { data: previewData } = await api.post(`/api/admin/blog/humanize/${post.id}`, {})
+        if (!previewData.success || !previewData.result?.markerIntegrity) {
+          skipped++
+        } else {
+          await api.post(`/api/admin/blog/humanize/${post.id}/save`, {
+            humanizedBlocks: previewData.result.humanizedBlocks,
+            scores:          previewData.result.scores,
+          })
+          setPosts(ps => ps.map(p => p.id === post.id ? {
+            ...p,
+            ai_score:     previewData.result.scores?.afterHumanization ?? p.ai_score,
+            human_score:  previewData.result.scores?.humanScore ?? p.human_score,
+            humanized_at: new Date().toISOString(),
+          } : p))
+          humanized++
+        }
+      } catch {
+        failed++
+      }
+      setBulkProgress({ done: i + 1, total: targets.length })
+    }
+
+    setBulkRunning(false)
+    setBulkSummary({ humanized, skipped, failed, total: targets.length, cancelled: bulkCancelRef.current })
+  }
+
+  function cancelBulk() {
+    bulkCancelRef.current = true
+  }
+
+  const displayedPosts = sortByScore
+    ? [...posts].sort((a, b) => (b.ai_score ?? 101) - (a.ai_score ?? 101))
+    : posts
+
   if (loading) return <div className="flex justify-center py-16"><Spinner /></div>
   if (error)   return <p className="text-red-400 text-sm p-4">{error}</p>
 
@@ -979,12 +1037,67 @@ function PublishedPostsTab() {
         </div>
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-sm font-semibold text-white">
           {posts.length} published post{posts.length !== 1 ? 's' : ''}
         </h2>
-        <button onClick={load} className="text-xs text-gray-400 hover:text-white transition-colors">↻ Refresh</button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setSortByScore(s => !s)}
+            className={`text-xs px-3 py-1.5 rounded-lg transition-colors ${
+              sortByScore ? 'bg-indigo-700 text-white' : 'bg-gray-700 text-gray-300 hover:text-white'
+            }`}
+          >
+            {sortByScore ? '✓ ' : ''}Sort by AI score (worst first)
+          </button>
+          <button onClick={load} className="text-xs text-gray-400 hover:text-white transition-colors">↻ Refresh</button>
+          <button
+            onClick={() => setBulkConfirming(true)}
+            disabled={bulkRunning || eligibleForBulk.length === 0}
+            className="text-xs px-3 py-1.5 bg-purple-900/60 hover:bg-purple-800 disabled:opacity-40 text-purple-300 hover:text-white rounded-lg transition-colors"
+          >
+            🤖 Humanize All ({eligibleForBulk.length})
+          </button>
+        </div>
       </div>
+
+      {bulkConfirming && (
+        <div className="bg-purple-900/20 border border-purple-800 rounded-xl p-3 flex items-center justify-between gap-3 flex-wrap">
+          <p className="text-sm text-purple-200">
+            Run the humanizer on {eligibleForBulk.length} post{eligibleForBulk.length !== 1 ? 's' : ''}?
+            Each post costs a few OpenAI calls — this may take a while.
+          </p>
+          <div className="flex gap-2 shrink-0">
+            <button onClick={runBulkHumanize} className="text-xs px-3 py-1.5 bg-purple-700 hover:bg-purple-600 text-white rounded-lg transition-colors">Confirm</button>
+            <button onClick={() => setBulkConfirming(false)} className="text-xs px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {bulkRunning && (
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-3 space-y-2">
+          <div className="flex items-center justify-between text-xs text-gray-400">
+            <span>Humanizing {bulkProgress.done}/{bulkProgress.total}…</span>
+            <button onClick={cancelBulk} className="text-red-400 hover:text-red-300">Cancel</button>
+          </div>
+          <div className="bg-gray-900 rounded-full h-2">
+            <div
+              className="bg-purple-500 h-2 rounded-full transition-all"
+              style={{ width: `${bulkProgress.total ? (bulkProgress.done / bulkProgress.total) * 100 : 0}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {bulkSummary && (
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-3 text-sm text-gray-300 flex items-center justify-between gap-3">
+          <span>
+            ✅ {bulkSummary.humanized} humanized · ⚠️ {bulkSummary.skipped} skipped (couldn't round-trip) ·
+            ❌ {bulkSummary.failed} failed{bulkSummary.cancelled ? ' · cancelled early' : ''} out of {bulkSummary.total}.
+          </span>
+          <button onClick={() => setBulkSummary(null)} className="text-xs text-gray-500 hover:text-white shrink-0">Dismiss</button>
+        </div>
+      )}
 
       {posts.length === 0 ? (
         <div className="bg-gray-800 border border-gray-700 border-dashed rounded-xl p-10 text-center">
@@ -994,7 +1107,7 @@ function PublishedPostsTab() {
         </div>
       ) : (
         <div className="space-y-2">
-          {posts.map(post => (
+          {displayedPosts.map(post => (
             <div key={post.id} className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
               {/* Row */}
               <div className="flex items-center gap-3 px-4 py-3">
