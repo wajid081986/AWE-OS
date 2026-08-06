@@ -6,6 +6,15 @@ with this file, STOP and ask the user instead of proceeding.
 
 ## Changelog
 
+- **2026-08-06** — §3a extended: added a narrow, named carve-out
+  ("Blog Assistant Humanizer Integration") requested by the user to wire
+  the already-built Content Studio humanizer
+  (`server/core/content-studio/humanizer.js`) directly into the
+  Published Posts list in Blog Assistant, instead of leaving it as a
+  manual paste-in tool only. Scope is limited to the exact files/hooks
+  named in that subsection — no other BlogAssistant.jsx tab, and no
+  other existing agent, is affected. This is additive to, not a
+  replacement of, the 2026-07-31 exception below.
 - **2026-07-31** — §3 amended: carved out an explicit Admin Panel
   exception (§3a) for new internal agent modules (Image Agent now, Video
   Agent planned Phase 2), requested by the user after the Image Agent
@@ -94,10 +103,56 @@ new self-contained internal agent modules only.
 - `App.jsx` — add ONE new route import + route only
 - `server/app.js` (or equivalent main server file) — add ONE new route
   registration only
-- All existing agent files (CrawlEngine, BlogAssistant, etc.) — unchanged
+- All existing agent files (CrawlEngine, BlogAssistant, etc.) — unchanged,
+  except for the named Blog Assistant Humanizer Integration carve-out in
+  §3b below
 
 This exception does not reopen the rest of §3: public copy hygiene, the
 privacy promise, and the Login/auth restriction all still apply in full.
+
+### 3b. Blog Assistant Humanizer Integration — Allowed Scope
+
+Second, narrower exception to §3, limited to wiring the already-built
+Content Studio humanizer (`server/core/content-studio/humanizer.js`,
+`content-scorer.js`, exposed via the `contentStudio` singleton in
+`server/core/content-studio/index.js`) directly into Blog Assistant's
+Published Posts list, instead of leaving it as a manual paste-in tool
+only (currently reachable at `/admin/content-studio` and the
+"Content Studio" tab inside Blog Assistant).
+
+**Open** for Claude Code work:
+
+- `client/src/modules/admin/blog/BlogAssistant.jsx` — **only** the
+  `PublishedPostsTab` component (AI Score badge per post, per-post
+  Humanize button, "Humanize All" bulk action with progress, sort by
+  score) and **one** additive hook in the AI Blog Writer tab's
+  generation-success path (auto-run humanize on a freshly generated
+  draft before it's shown). No other tab (Ideas, Calendar, SEO, Keyword
+  Research, Content Intelligence, Content Studio) may be touched.
+- `server/routes/admin-blog.js` — additive only: new endpoint(s) for
+  per-post and bulk humanize, plus wiring the existing
+  `contentStudio.humanize()` call into the `/generate` handler's
+  success path. Every existing route's current behavior stays
+  unchanged.
+- A new migration `server/db/migrations/037_*.sql` (or next free
+  number) — additive columns only on `blog_posts` (e.g. `ai_score`,
+  `human_score`, `humanized_at`). No existing column altered or
+  dropped.
+- `server/core/content-studio/humanizer.js` / `index.js` — calling code
+  only; these are reused as-is, not rewritten, unless a bug blocks
+  integration.
+
+**Still protected**, no change beyond what's listed above:
+
+- CrawlEngine and all other existing agent files
+- Every other BlogAssistant.jsx tab and its API routes
+- `Overview.jsx` / `App.jsx` / `server/app.js` (or equivalent) — not
+  touched by this carve-out at all; no new top-level route is being
+  added since Blog Assistant already exists at `/admin/blog`
+
+This exception does not reopen the rest of §3 either: public copy
+hygiene, the privacy promise, and the Login/auth restriction all still
+apply in full.
 
 ## 4. Design System Rules
 
