@@ -46,6 +46,9 @@ export default function StrategyTab({ strategyState, onStrategyChange, onWriteTh
           tool, audience, goal,
           strategy: { keywords: res.data.keywords, competitors: res.data.competitors, calendar: res.data.calendar },
         })
+        if (res.data.warnings?.length) {
+          setError(`Partial result — ${res.data.warnings.join('; ')}`)
+        }
       } else {
         setError(res.data.error || 'Strategy generation failed.')
       }
