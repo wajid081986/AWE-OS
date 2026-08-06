@@ -86,7 +86,10 @@ function BlogCreatorPanel({ prefill, onPrefillConsumed }) {
         setError(res.data.error || 'Generation failed.')
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Generation failed.')
+      const isTimeout = err.code === 'ECONNABORTED' || /timeout/i.test(err.message || '')
+      setError(isTimeout
+        ? 'Generation is taking longer than expected — this can happen with Auto-Humanize on long articles. Try again, or turn off Auto-Humanize and run it separately from the Humanizer tab.'
+        : err.response?.data?.error || 'Generation failed.')
     } finally {
       setGenerating(false)
     }
