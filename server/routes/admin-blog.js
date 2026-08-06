@@ -90,7 +90,7 @@ const LINKABLE_TOOLS = [
 // ── POST /generate — word-count-targeted three-call approach ─────────────────
 
 router.post('/generate', requireAuth, requireAdmin, async (req, res) => {
-  const { topic, keyword, toolSlug, toolName, wordCount = 2000, tone = 'beginner', category = 'Finance', indianContext = true } = req.body
+  const { topic, keyword, toolSlug, toolName, wordCount = 2000, tone = 'beginner', category = 'Finance', indianContext = true, autoHumanize = false } = req.body
   if (!topic) return res.status(400).json({ success: false, error: 'topic is required' })
 
   const toneGuide = {
@@ -369,7 +369,32 @@ Return the JSON object with "blocks" and "faqs" keys as specified in the system 
       })
     }
 
-    res.json({ success: true, post, actualWords: totalWords })
+    // ── Auto-humanize (opt-in via autoHumanize) ───────────────────────────────
+    // Paragraph-only, same marker round-trip as the Published Posts humanize
+    // endpoints (see below) — headings/tables/lists/callouts stay untouched.
+    let humanizeInfo = null
+    if (autoHumanize) {
+      const paragraphs = extractParagraphs(post.content)
+      if (paragraphs.length > 0) {
+        try {
+          const humanizeResult = await contentStudio.humanize(buildMarkedText(paragraphs), {
+            tone: 'conversational', targetAudience: 'Indian professionals', preserveMarkers: true,
+          })
+          const splitParagraphs = splitMarkedText(humanizeResult.humanized, paragraphs)
+          if (splitParagraphs) {
+            post.content = applyHumanizedParagraphs(post.content, splitParagraphs)
+            humanizeInfo = { applied: true, scores: humanizeResult.scores }
+          } else {
+            humanizeInfo = { applied: false, reason: 'Marker round-trip failed — kept the original draft.' }
+          }
+        } catch (err) {
+          console.error('[blog/generate autoHumanize]', err.message)
+          humanizeInfo = { applied: false, reason: err.message }
+        }
+      }
+    }
+
+    res.json({ success: true, post, actualWords: totalWords, humanize: humanizeInfo })
   } catch (err) {
     console.error('[admin-blog/generate]', err.message)
     res.status(500).json({ success: false, error: err.message || 'Generation failed' })
@@ -1401,7 +1426,7 @@ router.get('/published', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('blog_posts')
-      .select('id, slug, title, date, category, status, excerpt, meta_description')
+      .select('id, slug, title, date, category, status, excerpt, meta_description, ai_score, human_score, humanized_at')
       .order('date', { ascending: false })
     if (error) throw error
     res.json({ success: true, posts: data || [] })
@@ -1438,6 +1463,115 @@ router.delete('/published/:id', requireAuth, requireAdmin, async (req, res) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[admin-blog/published DELETE]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── Published-post humanize integration ───────────────────────────────────────
+// Only "p" blocks are humanized — headings, tables, lists, and callouts stay
+// untouched so a free-form rewrite can't mangle post structure. See CLAUDE.md
+// §3b (Blog Assistant Humanizer Integration).
+
+const PARA_MARKER    = (n) => `§§P${n}§§`
+const PARA_MARKER_RE = /§§P(\d+)§§/
+
+function extractParagraphs(blocks = []) {
+  return blocks.reduce((acc, b, i) => {
+    if (b.type === 'p' && typeof b.text === 'string' && b.text.trim()) {
+      acc.push({ index: i, text: b.text })
+    }
+    return acc
+  }, [])
+}
+
+function buildMarkedText(paragraphs) {
+  return paragraphs.map((p, i) => `${PARA_MARKER(i)}\n${p.text}`).join('\n\n')
+}
+
+// Returns null (never guesses) if markers didn't round-trip cleanly, so the
+// caller can fall back to leaving the original blocks untouched.
+function splitMarkedText(humanizedText, paragraphs) {
+  const parts = (humanizedText || '').split(PARA_MARKER_RE).slice(1)
+  if (parts.length !== paragraphs.length * 2) return null
+  const byMarkerNum = {}
+  for (let i = 0; i < parts.length; i += 2) {
+    byMarkerNum[Number(parts[i])] = parts[i + 1].trim()
+  }
+  if (Object.keys(byMarkerNum).length !== paragraphs.length) return null
+  return paragraphs.map((p, i) => ({ index: p.index, text: byMarkerNum[i] ?? p.text }))
+}
+
+function applyHumanizedParagraphs(blocks, humanizedParagraphs) {
+  const next = blocks.map(b => ({ ...b }))
+  for (const { index, text } of humanizedParagraphs) next[index] = { ...next[index], text }
+  return next
+}
+
+// POST /api/admin/blog/humanize/:id — preview only, does NOT persist
+router.post('/humanize/:id', requireAuth, requireAdmin, async (req, res) => {
+  const { tone, targetAudience, preserveKeywords, addPersonality } = req.body
+  try {
+    const { data: post, error } = await supabase
+      .from('blog_posts')
+      .select('id, title, content')
+      .eq('id', req.params.id)
+      .single()
+    if (error) throw error
+    if (!post) return res.status(404).json({ success: false, error: 'Post not found' })
+
+    const blocks     = Array.isArray(post.content) ? post.content : []
+    const paragraphs = extractParagraphs(blocks)
+    if (paragraphs.length === 0) {
+      return res.json({ success: false, error: 'No paragraph text found to humanize' })
+    }
+
+    const result = await contentStudio.humanize(buildMarkedText(paragraphs), {
+      tone, targetAudience, preserveKeywords, addPersonality, preserveMarkers: true
+    })
+
+    const splitParagraphs  = splitMarkedText(result.humanized, paragraphs)
+    const markerIntegrity  = splitParagraphs !== null
+    const humanizedBlocks  = markerIntegrity ? applyHumanizedParagraphs(blocks, splitParagraphs) : blocks
+
+    res.json({
+      success: true,
+      result: {
+        original:       paragraphs.map(p => p.text).join('\n\n'),
+        humanized:       markerIntegrity ? splitParagraphs.map(p => p.text).join('\n\n') : null,
+        humanizedBlocks,
+        markerIntegrity,
+        analysis:     result.analysis,
+        scores:       result.scores,
+        improvements: result.improvements
+      }
+    })
+  } catch (err) {
+    console.error('[admin-blog/humanize/:id]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// POST /api/admin/blog/humanize/:id/save — persists a previously returned result
+router.post('/humanize/:id/save', requireAuth, requireAdmin, async (req, res) => {
+  const { humanizedBlocks, scores } = req.body
+  if (!Array.isArray(humanizedBlocks)) {
+    return res.status(400).json({ success: false, error: 'humanizedBlocks (array) is required' })
+  }
+  try {
+    const { error } = await supabase
+      .from('blog_posts')
+      .update({
+        content:      humanizedBlocks,
+        ai_score:     scores?.afterHumanization ?? null,
+        human_score:  scores?.humanScore ?? null,
+        humanized_at: new Date().toISOString(),
+        updated_at:   new Date().toISOString()
+      })
+      .eq('id', req.params.id)
+    if (error) throw error
+    res.json({ success: true })
+  } catch (err) {
+    console.error('[admin-blog/humanize/:id/save]', err.message)
     res.status(500).json({ success: false, error: err.message })
   }
 })

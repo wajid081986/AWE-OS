@@ -7,7 +7,8 @@ async function humanizeContent(content, opts = {}) {
     tone             = 'conversational',
     targetAudience   = 'Indian professionals',
     preserveKeywords = [],
-    addPersonality   = true
+    addPersonality   = true,
+    preserveMarkers  = false
   } = opts;
 
   const openai = getOpenAI();
@@ -68,6 +69,7 @@ RULES:
 - Add specific Indian examples/context where relevant
 - Make it feel like a knowledgeable friend explaining, not a textbook
 ${addPersonality ? '- Add light personality and warmth' : ''}
+${preserveMarkers ? '- CRITICAL: The text contains marker lines matching the exact pattern §§P<number>§§ on their own line before each paragraph. Keep every marker line byte-for-byte unchanged, in its original position, immediately before its corresponding rewritten paragraph. Do not merge, drop, reorder, or renumber markers, and do not add new ones.' : ''}
 
 ORIGINAL CONTENT:
 """

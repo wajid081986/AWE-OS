@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import api from '../../../services/api.service'
 import KeywordResearchTab from './KeywordResearch'
 import SeoAuditor from './SeoAuditor'
@@ -154,7 +154,7 @@ function DiffBadge({ level }) {
 
 const DEFAULT_FORM = {
   topic: '', keyword: '', toolSlug: '', wordCount: 2000,
-  tone: 'beginner', category: 'Finance', indianContext: true,
+  tone: 'beginner', category: 'Finance', indianContext: true, autoHumanize: false,
 }
 
 function AIBlogWriterTab({ onPreFill }) {
@@ -170,6 +170,7 @@ function AIBlogWriterTab({ onPreFill }) {
   const [genError,     setGenError]     = useState(null)
   const [actualWords,  setActualWords]  = useState(null)
   const [preFillToast, setPreFillToast] = useState(false)
+  const [humanizeInfo, setHumanizeInfo] = useState(null)
 
   // When Phase 1/2 components send a pre-fill
   useEffect(() => {
@@ -191,6 +192,7 @@ function AIBlogWriterTab({ onPreFill }) {
     setPost(null)
     setPubResult(null)
     setActualWords(null)
+    setHumanizeInfo(null)
     try {
       const tool = AWE_TOOLS.find(t => t.slug === form.toolSlug)
       const res  = await api.post('/api/admin/blog/generate', {
@@ -200,6 +202,7 @@ function AIBlogWriterTab({ onPreFill }) {
       if (res.data.success) {
         setPost(res.data.post)
         setActualWords(res.data.actualWords || null)
+        setHumanizeInfo(res.data.humanize || null)
         setMeta({
           title:           res.data.post.title,
           metaTitle:       res.data.post.metaTitle,
@@ -339,6 +342,19 @@ function AIBlogWriterTab({ onPreFill }) {
           </button>
         </div>
 
+        <div className="flex items-center justify-between py-2 px-3 bg-gray-900 rounded-lg border border-gray-700">
+          <div>
+            <p className="text-sm text-white font-medium">🤖 Auto-Humanize Draft</p>
+            <p className="text-[11px] text-gray-500">Runs the humanizer on the draft before showing it — adds ~15-20s</p>
+          </div>
+          <button
+            onClick={() => set('autoHumanize')(!form.autoHumanize)}
+            className={`relative w-10 h-5 rounded-full transition-colors ${form.autoHumanize ? 'bg-indigo-600' : 'bg-gray-600'}`}
+          >
+            <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all ${form.autoHumanize ? 'left-5' : 'left-0.5'}`} />
+          </button>
+        </div>
+
         <button
           onClick={handleGenerate}
           disabled={generating}
@@ -364,6 +380,18 @@ function AIBlogWriterTab({ onPreFill }) {
               return <span className="text-xs text-red-400 font-medium">❌ Generated: {wc} words (target: {target})</span>
             })()}
           </div>
+
+          {humanizeInfo && (
+            humanizeInfo.applied ? (
+              <p className="text-xs text-green-400 bg-green-900/20 border border-green-800 rounded-lg px-3 py-1.5">
+                🤖 Auto-humanized — AI score {humanizeInfo.scores?.afterHumanization ?? '—'}% (was {humanizeInfo.scores?.beforeHumanization ?? '—'}%), human score {humanizeInfo.scores?.humanScore ?? '—'}/100.
+              </p>
+            ) : (
+              <p className="text-xs text-yellow-300 bg-yellow-900/20 border border-yellow-800 rounded-lg px-3 py-1.5">
+                ⚠️ Auto-humanize didn't apply — showing the raw AI draft. {humanizeInfo.reason || ''}
+              </p>
+            )
+          )}
 
           {post.imageUrl && (
             <div className="rounded-lg overflow-hidden border border-gray-700">
@@ -832,6 +860,23 @@ const STATUS_BADGE = {
   archived:  'bg-gray-700 text-gray-400',
 }
 
+// AI-likelihood estimate from the humanizer's own analysis pass — not a real
+// AI detector, just an LLM self-estimate. Green = reads human, red = reads AI.
+function AiScoreBadge({ aiScore }) {
+  if (aiScore == null) {
+    return <span className="text-[10px] px-2 py-0.5 rounded font-semibold shrink-0 bg-gray-700 text-gray-400">Not scored</span>
+  }
+  const color = aiScore < 40 ? 'bg-green-900/60 text-green-300' : aiScore < 70 ? 'bg-yellow-900/60 text-yellow-300' : 'bg-red-900/60 text-red-300'
+  return (
+    <span
+      title="AI-likelihood estimate (LLM self-estimate, not a detector)"
+      className={`text-[10px] px-2 py-0.5 rounded font-semibold shrink-0 ${color}`}
+    >
+      AI {aiScore}%
+    </span>
+  )
+}
+
 function PublishedPostsTab() {
   const [posts,    setPosts]    = useState([])
   const [loading,  setLoading]  = useState(true)
@@ -840,6 +885,21 @@ function PublishedPostsTab() {
   const [saving,   setSaving]   = useState(false)
   const [deleting, setDeleting] = useState(null)   // id being deleted
   const [toast,    setToast]    = useState('')
+
+  // Humanize panel state — one post's preview open at a time
+  const [humanizeId,      setHumanizeId]      = useState(null)
+  const [humanizeLoading, setHumanizeLoading] = useState(false)
+  const [humanizeResult,  setHumanizeResult]  = useState(null)
+  const [humanizeError,   setHumanizeError]   = useState('')
+  const [humanizeSaving,  setHumanizeSaving]  = useState(false)
+
+  // Sort + bulk humanize state
+  const [sortByScore,     setSortByScore]     = useState(false)
+  const [bulkConfirming,  setBulkConfirming]  = useState(false)
+  const [bulkRunning,     setBulkRunning]     = useState(false)
+  const [bulkProgress,    setBulkProgress]    = useState({ done: 0, total: 0 })
+  const [bulkSummary,     setBulkSummary]     = useState(null)
+  const bulkCancelRef = useRef(false)
 
   function showToast(msg) {
     setToast(msg)
@@ -899,6 +959,101 @@ function PublishedPostsTab() {
     }
   }
 
+  async function openHumanize(post) {
+    setHumanizeId(post.id)
+    setHumanizeResult(null)
+    setHumanizeError('')
+    setHumanizeLoading(true)
+    try {
+      const { data } = await api.post(`/api/admin/blog/humanize/${post.id}`, {})
+      if (!data.success) throw new Error(data.error || 'Humanize failed')
+      setHumanizeResult(data.result)
+    } catch (err) {
+      setHumanizeError(err.response?.data?.error || err.message)
+    } finally {
+      setHumanizeLoading(false)
+    }
+  }
+
+  function closeHumanize() {
+    setHumanizeId(null)
+    setHumanizeResult(null)
+    setHumanizeError('')
+  }
+
+  async function saveHumanize(post) {
+    if (!humanizeResult?.markerIntegrity) return
+    setHumanizeSaving(true)
+    try {
+      await api.post(`/api/admin/blog/humanize/${post.id}/save`, {
+        humanizedBlocks: humanizeResult.humanizedBlocks,
+        scores:          humanizeResult.scores,
+      })
+      setPosts(ps => ps.map(p => p.id === post.id ? {
+        ...p,
+        ai_score:     humanizeResult.scores?.afterHumanization ?? p.ai_score,
+        human_score:  humanizeResult.scores?.humanScore ?? p.human_score,
+        humanized_at: new Date().toISOString(),
+      } : p))
+      closeHumanize()
+      showToast('✅ Humanized version saved!')
+    } catch (err) {
+      showToast('❌ Save failed: ' + (err.response?.data?.error || err.message))
+    } finally {
+      setHumanizeSaving(false)
+    }
+  }
+
+  // "AI-ish" = never scored yet, or still reads AI-like after a prior pass
+  const eligibleForBulk = posts.filter(p => p.ai_score == null || p.ai_score >= 40)
+
+  async function runBulkHumanize() {
+    setBulkConfirming(false)
+    setBulkRunning(true)
+    bulkCancelRef.current = false
+    const targets = eligibleForBulk
+    let humanized = 0, skipped = 0, failed = 0
+    setBulkProgress({ done: 0, total: targets.length })
+    setBulkSummary(null)
+
+    for (let i = 0; i < targets.length; i++) {
+      if (bulkCancelRef.current) break
+      const post = targets[i]
+      try {
+        const { data: previewData } = await api.post(`/api/admin/blog/humanize/${post.id}`, {})
+        if (!previewData.success || !previewData.result?.markerIntegrity) {
+          skipped++
+        } else {
+          await api.post(`/api/admin/blog/humanize/${post.id}/save`, {
+            humanizedBlocks: previewData.result.humanizedBlocks,
+            scores:          previewData.result.scores,
+          })
+          setPosts(ps => ps.map(p => p.id === post.id ? {
+            ...p,
+            ai_score:     previewData.result.scores?.afterHumanization ?? p.ai_score,
+            human_score:  previewData.result.scores?.humanScore ?? p.human_score,
+            humanized_at: new Date().toISOString(),
+          } : p))
+          humanized++
+        }
+      } catch {
+        failed++
+      }
+      setBulkProgress({ done: i + 1, total: targets.length })
+    }
+
+    setBulkRunning(false)
+    setBulkSummary({ humanized, skipped, failed, total: targets.length, cancelled: bulkCancelRef.current })
+  }
+
+  function cancelBulk() {
+    bulkCancelRef.current = true
+  }
+
+  const displayedPosts = sortByScore
+    ? [...posts].sort((a, b) => (b.ai_score ?? 101) - (a.ai_score ?? 101))
+    : posts
+
   if (loading) return <div className="flex justify-center py-16"><Spinner /></div>
   if (error)   return <p className="text-red-400 text-sm p-4">{error}</p>
 
@@ -910,12 +1065,67 @@ function PublishedPostsTab() {
         </div>
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-sm font-semibold text-white">
           {posts.length} published post{posts.length !== 1 ? 's' : ''}
         </h2>
-        <button onClick={load} className="text-xs text-gray-400 hover:text-white transition-colors">↻ Refresh</button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setSortByScore(s => !s)}
+            className={`text-xs px-3 py-1.5 rounded-lg transition-colors ${
+              sortByScore ? 'bg-indigo-700 text-white' : 'bg-gray-700 text-gray-300 hover:text-white'
+            }`}
+          >
+            {sortByScore ? '✓ ' : ''}Sort by AI score (worst first)
+          </button>
+          <button onClick={load} className="text-xs text-gray-400 hover:text-white transition-colors">↻ Refresh</button>
+          <button
+            onClick={() => setBulkConfirming(true)}
+            disabled={bulkRunning || eligibleForBulk.length === 0}
+            className="text-xs px-3 py-1.5 bg-purple-900/60 hover:bg-purple-800 disabled:opacity-40 text-purple-300 hover:text-white rounded-lg transition-colors"
+          >
+            🤖 Humanize All ({eligibleForBulk.length})
+          </button>
+        </div>
       </div>
+
+      {bulkConfirming && (
+        <div className="bg-purple-900/20 border border-purple-800 rounded-xl p-3 flex items-center justify-between gap-3 flex-wrap">
+          <p className="text-sm text-purple-200">
+            Run the humanizer on {eligibleForBulk.length} post{eligibleForBulk.length !== 1 ? 's' : ''}?
+            Each post costs a few OpenAI calls — this may take a while.
+          </p>
+          <div className="flex gap-2 shrink-0">
+            <button onClick={runBulkHumanize} className="text-xs px-3 py-1.5 bg-purple-700 hover:bg-purple-600 text-white rounded-lg transition-colors">Confirm</button>
+            <button onClick={() => setBulkConfirming(false)} className="text-xs px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {bulkRunning && (
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-3 space-y-2">
+          <div className="flex items-center justify-between text-xs text-gray-400">
+            <span>Humanizing {bulkProgress.done}/{bulkProgress.total}…</span>
+            <button onClick={cancelBulk} className="text-red-400 hover:text-red-300">Cancel</button>
+          </div>
+          <div className="bg-gray-900 rounded-full h-2">
+            <div
+              className="bg-purple-500 h-2 rounded-full transition-all"
+              style={{ width: `${bulkProgress.total ? (bulkProgress.done / bulkProgress.total) * 100 : 0}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {bulkSummary && (
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-3 text-sm text-gray-300 flex items-center justify-between gap-3">
+          <span>
+            ✅ {bulkSummary.humanized} humanized · ⚠️ {bulkSummary.skipped} skipped (couldn't round-trip) ·
+            ❌ {bulkSummary.failed} failed{bulkSummary.cancelled ? ' · cancelled early' : ''} out of {bulkSummary.total}.
+          </span>
+          <button onClick={() => setBulkSummary(null)} className="text-xs text-gray-500 hover:text-white shrink-0">Dismiss</button>
+        </div>
+      )}
 
       {posts.length === 0 ? (
         <div className="bg-gray-800 border border-gray-700 border-dashed rounded-xl p-10 text-center">
@@ -925,7 +1135,7 @@ function PublishedPostsTab() {
         </div>
       ) : (
         <div className="space-y-2">
-          {posts.map(post => (
+          {displayedPosts.map(post => (
             <div key={post.id} className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
               {/* Row */}
               <div className="flex items-center gap-3 px-4 py-3">
@@ -938,6 +1148,7 @@ function PublishedPostsTab() {
                 <span className={`text-[10px] px-2 py-0.5 rounded font-semibold shrink-0 ${STATUS_BADGE[post.status] || STATUS_BADGE.published}`}>
                   {post.status || 'published'}
                 </span>
+                <AiScoreBadge aiScore={post.ai_score} />
                 <a
                   href={`https://www.awe-os.com/blog/${post.slug}`}
                   target="_blank"
@@ -946,6 +1157,12 @@ function PublishedPostsTab() {
                 >
                   View →
                 </a>
+                <button
+                  onClick={() => (humanizeId === post.id ? closeHumanize() : openHumanize(post))}
+                  className="text-xs px-2.5 py-1 bg-purple-900/60 hover:bg-purple-800 text-purple-300 hover:text-white rounded-lg shrink-0 transition-colors"
+                >
+                  🤖 Humanize
+                </button>
                 <button
                   onClick={() => setEditing({ ...post })}
                   className="text-xs px-2.5 py-1 bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg shrink-0 transition-colors"
@@ -1011,6 +1228,75 @@ function PublishedPostsTab() {
                       Cancel
                     </button>
                   </div>
+                </div>
+              )}
+
+              {/* Humanize preview panel */}
+              {humanizeId === post.id && (
+                <div className="border-t border-gray-700 px-4 py-4 space-y-3 bg-gray-900/40">
+                  {humanizeLoading && (
+                    <div className="flex items-center gap-2 text-gray-400 text-sm py-4">
+                      <Spinner /> Humanizing with GPT-4o…
+                    </div>
+                  )}
+                  {humanizeError && <p className="text-red-400 text-sm">{humanizeError}</p>}
+                  {humanizeResult && (
+                    <>
+                      {!humanizeResult.markerIntegrity && (
+                        <p className="text-yellow-300 text-xs bg-yellow-900/20 border border-yellow-800 rounded-lg p-2">
+                          ⚠️ Couldn't cleanly separate paragraphs after rewriting. Saving is
+                          disabled to avoid corrupting this post — try again, or use the
+                          "Content Studio" tab to humanize manually.
+                        </p>
+                      )}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {[
+                          { label: 'AI Score Before', val: `${humanizeResult.scores?.beforeHumanization ?? '—'}%` },
+                          { label: 'AI Score After',  val: `${humanizeResult.scores?.afterHumanization ?? '—'}%` },
+                          { label: 'Human Score',     val: `${humanizeResult.scores?.humanScore ?? '—'}/100` },
+                          { label: 'Readability',     val: `${humanizeResult.scores?.readability ?? '—'}/100` },
+                        ].map(({ label, val }) => (
+                          <div key={label} className="bg-gray-800 rounded-lg p-2 text-center">
+                            <p className="text-[10px] text-gray-500">{label}</p>
+                            <p className="text-sm font-bold text-white">{val}</p>
+                          </div>
+                        ))}
+                      </div>
+
+                      {humanizeResult.humanized && (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                          <div>
+                            <p className="text-[10px] font-semibold text-red-400 uppercase mb-1">Original paragraphs</p>
+                            <div className="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-400 max-h-48 overflow-y-auto whitespace-pre-wrap">
+                              {humanizeResult.original}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-semibold text-green-400 uppercase mb-1">Humanized paragraphs</p>
+                            <div className="bg-gray-900 border border-green-800 rounded-lg p-2 text-xs text-gray-200 max-h-48 overflow-y-auto whitespace-pre-wrap">
+                              {humanizeResult.humanized}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          onClick={() => saveHumanize(post)}
+                          disabled={!humanizeResult.markerIntegrity || humanizeSaving}
+                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
+                        >
+                          {humanizeSaving ? <><Spinner small />Saving…</> : '💾 Save Humanized Version'}
+                        </button>
+                        <button
+                          onClick={closeHumanize}
+                          className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition-colors"
+                        >
+                          Discard
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
