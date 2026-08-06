@@ -6,6 +6,7 @@ const parseAIJson           = require('../services/parseAIJson')
 const { pushBlogPost }      = require('../core/github-service')
 const { contentStudio }     = require('../core/content-studio')
 const fetchFeaturedImage    = require('../services/unsplashImage')
+const advancedHumanize      = require('../core/content-studio/advanced-humanize')
 
 const router = express.Router()
 
@@ -1425,7 +1426,7 @@ router.get('/published', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('blog_posts')
-      .select('id, slug, title, date, category, status, excerpt, meta_description, ai_score, human_score, humanized_at')
+      .select('id, slug, title, date, category, status, excerpt, meta_description, ai_score, human_score, humanized_at, humanized_title, title_ai_score, meta_description_humanized, readability_score, keyword_density, target_keyword')
       .order('date', { ascending: false })
     if (error) throw error
     res.json({ success: true, posts: data || [] })
@@ -1562,16 +1563,23 @@ router.post('/humanize/:id', requireAuth, requireAdmin, async (req, res) => {
     const { markerIntegrity, humanizedParagraphs, scores } = await humanizeParagraphsChunked(paragraphs, {
       tone, targetAudience, preserveKeywords, addPersonality
     })
-    const humanizedBlocks = markerIntegrity ? applyHumanizedParagraphs(blocks, humanizedParagraphs) : blocks
+    const humanizedBlocks  = markerIntegrity ? applyHumanizedParagraphs(blocks, humanizedParagraphs) : blocks
+    const humanizedText    = markerIntegrity ? humanizedParagraphs.map(p => p.text).join('\n\n') : null
+
+    // Advanced AI-detection heuristic (Feature 3) — pure JS, no extra
+    // OpenAI call, so it's free to include on every preview.
+    const advancedDetection = markerIntegrity
+      ? advancedHumanize.computeAdvancedDetection(humanizedText)
+      : null
 
     res.json({
       success: true,
       result: {
         original:  paragraphs.map(p => p.text).join('\n\n'),
-        humanized: markerIntegrity ? humanizedParagraphs.map(p => p.text).join('\n\n') : null,
+        humanized: humanizedText,
         humanizedBlocks,
         markerIntegrity,
-        scores,
+        scores: scores && advancedDetection ? { ...scores, ...advancedDetection } : scores,
       }
     })
   } catch (err) {
@@ -1601,6 +1609,100 @@ router.post('/humanize/:id/save', requireAuth, requireAdmin, async (req, res) =>
     res.json({ success: true })
   } catch (err) {
     console.error('[admin-blog/humanize/:id/save]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── Advanced humanizer features (Batch 48) ──────────────────────────────────
+// Title Humanizer, SEO + Humanize combined. All preview-only except
+// /save-advanced. See docs/batches/batch-48-plan.md.
+
+function blocksToPlainText(blocks = []) {
+  return blocks
+    .filter(b => b?.type === 'p' && typeof b.text === 'string')
+    .map(b => b.text)
+    .join('\n\n')
+}
+
+// POST /api/admin/blog/humanize/:id/title — preview only, does NOT persist
+router.post('/humanize/:id/title', requireAuth, requireAdmin, async (req, res) => {
+  const { targetKeyword } = req.body
+  try {
+    const { data: post, error } = await supabase
+      .from('blog_posts')
+      .select('id, title')
+      .eq('id', req.params.id)
+      .single()
+    if (error) throw error
+    if (!post) return res.status(404).json({ success: false, error: 'Post not found' })
+
+    const result = await advancedHumanize.humanizeTitle(post.title, targetKeyword)
+    res.json({ success: true, result })
+  } catch (err) {
+    console.error('[admin-blog/humanize/:id/title]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// POST /api/admin/blog/humanize/:id/seo — preview only, does NOT persist
+router.post('/humanize/:id/seo', requireAuth, requireAdmin, async (req, res) => {
+  const { targetKeyword } = req.body
+  try {
+    const { data: post, error } = await supabase
+      .from('blog_posts')
+      .select('id, content, meta_description')
+      .eq('id', req.params.id)
+      .single()
+    if (error) throw error
+    if (!post) return res.status(404).json({ success: false, error: 'Post not found' })
+
+    const blocks     = Array.isArray(post.content) ? post.content : []
+    const plainText   = blocksToPlainText(blocks)
+    const density      = advancedHumanize.analyzeKeywordDensity(plainText, targetKeyword)
+    const readability  = advancedHumanize.computeReadability(plainText)
+    const linkCheck     = advancedHumanize.checkInternalLinks(blocks)
+    const { humanizedMetaDescription } = await advancedHumanize.humanizeMetaDescription(
+      post.meta_description, targetKeyword
+    )
+
+    res.json({
+      success: true,
+      result: {
+        keywordDensity:  density,
+        readability,
+        internalLinks:    linkCheck,
+        metaDescriptionOriginal:  post.meta_description || '',
+        metaDescriptionHumanized: humanizedMetaDescription,
+      }
+    })
+  } catch (err) {
+    console.error('[admin-blog/humanize/:id/seo]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// POST /api/admin/blog/humanize/:id/save-advanced — persists Batch 48 fields
+// only. Separate from /humanize/:id/save so existing content-save behavior
+// is untouched.
+router.post('/humanize/:id/save-advanced', requireAuth, requireAdmin, async (req, res) => {
+  const {
+    humanizedTitle, titleAiScore, metaDescriptionHumanized,
+    readabilityScore, keywordDensity, targetKeyword
+  } = req.body
+  const updates = { updated_at: new Date().toISOString() }
+  if (humanizedTitle !== undefined)            updates.humanized_title             = humanizedTitle
+  if (titleAiScore !== undefined)              updates.title_ai_score              = titleAiScore
+  if (metaDescriptionHumanized !== undefined)  updates.meta_description_humanized  = metaDescriptionHumanized
+  if (readabilityScore !== undefined)          updates.readability_score           = readabilityScore
+  if (keywordDensity !== undefined)            updates.keyword_density             = keywordDensity
+  if (targetKeyword !== undefined)             updates.target_keyword              = targetKeyword
+
+  try {
+    const { error } = await supabase.from('blog_posts').update(updates).eq('id', req.params.id)
+    if (error) throw error
+    res.json({ success: true })
+  } catch (err) {
+    console.error('[admin-blog/humanize/:id/save-advanced]', err.message)
     res.status(500).json({ success: false, error: err.message })
   }
 })

@@ -916,9 +916,23 @@ function PublishedPostsTab() {
   const [sortByScore,     setSortByScore]     = useState(false)
   const [bulkConfirming,  setBulkConfirming]  = useState(false)
   const [bulkRunning,     setBulkRunning]     = useState(false)
+  const [bulkPaused,      setBulkPaused]      = useState(false)
   const [bulkProgress,    setBulkProgress]    = useState({ done: 0, total: 0 })
+  const [bulkResults,     setBulkResults]     = useState([])   // live dashboard rows
   const [bulkSummary,     setBulkSummary]     = useState(null)
   const bulkCancelRef = useRef(false)
+  const bulkPauseRef  = useRef(false)
+
+  // Title Humanizer + SEO panel state (Batch 48) — scoped to whichever post's
+  // humanize panel is open (humanizeId)
+  const [targetKeyword,   setTargetKeyword]   = useState('')
+  const [titleLoading,    setTitleLoading]    = useState(false)
+  const [titleResult,     setTitleResult]     = useState(null)
+  const [titleError,      setTitleError]      = useState('')
+  const [seoLoading,      setSeoLoading]      = useState(false)
+  const [seoResult,       setSeoResult]       = useState(null)
+  const [seoError,        setSeoError]        = useState('')
+  const [savingAdvanced,  setSavingAdvanced]  = useState(false)
 
   function showToast(msg) {
     setToast(msg)
@@ -982,6 +996,11 @@ function PublishedPostsTab() {
     setHumanizeId(post.id)
     setHumanizeResult(null)
     setHumanizeError('')
+    setTargetKeyword(post.target_keyword || '')
+    setTitleResult(null)
+    setTitleError('')
+    setSeoResult(null)
+    setSeoError('')
     setHumanizeLoading(true)
     try {
       const { data } = await withRetry(() =>
@@ -1000,6 +1019,10 @@ function PublishedPostsTab() {
     setHumanizeId(null)
     setHumanizeResult(null)
     setHumanizeError('')
+    setTitleResult(null)
+    setTitleError('')
+    setSeoResult(null)
+    setSeoError('')
   }
 
   async function saveHumanize(post) {
@@ -1027,27 +1050,96 @@ function PublishedPostsTab() {
     }
   }
 
+  // ── Title Humanizer + SEO (Batch 48) ────────────────────────────────────
+
+  async function runHumanizeTitle(post) {
+    setTitleLoading(true)
+    setTitleError('')
+    try {
+      const { data } = await withRetry(() =>
+        api.post(`/api/admin/blog/humanize/${post.id}/title`, { targetKeyword }, { timeout: HUMANIZE_TIMEOUT_MS })
+      )
+      if (!data.success) throw new Error(data.error || 'Title humanize failed')
+      setTitleResult(data.result)
+    } catch (err) {
+      setTitleError(err.response?.data?.error || err.message)
+    } finally {
+      setTitleLoading(false)
+    }
+  }
+
+  async function runSeoCheck(post) {
+    setSeoLoading(true)
+    setSeoError('')
+    try {
+      const { data } = await withRetry(() =>
+        api.post(`/api/admin/blog/humanize/${post.id}/seo`, { targetKeyword }, { timeout: HUMANIZE_TIMEOUT_MS })
+      )
+      if (!data.success) throw new Error(data.error || 'SEO check failed')
+      setSeoResult(data.result)
+    } catch (err) {
+      setSeoError(err.response?.data?.error || err.message)
+    } finally {
+      setSeoLoading(false)
+    }
+  }
+
+  async function saveAdvanced(post) {
+    setSavingAdvanced(true)
+    try {
+      const payload = {
+        targetKeyword: targetKeyword || null,
+        ...(titleResult ? {
+          humanizedTitle: titleResult.humanizedTitle,
+          titleAiScore:   titleResult.titleAiScoreAfter,
+        } : {}),
+        ...(seoResult ? {
+          metaDescriptionHumanized: seoResult.metaDescriptionHumanized,
+          readabilityScore:         seoResult.readability?.fleschScore,
+          keywordDensity:           seoResult.keywordDensity?.density,
+        } : {}),
+      }
+      await withRetry(() =>
+        api.post(`/api/admin/blog/humanize/${post.id}/save-advanced`, payload, { timeout: HUMANIZE_TIMEOUT_MS })
+      )
+      setPosts(ps => ps.map(p => p.id === post.id ? { ...p, ...payload, target_keyword: payload.targetKeyword } : p))
+      showToast('✅ Title/SEO data saved!')
+    } catch (err) {
+      showToast('❌ Save failed: ' + (err.response?.data?.error || err.message))
+    } finally {
+      setSavingAdvanced(false)
+    }
+  }
+
   // "AI-ish" = never scored yet, or still reads AI-like after a prior pass
   const eligibleForBulk = posts.filter(p => p.ai_score == null || p.ai_score >= 40)
+
+  async function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
 
   async function runBulkHumanize() {
     setBulkConfirming(false)
     setBulkRunning(true)
+    setBulkPaused(false)
     bulkCancelRef.current = false
+    bulkPauseRef.current  = false
     const targets = eligibleForBulk
     let humanized = 0, skipped = 0, failed = 0
     setBulkProgress({ done: 0, total: targets.length })
+    setBulkResults(targets.map(p => ({ id: p.id, title: p.title, before: p.ai_score ?? null, after: null, status: 'pending' })))
     setBulkSummary(null)
 
     for (let i = 0; i < targets.length; i++) {
+      while (bulkPauseRef.current && !bulkCancelRef.current) await sleep(300)
       if (bulkCancelRef.current) break
       const post = targets[i]
+      setBulkResults(rs => rs.map(r => r.id === post.id ? { ...r, status: 'running' } : r))
       try {
         const { data: previewData } = await withRetry(() =>
           api.post(`/api/admin/blog/humanize/${post.id}`, {}, { timeout: HUMANIZE_TIMEOUT_MS })
         )
         if (!previewData.success || !previewData.result?.markerIntegrity) {
           skipped++
+          setBulkResults(rs => rs.map(r => r.id === post.id ? { ...r, status: 'skipped' } : r))
         } else {
           await withRetry(() =>
             api.post(`/api/admin/blog/humanize/${post.id}/save`, {
@@ -1055,28 +1147,66 @@ function PublishedPostsTab() {
               scores:          previewData.result.scores,
             }, { timeout: HUMANIZE_TIMEOUT_MS })
           )
+          const afterScore = previewData.result.scores?.afterHumanization ?? null
           setPosts(ps => ps.map(p => p.id === post.id ? {
             ...p,
-            ai_score:     previewData.result.scores?.afterHumanization ?? p.ai_score,
+            ai_score:     afterScore ?? p.ai_score,
             human_score:  previewData.result.scores?.humanScore ?? p.human_score,
             humanized_at: new Date().toISOString(),
           } : p))
+          setBulkResults(rs => rs.map(r => r.id === post.id ? { ...r, after: afterScore, status: 'done' } : r))
           humanized++
         }
       } catch (err) {
         console.error(`[Humanize All] "${post.title}" (${post.id}) failed:`, err.response?.data?.error || err.message)
         failed++
+        setBulkResults(rs => rs.map(r => r.id === post.id ? { ...r, status: 'failed' } : r))
       }
       setBulkProgress({ done: i + 1, total: targets.length })
     }
 
     setBulkRunning(false)
+    setBulkPaused(false)
     setBulkSummary({ humanized, skipped, failed, total: targets.length, cancelled: bulkCancelRef.current })
   }
 
   function cancelBulk() {
     bulkCancelRef.current = true
+    bulkPauseRef.current  = false
+    setBulkPaused(false)
   }
+
+  function togglePauseBulk() {
+    bulkPauseRef.current = !bulkPauseRef.current
+    setBulkPaused(bulkPauseRef.current)
+  }
+
+  function exportBulkCsv() {
+    const rows = [['Post', 'Before Score', 'After Score', 'Status']]
+    for (const r of bulkResults) rows.push([r.title, r.before ?? '', r.after ?? '', r.status])
+    const csv  = rows.map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href = url
+    a.download = `humanize-bulk-report-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const bulkCompletedResults = bulkResults.filter(r => r.status === 'done')
+  const bulkAvgBefore = bulkCompletedResults.length
+    ? Math.round(bulkCompletedResults.reduce((s, r) => s + (r.before ?? 0), 0) / bulkCompletedResults.length)
+    : null
+  const bulkAvgAfter = bulkCompletedResults.length
+    ? Math.round(bulkCompletedResults.reduce((s, r) => s + (r.after ?? 0), 0) / bulkCompletedResults.length)
+    : null
+  const bulkScored = bulkResults
+    .map(r => (r.after ?? r.before))
+    .filter(v => typeof v === 'number')
+  const bulkAdsenseReadyPct = bulkScored.length
+    ? Math.round((bulkScored.filter(v => v < 40).length / bulkScored.length) * 100)
+    : null
 
   const displayedPosts = sortByScore
     ? [...posts].sort((a, b) => (b.ai_score ?? 101) - (a.ai_score ?? 101))
@@ -1130,11 +1260,25 @@ function PublishedPostsTab() {
         </div>
       )}
 
-      {bulkRunning && (
+      {(bulkRunning || bulkResults.length > 0) && (
         <div className="bg-gray-800 border border-gray-700 rounded-xl p-3 space-y-2">
           <div className="flex items-center justify-between text-xs text-gray-400">
-            <span>Humanizing {bulkProgress.done}/{bulkProgress.total}…</span>
-            <button onClick={cancelBulk} className="text-red-400 hover:text-red-300">Cancel</button>
+            <span>
+              {bulkRunning
+                ? `Humanizing ${bulkProgress.done}/${bulkProgress.total}${bulkPaused ? ' · paused' : '…'}`
+                : `Last bulk run: ${bulkProgress.done}/${bulkProgress.total}`}
+            </span>
+            <div className="flex items-center gap-3">
+              {bulkRunning && (
+                <button onClick={togglePauseBulk} className="text-yellow-400 hover:text-yellow-300">
+                  {bulkPaused ? '▶ Resume' : '⏸ Pause'}
+                </button>
+              )}
+              {bulkRunning && <button onClick={cancelBulk} className="text-red-400 hover:text-red-300">Cancel</button>}
+              {bulkResults.length > 0 && (
+                <button onClick={exportBulkCsv} className="text-gray-400 hover:text-white">⬇ Export CSV</button>
+              )}
+            </div>
           </div>
           <div className="bg-gray-900 rounded-full h-2">
             <div
@@ -1142,16 +1286,53 @@ function PublishedPostsTab() {
               style={{ width: `${bulkProgress.total ? (bulkProgress.done / bulkProgress.total) * 100 : 0}%` }}
             />
           </div>
+
+          <div className="max-h-56 overflow-y-auto border border-gray-700 rounded-lg">
+            <table className="w-full text-xs">
+              <thead className="bg-gray-900 text-gray-500 sticky top-0">
+                <tr>
+                  <th className="text-left px-2 py-1.5 font-medium">Post</th>
+                  <th className="text-right px-2 py-1.5 font-medium">Before</th>
+                  <th className="text-right px-2 py-1.5 font-medium">After</th>
+                  <th className="text-right px-2 py-1.5 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bulkResults.map(r => (
+                  <tr key={r.id} className="border-t border-gray-800 text-gray-300">
+                    <td className="px-2 py-1.5 truncate max-w-[240px]">{r.title}</td>
+                    <td className="px-2 py-1.5 text-right">{r.before ?? '—'}</td>
+                    <td className="px-2 py-1.5 text-right">{r.after ?? '—'}</td>
+                    <td className="px-2 py-1.5 text-right">
+                      {{
+                        pending: <span className="text-gray-500">pending</span>,
+                        running: <span className="text-purple-400">running…</span>,
+                        done:    <span className="text-green-400">done</span>,
+                        skipped: <span className="text-yellow-400">skipped</span>,
+                        failed:  <span className="text-red-400">failed</span>,
+                      }[r.status]}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
       {bulkSummary && (
-        <div className="bg-gray-800 border border-gray-700 rounded-xl p-3 text-sm text-gray-300 flex items-center justify-between gap-3">
-          <span>
-            ✅ {bulkSummary.humanized} humanized · ⚠️ {bulkSummary.skipped} skipped (couldn't round-trip) ·
-            ❌ {bulkSummary.failed} failed{bulkSummary.cancelled ? ' · cancelled early' : ''} out of {bulkSummary.total}.
-          </span>
-          <button onClick={() => setBulkSummary(null)} className="text-xs text-gray-500 hover:text-white shrink-0">Dismiss</button>
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-3 text-sm text-gray-300 space-y-1">
+          <div className="flex items-center justify-between gap-3">
+            <span>
+              ✅ {bulkSummary.humanized} humanized · ⚠️ {bulkSummary.skipped} skipped (couldn't round-trip) ·
+              ❌ {bulkSummary.failed} failed{bulkSummary.cancelled ? ' · cancelled early' : ''} out of {bulkSummary.total}.
+            </span>
+            <button onClick={() => setBulkSummary(null)} className="text-xs text-gray-500 hover:text-white shrink-0">Dismiss</button>
+          </div>
+          <div className="text-xs text-gray-400">
+            Avg AI score before: {bulkAvgBefore ?? '—'}% · after: {bulkAvgAfter ?? '—'}% ·
+            AdSense-readiness (score &lt; 40%): {bulkAdsenseReadyPct ?? '—'}%
+          </div>
         </div>
       )}
 
@@ -1262,6 +1443,10 @@ function PublishedPostsTab() {
               {/* Humanize preview panel */}
               {humanizeId === post.id && (
                 <div className="border-t border-gray-700 px-4 py-4 space-y-3 bg-gray-900/40">
+                  <Field label="Target Keyword (used by Title/SEO checks below)">
+                    <Input value={targetKeyword} onChange={setTargetKeyword} placeholder="e.g. merge pdf online" />
+                  </Field>
+
                   {humanizeLoading && (
                     <div className="flex items-center gap-2 text-gray-400 text-sm py-4">
                       <Spinner /> Humanizing with GPT-4o…
@@ -1290,6 +1475,32 @@ function PublishedPostsTab() {
                           </div>
                         ))}
                       </div>
+
+                      {humanizeResult.scores?.combinedDetectionScore != null && (
+                        <div className="bg-gray-800 rounded-lg p-2 space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[10px] text-gray-500 uppercase" title="Heuristic estimate — burstiness + vocabulary richness + AI-phrase density. Not literal GPT log-probability perplexity.">
+                              Advanced AI Detection (estimate)
+                            </p>
+                            <p className="text-xs font-bold text-white">{humanizeResult.scores.combinedDetectionScore}/100</p>
+                          </div>
+                          <div className="bg-gray-900 rounded-full h-1.5">
+                            <div
+                              className={`h-1.5 rounded-full transition-all ${
+                                humanizeResult.scores.combinedDetectionScore < 40 ? 'bg-green-500'
+                                : humanizeResult.scores.combinedDetectionScore < 70 ? 'bg-yellow-500' : 'bg-red-500'
+                              }`}
+                              style={{ width: `${humanizeResult.scores.combinedDetectionScore}%` }}
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 gap-2 text-center text-[10px] text-gray-400">
+                            <span>Burstiness: {humanizeResult.scores.burstiness}</span>
+                            <span>Vocab richness: {humanizeResult.scores.vocabularyRichness}</span>
+                            <span>AI phrases: {humanizeResult.scores.aiPhraseCount}</span>
+                            <span>Predictability: {humanizeResult.scores.predictability}%</span>
+                          </div>
+                        </div>
+                      )}
 
                       {humanizeResult.humanized && (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -1324,6 +1535,93 @@ function PublishedPostsTab() {
                         </button>
                       </div>
                     </>
+                  )}
+
+                  {/* Title Humanizer (Batch 48) */}
+                  <div className="border-t border-gray-700 pt-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold text-gray-300">📝 Title Humanizer</p>
+                      <button
+                        onClick={() => runHumanizeTitle(post)}
+                        disabled={titleLoading}
+                        className="text-xs px-2.5 py-1 bg-indigo-900/60 hover:bg-indigo-800 disabled:opacity-40 text-indigo-300 hover:text-white rounded-lg transition-colors"
+                      >
+                        {titleLoading ? <><Spinner small />Humanizing…</> : 'Humanize Title'}
+                      </button>
+                    </div>
+                    {titleError && <p className="text-red-400 text-xs">{titleError}</p>}
+                    {titleResult && (
+                      <div className="bg-gray-800 rounded-lg p-2 space-y-1.5 text-xs">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-gray-500">Original:</span>
+                          <span className="text-gray-400 truncate">{post.title}</span>
+                          <AiScoreBadge aiScore={titleResult.titleAiScoreBefore} />
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-gray-500">Humanized:</span>
+                          <span className="text-white truncate">{titleResult.humanizedTitle}</span>
+                          <AiScoreBadge aiScore={titleResult.titleAiScoreAfter} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* SEO + Humanize combined (Batch 48) */}
+                  <div className="border-t border-gray-700 pt-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold text-gray-300">🔍 SEO Check</p>
+                      <button
+                        onClick={() => runSeoCheck(post)}
+                        disabled={seoLoading}
+                        className="text-xs px-2.5 py-1 bg-indigo-900/60 hover:bg-indigo-800 disabled:opacity-40 text-indigo-300 hover:text-white rounded-lg transition-colors"
+                      >
+                        {seoLoading ? <><Spinner small />Checking…</> : 'Run SEO Check'}
+                      </button>
+                    </div>
+                    {seoError && <p className="text-red-400 text-xs">{seoError}</p>}
+                    {seoResult && (
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          {[
+                            { label: 'Keyword uses', val: `${seoResult.keywordDensity?.count ?? '—'} (${seoResult.keywordDensity?.target})` },
+                            { label: 'Readability',  val: `${seoResult.readability?.fleschScore ?? '—'}/100` },
+                            { label: 'Internal links', val: `${seoResult.internalLinks?.internalLinkCount ?? '—'} (target ${seoResult.internalLinks?.target})` },
+                            { label: 'Meta length', val: `${(seoResult.metaDescriptionHumanized || '').length} chars` },
+                          ].map(({ label, val }) => (
+                            <div key={label} className="bg-gray-800 rounded-lg p-2 text-center">
+                              <p className="text-[10px] text-gray-500">{label}</p>
+                              <p className="text-xs font-bold text-white">{val}</p>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                          <div>
+                            <p className="text-[10px] font-semibold text-red-400 uppercase mb-1">Original meta description</p>
+                            <div className="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-400 whitespace-pre-wrap">
+                              {seoResult.metaDescriptionOriginal || '—'}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-semibold text-green-400 uppercase mb-1">Humanized meta description</p>
+                            <div className="bg-gray-900 border border-green-800 rounded-lg p-2 text-xs text-gray-200 whitespace-pre-wrap">
+                              {seoResult.metaDescriptionHumanized}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {(titleResult || seoResult) && (
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        onClick={() => saveAdvanced(post)}
+                        disabled={savingAdvanced}
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
+                      >
+                        {savingAdvanced ? <><Spinner small />Saving…</> : '💾 Save Title & SEO'}
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
