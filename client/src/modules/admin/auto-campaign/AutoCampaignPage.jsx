@@ -1,62 +1,20 @@
 import { useState, useRef, useCallback } from 'react'
+import { getAllTools, CATEGORY_META, getAllCategories } from '../../../data/toolRegistry'
 
 const BASE_URL  = import.meta.env.VITE_API_URL || 'https://awe-os.onrender.com'
 const TOKEN_KEY = 'awe_token'
 
-const TOOLS = [
-  { name: 'Merge PDF',                 slug: 'merge-pdf',             category: 'PDF Tools'    },
-  { name: 'Split PDF',                 slug: 'split-pdf',             category: 'PDF Tools'    },
-  { name: 'Remove PDF Pages',          slug: 'remove-pages-pdf',      category: 'PDF Tools'    },
-  { name: 'Extract PDF Pages',         slug: 'extract-pages-pdf',     category: 'PDF Tools'    },
-  { name: 'Organize PDF',              slug: 'organize-pdf',          category: 'PDF Tools'    },
-  { name: 'Compress PDF',              slug: 'compress-pdf',          category: 'PDF Tools'    },
-  { name: 'JPG to PDF',                slug: 'jpg-to-pdf',            category: 'PDF Tools'    },
-  { name: 'Word to PDF',               slug: 'word-to-pdf',           category: 'PDF Tools'    },
-  { name: 'Excel to PDF',              slug: 'excel-to-pdf',          category: 'PDF Tools'    },
-  { name: 'PowerPoint to PDF',         slug: 'powerpoint-to-pdf',     category: 'PDF Tools'    },
-  { name: 'PDF to JPG',                slug: 'pdf-to-jpg',            category: 'PDF Tools'    },
-  { name: 'PDF to Word',               slug: 'pdf-to-word',           category: 'PDF Tools'    },
-  { name: 'PDF to Text',               slug: 'pdf-to-text',           category: 'PDF Tools'    },
-  { name: 'PDF to PowerPoint',         slug: 'pdf-to-ppt',            category: 'PDF Tools'    },
-  { name: 'PDF to Excel',              slug: 'pdf-to-excel',          category: 'PDF Tools'    },
-  { name: 'Rotate PDF',                slug: 'rotate-pdf',            category: 'PDF Tools'    },
-  { name: 'Add Watermark to PDF',      slug: 'watermark-pdf',         category: 'PDF Tools'    },
-  { name: 'Add Page Numbers to PDF',   slug: 'page-numbers-pdf',      category: 'PDF Tools'    },
-  { name: 'PDF Editor',                slug: 'pdf-editor',            category: 'PDF Tools'    },
-  { name: 'Protect PDF',               slug: 'protect-pdf',           category: 'PDF Tools'    },
-  { name: 'Unlock PDF',                slug: 'unlock-pdf',            category: 'PDF Tools'    },
-  { name: 'FD Calculator',             slug: 'fd-calculator',         category: 'Calculators'  },
-  { name: 'PPF Calculator',            slug: 'ppf-calculator',        category: 'Calculators'  },
-  { name: 'SIP Calculator',            slug: 'sip-calculator',        category: 'Calculators'  },
-  { name: 'ROI Calculator',            slug: 'roi-calculator',        category: 'Calculators'  },
-  { name: 'Tax Calculator',            slug: 'tax-calculator',        category: 'Calculators'  },
-  { name: 'Loan EMI Calculator',       slug: 'loan-calculator',       category: 'Calculators'  },
-  { name: 'Percentage Calculator',     slug: 'percentage-calculator', category: 'Calculators'  },
-  { name: 'GST Calculator',            slug: 'gst-calculator',        category: 'Calculators'  },
-  { name: 'Tip Calculator',            slug: 'tip-calculator',        category: 'Calculators'  },
-  { name: 'Discount Calculator',       slug: 'discount-calculator',   category: 'Calculators'  },
-  { name: 'BMI Calculator',            slug: 'bmi-calculator',        category: 'Calculators'  },
-  { name: 'Age Calculator',            slug: 'age-calculator',        category: 'Calculators'  },
-  { name: 'GPA Calculator',            slug: 'gpa-calculator',        category: 'Calculators'  },
-  { name: 'Unit Converter',            slug: 'unit-converter',        category: 'Converters'   },
-  { name: 'Word Counter',              slug: 'word-counter',          category: 'Converters'   },
-  { name: 'Password Generator',        slug: 'password-generator',    category: 'Converters'   },
-  { name: 'Color Picker',              slug: 'color-picker',          category: 'Converters'   },
-  { name: 'QR Code Generator',         slug: 'qr-code-generator',     category: 'Converters'   },
-  { name: 'Image Compressor',          slug: 'image-compressor',      category: 'Converters'   },
-  { name: 'Currency Converter',        slug: 'currency-converter',    category: 'Converters'   },
-  { name: 'Number Base Converter',     slug: 'base-converter',        category: 'Converters'   },
-  { name: 'JSON Formatter',            slug: 'json-formatter',        category: 'Converters'   },
-  { name: 'CSV to JSON',               slug: 'csv-to-json',           category: 'Converters'   },
-  { name: 'Invoice Generator',         slug: 'invoice',               category: 'Productivity' },
-  { name: 'Invoice Generator (Quick)', slug: 'invoice-generator',     category: 'Productivity' },
-  { name: 'Contract Generator',        slug: 'contract-generator',    category: 'Productivity' },
-  { name: 'AI Resume Builder',         slug: 'resume-builder',        category: 'AI Tools'     },
-  { name: 'AI Content Writer',         slug: 'ai-content-writer',     category: 'AI Tools'     },
-]
+// Sourced from the live tool registry (not a hand-maintained list) so
+// every published tool shows up here automatically. See
+// docs/batches/batch-49-plan.md.
+const TOOLS = getAllTools().map(t => ({
+  name:     t.name,
+  slug:     t.slug,
+  category: CATEGORY_META[t.category]?.name || t.category,
+}))
 
 const AUDIENCES = ['Indian Professionals', 'Indian Students', 'Freelancers', 'General']
-const CATEGORIES = ['PDF Tools', 'Calculators', 'Converters', 'Productivity', 'AI Tools']
+const CATEGORIES = getAllCategories().map(slug => CATEGORY_META[slug].name)
 
 const STEP_LABELS = {
   1: 'Generating Reddit post...',
