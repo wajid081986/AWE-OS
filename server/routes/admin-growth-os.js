@@ -142,4 +142,34 @@ Number of distinct AWE-OS tools with a linked blog post in the last 30 posts: ${
   }
 })
 
+// ── POST /api/admin/growth-os/image-prompts ───────────────────────────────────
+// Text-only prompt generation for a blog topic — does not call an image API.
+
+router.post('/image-prompts', requireAuth, requireAdmin, async (req, res) => {
+  const { topic, style } = req.body
+  if (!topic) return res.status(400).json({ success: false, error: 'topic is required' })
+
+  try {
+    const completion = await getOpenAI().chat.completions.create({
+      model:      'gpt-4o-mini',
+      max_tokens: 700,
+      messages: [{
+        role: 'system',
+        content: `You write AI image-generation prompts for a blog's featured/social images. Style requested: ${style || 'Blog header'}.
+Return ONLY valid JSON: { "prompts": ["string", "string", "string", "string", "string"] }
+Exactly 5 prompts, each a single detailed sentence describing composition, subject, and mood — suitable to paste into an AI image generator.`,
+      }, {
+        role: 'user',
+        content: `Blog topic: ${topic}`,
+      }],
+    })
+    const raw    = completion.choices[0]?.message?.content || ''
+    const parsed = parseAIJson(raw)
+    res.json({ success: true, prompts: parsed.prompts || [] })
+  } catch (err) {
+    console.error('[admin-growth-os/image-prompts]', err.message)
+    res.status(err.status || 500).json({ success: false, error: err.message })
+  }
+})
+
 module.exports = router

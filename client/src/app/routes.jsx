@@ -106,6 +106,7 @@ const MultiAgentDashboard    = lazy(() => import('../modules/admin/multi-agent/M
 const OptimizationDashboard  = lazy(() => import('../modules/admin/optimization/OptimizationDashboard'))
 const IntelligenceDashboard  = lazy(() => import('../modules/admin/intelligence/Phase4Dashboard'))
 const AutoCampaignPage       = lazy(() => import('../modules/admin/auto-campaign/AutoCampaignPage'))
+const GrowthOSPage           = lazy(() => import('../modules/admin/growth-os/GrowthOS'))
 const MarketplaceDashboard       = lazy(() => import('../modules/admin/marketplace/MarketplaceDashboard'))
 const ExpansionCenter            = lazy(() => import('../modules/admin/marketplace/ExpansionCenter'))
 const RevenueDashboard           = lazy(() => import('../modules/admin/revenue/RevenueDashboard'))
@@ -265,6 +266,7 @@ export default function AppRoutes() {
           <Route path="/admin/optimization"  element={lazy$(<OptimizationDashboard />)} />
           <Route path="/admin/intelligence"    element={lazy$(<IntelligenceDashboard />)} />
           <Route path="/admin/auto-campaign" element={lazy$(<AutoCampaignPage />)} />
+          <Route path="/admin/growth-os"     element={lazy$(<GrowthOSPage />)} />
           <Route path="/admin/marketplace"           element={lazy$(<MarketplaceDashboard />)} />
           <Route path="/admin/expansion"             element={lazy$(<ExpansionCenter />)} />
           <Route path="/admin/revenue-intelligence"  element={lazy$(<RevenueDashboard />)} />

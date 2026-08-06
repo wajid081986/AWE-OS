@@ -3,6 +3,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import api from '../../services/api.service'
 
 const NAV_ITEMS = [
+  { icon: '⭐', label: 'Growth OS',        to: '/admin/growth-os',     badge: 'NEW'  },
   { icon: '📊', label: 'Overview',         to: '/admin',               end: true },
   { icon: '⭐', label: 'Auto Campaign',    to: '/admin/auto-campaign', badge: 'NEW'  },
   { icon: '🤖', label: 'AI Factory',       to: '/admin/factory',       badge: '⚡'     },
