@@ -154,7 +154,7 @@ function DiffBadge({ level }) {
 
 const DEFAULT_FORM = {
   topic: '', keyword: '', toolSlug: '', wordCount: 2000,
-  tone: 'beginner', category: 'Finance', indianContext: true,
+  tone: 'beginner', category: 'Finance', indianContext: true, autoHumanize: false,
 }
 
 function AIBlogWriterTab({ onPreFill }) {
@@ -170,6 +170,7 @@ function AIBlogWriterTab({ onPreFill }) {
   const [genError,     setGenError]     = useState(null)
   const [actualWords,  setActualWords]  = useState(null)
   const [preFillToast, setPreFillToast] = useState(false)
+  const [humanizeInfo, setHumanizeInfo] = useState(null)
 
   // When Phase 1/2 components send a pre-fill
   useEffect(() => {
@@ -191,6 +192,7 @@ function AIBlogWriterTab({ onPreFill }) {
     setPost(null)
     setPubResult(null)
     setActualWords(null)
+    setHumanizeInfo(null)
     try {
       const tool = AWE_TOOLS.find(t => t.slug === form.toolSlug)
       const res  = await api.post('/api/admin/blog/generate', {
@@ -200,6 +202,7 @@ function AIBlogWriterTab({ onPreFill }) {
       if (res.data.success) {
         setPost(res.data.post)
         setActualWords(res.data.actualWords || null)
+        setHumanizeInfo(res.data.humanize || null)
         setMeta({
           title:           res.data.post.title,
           metaTitle:       res.data.post.metaTitle,
@@ -339,6 +342,19 @@ function AIBlogWriterTab({ onPreFill }) {
           </button>
         </div>
 
+        <div className="flex items-center justify-between py-2 px-3 bg-gray-900 rounded-lg border border-gray-700">
+          <div>
+            <p className="text-sm text-white font-medium">🤖 Auto-Humanize Draft</p>
+            <p className="text-[11px] text-gray-500">Runs the humanizer on the draft before showing it — adds ~15-20s</p>
+          </div>
+          <button
+            onClick={() => set('autoHumanize')(!form.autoHumanize)}
+            className={`relative w-10 h-5 rounded-full transition-colors ${form.autoHumanize ? 'bg-indigo-600' : 'bg-gray-600'}`}
+          >
+            <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all ${form.autoHumanize ? 'left-5' : 'left-0.5'}`} />
+          </button>
+        </div>
+
         <button
           onClick={handleGenerate}
           disabled={generating}
@@ -364,6 +380,18 @@ function AIBlogWriterTab({ onPreFill }) {
               return <span className="text-xs text-red-400 font-medium">❌ Generated: {wc} words (target: {target})</span>
             })()}
           </div>
+
+          {humanizeInfo && (
+            humanizeInfo.applied ? (
+              <p className="text-xs text-green-400 bg-green-900/20 border border-green-800 rounded-lg px-3 py-1.5">
+                🤖 Auto-humanized — AI score {humanizeInfo.scores?.afterHumanization ?? '—'}% (was {humanizeInfo.scores?.beforeHumanization ?? '—'}%), human score {humanizeInfo.scores?.humanScore ?? '—'}/100.
+              </p>
+            ) : (
+              <p className="text-xs text-yellow-300 bg-yellow-900/20 border border-yellow-800 rounded-lg px-3 py-1.5">
+                ⚠️ Auto-humanize didn't apply — showing the raw AI draft. {humanizeInfo.reason || ''}
+              </p>
+            )
+          )}
 
           {post.imageUrl && (
             <div className="rounded-lg overflow-hidden border border-gray-700">

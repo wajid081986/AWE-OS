@@ -90,7 +90,7 @@ const LINKABLE_TOOLS = [
 // ── POST /generate — word-count-targeted three-call approach ─────────────────
 
 router.post('/generate', requireAuth, requireAdmin, async (req, res) => {
-  const { topic, keyword, toolSlug, toolName, wordCount = 2000, tone = 'beginner', category = 'Finance', indianContext = true } = req.body
+  const { topic, keyword, toolSlug, toolName, wordCount = 2000, tone = 'beginner', category = 'Finance', indianContext = true, autoHumanize = false } = req.body
   if (!topic) return res.status(400).json({ success: false, error: 'topic is required' })
 
   const toneGuide = {
@@ -369,7 +369,32 @@ Return the JSON object with "blocks" and "faqs" keys as specified in the system 
       })
     }
 
-    res.json({ success: true, post, actualWords: totalWords })
+    // ── Auto-humanize (opt-in via autoHumanize) ───────────────────────────────
+    // Paragraph-only, same marker round-trip as the Published Posts humanize
+    // endpoints (see below) — headings/tables/lists/callouts stay untouched.
+    let humanizeInfo = null
+    if (autoHumanize) {
+      const paragraphs = extractParagraphs(post.content)
+      if (paragraphs.length > 0) {
+        try {
+          const humanizeResult = await contentStudio.humanize(buildMarkedText(paragraphs), {
+            tone: 'conversational', targetAudience: 'Indian professionals', preserveMarkers: true,
+          })
+          const splitParagraphs = splitMarkedText(humanizeResult.humanized, paragraphs)
+          if (splitParagraphs) {
+            post.content = applyHumanizedParagraphs(post.content, splitParagraphs)
+            humanizeInfo = { applied: true, scores: humanizeResult.scores }
+          } else {
+            humanizeInfo = { applied: false, reason: 'Marker round-trip failed — kept the original draft.' }
+          }
+        } catch (err) {
+          console.error('[blog/generate autoHumanize]', err.message)
+          humanizeInfo = { applied: false, reason: err.message }
+        }
+      }
+    }
+
+    res.json({ success: true, post, actualWords: totalWords, humanize: humanizeInfo })
   } catch (err) {
     console.error('[admin-blog/generate]', err.message)
     res.status(500).json({ success: false, error: err.message || 'Generation failed' })
