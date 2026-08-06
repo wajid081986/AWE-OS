@@ -832,6 +832,23 @@ const STATUS_BADGE = {
   archived:  'bg-gray-700 text-gray-400',
 }
 
+// AI-likelihood estimate from the humanizer's own analysis pass — not a real
+// AI detector, just an LLM self-estimate. Green = reads human, red = reads AI.
+function AiScoreBadge({ aiScore }) {
+  if (aiScore == null) {
+    return <span className="text-[10px] px-2 py-0.5 rounded font-semibold shrink-0 bg-gray-700 text-gray-400">Not scored</span>
+  }
+  const color = aiScore < 40 ? 'bg-green-900/60 text-green-300' : aiScore < 70 ? 'bg-yellow-900/60 text-yellow-300' : 'bg-red-900/60 text-red-300'
+  return (
+    <span
+      title="AI-likelihood estimate (LLM self-estimate, not a detector)"
+      className={`text-[10px] px-2 py-0.5 rounded font-semibold shrink-0 ${color}`}
+    >
+      AI {aiScore}%
+    </span>
+  )
+}
+
 function PublishedPostsTab() {
   const [posts,    setPosts]    = useState([])
   const [loading,  setLoading]  = useState(true)
@@ -840,6 +857,13 @@ function PublishedPostsTab() {
   const [saving,   setSaving]   = useState(false)
   const [deleting, setDeleting] = useState(null)   // id being deleted
   const [toast,    setToast]    = useState('')
+
+  // Humanize panel state — one post's preview open at a time
+  const [humanizeId,      setHumanizeId]      = useState(null)
+  const [humanizeLoading, setHumanizeLoading] = useState(false)
+  const [humanizeResult,  setHumanizeResult]  = useState(null)
+  const [humanizeError,   setHumanizeError]   = useState('')
+  const [humanizeSaving,  setHumanizeSaving]  = useState(false)
 
   function showToast(msg) {
     setToast(msg)
@@ -899,6 +923,51 @@ function PublishedPostsTab() {
     }
   }
 
+  async function openHumanize(post) {
+    setHumanizeId(post.id)
+    setHumanizeResult(null)
+    setHumanizeError('')
+    setHumanizeLoading(true)
+    try {
+      const { data } = await api.post(`/api/admin/blog/humanize/${post.id}`, {})
+      if (!data.success) throw new Error(data.error || 'Humanize failed')
+      setHumanizeResult(data.result)
+    } catch (err) {
+      setHumanizeError(err.response?.data?.error || err.message)
+    } finally {
+      setHumanizeLoading(false)
+    }
+  }
+
+  function closeHumanize() {
+    setHumanizeId(null)
+    setHumanizeResult(null)
+    setHumanizeError('')
+  }
+
+  async function saveHumanize(post) {
+    if (!humanizeResult?.markerIntegrity) return
+    setHumanizeSaving(true)
+    try {
+      await api.post(`/api/admin/blog/humanize/${post.id}/save`, {
+        humanizedBlocks: humanizeResult.humanizedBlocks,
+        scores:          humanizeResult.scores,
+      })
+      setPosts(ps => ps.map(p => p.id === post.id ? {
+        ...p,
+        ai_score:     humanizeResult.scores?.afterHumanization ?? p.ai_score,
+        human_score:  humanizeResult.scores?.humanScore ?? p.human_score,
+        humanized_at: new Date().toISOString(),
+      } : p))
+      closeHumanize()
+      showToast('✅ Humanized version saved!')
+    } catch (err) {
+      showToast('❌ Save failed: ' + (err.response?.data?.error || err.message))
+    } finally {
+      setHumanizeSaving(false)
+    }
+  }
+
   if (loading) return <div className="flex justify-center py-16"><Spinner /></div>
   if (error)   return <p className="text-red-400 text-sm p-4">{error}</p>
 
@@ -938,6 +1007,7 @@ function PublishedPostsTab() {
                 <span className={`text-[10px] px-2 py-0.5 rounded font-semibold shrink-0 ${STATUS_BADGE[post.status] || STATUS_BADGE.published}`}>
                   {post.status || 'published'}
                 </span>
+                <AiScoreBadge aiScore={post.ai_score} />
                 <a
                   href={`https://www.awe-os.com/blog/${post.slug}`}
                   target="_blank"
@@ -946,6 +1016,12 @@ function PublishedPostsTab() {
                 >
                   View →
                 </a>
+                <button
+                  onClick={() => (humanizeId === post.id ? closeHumanize() : openHumanize(post))}
+                  className="text-xs px-2.5 py-1 bg-purple-900/60 hover:bg-purple-800 text-purple-300 hover:text-white rounded-lg shrink-0 transition-colors"
+                >
+                  🤖 Humanize
+                </button>
                 <button
                   onClick={() => setEditing({ ...post })}
                   className="text-xs px-2.5 py-1 bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg shrink-0 transition-colors"
@@ -1011,6 +1087,75 @@ function PublishedPostsTab() {
                       Cancel
                     </button>
                   </div>
+                </div>
+              )}
+
+              {/* Humanize preview panel */}
+              {humanizeId === post.id && (
+                <div className="border-t border-gray-700 px-4 py-4 space-y-3 bg-gray-900/40">
+                  {humanizeLoading && (
+                    <div className="flex items-center gap-2 text-gray-400 text-sm py-4">
+                      <Spinner /> Humanizing with GPT-4o…
+                    </div>
+                  )}
+                  {humanizeError && <p className="text-red-400 text-sm">{humanizeError}</p>}
+                  {humanizeResult && (
+                    <>
+                      {!humanizeResult.markerIntegrity && (
+                        <p className="text-yellow-300 text-xs bg-yellow-900/20 border border-yellow-800 rounded-lg p-2">
+                          ⚠️ Couldn't cleanly separate paragraphs after rewriting. Saving is
+                          disabled to avoid corrupting this post — try again, or use the
+                          "Content Studio" tab to humanize manually.
+                        </p>
+                      )}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {[
+                          { label: 'AI Score Before', val: `${humanizeResult.scores?.beforeHumanization ?? '—'}%` },
+                          { label: 'AI Score After',  val: `${humanizeResult.scores?.afterHumanization ?? '—'}%` },
+                          { label: 'Human Score',     val: `${humanizeResult.scores?.humanScore ?? '—'}/100` },
+                          { label: 'Readability',     val: `${humanizeResult.scores?.readability ?? '—'}/100` },
+                        ].map(({ label, val }) => (
+                          <div key={label} className="bg-gray-800 rounded-lg p-2 text-center">
+                            <p className="text-[10px] text-gray-500">{label}</p>
+                            <p className="text-sm font-bold text-white">{val}</p>
+                          </div>
+                        ))}
+                      </div>
+
+                      {humanizeResult.humanized && (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                          <div>
+                            <p className="text-[10px] font-semibold text-red-400 uppercase mb-1">Original paragraphs</p>
+                            <div className="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-400 max-h-48 overflow-y-auto whitespace-pre-wrap">
+                              {humanizeResult.original}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-semibold text-green-400 uppercase mb-1">Humanized paragraphs</p>
+                            <div className="bg-gray-900 border border-green-800 rounded-lg p-2 text-xs text-gray-200 max-h-48 overflow-y-auto whitespace-pre-wrap">
+                              {humanizeResult.humanized}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          onClick={() => saveHumanize(post)}
+                          disabled={!humanizeResult.markerIntegrity || humanizeSaving}
+                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
+                        >
+                          {humanizeSaving ? <><Spinner small />Saving…</> : '💾 Save Humanized Version'}
+                        </button>
+                        <button
+                          onClick={closeHumanize}
+                          className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition-colors"
+                        >
+                          Discard
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
