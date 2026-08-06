@@ -65,6 +65,7 @@ const adminContentIntelRoutes        = require('./routes/admin-content-intellige
 const adminTrafficAlertsRoutes       = require('./routes/admin-traffic-alerts');
 const socialPublishRoutes            = require('./routes/social-publish');
 const autoCampaignRoutes             = require('./routes/auto-campaign');
+const adminGrowthOsRoutes            = require('./routes/admin-growth-os');
 const pdfAiToolsRoutes                = require('./routes/pdf-ai-tools.routes');
 const { initializeRuntime, shutdownRuntime } = require('./runtime');
 const { initializeMemory, shutdownMemory }   = require('./memory');
@@ -271,6 +272,7 @@ app.use('/api/admin/blog',       adminLimiter, adminBlogRoutes);
 app.use('/api/admin/traffic',   adminLimiter, adminTrafficRoutes);
 app.use('/api/social',          adminLimiter, socialPublishRoutes);
 app.use('/api/auto-campaign',   adminLimiter, autoCampaignRoutes);
+app.use('/api/admin/growth-os', adminLimiter, adminGrowthOsRoutes);
 app.use('/api/admin/seo',       adminLimiter, adminSeoRoutes);
 app.use('/api/admin/image-agent', adminLimiter, adminImageAgentRoutes);
 // Video generation is long-running (2-5 min) — override the default socket
