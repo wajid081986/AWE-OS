@@ -194,6 +194,163 @@ function withinDays(iso, days) {
   return (Date.now() - new Date(iso).getTime()) <= days * 24 * 60 * 60 * 1000
 }
 
+const SEARCH_WINDOWS = [
+  { id: '7',  label: '7d'  },
+  { id: '28', label: '28d' },
+]
+
+function SearchPerformanceSection() {
+  const [data,    setData]    = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error,   setError]   = useState(null)
+  const [syncing, setSyncing] = useState(false)
+  const [win,     setWin]     = useState('7')
+
+  useEffect(() => { load() }, [])
+
+  async function load() {
+    setLoading(true); setError(null)
+    try {
+      const res = await api.get('/api/admin/growth-os/search-performance')
+      if (res.data.success) setData(res.data)
+      else setError(res.data.error)
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to load search performance.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function syncNow() {
+    setSyncing(true)
+    try {
+      await api.post('/api/admin/growth-os/gsc-sync')
+      await load()
+    } catch {} finally {
+      setSyncing(false)
+    }
+  }
+
+  if (loading) return <div className="flex justify-center py-6"><Spinner /></div>
+  if (error) return <p className="text-red-400 text-sm">{error}</p>
+  if (!data) return null
+
+  if (!data.configured) {
+    return (
+      <div className="bg-gray-800 border border-gray-700 border-dashed rounded-xl p-6 text-center">
+        <p className="text-xs text-gray-500">
+          Search Console isn't connected yet — set <span className="text-gray-400">GOOGLE_SERVICE_ACCOUNT_JSON</span> on the server to enable real search performance data here.
+        </p>
+      </div>
+    )
+  }
+
+  if (!data.lastSyncedAt) {
+    return (
+      <div className="bg-gray-800 border border-gray-700 border-dashed rounded-xl p-6 text-center space-y-3">
+        <p className="text-xs text-gray-500">Not synced yet.</p>
+        <button onClick={syncNow} disabled={syncing}
+          className="text-xs px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg font-semibold inline-flex items-center gap-2">
+          {syncing ? <><Spinner />Syncing…</> : '🔄 Sync Now'}
+        </button>
+      </div>
+    )
+  }
+
+  const stats = win === '7' ? data.last7 : data.last28
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-white">🔍 Search Performance</h2>
+        <div className="flex items-center gap-2">
+          <div className="flex bg-gray-900 border border-gray-700 rounded-lg overflow-hidden">
+            {SEARCH_WINDOWS.map(w => (
+              <button key={w.id} onClick={() => setWin(w.id)}
+                className={`text-[11px] px-2.5 py-1 font-medium ${win === w.id ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'}`}>
+                {w.label}
+              </button>
+            ))}
+          </div>
+          <button onClick={syncNow} disabled={syncing}
+            className="text-xs px-3 py-1.5 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white rounded-lg flex items-center gap-2">
+            {syncing ? <Spinner /> : '🔄 Sync Now'}
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-3">
+        {[
+          ['Clicks',       stats.totalClicks],
+          ['Impressions',  stats.totalImpressions],
+          ['Avg CTR',      `${(stats.avgCtr * 100).toFixed(1)}%`],
+          ['Avg Position', stats.avgPosition],
+        ].map(([label, val]) => (
+          <div key={label} className="bg-gray-800 border border-gray-700 rounded-xl p-4 text-center">
+            <p className="text-2xl font-bold text-indigo-400">{val}</p>
+            <p className="text-[11px] text-gray-500 mt-0.5">{label}</p>
+          </div>
+        ))}
+      </div>
+
+      <p className="text-[11px] text-gray-600">Last synced {new Date(data.lastSyncedAt).toLocaleString()}.</p>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
+          <h3 className="text-xs font-semibold text-white mb-2">Top Pages</h3>
+          {stats.topPages.length === 0 ? (
+            <p className="text-xs text-gray-500">No data.</p>
+          ) : (
+            <table className="w-full text-xs table-fixed">
+              <thead>
+                <tr className="text-gray-500 text-left">
+                  <th className="font-normal pb-1 w-auto">Page</th>
+                  <th className="font-normal pb-1 text-right w-16">Clicks</th>
+                  <th className="font-normal pb-1 text-right w-16">Impr.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.topPages.map(p => (
+                  <tr key={p.page_url} className="border-t border-gray-700">
+                    <td className="py-1.5 pr-2 text-gray-300 truncate" title={p.page_url}>{p.page_url}</td>
+                    <td className="py-1.5 text-right text-white">{p.clicks}</td>
+                    <td className="py-1.5 text-right text-gray-400">{p.impressions}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
+          <h3 className="text-xs font-semibold text-white mb-2">Top Queries</h3>
+          {stats.topQueries.length === 0 ? (
+            <p className="text-xs text-gray-500">No data.</p>
+          ) : (
+            <table className="w-full text-xs table-fixed">
+              <thead>
+                <tr className="text-gray-500 text-left">
+                  <th className="font-normal pb-1 w-auto">Query</th>
+                  <th className="font-normal pb-1 text-right w-16">Clicks</th>
+                  <th className="font-normal pb-1 text-right w-16">Pos.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.topQueries.map(q => (
+                  <tr key={q.query} className="border-t border-gray-700">
+                    <td className="py-1.5 pr-2 text-gray-300 truncate" title={q.query}>{q.query}</td>
+                    <td className="py-1.5 text-right text-white">{q.clicks}</td>
+                    <td className="py-1.5 text-right text-gray-400">{q.position}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function AnalyticsPanel() {
   const [posts,   setPosts]   = useState([])
   const [loading, setLoading] = useState(true)
@@ -222,6 +379,8 @@ function AnalyticsPanel() {
 
   return (
     <div className="space-y-6">
+      <SearchPerformanceSection />
+
       <div className="grid grid-cols-4 gap-3">
         {[
           ['Blogs Published', publishedThisWeek],
