@@ -3,7 +3,7 @@ const requireAuth     = require('../middleware/auth')
 const supabase         = require('../db/supabase')
 const { getOpenAI }    = require('../core/ai-engine')
 const parseAIJson      = require('../services/parseAIJson')
-const { getSearchAnalytics } = require('../services/search-console.service')
+const { getSearchAnalytics, isConfigured } = require('../services/search-console.service')
 
 const router = express.Router()
 
@@ -106,11 +106,108 @@ Exactly 7 entries, one per day, using this fixed day→platform order: 1=Blog, 2
   res.json({ success: true, keywords, competitors, calendar, warnings })
 })
 
+// ── Search Console aggregation helpers ──────────────────────────────────────────
+// Shared by /search-performance and /recommendations so both read the same
+// cached gsc_daily_stats rows instead of duplicating the fetch/aggregate logic.
+
+function emptyWindow() {
+  return { totalClicks: 0, totalImpressions: 0, avgCtr: 0, avgPosition: 0, topPages: [], topQueries: [] }
+}
+
+function aggregateWindow(rows) {
+  let totalClicks = 0, totalImpressions = 0, positionWeighted = 0
+  const pageMap  = new Map()
+  const queryMap = new Map()
+
+  for (const r of rows) {
+    totalClicks      += r.clicks
+    totalImpressions += r.impressions
+    positionWeighted += r.position * r.impressions
+
+    const page = pageMap.get(r.page_url) || { page_url: r.page_url, clicks: 0, impressions: 0 }
+    page.clicks      += r.clicks
+    page.impressions += r.impressions
+    pageMap.set(r.page_url, page)
+
+    const q = queryMap.get(r.query) || { query: r.query, clicks: 0, impressions: 0, positionWeighted: 0 }
+    q.clicks           += r.clicks
+    q.impressions       += r.impressions
+    q.positionWeighted  += r.position * r.impressions
+    queryMap.set(r.query, q)
+  }
+
+  const topPages = [...pageMap.values()].sort((a, b) => b.clicks - a.clicks).slice(0, 10)
+  const topQueries = [...queryMap.values()]
+    .map(q => ({
+      query:       q.query,
+      clicks:      q.clicks,
+      impressions: q.impressions,
+      position:    q.impressions > 0 ? Number((q.positionWeighted / q.impressions).toFixed(1)) : 0,
+    }))
+    .sort((a, b) => b.clicks - a.clicks)
+    .slice(0, 10)
+
+  return {
+    totalClicks,
+    totalImpressions,
+    avgCtr:      totalImpressions > 0 ? Number((totalClicks / totalImpressions).toFixed(4)) : 0,
+    avgPosition: totalImpressions > 0 ? Number((positionWeighted / totalImpressions).toFixed(1)) : 0,
+    topPages,
+    topQueries,
+  }
+}
+
+// Reads the last 28 days of cached GSC rows once and returns both windows.
+// Returns null if not configured, so callers can fall back cleanly.
+async function fetchSearchPerformance() {
+  if (!isConfigured()) return null
+
+  const end       = new Date()
+  const cutoff28  = new Date(end.getTime() - 28 * 24 * 60 * 60 * 1000)
+  const cutoff7   = new Date(end.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const fmt       = d => d.toISOString().slice(0, 10)
+  const cutoff7Str = fmt(cutoff7)
+
+  const { data: rows, error } = await supabase
+    .from('gsc_daily_stats')
+    .select('date, page_url, query, clicks, impressions, ctr, position, synced_at')
+    .gte('date', fmt(cutoff28))
+    .limit(10000)
+  if (error) throw error
+
+  if (!rows || rows.length === 0) {
+    return { lastSyncedAt: null, last7: emptyWindow(), last28: emptyWindow() }
+  }
+
+  const rows7 = rows.filter(r => r.date >= cutoff7Str)
+  const lastSyncedAt = rows.reduce((max, r) => (!max || r.synced_at > max) ? r.synced_at : max, null)
+
+  return { lastSyncedAt, last7: aggregateWindow(rows7), last28: aggregateWindow(rows) }
+}
+
+// ── GET /api/admin/growth-os/search-performance ─────────────────────────────────
+// Reads cached GSC data written by /gsc-sync — never calls the live API on a
+// dashboard load. Returns both a 7-day and a 28-day aggregation window.
+
+router.get('/search-performance', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    if (!isConfigured()) {
+      return res.json({ success: true, configured: false })
+    }
+
+    const perf = await fetchSearchPerformance()
+    res.json({ success: true, configured: true, ...perf })
+  } catch (err) {
+    console.error('[admin-growth-os/search-performance]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
 // ── GET /api/admin/growth-os/recommendations ──────────────────────────────────
-// Heuristic recommendations from real signals we actually have: which tools
-// have no recent blog coverage, and the category mix of published posts.
-// Not a live search/traffic API integration — labelled as AI suggestions,
-// not measured analytics.
+// Heuristic recommendations from real signals: which tools have no recent
+// blog coverage, the category mix of published posts, and — when synced —
+// real Search Console performance (cached, via fetchSearchPerformance).
+// Falls back to category-gap logic alone if no GSC data has been synced yet.
 
 router.get('/recommendations', requireAuth, requireAdmin, async (req, res) => {
   try {
@@ -131,20 +228,37 @@ router.get('/recommendations', requireAuth, requireAdmin, async (req, res) => {
     }, {})
     const topCategory = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null
 
+    let searchPerf = null
+    try {
+      searchPerf = await fetchSearchPerformance()
+    } catch (perfErr) {
+      console.error('[admin-growth-os/recommendations] search performance fetch failed:', perfErr.message)
+    }
+    const hasSearchData = !!(searchPerf && searchPerf.last28.totalImpressions > 0)
+
+    const searchPerfBlock = hasSearchData
+      ? `
+
+Search Console data, last 28 days (use these real numbers — flag pages with high impressions but low CTR as title/meta problems, and high-position-but-low-click queries as content-relevance gaps):
+Total clicks: ${searchPerf.last28.totalClicks}, total impressions: ${searchPerf.last28.totalImpressions}, avg CTR: ${(searchPerf.last28.avgCtr * 100).toFixed(1)}%, avg position: ${searchPerf.last28.avgPosition}
+Top pages by clicks: ${JSON.stringify(searchPerf.last28.topPages.slice(0, 5))}
+Top queries by clicks: ${JSON.stringify(searchPerf.last28.topQueries.slice(0, 5))}`
+      : ''
+
     const completion = await getOpenAI().chat.completions.create({
       model:      'gpt-4o-mini',
       max_tokens: 900,
       messages: [{
         role: 'system',
-        content: `You are a growth advisor for AWE-OS. Given which content categories have been published recently and which have not, produce short, specific, actionable recommendations.
+        content: `You are a growth advisor for AWE-OS. Given which content categories have been published recently, which have not, and (when available) real Search Console performance, produce short, specific, actionable recommendations.
 Return ONLY valid JSON:
-{ "recommendations": [ { "type": "content-gap|platform|category", "message": "string, one specific actionable sentence", "priority": "High|Medium|Low" } ] }
-Produce 4-6 recommendations. Be concrete — reference actual category names given, not generic advice.`,
+{ "recommendations": [ { "type": "content-gap|platform|category|seo-performance", "message": "string, one specific actionable sentence", "priority": "High|Medium|Low" } ] }
+Produce 4-6 recommendations. Be concrete — reference actual category names, page URLs, or query strings given, not generic advice.${hasSearchData ? ' Prefer seo-performance recommendations grounded in the real Search Console numbers when they reveal a clear opportunity.' : ''}`,
       }, {
         role: 'user',
         content: `Recently published post categories (most recent 30): ${JSON.stringify(categoryCounts)}
 Most-published category: ${topCategory || 'none yet'}
-Number of distinct AWE-OS tools with a linked blog post in the last 30 posts: ${coveredSlugs.size}`,
+Number of distinct AWE-OS tools with a linked blog post in the last 30 posts: ${coveredSlugs.size}${searchPerfBlock}`,
       }],
     })
 

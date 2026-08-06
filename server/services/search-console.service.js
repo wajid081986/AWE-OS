@@ -40,4 +40,15 @@ const getSearchAnalytics = async ({ startDate, endDate, dimensions = ['page', 'q
   }
 }
 
-module.exports = { getSearchAnalytics }
+const isConfigured = () => {
+  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON
+  if (!raw) return false
+  try {
+    JSON.parse(raw)
+    return true
+  } catch {
+    return false
+  }
+}
+
+module.exports = { getSearchAnalytics, isConfigured }
