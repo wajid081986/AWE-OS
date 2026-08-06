@@ -2,6 +2,13 @@
 const { getOpenAI } = require('../ai-engine');
 const parseAIJson   = require('../../services/parseAIJson');
 
+// Per-call SDK timeout + built-in exponential-backoff retry (429/5xx/network
+// errors) — without this, a slow gpt-4o call on a long post has no ceiling
+// and can hang well past the client's request timeout. See CLAUDE.md §3b
+// "unless a bug blocks integration" — this fixes the 14/56 bulk-humanize
+// failures from the 2026-08-06 Published Posts run.
+const OPENAI_CALL_OPTS = { timeout: 90_000, maxRetries: 3 };
+
 async function humanizeContent(content, opts = {}) {
   const {
     tone             = 'conversational',
@@ -47,7 +54,7 @@ Return ONLY JSON.`.trim();
       { role: 'system', content: 'Return only valid JSON.' },
       { role: 'user',   content: analyzePrompt }
     ]
-  });
+  }, OPENAI_CALL_OPTS);
 
   const analysis = parseAIJson(
     analysisRes.choices[0].message.content
@@ -90,7 +97,7 @@ No JSON. No markdown. Just the rewritten article.`.trim();
       },
       { role: 'user', content: humanizePrompt }
     ]
-  });
+  }, OPENAI_CALL_OPTS);
 
   const humanizedContent = humanRes.choices[0].message.content;
 
@@ -119,7 +126,7 @@ Return ONLY JSON.`.trim();
       { role: 'system', content: 'Return only valid JSON.' },
       { role: 'user',   content: scorePrompt }
     ]
-  });
+  }, OPENAI_CALL_OPTS);
 
   const scores = parseAIJson(
     scoreRes.choices[0].message.content
