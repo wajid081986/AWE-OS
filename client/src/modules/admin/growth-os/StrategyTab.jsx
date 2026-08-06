@@ -190,7 +190,7 @@ export default function StrategyTab({ strategyState, onStrategyChange, onWriteTh
                   </div>
                   <DiffBadge level={entry.estimatedImpact} />
                   <button
-                    onClick={() => onWriteThis({ topic: entry.title, keyword: strategy.keywords[0]?.keyword || '', toolSlug: tool.slug })}
+                    onClick={() => onWriteThis({ topic: entry.title, keyword: strategy.keywords[0]?.keyword || '', toolSlug: tool.slug, toolName: tool.name })}
                     className="text-xs px-3 py-1.5 bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg shrink-0 transition-colors"
                   >
                     Write This →

@@ -3,6 +3,20 @@ import api from '../../../services/api.service'
 import ContentStudio from '../blog/ContentStudio'
 import SocialBlast    from '../content-engine/SocialBlast'
 import SeoAuditor      from '../blog/SeoAuditor'
+import { getAllTools } from '../../../data/toolRegistry'
+
+// Blog Assistant's own /generate route only recognises this fixed category
+// set (see BlogAssistant.jsx's CATEGORIES) — map toolRegistry's category
+// slugs onto it rather than passing toolRegistry's own display names
+// ('Converters & Tools', 'Productivity'), which aren't valid blog categories.
+const BLOG_CATEGORY_BY_TOOL_CATEGORY = {
+  pdf:         'PDF Tools',
+  calculators: 'Calculators',
+  ai:          'AI Tools',
+  converters:  'General',
+  productivity: 'General',
+}
+const TOOL_CATEGORY_BY_SLUG = Object.fromEntries(getAllTools().map(t => [t.slug, t.category]))
 
 const SUB_SECTIONS = [
   { id: 'blog',    label: '✏️ Blog Creator'    },
@@ -27,7 +41,7 @@ function Spinner() {
 
 function BlogCreatorPanel({ prefill, onPrefillConsumed }) {
   const [form, setForm] = useState({
-    topic: '', keyword: '', toolSlug: '', wordCount: 1200, tone: 'beginner', autoHumanize: true,
+    topic: '', keyword: '', toolSlug: '', toolName: '', wordCount: 1200, tone: 'beginner', autoHumanize: true,
   })
   const [generating, setGenerating] = useState(false)
   const [post,       setPost]       = useState(null)
@@ -37,7 +51,7 @@ function BlogCreatorPanel({ prefill, onPrefillConsumed }) {
 
   useEffect(() => {
     if (prefill?.topic) {
-      setForm(f => ({ ...f, topic: prefill.topic, keyword: prefill.keyword || '', toolSlug: prefill.toolSlug || '' }))
+      setForm(f => ({ ...f, topic: prefill.topic, keyword: prefill.keyword || '', toolSlug: prefill.toolSlug || '', toolName: prefill.toolName || '' }))
       onPrefillConsumed?.()
     }
   }, [prefill])
@@ -51,7 +65,8 @@ function BlogCreatorPanel({ prefill, onPrefillConsumed }) {
     setPost(null)
     setPubResult(null)
     try {
-      const res = await api.post('/api/admin/blog/generate', { ...form, category: 'Finance', indianContext: true })
+      const category = BLOG_CATEGORY_BY_TOOL_CATEGORY[TOOL_CATEGORY_BY_SLUG[form.toolSlug]] || 'Finance'
+      const res = await api.post('/api/admin/blog/generate', { ...form, category, indianContext: true })
       if (res.data.success) setPost(res.data.post)
       else setError(res.data.error || 'Generation failed.')
     } catch (err) {
