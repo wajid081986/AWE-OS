@@ -7,7 +7,7 @@ const TOKEN_KEY = 'awe_token';
 const api = axios.create({
   baseURL: BASE_URL,
   withCredentials: true,
-  timeout: 60000,
+  timeout: 150000,
 });
 
 api.interceptors.request.use((config) => {
