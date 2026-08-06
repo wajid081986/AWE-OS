@@ -19,10 +19,23 @@ const STATUS_BADGE = {
   archived:  'bg-gray-700 text-gray-400',
 }
 
+// Same key Blog Creator (Create tab) and BlogWriterPanel/SocialBlast already
+// write to — local drafts show up here before they've ever hit the DB.
+const DRAFTS_KEY = 'awe_content_drafts'
+function loadLocalDrafts() {
+  try { return JSON.parse(localStorage.getItem(DRAFTS_KEY) || '[]') } catch { return [] }
+}
+function removeLocalDraft(savedAt) {
+  const next = loadLocalDrafts().filter(d => d.savedAt !== savedAt)
+  try { localStorage.setItem(DRAFTS_KEY, JSON.stringify(next)) } catch {}
+  return next
+}
+
 // ── A) Publishing Queue ──────────────────────────────────────────────────────
 
 function PublishingQueuePanel() {
   const [posts,   setPosts]   = useState([])
+  const [drafts,  setDrafts]  = useState(loadLocalDrafts)
   const [loading, setLoading] = useState(true)
   const [error,   setError]   = useState(null)
   const [busyId,  setBusyId]  = useState(null)
@@ -43,7 +56,11 @@ function PublishingQueuePanel() {
     }
   }
 
-  const queued = posts.filter(p => p.status !== 'published')
+  const dbQueued = posts.filter(p => p.status !== 'published')
+  // Local drafts that have since been published (same slug now live in DB)
+  // shouldn't show twice.
+  const publishedSlugs = new Set(posts.filter(p => p.status === 'published').map(p => p.slug))
+  const localQueued = drafts.filter(d => d.slug && !publishedSlugs.has(d.slug))
 
   async function publishOne(id) {
     setBusyId(id)
@@ -55,14 +72,45 @@ function PublishingQueuePanel() {
     }
   }
 
+  async function publishLocalDraft(draft) {
+    setBusyId(draft.savedAt)
+    try {
+      await api.post('/api/admin/blog/publish-db', {
+        title: draft.title, slug: draft.slug, content: draft.content,
+        meta_title: draft.metaTitle, meta_description: draft.metaDescription,
+        category: draft.category, excerpt: draft.excerpt, read_time: draft.readTime,
+        faqs: draft.faqs, related_tools: draft.relatedTools,
+        image_url: draft.imageUrl, image_credit: draft.imageCredit, image_credit_url: draft.imageCreditUrl,
+      })
+      setDrafts(removeLocalDraft(draft.savedAt))
+      await load()
+    } catch {} finally {
+      setBusyId(null)
+    }
+  }
+
   async function publishAll() {
     setBulkBusy(true)
-    for (const p of queued) {
+    for (const p of dbQueued) {
       try { await api.patch(`/api/admin/blog/published/${p.id}`, { status: 'published' }) } catch {}
     }
+    for (const d of localQueued) {
+      try {
+        await api.post('/api/admin/blog/publish-db', {
+          title: d.title, slug: d.slug, content: d.content,
+          meta_title: d.metaTitle, meta_description: d.metaDescription,
+          category: d.category, excerpt: d.excerpt, read_time: d.readTime,
+          faqs: d.faqs, related_tools: d.relatedTools,
+          image_url: d.imageUrl, image_credit: d.imageCredit, image_credit_url: d.imageCreditUrl,
+        })
+      } catch {}
+    }
+    setDrafts(loadLocalDrafts().filter(d => !localQueued.some(q => q.savedAt === d.savedAt)))
     await load()
     setBulkBusy(false)
   }
+
+  const totalQueued = dbQueued.length + localQueued.length
 
   if (loading) return <div className="flex justify-center py-10"><Spinner /></div>
   if (error) return <p className="text-red-400 text-sm">{error}</p>
@@ -70,8 +118,8 @@ function PublishingQueuePanel() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-white">Publishing Queue — {queued.length} pending</h2>
-        {queued.length > 0 && (
+        <h2 className="text-sm font-semibold text-white">Publishing Queue — {totalQueued} pending</h2>
+        {totalQueued > 0 && (
           <button onClick={publishAll} disabled={bulkBusy}
             className="text-xs px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg font-semibold flex items-center gap-2">
             {bulkBusy ? <><Spinner />Publishing…</> : '🚀 Publish All'}
@@ -79,14 +127,28 @@ function PublishingQueuePanel() {
         )}
       </div>
 
-      {queued.length === 0 ? (
+      {totalQueued === 0 ? (
         <div className="bg-gray-800 border border-gray-700 border-dashed rounded-xl p-10 text-center">
           <p className="text-4xl mb-3">✅</p>
           <p className="text-gray-400 text-sm">Nothing waiting — queue is empty.</p>
         </div>
       ) : (
         <div className="space-y-2">
-          {queued.map(p => (
+          {localQueued.map(d => (
+            <div key={d.savedAt} className="bg-gray-800 border border-gray-700 rounded-xl p-4 flex items-center gap-4">
+              <span className="text-lg shrink-0">💾</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white truncate">{d.title || d.keyword}</p>
+                <p className="text-xs text-gray-500">{d.category || d.toolName}</p>
+              </div>
+              <span className="text-[10px] px-2 py-0.5 rounded font-semibold shrink-0 bg-blue-900/60 text-blue-300">local draft</span>
+              <button onClick={() => publishLocalDraft(d)} disabled={busyId === d.savedAt}
+                className="text-xs px-3 py-1.5 bg-indigo-700 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-lg shrink-0">
+                {busyId === d.savedAt ? <Spinner /> : 'Publish'}
+              </button>
+            </div>
+          ))}
+          {dbQueued.map(p => (
             <div key={p.id} className="bg-gray-800 border border-gray-700 rounded-xl p-4 flex items-center gap-4">
               <span className="text-lg shrink-0">📝</span>
               <div className="flex-1 min-w-0">

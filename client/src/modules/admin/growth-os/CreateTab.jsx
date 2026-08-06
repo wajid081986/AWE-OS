@@ -18,6 +18,18 @@ const BLOG_CATEGORY_BY_TOOL_CATEGORY = {
 }
 const TOOL_CATEGORY_BY_SLUG = Object.fromEntries(getAllTools().map(t => [t.slug, t.category]))
 
+// Same localStorage key BlogWriterPanel/SocialBlast already use for drafts —
+// so a Growth OS-generated post shows up in the Publishing Queue (Grow tab)
+// and in SocialBlast's "import from draft" dropdown without a DB round-trip.
+const DRAFTS_KEY = 'awe_content_drafts'
+function persistDraft(draft) {
+  let all = []
+  try { all = JSON.parse(localStorage.getItem(DRAFTS_KEY) || '[]') } catch {}
+  const next = [{ ...draft, savedAt: new Date().toISOString() }, ...all].slice(0, 10)
+  try { localStorage.setItem(DRAFTS_KEY, JSON.stringify(next)) } catch {}
+  return next
+}
+
 const SUB_SECTIONS = [
   { id: 'blog',    label: '✏️ Blog Creator'    },
   { id: 'humanize', label: '🤖 Humanizer'        },
@@ -67,8 +79,12 @@ function BlogCreatorPanel({ prefill, onPrefillConsumed }) {
     try {
       const category = BLOG_CATEGORY_BY_TOOL_CATEGORY[TOOL_CATEGORY_BY_SLUG[form.toolSlug]] || 'Finance'
       const res = await api.post('/api/admin/blog/generate', { ...form, category, indianContext: true })
-      if (res.data.success) setPost(res.data.post)
-      else setError(res.data.error || 'Generation failed.')
+      if (res.data.success) {
+        setPost(res.data.post)
+        persistDraft({ keyword: form.keyword, toolSlug: form.toolSlug, toolName: form.toolName, ...res.data.post })
+      } else {
+        setError(res.data.error || 'Generation failed.')
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Generation failed.')
     } finally {
