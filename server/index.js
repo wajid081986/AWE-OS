@@ -263,6 +263,10 @@ app.use('/api/tools/generate', toolsGenerateRoutes);
 app.use('/api/pdf-ai',         pdfAiLimiter, pdfAiToolsRoutes);
 app.use('/api/agents',         agentsRoutes);
 app.use('/api/blog',             blogPublicRoutes);
+// Content-Studio humanize is a multi-call, chunked AI pipeline on long posts —
+// override the default socket timeout for this route, same pattern used below
+// for /api/codegen/generate and /api/admin/video-agent/generate.
+app.use('/api/admin/blog/humanize', (req, res, next) => { req.setTimeout(180_000); res.setTimeout(180_000); next(); });
 app.use('/api/admin/blog',       adminLimiter, adminBlogRoutes);
 app.use('/api/admin/traffic',   adminLimiter, adminTrafficRoutes);
 app.use('/api/social',          adminLimiter, socialPublishRoutes);

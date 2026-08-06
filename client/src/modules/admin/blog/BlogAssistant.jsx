@@ -9,6 +9,25 @@ import KeywordClusters from './KeywordClusters'
 import EeatBooster from './EeatBooster'
 import ContentStudio from './ContentStudio'
 
+// Humanize calls do multiple sequential OpenAI calls server-side (chunked for
+// long posts) — override the shared 60s axios default so a long post doesn't
+// time out client-side before the server finishes. Paired with a small retry
+// wrapper for transient failures (rate limits, dropped connections).
+const HUMANIZE_TIMEOUT_MS = 180_000
+
+async function withRetry(fn, { attempts = 3, baseDelayMs = 2000 } = {}) {
+  let lastErr
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn()
+    } catch (err) {
+      lastErr = err
+      if (i < attempts - 1) await new Promise(r => setTimeout(r, baseDelayMs * 2 ** i))
+    }
+  }
+  throw lastErr
+}
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const AWE_TOOLS = [
@@ -965,7 +984,9 @@ function PublishedPostsTab() {
     setHumanizeError('')
     setHumanizeLoading(true)
     try {
-      const { data } = await api.post(`/api/admin/blog/humanize/${post.id}`, {})
+      const { data } = await withRetry(() =>
+        api.post(`/api/admin/blog/humanize/${post.id}`, {}, { timeout: HUMANIZE_TIMEOUT_MS })
+      )
       if (!data.success) throw new Error(data.error || 'Humanize failed')
       setHumanizeResult(data.result)
     } catch (err) {
@@ -985,10 +1006,12 @@ function PublishedPostsTab() {
     if (!humanizeResult?.markerIntegrity) return
     setHumanizeSaving(true)
     try {
-      await api.post(`/api/admin/blog/humanize/${post.id}/save`, {
-        humanizedBlocks: humanizeResult.humanizedBlocks,
-        scores:          humanizeResult.scores,
-      })
+      await withRetry(() =>
+        api.post(`/api/admin/blog/humanize/${post.id}/save`, {
+          humanizedBlocks: humanizeResult.humanizedBlocks,
+          scores:          humanizeResult.scores,
+        }, { timeout: HUMANIZE_TIMEOUT_MS })
+      )
       setPosts(ps => ps.map(p => p.id === post.id ? {
         ...p,
         ai_score:     humanizeResult.scores?.afterHumanization ?? p.ai_score,
@@ -1020,14 +1043,18 @@ function PublishedPostsTab() {
       if (bulkCancelRef.current) break
       const post = targets[i]
       try {
-        const { data: previewData } = await api.post(`/api/admin/blog/humanize/${post.id}`, {})
+        const { data: previewData } = await withRetry(() =>
+          api.post(`/api/admin/blog/humanize/${post.id}`, {}, { timeout: HUMANIZE_TIMEOUT_MS })
+        )
         if (!previewData.success || !previewData.result?.markerIntegrity) {
           skipped++
         } else {
-          await api.post(`/api/admin/blog/humanize/${post.id}/save`, {
-            humanizedBlocks: previewData.result.humanizedBlocks,
-            scores:          previewData.result.scores,
-          })
+          await withRetry(() =>
+            api.post(`/api/admin/blog/humanize/${post.id}/save`, {
+              humanizedBlocks: previewData.result.humanizedBlocks,
+              scores:          previewData.result.scores,
+            }, { timeout: HUMANIZE_TIMEOUT_MS })
+          )
           setPosts(ps => ps.map(p => p.id === post.id ? {
             ...p,
             ai_score:     previewData.result.scores?.afterHumanization ?? p.ai_score,
@@ -1036,7 +1063,8 @@ function PublishedPostsTab() {
           } : p))
           humanized++
         }
-      } catch {
+      } catch (err) {
+        console.error(`[Humanize All] "${post.title}" (${post.id}) failed:`, err.response?.data?.error || err.message)
         failed++
       }
       setBulkProgress({ done: i + 1, total: targets.length })
