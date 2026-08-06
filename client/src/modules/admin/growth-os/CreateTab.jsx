@@ -49,6 +49,86 @@ function Spinner() {
   return <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
 }
 
+// Converts **bold** markers and inline <a href='..'>label</a> tags (as
+// produced by the AI blog generator's internal-linking prompt) into real
+// elements — same parsing rules as the public post renderer
+// (client/src/pages/BlogPostPage.jsx renderInline), adapted to this panel's
+// dark theme so preview matches what BlogPostPage will actually render.
+const INLINE_LINK_RE = /^<a\s+href=(['"])([^'"]+)\1[^>]*>([^<]*)<\/a>$/i
+function renderInline(text) {
+  if (typeof text !== 'string' || (!text.includes('**') && !text.includes('<a '))) return text
+  return text.split(/(\*\*[^*]+\*\*|<a\s+href=(?:'[^']+'|"[^"]+")[^>]*>[^<]*<\/a>)/gi).map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-semibold text-white">{part.slice(2, -2)}</strong>
+    }
+    const linkMatch = part.match(INLINE_LINK_RE)
+    if (linkMatch) {
+      const [, , href, label] = linkMatch
+      return <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 font-medium underline underline-offset-2">{label}</a>
+    }
+    return part
+  })
+}
+
+// Preview-only block renderer — mirrors BlogPostPage.jsx's ContentBlock so
+// the admin can sanity-check formatting before Publish, dark-themed to match
+// this panel. Links open in a new tab rather than navigating within the SPA,
+// since this is a form preview, not the routed page.
+function ContentPreviewBlock({ block }) {
+  switch (block.type) {
+    case 'h2':
+      return <h3 className="text-sm font-bold text-white mt-4 mb-1.5">{block.text}</h3>
+    case 'p':
+      return <p className="text-xs text-gray-300 leading-relaxed mb-2">{renderInline(block.text)}</p>
+    case 'ul':
+      return (
+        <ul className="list-disc list-outside pl-4 mb-2 space-y-1">
+          {block.items.map((item, i) => <li key={i} className="text-xs text-gray-300 leading-relaxed">{renderInline(item)}</li>)}
+        </ul>
+      )
+    case 'table':
+      return (
+        <div className="overflow-x-auto mb-3">
+          <table className="min-w-full text-xs border border-gray-700 rounded-lg overflow-hidden">
+            <thead>
+              <tr className="bg-gray-900 border-b border-gray-700">
+                {block.headers.map((h, i) => <th key={i} className="px-3 py-2 text-left font-semibold text-white whitespace-nowrap">{h}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {block.rows.map((row, ri) => (
+                <tr key={ri} className={ri % 2 === 0 ? 'bg-gray-800' : 'bg-gray-900'}>
+                  {row.map((cell, ci) => <td key={ci} className="px-3 py-2 text-gray-300 border-t border-gray-700 whitespace-nowrap">{renderInline(cell)}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
+    case 'callout': {
+      const ctaLinks = [...(block.links || []), ...(block.link ? [block.link] : [])]
+      return (
+        <div className="bg-indigo-950/40 border border-indigo-800 rounded-lg p-3 mb-3">
+          <p className="text-xs font-bold text-indigo-200 mb-1">{block.title}</p>
+          <p className="text-xs text-indigo-300 mb-2 leading-relaxed">{block.text}</p>
+          {ctaLinks.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {ctaLinks.map((l, i) => (
+                <a key={i} href={l.href} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg">
+                  {l.label} →
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      )
+    }
+    default:
+      return null
+  }
+}
+
 // ── Blog Creator ────────────────────────────────────────────────────────────
 
 function BlogCreatorPanel({ prefill, onPrefillConsumed }) {
@@ -57,6 +137,8 @@ function BlogCreatorPanel({ prefill, onPrefillConsumed }) {
   })
   const [generating, setGenerating] = useState(false)
   const [post,       setPost]       = useState(null)
+  const [actualWords, setActualWords] = useState(null)
+  const [humanize,    setHumanize]    = useState(null)
   const [publishing,  setPublishing] = useState(false)
   const [pubResult,   setPubResult]  = useState(null)
   const [error,       setError]      = useState(null)
@@ -75,12 +157,16 @@ function BlogCreatorPanel({ prefill, onPrefillConsumed }) {
     setGenerating(true)
     setError(null)
     setPost(null)
+    setActualWords(null)
+    setHumanize(null)
     setPubResult(null)
     try {
       const category = BLOG_CATEGORY_BY_TOOL_CATEGORY[TOOL_CATEGORY_BY_SLUG[form.toolSlug]] || 'Finance'
       const res = await api.post('/api/admin/blog/generate', { ...form, category, indianContext: true })
       if (res.data.success) {
         setPost(res.data.post)
+        setActualWords(res.data.actualWords)
+        setHumanize(res.data.humanize)
         persistDraft({ keyword: form.keyword, toolSlug: form.toolSlug, toolName: form.toolName, ...res.data.post })
       } else {
         setError(res.data.error || 'Generation failed.')
@@ -170,6 +256,34 @@ function BlogCreatorPanel({ prefill, onPrefillConsumed }) {
         <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 space-y-4 overflow-auto max-h-[80vh]">
           <h2 className="text-sm font-semibold text-white">{post.title}</h2>
           <p className="text-xs text-gray-500">{post.excerpt}</p>
+
+          <div className="flex flex-wrap items-center gap-2 pb-2 border-b border-gray-700">
+            {actualWords != null && (
+              <span className="text-xs text-gray-400">{actualWords.toLocaleString()} words (target: {form.wordCount.toLocaleString()})</span>
+            )}
+            {humanize?.applied === true && (
+              <span className="text-xs font-medium text-green-400 bg-green-950/40 border border-green-800 rounded-full px-2 py-0.5">✓ Humanized</span>
+            )}
+            {humanize?.applied === false && (
+              <span className="text-xs font-medium text-amber-400 bg-amber-950/40 border border-amber-800 rounded-full px-2 py-0.5">⚠ Not humanized — {humanize.reason}</span>
+            )}
+          </div>
+
+          <div className="space-y-0.5">
+            {post.content.map((block, i) => <ContentPreviewBlock key={i} block={block} />)}
+            {post.faqs?.length > 0 && (
+              <div className="pt-2 space-y-2">
+                <h3 className="text-sm font-bold text-white">FAQs</h3>
+                {post.faqs.map((f, i) => (
+                  <div key={i} className="bg-gray-900 border border-gray-700 rounded-lg p-3">
+                    <p className="text-xs font-semibold text-white mb-1">{f.q}</p>
+                    <p className="text-xs text-gray-300 leading-relaxed">{f.a}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="flex gap-3 pt-2">
             <button onClick={handlePublish} disabled={publishing}
               className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg flex items-center justify-center gap-2">
