@@ -1523,20 +1523,24 @@ async function humanizeParagraphsChunked(paragraphs, opts) {
     chunks.push(paragraphs.slice(i, i + HUMANIZE_CHUNK_SIZE))
   }
 
-  const humanizedParagraphs = []
-  let scores = null
-  for (const chunk of chunks) {
+  const results = await Promise.all(chunks.map(async (chunk) => {
     const result = await contentStudio.humanize(buildMarkedText(chunk), { ...opts, preserveMarkers: true })
     const split  = splitMarkedText(result.humanized, chunk)
+    return { split, scores: result.scores }
+  }))
+
+  const humanizedParagraphs = []
+  let scores = null
+  for (const { split, scores: chunkScores } of results) {
     if (split === null) return { markerIntegrity: false, humanizedParagraphs: null, scores: null }
     humanizedParagraphs.push(...split)
     scores = scores ? {
-      beforeHumanization: Math.round((scores.beforeHumanization + result.scores.beforeHumanization) / 2),
-      afterHumanization:  Math.round((scores.afterHumanization  + result.scores.afterHumanization)  / 2),
-      humanScore:         Math.round((scores.humanScore         + result.scores.humanScore)         / 2),
-      readability:        Math.round((scores.readability        + result.scores.readability)        / 2),
-      engagement:         Math.round((scores.engagement         + result.scores.engagement)          / 2),
-    } : result.scores
+      beforeHumanization: Math.round((scores.beforeHumanization + chunkScores.beforeHumanization) / 2),
+      afterHumanization:  Math.round((scores.afterHumanization  + chunkScores.afterHumanization)  / 2),
+      humanScore:         Math.round((scores.humanScore         + chunkScores.humanScore)         / 2),
+      readability:        Math.round((scores.readability        + chunkScores.readability)        / 2),
+      engagement:         Math.round((scores.engagement         + chunkScores.engagement)          / 2),
+    } : chunkScores
   }
 
   return { markerIntegrity: true, humanizedParagraphs, scores }
