@@ -3,6 +3,7 @@ const requireAuth     = require('../middleware/auth')
 const supabase         = require('../db/supabase')
 const { getOpenAI }    = require('../core/ai-engine')
 const parseAIJson      = require('../services/parseAIJson')
+const { getSearchAnalytics } = require('../services/search-console.service')
 
 const router = express.Router()
 
@@ -154,6 +155,62 @@ Number of distinct AWE-OS tools with a linked blog post in the last 30 posts: ${
   } catch (err) {
     console.error('[admin-growth-os/recommendations]', err.message)
     res.status(err.status || 500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /api/admin/growth-os/gsc-sync ─────────────────────────────────────────
+// Pulls the last 7 days of Search Console data and upserts it into
+// gsc_daily_stats (deduped on date+page_url+query). Manually triggered from
+// the UI for now — no cron/scheduling wired up in this stage.
+
+const GSC_SYNC_BATCH_SIZE = 500
+
+router.post('/gsc-sync', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const end   = new Date()
+    const start = new Date(end.getTime() - 7 * 24 * 60 * 60 * 1000)
+    const fmt   = d => d.toISOString().slice(0, 10)
+
+    const startDate = fmt(start)
+    const endDate   = fmt(end)
+
+    const { configured, rows } = await getSearchAnalytics({
+      startDate,
+      endDate,
+      dimensions: ['date', 'page', 'query'],
+      rowLimit:   5000,
+    })
+
+    if (!configured) {
+      return res.json({ success: true, configured: false, synced: 0 })
+    }
+
+    const syncedAt = new Date().toISOString()
+    const payload = rows.map(row => ({
+      date:        row.keys[0],
+      page_url:    row.keys[1],
+      query:       row.keys[2],
+      clicks:      row.clicks,
+      impressions: row.impressions,
+      ctr:         row.ctr,
+      position:    row.position,
+      synced_at:   syncedAt,
+    }))
+
+    let synced = 0
+    for (let i = 0; i < payload.length; i += GSC_SYNC_BATCH_SIZE) {
+      const batch = payload.slice(i, i + GSC_SYNC_BATCH_SIZE)
+      const { error } = await supabase
+        .from('gsc_daily_stats')
+        .upsert(batch, { onConflict: 'date,page_url,query' })
+      if (error) throw error
+      synced += batch.length
+    }
+
+    res.json({ success: true, configured: true, synced, dateRange: { startDate, endDate } })
+  } catch (err) {
+    console.error('[admin-growth-os/gsc-sync]', err.message)
+    res.status(500).json({ success: false, error: err.message })
   }
 })
 
