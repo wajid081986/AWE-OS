@@ -377,13 +377,12 @@ Return the JSON object with "blocks" and "faqs" keys as specified in the system 
       const paragraphs = extractParagraphs(post.content)
       if (paragraphs.length > 0) {
         try {
-          const humanizeResult = await contentStudio.humanize(buildMarkedText(paragraphs), {
-            tone: 'conversational', targetAudience: 'Indian professionals', preserveMarkers: true,
+          const { markerIntegrity, humanizedParagraphs, scores } = await humanizeParagraphsChunked(paragraphs, {
+            tone: 'conversational', targetAudience: 'Indian professionals',
           })
-          const splitParagraphs = splitMarkedText(humanizeResult.humanized, paragraphs)
-          if (splitParagraphs) {
-            post.content = applyHumanizedParagraphs(post.content, splitParagraphs)
-            humanizeInfo = { applied: true, scores: humanizeResult.scores }
+          if (markerIntegrity) {
+            post.content = applyHumanizedParagraphs(post.content, humanizedParagraphs)
+            humanizeInfo = { applied: true, scores }
           } else {
             humanizeInfo = { applied: false, reason: 'Marker round-trip failed — kept the original draft.' }
           }
@@ -1507,6 +1506,41 @@ function applyHumanizedParagraphs(blocks, humanizedParagraphs) {
   return next
 }
 
+// Chunk long posts into groups of paragraphs before humanizing — a single
+// unchunked call on a 2000+ word post sends the whole article through gpt-4o
+// in one request, which on a slow day exceeds both the client and platform
+// request timeout and shows up as a hard failure (not a graceful
+// markerIntegrity:false) in the Published Posts bulk run. Each chunk keeps
+// its own local §§P<n>§§ marker numbering, so a chunk that fails to
+// round-trip is detected independently — one bad chunk still fails the
+// whole post safely rather than silently guessing.
+const HUMANIZE_CHUNK_SIZE = 6 // paragraphs per OpenAI call
+
+async function humanizeParagraphsChunked(paragraphs, opts) {
+  const chunks = []
+  for (let i = 0; i < paragraphs.length; i += HUMANIZE_CHUNK_SIZE) {
+    chunks.push(paragraphs.slice(i, i + HUMANIZE_CHUNK_SIZE))
+  }
+
+  const humanizedParagraphs = []
+  let scores = null
+  for (const chunk of chunks) {
+    const result = await contentStudio.humanize(buildMarkedText(chunk), { ...opts, preserveMarkers: true })
+    const split  = splitMarkedText(result.humanized, chunk)
+    if (split === null) return { markerIntegrity: false, humanizedParagraphs: null, scores: null }
+    humanizedParagraphs.push(...split)
+    scores = scores ? {
+      beforeHumanization: Math.round((scores.beforeHumanization + result.scores.beforeHumanization) / 2),
+      afterHumanization:  Math.round((scores.afterHumanization  + result.scores.afterHumanization)  / 2),
+      humanScore:         Math.round((scores.humanScore         + result.scores.humanScore)         / 2),
+      readability:        Math.round((scores.readability        + result.scores.readability)        / 2),
+      engagement:         Math.round((scores.engagement         + result.scores.engagement)          / 2),
+    } : result.scores
+  }
+
+  return { markerIntegrity: true, humanizedParagraphs, scores }
+}
+
 // POST /api/admin/blog/humanize/:id — preview only, does NOT persist
 router.post('/humanize/:id', requireAuth, requireAdmin, async (req, res) => {
   const { tone, targetAudience, preserveKeywords, addPersonality } = req.body
@@ -1525,24 +1559,19 @@ router.post('/humanize/:id', requireAuth, requireAdmin, async (req, res) => {
       return res.json({ success: false, error: 'No paragraph text found to humanize' })
     }
 
-    const result = await contentStudio.humanize(buildMarkedText(paragraphs), {
-      tone, targetAudience, preserveKeywords, addPersonality, preserveMarkers: true
+    const { markerIntegrity, humanizedParagraphs, scores } = await humanizeParagraphsChunked(paragraphs, {
+      tone, targetAudience, preserveKeywords, addPersonality
     })
-
-    const splitParagraphs  = splitMarkedText(result.humanized, paragraphs)
-    const markerIntegrity  = splitParagraphs !== null
-    const humanizedBlocks  = markerIntegrity ? applyHumanizedParagraphs(blocks, splitParagraphs) : blocks
+    const humanizedBlocks = markerIntegrity ? applyHumanizedParagraphs(blocks, humanizedParagraphs) : blocks
 
     res.json({
       success: true,
       result: {
-        original:       paragraphs.map(p => p.text).join('\n\n'),
-        humanized:       markerIntegrity ? splitParagraphs.map(p => p.text).join('\n\n') : null,
+        original:  paragraphs.map(p => p.text).join('\n\n'),
+        humanized: markerIntegrity ? humanizedParagraphs.map(p => p.text).join('\n\n') : null,
         humanizedBlocks,
         markerIntegrity,
-        analysis:     result.analysis,
-        scores:       result.scores,
-        improvements: result.improvements
+        scores,
       }
     })
   } catch (err) {
