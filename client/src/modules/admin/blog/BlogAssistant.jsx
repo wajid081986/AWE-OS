@@ -949,6 +949,23 @@ function PublishedPostsTab() {
     load()
   }, [])
 
+  // Deep-link support: /admin/blog?edit=<slug> (e.g. from Bulk SEO Audit)
+  // auto-opens that post's inline edit form once, on first load only — must
+  // not re-fire on later posts updates (handleSave/handleDelete also call
+  // setPosts) or a save would immediately reopen the form it just closed.
+  const appliedEditParam = useRef(false)
+  useEffect(() => {
+    if (appliedEditParam.current || !posts.length) return
+    appliedEditParam.current = true
+    const slug = new URLSearchParams(window.location.search).get('edit')
+    if (!slug) return
+    const match = posts.find(p => p.slug === slug)
+    if (match) {
+      setEditing({ ...match })
+      document.getElementById(`post-${match.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [posts])
+
   async function load() {
     setLoading(true)
     setError(null)
@@ -1351,7 +1368,7 @@ function PublishedPostsTab() {
       ) : (
         <div className="space-y-2">
           {displayedPosts.map(post => (
-            <div key={post.id} className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+            <div key={post.id} id={`post-${post.id}`} className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
               {/* Row */}
               <div className="flex items-center gap-3 px-4 py-3">
                 <div className="flex-1 min-w-0">
@@ -1644,6 +1661,14 @@ function PublishedPostsTab() {
 export default function BlogAssistant() {
   const [activeTab, setActiveTab] = useState('write')
   const [preFill,   setPreFill]   = useState(null)
+
+  // /admin/blog?edit=<slug> deep-links into Published Posts (see the
+  // matching effect in PublishedPostsTab that opens the post itself).
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('edit')) {
+      setActiveTab('published')
+    }
+  }, [])
 
   function handleWriteIdea(data) {
     setPreFill({ ...data, _ts: Date.now() })
