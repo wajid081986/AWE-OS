@@ -1,12 +1,15 @@
-const express     = require('express');
-const supabase     = require('../db/supabase');
-const requireAuth  = require('../middleware/auth');
+const express       = require('express');
+const supabase       = require('../db/supabase');
+const requireAuth    = require('../middleware/auth');
+const { getOpenAI }  = require('../core/ai-engine');
+const parseAIJson    = require('../services/parseAIJson');
 const {
   generatePostContent,
   humanizeParagraphsChunked,
   extractParagraphs,
   applyHumanizedParagraphs,
 } = require('./admin-blog');
+const { fetchSearchPerformance } = require('./admin-growth-os');
 
 const router = express.Router();
 
@@ -18,6 +21,12 @@ const INTERNAL_LINK_RE = /href=(['"])\/(?!\/)[^'"]*\1/i;
 // CLAUDE.md changelog 2026-08-07 (Bulk SEO Audit Fix integration).
 const REGENERATE_FLAGS       = new Set(['thin_content', 'no_faq', 'no_internal_links']);
 const FIX_REGENERATE_WORDS   = 1800;
+
+// ── CTR Optimizer (Batch 53) ──────────────────────────────────────────────────
+const CTR_MIN_IMPRESSIONS = 20;
+const CTR_LOW_THRESHOLD   = 0.01; // 1%
+const AI_CALL_TIMEOUT_MS  = 90_000;
+const BLOG_URL_PREFIX     = 'https://www.awe-os.com/blog/';
 
 function requireAdmin(req, res, next) {
   if (req.user?.role !== 'admin') {
@@ -204,6 +213,133 @@ router.post('/fix/:id/confirm', requireAuth, requireAdmin, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error('[admin-blog-bulk-audit/fix/:id/confirm]', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── GET /ctr-opportunities — published posts with real impressions but
+// very low/zero clicks (a title/meta problem, not a ranking problem) ─────────
+// Joins blog_posts.slug to gsc_daily_stats.page_url via the confirmed
+// canonical-URL pattern. Posts with no GSC match are excluded — no data
+// isn't evidence of a CTR problem. See CLAUDE.md changelog 2026-08-07.
+
+router.get('/ctr-opportunities', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const perf = await fetchSearchPerformance();
+    if (!perf) return res.json({ success: true, configured: false, posts: [] });
+
+    const { data: posts, error } = await supabase
+      .from('blog_posts')
+      .select('id, slug, title, meta_title, meta_description')
+      .eq('status', 'published');
+    if (error) throw error;
+
+    const pageByUrl = new Map((perf.last28.allPages || []).map(p => [p.page_url, p]));
+
+    const opportunities = (posts || [])
+      .map(post => {
+        const page = pageByUrl.get(`${BLOG_URL_PREFIX}${post.slug}`);
+        if (!page) return null;
+        if (page.impressions <= CTR_MIN_IMPRESSIONS) return null;
+        if (!(page.clicks === 0 || page.ctr < CTR_LOW_THRESHOLD)) return null;
+        return {
+          id:               post.id,
+          slug:             post.slug,
+          title:            post.title,
+          meta_title:       post.meta_title,
+          meta_description: post.meta_description,
+          impressions:      page.impressions,
+          clicks:           page.clicks,
+          ctr:              page.ctr,
+          topQueries:       page.topQueries || [],
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.impressions - a.impressions);
+
+    res.json({ success: true, configured: true, posts: opportunities });
+  } catch (err) {
+    console.error('[admin-blog-bulk-audit/ctr-opportunities]', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── POST /meta-suggest/:id — preview only, does NOT persist ──────────────────
+// One AI call suggesting 2-3 alternative {meta_title, meta_description}
+// pairs to raise CTR. Never touches post content — only the search-result
+// headline/snippet fields are in scope.
+
+router.post('/meta-suggest/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { data: post, error } = await supabase
+      .from('blog_posts')
+      .select('id, slug, title, meta_title, meta_description')
+      .eq('id', req.params.id)
+      .single();
+    if (error) throw error;
+    if (!post) return res.status(404).json({ success: false, error: 'Post not found' });
+
+    let topQueries = [];
+    try {
+      const perf = await fetchSearchPerformance();
+      const page = perf?.last28?.allPages?.find(p => p.page_url === `${BLOG_URL_PREFIX}${post.slug}`);
+      topQueries = page?.topQueries || [];
+    } catch (perfErr) {
+      console.error('[admin-blog-bulk-audit/meta-suggest] search performance fetch failed:', perfErr.message);
+    }
+
+    const prompt = `A published blog post is getting search impressions but very few clicks — a title/snippet problem, not a ranking problem. Suggest better options for the search-result title and description ONLY. Do not rewrite the article, and do not change the article's own H1 title.
+
+Post title (H1 — for context only, do not change): ${post.title}
+Current meta title (search result headline): ${post.meta_title || '(none set)'}
+Current meta description (search result snippet): ${post.meta_description || '(none set)'}
+${topQueries.length ? `Real Google queries bringing impressions to this page:\n${topQueries.map(q => `- "${q.query}" (${q.impressions} impressions, ${q.clicks} clicks)`).join('\n')}` : 'No per-query data available for this page.'}
+
+Write 3 alternative options, each a {meta_title, meta_description} pair, designed to increase click-through: specific, benefit-driven, include numbers/year/urgency where it fits naturally. meta_title under 60 characters, meta_description under 155 characters. Ground them in the real queries above when given.
+
+Return ONLY valid JSON: {"options":[{"meta_title":"...","meta_description":"..."}]}`;
+
+    const completion = await getOpenAI().chat.completions.create({
+      model:       'gpt-4o-mini',
+      max_tokens:  700,
+      temperature: 0.8,
+      messages:    [{ role: 'user', content: prompt }],
+    }, { timeout: AI_CALL_TIMEOUT_MS });
+
+    const raw     = completion.choices[0]?.message?.content || '';
+    const parsed  = parseAIJson(raw);
+    const options = Array.isArray(parsed.options) ? parsed.options.slice(0, 3) : [];
+
+    res.json({ success: true, options });
+  } catch (err) {
+    console.error('[admin-blog-bulk-audit/meta-suggest/:id]', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── POST /meta-confirm/:id — commits exactly one chosen option ───────────────
+// UPDATE only — never INSERT, never touches slug/content/title. Only
+// meta_title, meta_description, and updated_at are ever written here.
+
+router.post('/meta-confirm/:id', requireAuth, requireAdmin, async (req, res) => {
+  const { meta_title, meta_description } = req.body || {};
+  if (!meta_title || !meta_description) {
+    return res.status(400).json({ success: false, error: 'meta_title and meta_description are required' });
+  }
+
+  try {
+    const { error } = await supabase
+      .from('blog_posts')
+      .update({
+        meta_title,
+        meta_description,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', req.params.id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[admin-blog-bulk-audit/meta-confirm/:id]', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
