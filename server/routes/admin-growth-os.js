@@ -368,4 +368,9 @@ Exactly 5 prompts, each a single detailed sentence describing composition, subje
   }
 })
 
+// ── Additive export for reuse by admin-blog-bulk-audit.js's CTR Optimizer
+// (Batch 53) — attached to the router object so `require('./admin-growth-os')`
+// call sites that only expect the router keep working unchanged.
+router.fetchSearchPerformance = fetchSearchPerformance
+
 module.exports = router
