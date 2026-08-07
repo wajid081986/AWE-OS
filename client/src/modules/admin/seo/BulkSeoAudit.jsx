@@ -176,6 +176,252 @@ function FixPreviewModal({ postTitle, mode, preview, saving, error, onReplace, o
   )
 }
 
+// ── CTR Optimizer ──────────────────────────────────────────────────────────────
+
+function CtrOpportunityRow({ post, onSuggest, suggesting, error }) {
+  return (
+    <tr className="border-t border-gray-700 align-top">
+      <td className="px-4 py-3 text-white max-w-xs truncate">{post.title}</td>
+      <td className="px-4 py-3 text-gray-400">{post.impressions}</td>
+      <td className="px-4 py-3 text-gray-400">{post.clicks}</td>
+      <td className="px-4 py-3 text-gray-400">{(post.ctr * 100).toFixed(2)}%</td>
+      <td className="px-4 py-3 text-gray-400 max-w-xs truncate">{post.meta_title || <span className="italic text-gray-600">(none set)</span>}</td>
+      <td className="px-4 py-3">
+        <button
+          type="button"
+          onClick={() => onSuggest(post)}
+          disabled={suggesting}
+          className="text-indigo-400 hover:underline disabled:opacity-50 disabled:no-underline whitespace-nowrap text-sm"
+        >
+          {suggesting ? 'Thinking…' : 'Suggest →'}
+        </button>
+        {error && <p className="text-xs text-red-400 mt-1 max-w-[12rem]">{error}</p>}
+      </td>
+    </tr>
+  )
+}
+
+function MetaOptionsModal({ postTitle, current, options, applyingIndex, error, onApply, onCancel }) {
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="bg-gray-800 border border-gray-700 rounded-xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+        <div className="px-5 py-4 border-b border-gray-700">
+          <h2 className="text-sm font-bold text-white">Meta title / description options</h2>
+          <p className="text-xs text-gray-400 mt-0.5 truncate max-w-md">{postTitle}</p>
+        </div>
+
+        <div className="px-5 py-4 overflow-y-auto flex-1 space-y-4">
+          <div className="bg-gray-900/60 border border-gray-700 rounded-lg p-3">
+            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Current</p>
+            <p className="text-sm text-white mb-1">{current.meta_title || <span className="italic text-gray-500">(none set)</span>}</p>
+            <p className="text-xs text-gray-400">{current.meta_description || <span className="italic text-gray-500">(none set)</span>}</p>
+          </div>
+
+          {options.map((opt, i) => (
+            <div key={i} className="bg-indigo-950/30 border border-indigo-800 rounded-lg p-3">
+              <p className="text-xs font-semibold text-indigo-300 uppercase mb-1">Option {i + 1}</p>
+              <p className="text-sm text-white mb-1">{opt.meta_title}</p>
+              <p className="text-xs text-gray-300 mb-3">{opt.meta_description}</p>
+              <button
+                type="button"
+                onClick={() => onApply(opt, i)}
+                disabled={applyingIndex != null}
+                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition-colors"
+              >
+                {applyingIndex === i ? 'Applying…' : 'Apply this option →'}
+              </button>
+            </div>
+          ))}
+
+          {options.length === 0 && (
+            <p className="text-gray-500 text-sm">No options returned — try again.</p>
+          )}
+        </div>
+
+        {error && (
+          <div className="px-5 py-3 bg-red-900/40 border-t border-red-700 text-red-300 text-xs">{error}</div>
+        )}
+
+        <div className="px-5 py-4 border-t border-gray-700 flex justify-end">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={applyingIndex != null}
+            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CtrOptimizerSection() {
+  const [posts,      setPosts]      = useState([])
+  const [configured, setConfigured] = useState(true)
+  const [loading,    setLoading]    = useState(false)
+  const [error,      setError]      = useState(null)
+
+  const [suggestingId, setSuggestingId] = useState(null)
+  const [suggestError, setSuggestError] = useState({})
+  const [modal,         setModal]        = useState(null) // { postId, postTitle, current, options }
+  const [applyingIndex, setApplyingIndex] = useState(null)
+  const [applyError,    setApplyError]    = useState(null)
+
+  async function fetchOpportunities() {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await api.get('/api/admin/blog-bulk-audit/ctr-opportunities')
+      if (res.data.success) {
+        setConfigured(res.data.configured !== false)
+        setPosts(res.data.posts || [])
+      } else {
+        setError(res.data.error || 'Failed to load CTR opportunities')
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || err.message || 'Request failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchOpportunities() }, [])
+
+  async function handleSuggest(post) {
+    setSuggestingId(post.id)
+    setSuggestError(prev => ({ ...prev, [post.id]: null }))
+    try {
+      const res = await api.post(`/api/admin/blog-bulk-audit/meta-suggest/${post.id}`)
+      if (res.data.success) {
+        setModal({
+          postId:    post.id,
+          postTitle: post.title,
+          current:   { meta_title: post.meta_title, meta_description: post.meta_description },
+          options:   res.data.options || [],
+        })
+      } else {
+        setSuggestError(prev => ({ ...prev, [post.id]: res.data.error || 'Suggest failed' }))
+      }
+    } catch (err) {
+      setSuggestError(prev => ({ ...prev, [post.id]: err.response?.data?.error || err.message || 'Request failed' }))
+    } finally {
+      setSuggestingId(null)
+    }
+  }
+
+  function closeModal() {
+    setModal(null)
+    setApplyError(null)
+    setApplyingIndex(null)
+  }
+
+  async function handleApply(option, index) {
+    if (!modal) return
+    setApplyingIndex(index)
+    setApplyError(null)
+    try {
+      const res = await api.post(`/api/admin/blog-bulk-audit/meta-confirm/${modal.postId}`, {
+        meta_title:       option.meta_title,
+        meta_description: option.meta_description,
+      })
+      if (res.data.success) {
+        closeModal()
+        fetchOpportunities()
+      } else {
+        setApplyError(res.data.error || 'Apply failed')
+        setApplyingIndex(null)
+      }
+    } catch (err) {
+      setApplyError(err.response?.data?.error || err.message || 'Request failed')
+      setApplyingIndex(null)
+    }
+  }
+
+  return (
+    <div className="mt-10">
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-xl font-bold text-white">CTR Optimizer</h2>
+        <button
+          type="button"
+          onClick={fetchOpportunities}
+          disabled={loading}
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
+        >
+          {loading ? 'Refreshing…' : 'Refresh'}
+        </button>
+      </div>
+      <p className="text-gray-400 text-sm mb-6">
+        Published posts with real search impressions (28d) but zero or very low clicks — a title/snippet
+        problem, not a ranking problem. Suggestions only touch the search-result meta title/description,
+        never the post's own title, slug, or content.
+      </p>
+
+      {error && (
+        <div className="bg-red-900/40 border border-red-700 rounded-lg p-4 text-red-300 text-sm mb-6">
+          {error}
+        </div>
+      )}
+
+      {!loading && !error && !configured && (
+        <p className="text-gray-500 text-sm">Search Console isn't configured yet — no data to show.</p>
+      )}
+
+      {loading && posts.length === 0 && (
+        <div className="flex items-center justify-center py-16 text-gray-500 text-sm">
+          <div className="w-7 h-7 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mr-3" />
+          Loading search performance…
+        </div>
+      )}
+
+      {!loading && configured && posts.length > 0 && (
+        <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-900/60 text-gray-400 text-xs uppercase">
+              <tr>
+                <th className="text-left px-4 py-3">Title</th>
+                <th className="text-left px-4 py-3">Impressions (28d)</th>
+                <th className="text-left px-4 py-3">Clicks</th>
+                <th className="text-left px-4 py-3">CTR</th>
+                <th className="text-left px-4 py-3">Current meta title</th>
+                <th className="text-left px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {posts.map(post => (
+                <CtrOpportunityRow
+                  key={post.id}
+                  post={post}
+                  onSuggest={handleSuggest}
+                  suggesting={suggestingId === post.id}
+                  error={suggestError[post.id]}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {!loading && configured && !error && posts.length === 0 && (
+        <p className="text-gray-500 text-sm">No CTR opportunities found — every post with meaningful impressions is converting reasonably well.</p>
+      )}
+
+      {modal && (
+        <MetaOptionsModal
+          postTitle={modal.postTitle}
+          current={modal.current}
+          options={modal.options}
+          applyingIndex={applyingIndex}
+          error={applyError}
+          onApply={handleApply}
+          onCancel={closeModal}
+        />
+      )}
+    </div>
+  )
+}
+
 export default function BulkSeoAudit() {
   const [posts,   setPosts]   = useState([])
   const [summary, setSummary] = useState(null)
@@ -360,6 +606,8 @@ export default function BulkSeoAudit() {
           onCancel={closePreview}
         />
       )}
+
+      <CtrOptimizerSection />
     </div>
   )
 }
