@@ -451,6 +451,10 @@ Return ONLY valid JSON with the same structure as a comparison page. slug: "${sl
   const maxTokens = pageType === 'city' ? 4000 : 3000
 
   try {
+    // City pages retry sequentially (the retry needs the first attempt's
+    // word count), so this can't be parallelized — but each call still
+    // needs its own cap instead of relying on the SDK's ~10min default.
+    const PROGRAMMATIC_CALL_TIMEOUT_MS = 120_000
     const callAI = async (prompt) => {
       const completion = await getOpenAI().chat.completions.create({
         model: 'gpt-4o',
@@ -460,7 +464,7 @@ Return ONLY valid JSON with the same structure as a comparison page. slug: "${sl
         ],
         max_tokens: maxTokens,
         temperature: 0.7,
-      })
+      }, { timeout: PROGRAMMATIC_CALL_TIMEOUT_MS })
       const raw = completion.choices[0]?.message?.content || ''
       console.log('[admin-seo/generate-programmatic] raw length:', raw.length, 'preview:', raw.slice(0, 200))
       const p = parseAIJson(raw)

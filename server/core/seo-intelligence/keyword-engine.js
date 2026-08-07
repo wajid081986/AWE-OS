@@ -24,6 +24,11 @@ const STRICT_JSON_SYSTEM =
   'If returning an array start with [ and end with ]. ' +
   'If returning an object start with { and end with }.';
 
+// Explicit per-call ceiling instead of the SDK's ~10min default — clustering
+// genuinely needs the keyword list from the first call, so these can't run
+// in parallel, but each still needs its own cap so a stalled call fails fast.
+const OPENAI_CALL_OPTS = { timeout: 60_000, maxRetries: 3 };
+
 async function researchKeywords(seedKeyword, opts = {}) {
   const {
     country     = 'India',
@@ -72,7 +77,7 @@ Return ONLY the JSON array. No explanation.
       { role: 'system', content: STRICT_JSON_SYSTEM },
       { role: 'user',   content: keywordPrompt },
     ],
-  });
+  }, OPENAI_CALL_OPTS);
 
   const kwRaw    = kwRes.choices[0].message.content;
   const keywords = extractJson(kwRaw);
@@ -111,7 +116,7 @@ Return ONLY JSON. No explanation.
       { role: 'system', content: STRICT_JSON_SYSTEM },
       { role: 'user',   content: clusterPrompt },
     ],
-  });
+  }, OPENAI_CALL_OPTS);
 
   const clusterRaw = clusterRes.choices[0].message.content;
   const clusters   = extractJson(clusterRaw) || { clusters: [] };

@@ -2,6 +2,9 @@
 const { getOpenAI } = require('../ai-engine');
 const parseAIJson   = require('../../services/parseAIJson');
 
+// Explicit per-call ceiling instead of the SDK's ~10min default.
+const OPENAI_CALL_OPTS = { timeout: 60_000, maxRetries: 3 };
+
 async function optimizeForSnippet(content, keyword, opts = {}) {
   const {
     snippetType   = 'auto',
@@ -28,19 +31,54 @@ Return JSON:
 }
 Return ONLY JSON.`.trim();
 
-  const detectRes = await openai.chat.completions.create({
-    model:       'gpt-4o-mini',
-    max_tokens:  400,
-    temperature: 0,
-    messages: [
-      { role: 'system', content: 'Return only valid JSON.' },
-      { role: 'user',   content: detectPrompt }
-    ]
-  });
+  // PAA doesn't depend on the detected snippet type or the snippet block
+  // itself — only on keyword/targetCountry, both already known — so it can
+  // run concurrently with the detect call instead of waiting behind it.
+  const paaPrompt = `
+Generate 6 "People Also Ask" questions and answers for:
+Keyword: "${keyword}"
+Country: ${targetCountry}
+
+Return JSON:
+{
+  "questions": [
+    {
+      "question": "exact PAA question",
+      "answer": "concise 2-3 sentence answer (40-60 words)",
+      "answerType": "paragraph|steps|list"
+    }
+  ]
+}
+Return ONLY JSON.`.trim();
+
+  const [detectRes, paaRes] = await Promise.all([
+    openai.chat.completions.create({
+      model:       'gpt-4o-mini',
+      max_tokens:  400,
+      temperature: 0,
+      messages: [
+        { role: 'system', content: 'Return only valid JSON.' },
+        { role: 'user',   content: detectPrompt }
+      ]
+    }, OPENAI_CALL_OPTS),
+    openai.chat.completions.create({
+      model:       'gpt-4o-mini',
+      max_tokens:  1000,
+      temperature: 0,
+      messages: [
+        { role: 'system', content: 'Return only valid JSON.' },
+        { role: 'user',   content: paaPrompt }
+      ]
+    }, OPENAI_CALL_OPTS),
+  ]);
 
   const detection = parseAIJson(
     detectRes.choices[0].message.content
   ) || { bestSnippetType: 'paragraph' };
+
+  const paa = parseAIJson(
+    paaRes.choices[0].message.content
+  ) || { questions: [] };
 
   const finalType = snippetType === 'auto'
     ? detection.bestSnippetType
@@ -95,42 +133,11 @@ Return ONLY JSON.`.trim();
       { role: 'system', content: 'You are a featured snippet expert. Return only valid JSON.' },
       { role: 'user',   content: snippetPrompt }
     ]
-  });
+  }, OPENAI_CALL_OPTS);
 
   const snippet = parseAIJson(
     snippetRes.choices[0].message.content
   ) || {};
-
-  const paaPrompt = `
-Generate 6 "People Also Ask" questions and answers for:
-Keyword: "${keyword}"
-Country: ${targetCountry}
-
-Return JSON:
-{
-  "questions": [
-    {
-      "question": "exact PAA question",
-      "answer": "concise 2-3 sentence answer (40-60 words)",
-      "answerType": "paragraph|steps|list"
-    }
-  ]
-}
-Return ONLY JSON.`.trim();
-
-  const paaRes = await openai.chat.completions.create({
-    model:       'gpt-4o-mini',
-    max_tokens:  1000,
-    temperature: 0,
-    messages: [
-      { role: 'system', content: 'Return only valid JSON.' },
-      { role: 'user',   content: paaPrompt }
-    ]
-  });
-
-  const paa = parseAIJson(
-    paaRes.choices[0].message.content
-  ) || { questions: [] };
 
   return {
     keyword,

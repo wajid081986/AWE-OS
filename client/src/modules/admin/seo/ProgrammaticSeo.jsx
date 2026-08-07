@@ -12,6 +12,10 @@ const INDIAN_CITIES = [
 
 const FAQ_CATS = ['PDF', 'Calculators', 'AI Tools', 'Converters', 'Productivity']
 
+// City pages can retry once server-side (each leg capped at 120s) — give the
+// client enough headroom to outlive the worst-case 240s round trip.
+const PROGRAMMATIC_TIMEOUT_MS = 260_000
+
 const BULK_TOOLS = [
   { slug: 'sip-calculator',  name: 'SIP Calculator'  },
   { slug: 'bmi-calculator',  name: 'BMI Calculator'  },
@@ -202,7 +206,7 @@ export default function ProgrammaticSeo() {
         tool2Name:    form.tool2Name    || '',
         cityName:     '',
         categoryName: form.categoryName || '',
-      })
+      }, { timeout: PROGRAMMATIC_TIMEOUT_MS })
       if (res.data.success) setGeneratedPage(res.data.page)
       else setError(res.data.error || 'Generation failed')
     } catch (e) {
@@ -269,7 +273,7 @@ export default function ProgrammaticSeo() {
       try {
         const genRes = await api.post('/api/admin/seo/generate-programmatic', {
           pageType: 'city', tool1Slug: toolSlug, tool1Name: toolName, cityName: city,
-        })
+        }, { timeout: PROGRAMMATIC_TIMEOUT_MS })
 
         if (!genRes.data.success) throw new Error(genRes.data.error || 'Generation failed')
 
@@ -363,7 +367,7 @@ export default function ProgrammaticSeo() {
         try {
           const genRes = await api.post('/api/admin/seo/generate-programmatic', {
             pageType: 'city', tool1Slug: toolSlug, tool1Name: toolName, cityName: city,
-          })
+          }, { timeout: PROGRAMMATIC_TIMEOUT_MS })
           if (!genRes.data.success) throw new Error(genRes.data.error || 'Generation failed')
           const page = genRes.data.page
           const slug = `${toolSlug}/${toSlug(city)}`
