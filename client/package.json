@@ -13,6 +13,7 @@
     "hydration-stress": "node scripts/hydration-stress.js"
   },
   "dependencies": {
+    "@pdfsmaller/pdf-encrypt": "^1.2.0",
     "@vitejs/plugin-react": "^4.2.1",
     "axios": "^1.15.2",
     "browser-image-compression": "^2.0.2",

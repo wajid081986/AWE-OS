@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { PDFDocument } from 'pdf-lib'
+import { encryptPDF } from '@pdfsmaller/pdf-encrypt'
 import ToolPageShell from '../ToolPageShell'
 import PDFDropZone from '../../../components/tools/PDFDropZone'
 import { downloadFile } from './pdfUtils'
@@ -20,21 +20,18 @@ function ProtectTool() {
     setError(''); setPhase('processing')
     try {
       const buf = await files[0].arrayBuffer()
-      const pdf = await PDFDocument.load(buf, { ignoreEncryption: true })
-      await pdf.encrypt({
-        userPassword: password,
+      const encrypted = await encryptPDF(new Uint8Array(buf), password, {
         ownerPassword: password + '_aweos',
-        permissions: {
-          printing: 'highResolution',
-          modifying: false,
-          copying: false,
-          annotating: false,
-          fillingForms: true,
-          contentAccessibility: true,
-          documentAssembly: false,
-        },
+        allowPrinting: true,
+        allowHighQualityPrint: true,
+        allowModifying: false,
+        allowCopying: false,
+        allowAnnotating: false,
+        allowFillingForms: true,
+        allowExtraction: true,
+        allowAssembly: false,
       })
-      downloadFile(await pdf.save(), files[0].name.replace('.pdf', '_protected.pdf'))
+      downloadFile(encrypted, files[0].name.replace('.pdf', '_protected.pdf'))
       setPhase('done')
     } catch (e) {
       setError('Failed to protect PDF. The file may already be encrypted.')
@@ -119,16 +116,16 @@ const STEPS = [
   "Click 'Protect PDF'. The encrypted file downloads with '_protected' in the filename. Test it immediately: open the downloaded file in any PDF viewer to confirm it shows a password prompt before displaying the content. If the prompt appears, protection was applied correctly.",
 ]
 const FAQS = [
-  { q: 'What level of encryption does this tool apply?', a: "The tool uses PDF standard encryption via pdf-lib, which applies password protection that is respected by every major PDF viewer — Adobe Acrobat, Apple Preview, browser-based PDF readers, Google Drive, and all standard mobile document apps. The default permissions profile disables content modification and text copying while allowing high-resolution printing and form filling, which is the standard configuration for read-only distribution. Recipients need your password to open the document; without it, the file's contents are inaccessible." },
+  { q: 'What level of encryption does this tool apply?', a: "The tool uses AES-256 encryption, the modern PDF 2.0 security standard, which applies password protection that is respected by every major PDF viewer — Adobe Acrobat, Apple Preview, browser-based PDF readers, Google Drive, and all standard mobile document apps. The default permissions profile disables content modification and text copying while allowing high-resolution printing and form filling, which is the standard configuration for read-only distribution. Recipients need your password to open the document; without it, the file's contents are inaccessible." },
   { q: 'What happens if I forget the password I set?', a: "There is no password recovery option in this tool. If you lose the password and do not have the original unprotected file, the document cannot be opened or decrypted through any method available here. Password recovery for encrypted PDFs requires specialised software that attempts brute-force or dictionary attacks — and success is far from guaranteed for strong passwords. This is why saving the password in a password manager immediately after setting it is essential, and why keeping a copy of the original unencrypted file until you have confirmed the password is critical." },
   { q: 'Can I protect a PDF that is already password-protected?', a: 'The tool attempts to load any PDF you upload. If it is already encrypted with an open password, the load may fail or produce unexpected results. In that case, use the AWE-OS Unlock PDF tool first to remove the existing password — you will need to know the current password to do this. Once unlocked, upload the unprotected version here and set a new password. This is also the correct workflow when you want to change an existing password to a stronger one.' },
   { q: 'Does the protected PDF prevent printing and copying?', a: 'The default permissions profile applied by this tool allows high-resolution printing but disables content modification and text copying. Recipients can print the document but cannot paste text into other applications, edit the file, or extract content through standard PDF tools. These restrictions apply to PDF viewers that respect permissions flags — all major commercial viewers honour them. Open-source viewers may ignore permission restrictions, so for truly sensitive content, additional security measures beyond PDF password protection are advisable.' },
   { q: 'Can I set different passwords for viewing and editing?', a: "PDF encryption supports two password types: a user password (required to view the document) and an owner password (required to change permissions). AWE-OS Protect PDF sets both automatically — the password you enter becomes the user password that recipients need to open the file, while an internally generated owner password controls the permissions restrictions. This means anyone with your chosen password can open and read the document, while the editing and copying restrictions can only be modified by someone with the owner password, which is not visible to you or anyone else." },
-  { q: 'Is my PDF or password ever sent to a server?', a: 'Neither your PDF nor your password is ever transmitted anywhere. The entire encryption process runs locally in your browser memory using pdf-lib. Your file is loaded from your device, encrypted in-memory with the password you provide, and the protected copy is downloaded directly to your device. The password is used only during the in-memory operation and is never written to disk, logged, or sent over the network. Once the browser tab is closed, nothing from the session persists anywhere.' },
+  { q: 'Is my PDF or password ever sent to a server?', a: 'Neither your PDF nor your password is ever transmitted anywhere. The entire encryption process runs locally in your browser memory. Your file is loaded from your device, encrypted in-memory with the password you provide, and the protected copy is downloaded directly to your device. The password is used only during the in-memory operation and is never written to disk, logged, or sent over the network. Once the browser tab is closed, nothing from the session persists anywhere.' },
 ]
 const ABOUT = [
   'Password-protecting a PDF before sharing is one of the simplest and most effective ways to control access to sensitive documents. Contracts that should only be read by named parties, financial reports for specific stakeholders, confidential proposals, medical records, and HR documents all benefit from password protection before being sent by email or file-sharing link. The AWE-OS Protect PDF tool adds encryption to any PDF instantly, in your browser, with no upload required.',
-  'The tool uses pdf-lib\'s built-in encryption to apply password protection to your PDF. Once protected, the file requires the password to be opened in any PDF viewer — Adobe Acrobat, Preview, browser-based PDF readers, and all standard document applications. By default, the protected PDF prevents modification and copying of content but allows printing and form filling — the standard permission profile for read-only distribution.',
+  'The tool uses AES-256 encryption, the modern PDF 2.0 security standard, to apply password protection to your PDF. Once protected, the file requires the password to be opened in any PDF viewer — Adobe Acrobat, Preview, browser-based PDF readers, and all standard document applications. By default, the protected PDF prevents modification and copying of content but allows printing and form filling — the standard permission profile for read-only distribution.',
   'A key security note: remember the password you set. If you lose the password and have no unencrypted backup, the document cannot be recovered — the Unlock PDF tool also requires the password to decrypt. Always keep the original unprotected version until you have confirmed the password is saved securely in your password manager. For an existing protected PDF where you want to change the password, Unlock PDF first, then re-protect here with a new password.',
   'All processing runs entirely in your browser; your document and your chosen password never leave your device. No server receives the file, no service stores the password, and no usage is logged. The encrypted PDF downloads directly to your device the moment processing completes. No account is required and there is no file size limit on documents you can protect.',
 ]
