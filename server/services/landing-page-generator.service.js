@@ -12,6 +12,16 @@
 const Anthropic = require('@anthropic-ai/sdk');
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+// Each agent depends on the previous one's output, so this pipeline can't be
+// parallelized — but none of the 4 calls had a timeout, relying on the SDK's
+// default. The route that runs this (POST /api/landing-pages/generate) is
+// fire-and-forget and polled from the client, so a stalled call here doesn't
+// blow a client-side axios timeout — it just leaves the page stuck in
+// "generating" status forever with no visible failure. Cap each call so a
+// stall surfaces as a normal failed run instead.
+const ANTHROPIC_CALL_OPTS      = { timeout: 90_000,  maxRetries: 3 };
+const ANTHROPIC_HTML_CALL_OPTS = { timeout: 180_000, maxRetries: 3 }; // largest call (8000 max_tokens)
+
 // ── Style Presets ─────────────────────────────────────────────────────────────
 
 const STYLE_PRESETS = {
@@ -97,7 +107,7 @@ Return exactly:
   "conversionStrategy": "Primary conversion strategy for this product"
 }`,
     }],
-  });
+  }, ANTHROPIC_CALL_OPTS);
 
   try {
     const text = response.content[0].text;
@@ -211,7 +221,7 @@ Return exactly this JSON:
   }
 }`,
     }],
-  });
+  }, ANTHROPIC_CALL_OPTS);
 
   try {
     const text = response.content[0].text;
@@ -284,7 +294,7 @@ REQUIREMENTS:
 9. Add data-section attributes to each section for inline editing
 10. IMPORTANT: Return ONLY the HTML. Start with <!DOCTYPE html>`,
     }],
-  });
+  }, ANTHROPIC_HTML_CALL_OPTS);
 
   return response.content[0].text;
 }
@@ -308,7 +318,7 @@ Has urgency: ${!!(copy?.finalCta?.guarantee)}
 
 Return: {"copy": 85, "design": 90, "seo": 75, "conversion": 88, "overall": 84, "tips": ["tip1", "tip2"]}`,
     }],
-  });
+  }, ANTHROPIC_CALL_OPTS);
 
   try {
     return JSON.parse(response.content[0].text.replace(/```json|```/g, '').trim());

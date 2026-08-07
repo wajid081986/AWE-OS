@@ -577,6 +577,12 @@ router.post('/generate-bulk', requireAuth, requireAdmin, async (req, res) => {
   req.setTimeout(600_000)
   res.setTimeout(600_000)
 
+  // Each iteration is caught independently below, so one stalled OpenAI call
+  // shouldn't be able to stall the whole batch — but without a cap it could
+  // hang well past the 600s req/res timeout above and eat the rest of the
+  // run's time budget. Cap each call instead of relying on the SDK default.
+  const BULK_CALL_TIMEOUT_MS = 120_000
+
   const results = []
   const errors  = []
 
@@ -605,7 +611,7 @@ router.post('/generate-bulk', requireAuth, requireAdmin, async (req, res) => {
           messages:    [{ role: 'system', content: systemP }, { role: 'user', content: prompt }],
           max_tokens:  4000,
           temperature: 0.7,
-        })
+        }, { timeout: BULK_CALL_TIMEOUT_MS })
         let page = parseAIJson(completion.choices[0]?.message?.content || '')
         page.wordCount = calcWordCount(page.content, page.faqs)
 
@@ -614,7 +620,7 @@ router.post('/generate-bulk', requireAuth, requireAdmin, async (req, res) => {
           const c2 = await getOpenAI().chat.completions.create({
             model: 'gpt-4o', messages: [{ role: 'system', content: systemP }, { role: 'user', content: retry }],
             max_tokens: 4000, temperature: 0.7,
-          })
+          }, { timeout: BULK_CALL_TIMEOUT_MS })
           const p2 = parseAIJson(c2.choices[0]?.message?.content || '')
           p2.wordCount = calcWordCount(p2.content, p2.faqs)
           if (p2.wordCount > page.wordCount) page = p2
