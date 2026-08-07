@@ -144,6 +144,17 @@ function getAnthropicClient() {
   return _anthropicClient;
 }
 
+/**
+ * Send a prompt to Claude and return the raw text response.
+ *
+ * @param {string} prompt                 - The user message to send
+ * @param {object} [options]
+ * @param {string} [options.model]        - Model ID (default: claude-sonnet-4-6)
+ * @param {number} [options.max_tokens]   - Token limit (default: 4096)
+ * @param {number} [options.timeout]      - Abort timeout ms (default: 120000)
+ * @param {string} [options.systemPrompt] - Optional system prompt
+ * @returns {Promise<string>} Raw text content of the first response block
+ */
 async function callClaude(prompt, options = {}) {
   const client      = getAnthropicClient();
   const model       = options.model      || 'claude-sonnet-4-6';
@@ -156,8 +167,26 @@ async function callClaude(prompt, options = {}) {
   };
   if (options.systemPrompt) createOpts.system = options.systemPrompt;
 
-  const response = await client.messages.create(createOpts);
-  const content  = response.content?.[0]?.text;
+  const timeoutMs  = options.timeout || 120_000;
+  const controller = new AbortController();
+  const timer      = setTimeout(() => controller.abort(), timeoutMs);
+
+  let response;
+  try {
+    response = await client.messages.create(createOpts, { signal: controller.signal });
+  } catch (err) {
+    if (err.name === 'AbortError' || controller.signal.aborted) {
+      const timeoutErr = new Error(`Claude request timed out after ${timeoutMs / 1000}s`);
+      timeoutErr.code   = 'AI_TIMEOUT';
+      timeoutErr.status = 504;
+      throw timeoutErr;
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+
+  const content = response.content?.[0]?.text;
   if (!content) {
     const err   = new Error('Claude returned an empty response');
     err.code    = 'AI_UNAVAILABLE';
