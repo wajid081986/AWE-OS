@@ -1,8 +1,20 @@
 import { useState } from 'react'
-import { PDFDocument } from 'pdf-lib'
+import { decryptPDF } from '@pdfsmaller/pdf-decrypt'
 import ToolPageShell from '../ToolPageShell'
 import PDFDropZone from '../../../components/tools/PDFDropZone'
 import { downloadFile } from './pdfUtils'
+
+// Maps @pdfsmaller/pdf-decrypt's real error messages to the tool's copy —
+// unlike the old pdf-lib-based implementation, these now reflect what
+// actually happened (pdf-lib has no decrypt support at all: no `password`
+// option, and always throws on an encrypted file regardless of password).
+function friendlyUnlockError(err) {
+  const msg = err?.message || ''
+  if (/incorrect password/i.test(msg)) return 'Incorrect password. Please check and try again.'
+  if (/not encrypted/i.test(msg)) return 'This PDF is not password-protected — there is nothing to unlock.'
+  if (/unsupported encryption/i.test(msg)) return 'This PDF uses an encryption method this tool does not support yet. Try Adobe Acrobat Reader for this file.'
+  return `Could not unlock this PDF.${msg ? ` (${msg})` : ''}`
+}
 
 function UnlockTool() {
   const [files, setFiles] = useState([])
@@ -16,32 +28,30 @@ function UnlockTool() {
     setError(''); setPhase('processing')
     try {
       const buf = await files[0].arrayBuffer()
-      const pdf = await PDFDocument.load(buf, { password, ignoreEncryption: false })
-      const unlocked = await pdf.save()
-      downloadFile(unlocked, files[0].name.replace('.pdf', '_unlocked.pdf'))
+      const decrypted = await decryptPDF(new Uint8Array(buf), password)
+      downloadFile(decrypted, files[0].name.replace('.pdf', '_unlocked.pdf'))
       setPhase('done')
     } catch (e) {
-      const msg = e?.message || ''
-      if (msg.toLowerCase().includes('password') || msg.toLowerCase().includes('encrypt')) {
-        setError('Incorrect password. Please check and try again.')
-      } else {
-        setError('Could not unlock this PDF. It may use unsupported encryption (AES-256). Try Adobe Acrobat for those files.')
-      }
+      setError(friendlyUnlockError(e))
       setPhase('idle')
     }
   }
 
+  // Empty user password is the technically correct way to decrypt a PDF
+  // that opens without prompting but still restricts editing/copying/
+  // printing (owner-only restrictions) — the PDF spec always encrypts
+  // content uniformly, an empty user password is just what lets viewers
+  // auto-open it.
   const tryWithoutPassword = async () => {
     if (!files[0]) return
     setError(''); setPhase('processing')
     try {
       const buf = await files[0].arrayBuffer()
-      const pdf = await PDFDocument.load(buf, { ignoreEncryption: true })
-      const bytes = await pdf.save()
-      downloadFile(bytes, files[0].name.replace('.pdf', '_unlocked.pdf'))
+      const decrypted = await decryptPDF(new Uint8Array(buf), '')
+      downloadFile(decrypted, files[0].name.replace('.pdf', '_unlocked.pdf'))
       setPhase('done')
-    } catch {
-      setError('Could not process this PDF.')
+    } catch (e) {
+      setError(friendlyUnlockError(e))
       setPhase('idle')
     }
   }
@@ -75,7 +85,7 @@ function UnlockTool() {
       )}
 
       <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
-        ℹ️ This tool removes passwords you already know. It cannot crack unknown passwords. AES-256 encrypted PDFs (created by Acrobat DC+) require the original application.
+        ℹ️ This tool removes passwords you already know. It cannot crack unknown passwords. Supports AES-256 and RC4 encrypted PDFs — the two encryption types used by virtually all PDF software.
       </div>
 
       {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2">{error}</p>}
@@ -107,16 +117,16 @@ const STEPS = [
 ]
 const FAQS = [
   { q: 'Can this tool crack or guess a forgotten password?', a: "No — this is not a password cracker and cannot recover unknown passwords. It removes password restrictions you already know, for documents you legitimately own. If you have genuinely forgotten the password for your own document, third-party tools that attempt dictionary or brute-force attacks exist separately, but success is not guaranteed for strong passwords. Attempting to bypass passwords on documents you do not own is both technically outside this tool's capability and legally problematic under computer misuse laws in most jurisdictions." },
-  { q: 'Why does the tool fail on some encrypted PDFs?', a: 'pdf-lib, the JavaScript library this tool uses, supports RC4 40-bit and RC4 128-bit encrypted PDFs — the most common types produced by older and mid-generation PDF software, including many banking and government document systems. However, AES-256 encryption — used by Adobe Acrobat DC, Acrobat 2017+, and modern PDF generators — is not currently supported in the browser environment and returns an error even with the correct password. For AES-256 encrypted files, use Adobe Acrobat Reader (free) or another desktop application that supports full AES-256 decryption.' },
+  { q: 'Why does the tool fail on some encrypted PDFs?', a: 'This tool supports AES-256 (the modern PDF 2.0 standard, used by Adobe Acrobat DC and current PDF generators) and RC4 40-bit/128-bit encryption — together these cover the vast majority of PDFs in circulation. One legacy variant, AES-128 (PDF 1.6+), is not yet supported and will return an error even with the correct password. For that specific case, use Adobe Acrobat Reader (free) or another desktop application.' },
   { q: 'What is the difference between an open password and an owner password?', a: "PDF security uses two distinct password types. An open password (user password) is required to view the document at all — the PDF viewer shows a password prompt before displaying any content. An owner password controls permissions: it restricts editing, printing, copying, or annotation even for users who can open the file freely. Owner-restricted PDFs open without a password prompt but block certain operations. AWE-OS Unlock PDF handles both: enter the open password to fully decrypt a locked document, or use 'try without password' to remove owner restrictions from files you can already open." },
-  { q: 'Is my password safe when I enter it here?', a: 'Yes. Your password is used only within your browser JavaScript runtime for the decryption operation. It is never transmitted to any server, stored in a database, logged, or cached anywhere. The entire unlock process happens in-memory on your own device — the PDF loads from your local storage, pdf-lib applies the decryption using the password you typed, and the unlocked file is written directly to your downloads folder. Once the browser tab is closed, all traces of the session are completely gone from memory.' },
+  { q: 'Is my password safe when I enter it here?', a: 'Yes. Your password is used only within your browser JavaScript runtime for the decryption operation. It is never transmitted to any server, stored in a database, logged, or cached anywhere. The entire unlock process happens in-memory on your own device — the PDF loads from your local storage, the decryption is applied using the password you typed, and the unlocked file is written directly to your downloads folder. Once the browser tab is closed, all traces of the session are completely gone from memory.' },
   { q: 'Can I re-protect the unlocked PDF with a new password afterward?', a: "Yes. Once you have the unlocked PDF, upload it to the AWE-OS Protect PDF tool and set any new password you prefer. This two-step workflow is the correct way to change a PDF password: unlock with the old password here, then protect with the new one using Protect PDF. You can also adjust the permissions profile in the re-protected version — for example, enabling printing in the new version when the original blocked it. Discard the intermediate unlocked file after you have verified and saved the re-protected version." },
-  { q: 'My PDF opens without a password but I cannot copy text or print — what do I do?', a: "This is an owner-restricted PDF: no open password is required to view it, but editing, copying, and printing permissions are locked at the owner level. To remove these restrictions, upload the PDF and click the 'try without password' link below the password input field — do not enter a password. The tool processes the file using pdf-lib's ignoreEncryption mode, which strips owner-permission restrictions and produces an unrestricted copy. This works reliably for RC4-encrypted permission restrictions, which are common in documents from older software and many institutional PDF generators." },
+  { q: 'My PDF opens without a password but I cannot copy text or print — what do I do?', a: "This is an owner-restricted PDF: no open password is required to view it, but editing, copying, and printing permissions are locked at the owner level. To remove these restrictions, upload the PDF and click the 'try without password' link below the password input field — do not enter a password. The tool decrypts the file using a blank user password, which strips owner-permission restrictions and produces an unrestricted copy. This works for both AES-256 and RC4-encrypted permission restrictions." },
 ]
 const ABOUT = [
   'Password-protected PDFs are common in professional and legal contexts — banks send encrypted statements, lawyers distribute password-locked contracts, and HR departments share protected offer letters. When you legitimately own such a document and need to work with it freely, the AWE-OS Unlock PDF tool removes the password restriction and produces an openly accessible PDF — no password required to open it anywhere.',
-  'The tool uses pdf-lib\'s decryption capabilities with the password you provide. The resulting file opens without requiring any password in Adobe Acrobat, Preview, browser PDF viewers, or any other standard application. Your original encrypted file is not modified; the unlocked version is a separate download. Once unlocked, you can edit, merge, split, or annotate the document using any PDF tool.',
-  'Supported encryption includes RC4 (40-bit and 128-bit), which is common in PDFs from older software and many banking and government systems. AES-256 encryption — used by newer versions of Adobe Acrobat and modern PDF generators — is not supported by browser-based pdf-lib and requires a native application to unlock. If the tool returns an error on your PDF, AES-256 encryption is the most likely cause.',
+  'The tool decrypts the document in your browser using the password you provide. The resulting file opens without requiring any password in Adobe Acrobat, Preview, browser PDF viewers, or any other standard application. Your original encrypted file is not modified; the unlocked version is a separate download. Once unlocked, you can edit, merge, split, or annotate the document using any PDF tool.',
+  'Supported encryption includes AES-256 (the modern PDF 2.0 standard used by current Adobe Acrobat and most PDF generators) and RC4 40-bit/128-bit (common in older software and many banking and government systems) — together these cover nearly every PDF you will encounter. AES-128 (an older, less common variant) is not yet supported. If the tool returns an error on your PDF, that is the most likely cause.',
   'Your password is used only in your browser\'s memory — it is never transmitted to any server, stored in any database, or logged anywhere. The entire unlock operation happens locally on your device. This privacy matters because passwords to financial documents and legal contracts are sensitive information that should never leave your device. After unlocking, consider using the Protect PDF tool to re-secure the document with a new password if needed.',
 ]
 
