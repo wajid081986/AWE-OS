@@ -2,6 +2,9 @@
 const { getOpenAI } = require('../ai-engine');
 const parseAIJson   = require('../../services/parseAIJson');
 
+// Explicit per-call ceiling instead of the SDK's ~10min default.
+const OPENAI_CALL_OPTS = { timeout: 90_000, maxRetries: 3 };
+
 async function generateBrief(opts = {}) {
   const {
     topic,
@@ -121,7 +124,7 @@ Return ONLY JSON.`.trim();
       },
       { role: 'user', content: briefPrompt }
     ]
-  });
+  }, OPENAI_CALL_OPTS);
 
   const result = parseAIJson(res.choices[0].message.content) || {};
 

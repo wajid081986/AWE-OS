@@ -10,6 +10,10 @@ const advancedHumanize      = require('../core/content-studio/advanced-humanize'
 
 const router = express.Router()
 
+// Explicit per-call ceiling instead of the SDK's ~10min default, for the
+// single-call routes below that don't already have their own timeout.
+const AI_CALL_TIMEOUT_MS = 90_000
+
 // ── Admin guard ───────────────────────────────────────────────────────────────
 
 function requireAdmin(req, res, next) {
@@ -478,7 +482,7 @@ Return ONLY a valid JSON array of ${count} objects. No other text.`
   try {
     const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini', messages: [{ role: 'user', content: prompt }], max_tokens: 3000, temperature: 0.8,
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw   = completion.choices[0]?.message?.content || ''
     const ideas = parseAIJson(raw)
     res.json({ success: true, ideas: Array.isArray(ideas) ? ideas : [] })
@@ -511,7 +515,7 @@ Return ONLY a valid JSON array of 30 objects. No other text.`
   try {
     const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini', messages: [{ role: 'user', content: prompt }], max_tokens: 3000, temperature: 0.7,
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw      = completion.choices[0]?.message?.content || ''
     const calendar = parseAIJson(raw)
     const entries  = (Array.isArray(calendar) ? calendar : []).map(e => ({
@@ -604,7 +608,7 @@ ${(text || '').slice(0, 3000)}`
   try {
     const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini', messages: [{ role: 'user', content: prompt }], max_tokens: 1000, temperature: 0.4,
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw    = completion.choices[0]?.message?.content || ''
     const result = parseAIJson(raw)
     res.json({ success: true, result })
@@ -760,7 +764,7 @@ Return ONLY valid JSON:
           { role: 'user', content: analysisPrompt },
         ],
         max_tokens: 2500, temperature: 0.3,
-      }),
+      }, { timeout: AI_CALL_TIMEOUT_MS }),
       getOpenAI().chat.completions.create({
         model: 'gpt-4o',
         messages: [
@@ -768,7 +772,7 @@ Return ONLY valid JSON:
           { role: 'user', content: strategyPrompt },
         ],
         max_tokens: 2500, temperature: 0.3,
-      }),
+      }, { timeout: AI_CALL_TIMEOUT_MS }),
     ])
 
     const analysis = parseAIJson(call1.choices[0]?.message?.content || '')
@@ -798,7 +802,7 @@ difficulty values: Easy | Medium | Hard`
   try {
     const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini', messages: [{ role: 'user', content: prompt }], max_tokens: 1000, temperature: 0.6,
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw  = completion.choices[0]?.message?.content || ''
     const kws  = parseAIJson(raw)
     res.json({ success: true, keywords: Array.isArray(kws) ? kws : [] })
@@ -851,7 +855,7 @@ Return ONLY valid JSON with this structure:
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 1200,
       temperature: 0.3,
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw    = completion.choices[0]?.message?.content || ''
     const result = parseAIJson(raw)
     res.json({ success: true, result })
@@ -911,7 +915,7 @@ Return ONLY the complete <script type="application/ld+json">...</script> block w
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 800,
       temperature: 0.1,
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const schema = (completion.choices[0]?.message?.content || '').trim()
     res.json({ success: true, schema })
   } catch (err) {
@@ -1063,7 +1067,7 @@ Rules:
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 1500,
       temperature: 0.3,
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw    = completion.choices[0]?.message?.content || ''
     const result = parseAIJson(raw)
     res.json({ success: true, result })
@@ -1081,8 +1085,13 @@ router.post('/optimize-content', requireAuth, requireAdmin, async (req, res) => 
     return res.status(400).json({ success: false, error: 'title, keyword, and articleText are required' })
   }
   try {
+    // The rewrite prompt (call 2) doesn't use the analysis result at all —
+    // both only need title/keyword/goal/articleText, which are already
+    // available — so they can run concurrently instead of waiting on
+    // each other.
+    const [analysisCompletion, optCompletion] = await Promise.all([
     // Call 1 — Analysis
-    const analysisCompletion = await getOpenAI().chat.completions.create({
+    getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       max_tokens: 600,
       temperature: 0.3,
@@ -1102,12 +1111,10 @@ router.post('/optimize-content', requireAuth, requireAdmin, async (req, res) => 
           content: `Article Title: ${title}\nTarget Keyword: ${keyword}\nOptimization Goal: ${goal}\n\nArticle:\n${articleText.substring(0, 3000)}`,
         },
       ],
-    })
-    const analysisRaw = analysisCompletion.choices[0]?.message?.content || ''
-    const analysis    = parseAIJson(analysisRaw)
+    }, { timeout: AI_CALL_TIMEOUT_MS }),
 
     // Call 2 — Optimization
-    const optCompletion = await getOpenAI().chat.completions.create({
+    getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       max_tokens: 3000,
       temperature: 0.7,
@@ -1139,7 +1146,11 @@ Shorten long sentences.
 Add 2 Indian-specific examples with ₹ amounts.`,
         },
       ],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS }),
+    ])
+
+    const analysisRaw = analysisCompletion.choices[0]?.message?.content || ''
+    const analysis    = parseAIJson(analysisRaw)
     const optimizedContent = optCompletion.choices[0]?.message?.content || ''
     const wordCount        = optimizedContent.split(/\s+/).filter(Boolean).length
 
@@ -1183,8 +1194,11 @@ router.post('/keyword-clusters', requireAuth, requireAdmin, async (req, res) => 
     return res.status(400).json({ success: false, error: 'pillarTopic is required' })
   }
   try {
+    // Call 2's prompt only needs pillarTopic/niche, same as call 1 — it
+    // doesn't reference clusterData — so both can run concurrently.
+    const [clusterCompletion, stratCompletion] = await Promise.all([
     // Call 1 — Cluster Analysis
-    const clusterCompletion = await getOpenAI().chat.completions.create({
+    getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       max_tokens: 2000,
       temperature: 0.5,
@@ -1212,12 +1226,10 @@ Include at least 3 clusters with 5-8 keywords each. Focus on Indian users.`,
           content: `Pillar Topic: ${pillarTopic}\nNiche: ${niche}\n\nGenerate a complete topic cluster map for Indian SEO.`,
         },
       ],
-    })
-    const clusterRaw  = clusterCompletion.choices[0]?.message?.content || ''
-    const clusterData = parseAIJson(clusterRaw)
+    }, { timeout: AI_CALL_TIMEOUT_MS }),
 
     // Call 2 — Content Strategy
-    const stratCompletion = await getOpenAI().chat.completions.create({
+    getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       max_tokens: 2000,
       temperature: 0.5,
@@ -1258,7 +1270,11 @@ Focus on easy-to-rank keywords. AWE-OS tools include SIP Calculator, GST Calcula
           content: `Pillar Topic: ${pillarTopic}\nNiche: ${niche}\n\nCreate a 4-week content calendar and top 8 priority articles. Focus on Indian audience.`,
         },
       ],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS }),
+    ])
+
+    const clusterRaw  = clusterCompletion.choices[0]?.message?.content || ''
+    const clusterData = parseAIJson(clusterRaw)
     const stratRaw  = stratCompletion.choices[0]?.message?.content || ''
     const stratData = parseAIJson(stratRaw)
 
@@ -1318,7 +1334,7 @@ Score each dimension 0-100. List only signals that are missing or weak (max 3 pe
           content: `Niche: ${niche}\n\nArticle:\n${articleText.substring(0, 3000)}\n\nAnalyze the E-E-A-T signals.`,
         },
       ],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw    = completion.choices[0]?.message?.content || ''
     const result = parseAIJson(raw)
     res.json({ success: true, result })
@@ -1362,7 +1378,7 @@ Return ONLY the improved article text. No JSON, no extra text.`,
           content: `Niche: ${niche}\n\nOriginal Article:\n${articleText}\n\nRewrite with strong EEAT signals for all 4 dimensions.`,
         },
       ],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const boostedArticle = completion.choices[0]?.message?.content || ''
     res.json({ success: true, boostedArticle })
   } catch (err) {

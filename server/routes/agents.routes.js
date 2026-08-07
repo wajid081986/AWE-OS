@@ -18,6 +18,9 @@ const { checkSystemHealth }    = require('../agents/deployment-agent');
 const router = express.Router();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// Explicit per-call ceiling instead of the SDK's ~10min default.
+const AI_CALL_TIMEOUT_MS = 60_000
+
 // ── Agent trigger handlers ───────────────────────────────────────
 // Each handler runs the closest equivalent to that agent's cron job
 // so a manual "Trigger" does the same work the scheduler would do.
@@ -127,7 +130,7 @@ router.post('/run', requireAuth, async (req, res) => {
       messages:    [{ role: 'user', content: prompt }],
       max_tokens:  2000,
       temperature: 0.7,
-    });
+    }, { timeout: AI_CALL_TIMEOUT_MS });
     const responseTime = Date.now() - startTime;
 
     const result = completion.choices[0]?.message?.content?.trim() ?? '';

@@ -2,6 +2,9 @@
 const { getOpenAI } = require('../ai-engine');
 const parseAIJson   = require('../../services/parseAIJson');
 
+// Explicit per-call ceiling instead of the SDK's ~10min default.
+const OPENAI_CALL_OPTS = { timeout: 90_000, maxRetries: 3 };
+
 async function findContentOpportunities(opts = {}) {
   const {
     existingPages  = [],
@@ -65,7 +68,7 @@ Return top 15 opportunities. Return ONLY JSON.
       { role: 'system', content: 'You are a content strategy expert. Return only valid JSON.' },
       { role: 'user',   content: prompt },
     ],
-  });
+  }, OPENAI_CALL_OPTS);
 
   const result = parseAIJson(res.choices[0].message.content) ||
     { opportunities: [], quickWins: [], contentGaps: [] };
@@ -122,7 +125,7 @@ Return JSON:
 }
 Return ONLY JSON.`,
     }],
-  });
+  }, OPENAI_CALL_OPTS);
 
   return parseAIJson(res.choices[0].message.content) || {};
 }

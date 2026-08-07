@@ -4,6 +4,9 @@ const Anthropic  = require('@anthropic-ai/sdk')
 
 const router = express.Router()
 
+// Explicit per-call ceiling instead of the SDK's ~10min default.
+const AI_CALL_TIMEOUT_MS = 90_000
+
 function getAnthropic() {
   if (!process.env.ANTHROPIC_API_KEY) {
     const err = new Error('ANTHROPIC_API_KEY not set')
@@ -54,7 +57,7 @@ Return ONLY valid JSON — no markdown fences, no extra text:
 }
 Return exactly 5 keywords. Focus on long-tail Indian search intent with realistic monthly search estimates.`,
       messages: [{ role: 'user', content: `Competitor URL: ${competitorUrl}\nAWE-OS Tool to promote: ${toolName}\n\nFind 5 keyword gaps where this competitor ranks but AWE-OS can outrank with better content targeting Indian users.` }]
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw = msg.content[0]?.text || ''
     let result
     try { result = extractJson(raw) } catch { result = { keywords: [] } }
@@ -101,7 +104,7 @@ Rules:
 - faqSection: exactly 3 FAQs targeting real user questions
 - Total article should be 700-800 words across all sections`,
       messages: [{ role: 'user', content: `Target keyword: "${keyword}"\nAWE-OS Tool: ${toolName}\nTool URL: ${toolUrl}\n\nWrite a complete SEO blog article targeting Indian users searching for "${keyword}".` }]
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw = msg.content[0]?.text || ''
     let result
     try {
@@ -171,7 +174,7 @@ Rules (strictly followed):
 - relatedTools: array of exactly 3 strings — real AWE-OS tool names (e.g. "GST Calculator", "Merge PDF", "SIP Calculator")
 - seoKeywords: array of exactly 8 relevant long-tail keywords targeting Indian searches`,
       messages: [{ role: 'user', content: `Tool: ${toolName}\nTool URL: ${toolUrl}\nTarget location: ${location || 'India'}\n\nGenerate complete programmatic SEO landing page content.` }]
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw = msg.content[0]?.text || ''
     let result
     try { result = extractJson(raw) } catch { result = {} }
@@ -246,7 +249,7 @@ Rules for each platform:
         role: 'user',
         content: `Article title: "${articleTitle}"\nContent URL: ${pageUrl}\nAWE-OS Tool: ${toolName}\nTool URL: ${toolUrl}\nTarget audience: ${audience || 'General'}\n\nGenerate social media content for all 6 platforms.`
       }]
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw = msg.content[0]?.text || ''
     let result
     try { result = extractJson(raw) } catch { result = {} }
@@ -286,7 +289,7 @@ Rules:
         role: 'user',
         content: `Tool: ${toolName}\nURL: ${toolUrl}\nDirectory: ${directoryName}\n\nGenerate directory submission content optimised for ${directoryName}.`
       }]
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw = msg.content[0]?.text || ''
     let result
     try { result = extractJson(raw) } catch { result = {} }
@@ -324,7 +327,7 @@ Rules:
         role: 'user',
         content: `Blogger/Website: ${bloggerUrl}\nTool to promote: ${toolName}\nTool URL: ${toolUrl}\n\nWrite a personalized outreach email.`
       }]
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw = msg.content[0]?.text || ''
     let result
     try { result = extractJson(raw) } catch { result = {} }
@@ -371,7 +374,7 @@ Rules:
         role: 'user',
         content: `Tool category: ${toolCategory}\nTarget audience: ${audience}\nCurrent day: ${currentDay}\n\nSuggest the 3 best posting times this week for maximum reach.`
       }]
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw = msg.content[0]?.text || ''
     let result
     try { result = extractJson(raw) } catch { result = { suggestions: [] } }

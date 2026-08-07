@@ -4,6 +4,9 @@ const Anthropic  = require('@anthropic-ai/sdk')
 
 const router = express.Router()
 
+// Explicit per-call ceiling instead of the SDK's ~10min default.
+const AI_CALL_TIMEOUT_MS = 90_000
+
 function getAnthropic() {
   if (!process.env.ANTHROPIC_API_KEY) {
     const err = new Error('ANTHROPIC_API_KEY not set')
@@ -70,7 +73,7 @@ Identify what makes the successful content work and what's holding back the rest
   "winningFormula": "1-2 sentence recipe for content success on AWE-OS"
 }`,
       }],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
 
     const raw = msg.content?.[0]?.text
     if (!raw) throw new Error('Empty response from Claude')
@@ -124,7 +127,7 @@ Generate 5 fresh content ideas that are NOT similar to recent content. Focus on 
 }
 estimatedDifficulty must be exactly one of: Easy, Medium, Hard`,
       }],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
 
     const raw = msg.content?.[0]?.text
     if (!raw) throw new Error('Empty response from Claude')

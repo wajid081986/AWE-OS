@@ -6,6 +6,9 @@ const { getAllTools } = require('../controllers/tool.controller');
 const router = express.Router();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// Explicit per-call ceiling instead of the SDK's ~10min default.
+const AI_CALL_TIMEOUT_MS = 60_000
+
 router.get('/', requireAuth, getAllTools);
 
 // ── POST /api/tools/resume/ai-summary ─────────────────────────
@@ -37,7 +40,7 @@ Requirements:
       messages:    [{ role: 'user', content: prompt }],
       max_tokens:  120,
       temperature: 0.72,
-    });
+    }, { timeout: AI_CALL_TIMEOUT_MS });
 
     const summary = completion.choices[0]?.message?.content?.trim();
     if (!summary) throw new Error('Empty response from OpenAI');

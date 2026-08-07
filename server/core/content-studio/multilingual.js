@@ -2,6 +2,9 @@
 const { getOpenAI } = require('../ai-engine');
 const parseAIJson   = require('../../services/parseAIJson');
 
+// Explicit per-call ceiling instead of the SDK's ~10min default.
+const OPENAI_CALL_OPTS = { timeout: 90_000, maxRetries: 3 };
+
 async function translateContent(content, opts = {}) {
   const {
     from        = 'english',
@@ -47,7 +50,7 @@ No JSON. No explanations.`.trim();
       },
       { role: 'user', content: prompt }
     ]
-  });
+  }, OPENAI_CALL_OPTS);
 
   const translated = res.choices[0].message.content;
 
@@ -116,7 +119,7 @@ Return ONLY JSON.`.trim();
       },
       { role: 'user', content: prompt }
     ]
-  });
+  }, OPENAI_CALL_OPTS);
 
   return parseAIJson(res.choices[0].message.content) || {};
 }
@@ -163,7 +166,7 @@ Return ONLY JSON.`.trim();
       { role: 'system', content: 'Expert bilingual content creator. Return only JSON.' },
       { role: 'user',   content: prompt }
     ]
-  });
+  }, OPENAI_CALL_OPTS);
 
   return parseAIJson(res.choices[0].message.content) || {};
 }

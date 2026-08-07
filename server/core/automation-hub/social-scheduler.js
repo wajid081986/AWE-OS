@@ -2,6 +2,9 @@
 const { getOpenAI } = require('../ai-engine');
 const parseAIJson   = require('../../services/parseAIJson');
 
+// Explicit per-call ceiling instead of the SDK's ~10min default.
+const OPENAI_CALL_OPTS = { timeout: 90_000, maxRetries: 3 };
+
 /**
  * Social Media Content Scheduler
  * Generate + schedule Reddit/Quora/Pinterest posts
@@ -79,7 +82,7 @@ Return ONLY JSON array.`.trim();
       { role: 'system', content: 'You are a social media expert. Return only valid JSON array.' },
       { role: 'user',   content: prompt }
     ]
-  });
+  }, OPENAI_CALL_OPTS);
 
   const posts = parseAIJson(res.choices[0].message.content) || [];
   return Array.isArray(posts) ? posts : [posts];

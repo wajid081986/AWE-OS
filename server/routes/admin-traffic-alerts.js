@@ -4,6 +4,9 @@ const Anthropic  = require('@anthropic-ai/sdk')
 
 const router = express.Router()
 
+// Explicit per-call ceiling instead of the SDK's ~10min default.
+const AI_CALL_TIMEOUT_MS = 90_000
+
 function getAnthropic() {
   if (!process.env.ANTHROPIC_API_KEY) {
     const err = new Error('ANTHROPIC_API_KEY not set')
@@ -82,7 +85,7 @@ Create a specific, actionable recovery plan. Return ONLY valid JSON — no markd
 }
 urgency must be exactly one of: Critical, High, Medium`,
       }],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
 
     const raw = msg.content?.[0]?.text
     if (!raw) throw new Error('Empty response from Claude')
@@ -120,7 +123,7 @@ Progress: ${summary}
 Write a short (2-3 sentences), energetic, and specific motivational message celebrating this achievement and encouraging them to push further. Reference AWE-OS specifically. Be upbeat but not over-the-top. Return ONLY valid JSON:
 {"message": "your motivational message here"}`,
       }],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
 
     const raw = msg.content?.[0]?.text
     if (!raw) throw new Error('Empty response from Claude')

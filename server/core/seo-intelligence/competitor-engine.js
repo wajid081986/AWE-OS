@@ -3,6 +3,9 @@ const { getOpenAI } = require('../ai-engine');
 const parseAIJson   = require('../../services/parseAIJson');
 const { crawlPage } = require('../crawl-engine/crawler');
 
+// Explicit per-call ceiling instead of the SDK's ~10min default.
+const OPENAI_CALL_OPTS = { timeout: 90_000, maxRetries: 3 };
+
 async function analyzeCompetitorGap(ourUrl, competitorUrls, topic) {
   const openai = getOpenAI();
 
@@ -90,7 +93,7 @@ Return ONLY JSON.
       { role: 'system', content: 'You are an expert SEO analyst. Return only valid JSON.' },
       { role: 'user',   content: gapPrompt },
     ],
-  });
+  }, OPENAI_CALL_OPTS);
 
   const analysis = parseAIJson(res.choices[0].message.content) || {};
 
@@ -144,7 +147,7 @@ Return JSON:
 }
 Return ONLY JSON.`,
     }],
-  });
+  }, OPENAI_CALL_OPTS);
 
   return parseAIJson(res.choices[0].message.content) || { competitors: [] };
 }

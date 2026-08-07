@@ -7,6 +7,11 @@ const { getSearchAnalytics, isConfigured } = require('../services/search-console
 
 const router = express.Router()
 
+// Explicit per-call ceiling instead of the SDK's ~10min default, for the
+// single-call routes below that don't already have their own timeout
+// (compare STRATEGY_TIMEOUT_MS used by /strategy further down).
+const AI_CALL_TIMEOUT_MS = 90_000
+
 function requireAdmin(req, res, next) {
   if (req.user?.role !== 'admin') {
     return res.status(403).json({ success: false, error: 'Admin access required' })
@@ -265,7 +270,7 @@ Produce 4-6 recommendations. Be concrete — reference actual category names, pa
 Most-published category: ${topCategory || 'none yet'}
 Number of distinct AWE-OS tools with a linked blog post in the last 30 posts: ${coveredSlugs.size}${searchPerfBlock}`,
       }],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
 
     const raw    = completion.choices[0]?.message?.content || ''
     const parsed = parseAIJson(raw)
@@ -353,7 +358,7 @@ Exactly 5 prompts, each a single detailed sentence describing composition, subje
         role: 'user',
         content: `Blog topic: ${topic}`,
       }],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw    = completion.choices[0]?.message?.content || ''
     const parsed = parseAIJson(raw)
     res.json({ success: true, prompts: parsed.prompts || [] })

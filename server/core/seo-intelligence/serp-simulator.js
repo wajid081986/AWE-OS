@@ -2,6 +2,9 @@
 const { getOpenAI } = require('../ai-engine');
 const parseAIJson   = require('../../services/parseAIJson');
 
+// Explicit per-call ceiling instead of the SDK's ~10min default.
+const OPENAI_CALL_OPTS = { timeout: 60_000, maxRetries: 3 };
+
 async function analyzeSerpFeatures(keyword, opts = {}) {
   const { country = 'India' } = opts;
   const openai = getOpenAI();
@@ -52,7 +55,7 @@ Return JSON:
 }
 Return ONLY JSON.`,
     }],
-  });
+  }, OPENAI_CALL_OPTS);
 
   return parseAIJson(res.choices[0].message.content) || {};
 }

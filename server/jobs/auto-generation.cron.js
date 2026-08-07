@@ -22,6 +22,11 @@ const AUTO_GEN_TOOLS = [
 
 const PAGES_PER_RUN = 5;
 
+// Explicit per-call ceiling instead of the SDK's ~10min default — this runs
+// unattended on a cron schedule, so a stalled call should fail the one page
+// and move on rather than hang the whole run.
+const AI_CALL_TIMEOUT_MS = 120_000;
+
 function calcWordCount(content, faqs) {
   const blockText = (content || []).map(b => b.text || (b.items || []).join(' ')).join(' ');
   const faqText   = (faqs   || []).map(f => `${f.q || ''} ${f.a || ''}`).join(' ');
@@ -44,7 +49,7 @@ async function runAutoGeneration() {
       const completion = await getOpenAI().chat.completions.create({
         model: 'gpt-4o', messages: [{ role: 'user', content: prompt }],
         max_tokens: 4000, temperature: 0.7,
-      });
+      }, { timeout: AI_CALL_TIMEOUT_MS });
       const page = parseAIJson(completion.choices[0]?.message?.content || '');
       page.wordCount = calcWordCount(page.content, page.faqs);
       page.toolSlug  = tool.slug;

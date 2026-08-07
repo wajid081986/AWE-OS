@@ -10,6 +10,9 @@ const router   = express.Router();
 const openai   = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+// Explicit per-call ceiling instead of the SDK's ~10min default.
+const AI_CALL_TIMEOUT_MS = 60_000
+
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 function toRow(body) {
@@ -65,7 +68,7 @@ router.post('/resume/ai-summary', requireAuth, async (req, res) => {
       messages:    [{ role: 'user', content: `Write a professional resume summary for a ${job_title.trim()}.${skillsText ? ` Key skills: ${skillsText}.` : ''} They have ${expText}.\n\nRequirements:\n- 2-3 sentences, max 260 characters total\n- Professional, confident tone (no first-person)\n- Highlight impact and measurable value\n- ATS-friendly\n- Return ONLY the summary text, nothing else` }],
       max_tokens:  120,
       temperature: 0.72,
-    });
+    }, { timeout: AI_CALL_TIMEOUT_MS });
     const summary = completion.choices[0]?.message?.content?.trim();
     if (!summary) throw new Error('Empty response');
     return res.json({ success: true, summary });
@@ -165,7 +168,7 @@ router.post('/:slug/run', async (req, res) => {
       model:      'claude-haiku-4-5-20251001',
       max_tokens: 1024,
       messages:   [{ role: 'user', content: prompt }],
-    });
+    }, { timeout: AI_CALL_TIMEOUT_MS });
     const result = message.content[0]?.text || 'No response generated.';
 
     supabase

@@ -11,6 +11,10 @@ const { seoIntelligence } = require('../core/seo-intelligence')
 
 const router = express.Router()
 
+// Explicit per-call ceiling instead of the SDK's ~10min default, for the
+// single-call routes below that don't already have their own timeout.
+const AI_CALL_TIMEOUT_MS = 90_000
+
 // ── Admin guard ───────────────────────────────────────────────────────────────
 
 function requireAdmin(req, res, next) {
@@ -287,7 +291,7 @@ Return this exact JSON — no extra text:
       ],
       max_tokens: 1000,
       temperature: 0.7,
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw     = completion.choices[0]?.message?.content || ''
     const briefing = parseAIJson(raw)
     res.json({ success: true, briefing })
@@ -1002,7 +1006,7 @@ Return ONLY valid JSON array:
       messages:    [{ role: 'user', content: prompt }],
       max_tokens:  1500,
       temperature: 0.7,
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw         = completion.choices[0]?.message?.content || ''
     const suggestions = parseAIJson(raw)
     if (!Array.isArray(suggestions)) throw new Error('AI did not return a valid array')
@@ -1225,7 +1229,7 @@ Return ONLY valid JSON — no markdown, no commentary:
       ],
       max_tokens:  2000,
       temperature: 0.7,
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw      = completion.choices[0]?.message?.content || ''
     const newEntry = parseAIJson(raw)
     if (!newEntry.description) throw new Error('AI did not return valid content structure')

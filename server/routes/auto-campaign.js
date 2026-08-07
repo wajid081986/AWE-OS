@@ -8,6 +8,9 @@ const { createPin }  = require('../services/pinterest.service')
 
 const router = express.Router()
 
+// Explicit per-call ceiling instead of the SDK's ~10min default.
+const AI_CALL_TIMEOUT_MS = 120_000
+
 const SUBREDDIT_MAP = {
   'PDF Tools':    'india',
   'Calculators':  'personalfinanceindia',
@@ -106,7 +109,7 @@ Pinterest Board: ${board}
 
 Generate all content for this tool. Keep it authentic and helpful.`,
       }],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
 
     if (aborted) return res.end()
 

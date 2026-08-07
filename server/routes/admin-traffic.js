@@ -6,6 +6,9 @@ const Anthropic        = require('@anthropic-ai/sdk')
 
 const router = express.Router()
 
+// Explicit per-call ceiling instead of the SDK's ~10min default.
+const AI_CALL_TIMEOUT_MS = 90_000
+
 // ── Admin guard ───────────────────────────────────────────────────────────────
 
 function requireAdmin(req, res, next) {
@@ -54,7 +57,7 @@ Return 6-8 subreddits sorted by relevance.`,
           content: `Topic: ${topic}\nTool: ${toolName || topic}\nTarget Audience: ${targetAudience || 'Indian users'}\n\nFind the best subreddits.`,
         },
       ],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw    = completion.choices[0]?.message?.content || ''
     const result = parseAIJson(raw)
     res.json({ success: true, subreddits: result?.subreddits || [] })
@@ -119,7 +122,7 @@ Target Audience: ${targetAudience || 'Indian users'}
 Generate 3 post variations (V1=Value-First, V2=Question Hook, V3=Story Format) and 3 comment reply templates.`,
         },
       ],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw    = completion.choices[0]?.message?.content || ''
     const result = parseAIJson(raw)
     res.json({ success: true, posts: result?.posts || [], commentTemplates: result?.commentTemplates || [] })
@@ -164,7 +167,7 @@ Return 5 questions sorted by opportunity.`,
           content: `Topic: ${topic}\nTool: ${toolName || topic}\nNiche: ${niche || 'Finance'}\n\nFind 5 high-opportunity Quora questions.`,
         },
       ],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw    = completion.choices[0]?.message?.content || ''
     const result = parseAIJson(raw)
     res.json({ success: true, questions: result?.questions || [] })
@@ -216,7 +219,7 @@ Niche: ${niche || 'Finance'}
 Write an expert 500-800 word Quora answer.`,
         },
       ],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw    = completion.choices[0]?.message?.content || ''
     const result = parseAIJson(raw)
     res.json({ success: true, answer: result?.answer || null })
@@ -260,7 +263,7 @@ Return 3-4 boards with a recommended pinning schedule.`,
           content: `Tool: ${toolName}\nNiche: ${niche || 'Finance'}\nTarget: ${targetAudience || 'Indian Professionals'}\n\nCreate Pinterest board strategy.`,
         },
       ],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw    = completion.choices[0]?.message?.content || ''
     const result = parseAIJson(raw)
     res.json({ success: true, boards: result?.boards || [], pinningSchedule: result?.pinningSchedule || '' })
@@ -311,7 +314,7 @@ Board: ${board || 'Finance Tools India'}
 Create 3 Pinterest pins to drive Indian traffic.`,
         },
       ],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw    = completion.choices[0]?.message?.content || ''
     const result = parseAIJson(raw)
     res.json({ success: true, pins: result?.pins || [] })
@@ -348,7 +351,7 @@ Return exactly 5 questions sorted by opportunity.`,
         role: 'user',
         content: `Tool: ${toolName}\nSlug: ${toolSlug}\nNiche: ${niche || 'general'}\n\nGenerate 5 high-opportunity Quora questions that real users ask about ${toolName} — focus on problems this tool solves for Indian users.`,
       }],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw    = msg.content[0]?.text || ''
     const match  = raw.match(/\{[\s\S]*\}/)
     if (!match) throw new Error('Unexpected Claude response format')
@@ -384,7 +387,7 @@ Return ONLY valid JSON (no markdown):
         role: 'user',
         content: `Write a Quora answer to: "${question}"\nTool to mention: ${toolName} (${url})\nNiche: ${niche || 'general'}`,
       }],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw   = msg.content[0]?.text || ''
     const match = raw.match(/\{[\s\S]*\}/)
     if (!match) throw new Error('Unexpected Claude response format')
@@ -421,7 +424,7 @@ Return ONLY valid JSON (no markdown):
         role: 'user',
         content: `Tool: ${toolName}\nURL: ${url}\nBoard: ${board}\nTarget keywords: ${keywords || toolName + ' India free online'}\n\nCreate Pinterest pin content.`,
       }],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw   = msg.content[0]?.text || ''
     const match = raw.match(/\{[\s\S]*\}/)
     if (!match) throw new Error('Unexpected Claude response format')
@@ -477,7 +480,7 @@ Return ONLY valid JSON (no markdown, no explanation):
         role: 'user',
         content: `Write a Reddit post for ${subreddit} naturally mentioning ${toolName} (${url}). Focus on being genuinely helpful first.`,
       }],
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
     const raw = msg.content[0]?.text || ''
     const match = raw.match(/\{[\s\S]*\}/)
     if (!match) throw new Error('Claude returned unexpected format')

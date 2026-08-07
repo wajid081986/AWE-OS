@@ -6,6 +6,9 @@ const supabase   = require('../db/supabase')
 const router = express.Router()
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
+// Explicit per-call ceiling instead of the SDK's ~10min default.
+const AI_CALL_TIMEOUT_MS = 90_000
+
 const LENGTH_TOKENS = { short: 300, medium: 700, long: 1400 }
 
 const PRO_PLANS   = ['pro_monthly', 'pro_yearly']
@@ -187,7 +190,7 @@ router.post('/', requireAuth, requirePayment, async (req, res) => {
       messages: [{ role: 'user', content: prompt }],
       max_tokens: maxTokens,
       temperature: 0.7,
-    })
+    }, { timeout: AI_CALL_TIMEOUT_MS })
 
     const rawContent = completion.choices[0]?.message?.content || ''
 

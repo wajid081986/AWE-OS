@@ -175,7 +175,7 @@ Return JSON object:
 }`,
       },
     ],
-  });
+  }, OPENAI_CALL_OPTS);
 
   const raw    = res.choices[0].message.content;
   const result = extractJson(raw);
