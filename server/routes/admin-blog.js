@@ -92,12 +92,15 @@ const LINKABLE_TOOLS = [
   { name: 'Compress PDF',          slug: 'compress-pdf'     },
 ]
 
-// ── POST /generate — word-count-targeted three-call approach ─────────────────
+// ── generatePostContent — word-count-targeted three-call approach ────────────
+// Extracted from the /generate route handler so admin-blog-bulk-audit.js's
+// "Fix This" flow can regenerate an EXISTING post's content/faqs (targeting
+// its current title/category/keyword) without duplicating the prompts here.
+// Pure function: no DB read/write, no res — same behavior as the inline
+// handler it replaced, just returning the response body instead of sending
+// it. See CLAUDE.md changelog 2026-08-07 (Bulk SEO Audit Fix integration).
 
-router.post('/generate', requireAuth, requireAdmin, async (req, res) => {
-  const { topic, keyword, toolSlug, toolName, wordCount = 2000, tone = 'beginner', category = 'Finance', indianContext = true, autoHumanize = false } = req.body
-  if (!topic) return res.status(400).json({ success: false, error: 'topic is required' })
-
+async function generatePostContent({ topic, keyword, toolSlug, toolName, wordCount = 2000, tone = 'beginner', category = 'Finance', indianContext = true, autoHumanize = false }) {
   const toneGuide = {
     beginner:       'Write for someone completely new. Simple language, explain every term.',
     expert:         'Write for financially literate readers who want deep analysis, not basics.',
@@ -196,17 +199,17 @@ Do not stop until every section above meets its minimum. Use H3 sub-headings ins
 Do not stop until every section above meets its minimum — if you are unsure, write more. Every FAQ answer must be 100+ words — no exceptions.`
   }
 
-  try {
-    // ── Calls 1-3: metadata + first-half + second-half content ───────────────
-    // None of these prompts reads another call's output (verified: call 2/3
-    // never reference `metadata`, call 3 never references `firstBlocks`) — the
-    // only reason they used to run one after another was the code shape, not
-    // a real dependency. Firing them concurrently cuts worst-case wall time
-    // from the sum of three gpt-4o calls to roughly the slowest one. Each also
-    // gets an explicit timeout instead of relying on the SDK's ~600s default,
-    // so a stalled call fails fast rather than silently outliving the client
-    // timeout.
-    const GENERATE_CALL_TIMEOUT_MS = 120_000
+  // ── Calls 1-3: metadata + first-half + second-half content ─────────────────
+  // None of these prompts reads another call's output (verified: call 2/3
+  // never reference `metadata`, call 3 never references `firstBlocks`) — the
+  // only reason they used to run one after another was the code shape, not
+  // a real dependency. Firing them concurrently cuts worst-case wall time
+  // from the sum of three gpt-4o calls to roughly the slowest one. Each also
+  // gets an explicit timeout instead of relying on the SDK's ~600s default,
+  // so a stalled call fails fast rather than silently outliving the client
+  // timeout. Errors thrown here propagate to the caller (the /generate route
+  // wraps this call in its own try/catch, same as before extraction).
+  const GENERATE_CALL_TIMEOUT_MS = 120_000
 
     const metaPrompt = `Generate blog post metadata. Return ONLY valid JSON, no other text.
 
@@ -379,12 +382,12 @@ Return the JSON object with "blocks" and "faqs" keys as specified in the system 
     console.log('[blog/generate] Total words:', totalWords)
 
     if (totalWords < wordCount * 0.7) {
-      return res.json({
+      return {
         success:        false,
         error:          `Generated content too short (${totalWords} words). Please try again.`,
         actualWords:    totalWords,
         requestedWords: wordCount,
-      })
+      }
     }
 
     // ── Auto-humanize (opt-in via autoHumanize) ───────────────────────────────
@@ -411,7 +414,18 @@ Return the JSON object with "blocks" and "faqs" keys as specified in the system 
       }
     }
 
-    res.json({ success: true, post, actualWords: totalWords, humanize: humanizeInfo })
+    return { success: true, post, actualWords: totalWords, humanize: humanizeInfo }
+}
+
+// ── POST /generate ────────────────────────────────────────────────────────────
+
+router.post('/generate', requireAuth, requireAdmin, async (req, res) => {
+  const { topic, keyword, toolSlug, toolName, wordCount = 2000, tone = 'beginner', category = 'Finance', indianContext = true, autoHumanize = false } = req.body
+  if (!topic) return res.status(400).json({ success: false, error: 'topic is required' })
+
+  try {
+    const result = await generatePostContent({ topic, keyword, toolSlug, toolName, wordCount, tone, category, indianContext, autoHumanize })
+    res.json(result)
   } catch (err) {
     console.error('[admin-blog/generate]', err.message)
     res.status(500).json({ success: false, error: err.message || 'Generation failed' })
@@ -1832,5 +1846,13 @@ router.post('/score-content', requireAuth, requireAdmin, async (req, res) => {
     res.status(500).json({ success: false, error: err.message })
   }
 })
+
+// ── Additive exports for reuse by admin-blog-bulk-audit.js's "Fix This" flow
+// (Batch 52) — attached to the router object so `require('./admin-blog')`
+// call sites that only expect the router keep working unchanged.
+router.generatePostContent      = generatePostContent
+router.humanizeParagraphsChunked = humanizeParagraphsChunked
+router.extractParagraphs         = extractParagraphs
+router.applyHumanizedParagraphs  = applyHumanizedParagraphs
 
 module.exports = router
