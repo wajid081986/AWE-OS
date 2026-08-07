@@ -694,8 +694,8 @@ export const TOOL_REGISTRY = [
     tags: ['loan calculator', 'emi calculator', 'mortgage calculator', 'interest calculator', 'monthly payment'],
     relatedSlugs: ['percentage-calculator', 'bmi-calculator'],
     seo: {
-      title: 'Loan EMI Calculator — Monthly Payment & Amortization | AWE-OS',
-      description: 'Calculate monthly EMI for any loan. Get a complete amortization schedule. Free, instant loan calculator.',
+      title: 'Online EMI Calculator — Personal, Home & Car Loan | AWE-OS',
+      description: 'Calculate personal, home & car loan EMI online — instant monthly payment, interest breakdown & full amortization schedule. 100% free.',
     },
   },
   {
