@@ -841,8 +841,8 @@ export const TOOL_REGISTRY = [
     tags: ['capital gains calculator india', 'ltcg stcg calculator', 'capital gains tax 2025', 'equity capital gains calculator', 'property capital gains india'],
     relatedSlugs: ['tax-calculator', 'sip-calculator', 'roi-calculator'],
     seo: {
-      title: 'Capital Gains Calculator — LTCG STCG Tax India 2025 | AWE-OS',
-      description: 'Calculate capital gains tax on equity, debt funds, real estate, and gold per Finance Act 2024 rates. STCG/LTCG classification, effective tax rate, net profit. Free for India.',
+      title: 'LTCG & STCG Calculator — Capital Gains Tax India 2025 | AWE-OS',
+      description: 'Calculate capital gains tax on mutual funds, equity, property & gold with indexation — FY 2025-26 rates. LTCG/STCG classification & net profit. Free for India.',
     },
   },
 
