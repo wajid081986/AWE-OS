@@ -193,7 +193,17 @@ Do not stop until every section above meets its minimum — if you are unsure, w
   }
 
   try {
-    // ── Call 1: Metadata only (gpt-4o, 500 tokens) ───────────────────────────
+    // ── Calls 1-3: metadata + first-half + second-half content ───────────────
+    // None of these prompts reads another call's output (verified: call 2/3
+    // never reference `metadata`, call 3 never references `firstBlocks`) — the
+    // only reason they used to run one after another was the code shape, not
+    // a real dependency. Firing them concurrently cuts worst-case wall time
+    // from the sum of three gpt-4o calls to roughly the slowest one. Each also
+    // gets an explicit timeout instead of relying on the SDK's ~600s default,
+    // so a stalled call fails fast rather than silently outliving the client
+    // timeout.
+    const GENERATE_CALL_TIMEOUT_MS = 120_000
+
     const metaPrompt = `Generate blog post metadata. Return ONLY valid JSON, no other text.
 
 Topic: ${topic}
@@ -216,13 +226,7 @@ Indian Context: ${indianCtx}
   ]
 }`
 
-    const call1 = await getOpenAI().chat.completions.create({
-      model: 'gpt-4o', messages: [{ role: 'user', content: metaPrompt }],
-      max_tokens: 500, temperature: 0.7,
-    })
-    const metadata = parseAIJson(call1.choices[0]?.message?.content || '')
-
-    // ── Call 2: First half content (gpt-4o, dynamic tokens) ──────────────────
+    // ── Call 2 prompt: First half content (gpt-4o, dynamic tokens) ───────────
     const half1System = `You are a professional SEO content writer.
 Write the first half of a long-form blog post about "${topic}".
 Return ONLY a valid JSON array of content blocks. No extra text.
@@ -258,16 +262,7 @@ Spread the links across different paragraphs, one link per sentence maximum.
 
 Return as a raw JSON array of content blocks (no wrapping object).`
 
-    const call2 = await getOpenAI().chat.completions.create({
-      model: 'gpt-4o',
-      messages: [{ role: 'system', content: half1System }, { role: 'user', content: half1Prompt }],
-      max_tokens: call2MaxTokens, temperature: 0.7,
-    })
-    const raw2        = call2.choices[0]?.message?.content || ''
-    const firstHalf   = parseAIJson(raw2)
-    const firstBlocks = Array.isArray(firstHalf) ? firstHalf : (firstHalf.content || [])
-
-    // ── Call 3: Second half content + FAQs (gpt-4o, dynamic tokens) ──────────
+    // ── Call 3 prompt: Second half content + FAQs (gpt-4o, dynamic tokens) ───
     const calloutHref  = toolSlug ? `/tools/${toolSlug}` : '/'
     const half2System = `You are a professional SEO content writer.
 Write the second half of a long-form blog post about "${topic}".
@@ -316,11 +311,29 @@ ${internalLinkList}
 
 Return the JSON object with "blocks" and "faqs" keys as specified in the system prompt.`
 
-    const call3 = await getOpenAI().chat.completions.create({
-      model: 'gpt-4o',
-      messages: [{ role: 'system', content: half2System }, { role: 'user', content: half2Prompt }],
-      max_tokens: call3MaxTokens, temperature: 0.7,
-    })
+    const [call1, call2, call3] = await Promise.all([
+      getOpenAI().chat.completions.create({
+        model: 'gpt-4o', messages: [{ role: 'user', content: metaPrompt }],
+        max_tokens: 500, temperature: 0.7,
+      }, { timeout: GENERATE_CALL_TIMEOUT_MS }),
+      getOpenAI().chat.completions.create({
+        model: 'gpt-4o',
+        messages: [{ role: 'system', content: half1System }, { role: 'user', content: half1Prompt }],
+        max_tokens: call2MaxTokens, temperature: 0.7,
+      }, { timeout: GENERATE_CALL_TIMEOUT_MS }),
+      getOpenAI().chat.completions.create({
+        model: 'gpt-4o',
+        messages: [{ role: 'system', content: half2System }, { role: 'user', content: half2Prompt }],
+        max_tokens: call3MaxTokens, temperature: 0.7,
+      }, { timeout: GENERATE_CALL_TIMEOUT_MS }),
+    ])
+
+    const metadata = parseAIJson(call1.choices[0]?.message?.content || '')
+
+    const raw2        = call2.choices[0]?.message?.content || ''
+    const firstHalf   = parseAIJson(raw2)
+    const firstBlocks = Array.isArray(firstHalf) ? firstHalf : (firstHalf.content || [])
+
     const raw3         = call3.choices[0]?.message?.content || ''
     const secondData   = parseAIJson(raw3)
     const secondBlocks = Array.isArray(secondData) ? secondData : (secondData.blocks || secondData.content || [])
