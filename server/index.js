@@ -15,6 +15,7 @@ const toolRoutes                     = require('./routes/tools.routes');
 const agentsRoutes                   = require('./routes/agents.routes');
 const adminRoutes                    = require('./routes/admin.routes');
 const adminBlogRoutes                = require('./routes/admin-blog');
+const adminBlogBulkAuditRoutes       = require('./routes/admin-blog-bulk-audit');
 const adminTrafficRoutes             = require('./routes/admin-traffic');
 const adminSeoRoutes                 = require('./routes/admin-seo');
 const adminImageAgentRoutes          = require('./routes/admin-image-agent');
@@ -269,6 +270,7 @@ app.use('/api/blog',             blogPublicRoutes);
 // for /api/codegen/generate and /api/admin/video-agent/generate.
 app.use('/api/admin/blog/humanize', (req, res, next) => { req.setTimeout(180_000); res.setTimeout(180_000); next(); });
 app.use('/api/admin/blog',       adminLimiter, adminBlogRoutes);
+app.use('/api/admin/blog-bulk-audit', adminLimiter, adminBlogBulkAuditRoutes);
 app.use('/api/admin/traffic',   adminLimiter, adminTrafficRoutes);
 app.use('/api/social',          adminLimiter, socialPublishRoutes);
 app.use('/api/auto-campaign',   adminLimiter, autoCampaignRoutes);

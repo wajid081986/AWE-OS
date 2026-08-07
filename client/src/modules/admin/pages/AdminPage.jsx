@@ -12,6 +12,7 @@ const QUICK_ITEMS = [
   { icon: '🤖', label: 'SEO AI Agent',    to: '/admin/seo-agent'       },
   { icon: '⚡', label: 'Programmatic SEO',to: '/admin/programmatic-seo' },
   { icon: '🔍', label: 'SEO Audit',       to: '/admin/seo-audit'       },
+  { icon: '📋', label: 'Bulk SEO Audit',  to: '/admin/bulk-seo-audit'  },
   { icon: '🕷️', label: 'Crawl Engine',   to: '/admin/crawl-engine'    },
   { icon: '🧠', label: 'SEO Intelligence', to: '/admin/seo-intelligence' },
   { icon: '✍️', label: 'Blog Writer',      to: '/admin/blog'           },
