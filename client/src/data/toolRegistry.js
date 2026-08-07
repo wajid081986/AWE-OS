@@ -822,8 +822,8 @@ export const TOOL_REGISTRY = [
     tags: ['nps calculator', 'national pension system', 'nps returns calculator', 'nps maturity calculator', 'nps pension calculator india'],
     relatedSlugs: ['ppf-calculator', 'sip-calculator', 'tax-calculator'],
     seo: {
-      title: 'NPS Calculator — National Pension System Returns India | AWE-OS',
-      description: 'Calculate your NPS retirement corpus, tax-free lump sum, and monthly pension. Adjust contribution, expected return, and annuity rate. Free NPS calculator for India.',
+      title: 'NPS Calculator — Pension, Annuity & Returns (India) | AWE-OS',
+      description: 'Calculate NPS pension, annuity payout, tax-free lump sum & retirement corpus — for govt employees & private investors. Free NPS calculator for India.',
     },
   },
 
