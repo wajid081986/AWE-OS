@@ -121,13 +121,17 @@ Exactly 7 entries, one per day, using this fixed day→platform order: 1=Blog, 2
 // cached gsc_daily_stats rows instead of duplicating the fetch/aggregate logic.
 
 function emptyWindow() {
-  return { totalClicks: 0, totalImpressions: 0, avgCtr: 0, avgPosition: 0, topPages: [], topQueries: [] }
+  return { totalClicks: 0, totalImpressions: 0, avgCtr: 0, avgPosition: 0, topPages: [], allPages: [], topQueries: [] }
 }
 
 function aggregateWindow(rows) {
   let totalClicks = 0, totalImpressions = 0, positionWeighted = 0
-  const pageMap  = new Map()
-  const queryMap = new Map()
+  const pageMap     = new Map()
+  const queryMap    = new Map()
+  // Per-page query breakdown — additive alongside the site-wide queryMap
+  // above, so CTR Optimizer (Batch 53) can show which real queries are
+  // driving impressions on a specific low-CTR page.
+  const pageQueryMap = new Map() // page_url -> Map(query -> { query, clicks, impressions })
 
   for (const r of rows) {
     totalClicks      += r.clicks
@@ -144,9 +148,31 @@ function aggregateWindow(rows) {
     q.impressions       += r.impressions
     q.positionWeighted  += r.position * r.impressions
     queryMap.set(r.query, q)
+
+    const pq      = pageQueryMap.get(r.page_url) || new Map()
+    const pqEntry = pq.get(r.query) || { query: r.query, clicks: 0, impressions: 0 }
+    pqEntry.clicks      += r.clicks
+    pqEntry.impressions += r.impressions
+    pq.set(r.query, pqEntry)
+    pageQueryMap.set(r.page_url, pq)
   }
 
   const topPages = [...pageMap.values()].sort((a, b) => b.clicks - a.clicks).slice(0, 10)
+
+  // Unsliced, includes ctr + each page's top 3 queries by impressions —
+  // topPages above stays exactly as-is (sliced top-10 by clicks) for its
+  // existing consumers (/recommendations), since a zero-click page would
+  // never surface there.
+  const allPages = [...pageMap.values()]
+    .map(p => ({
+      ...p,
+      ctr:        p.impressions > 0 ? Number((p.clicks / p.impressions).toFixed(4)) : 0,
+      topQueries: [...(pageQueryMap.get(p.page_url)?.values() || [])]
+        .sort((a, b) => b.impressions - a.impressions)
+        .slice(0, 3),
+    }))
+    .sort((a, b) => b.impressions - a.impressions)
+
   const topQueries = [...queryMap.values()]
     .map(q => ({
       query:       q.query,
@@ -163,6 +189,7 @@ function aggregateWindow(rows) {
     avgCtr:      totalImpressions > 0 ? Number((totalClicks / totalImpressions).toFixed(4)) : 0,
     avgPosition: totalImpressions > 0 ? Number((positionWeighted / totalImpressions).toFixed(1)) : 0,
     topPages,
+    allPages,
     topQueries,
   }
 }
