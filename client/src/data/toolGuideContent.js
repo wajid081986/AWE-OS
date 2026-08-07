@@ -287,7 +287,7 @@ export const TOOL_GUIDE = {
       'Using a simple, easily guessable password like "1234", "password", the recipient\'s name, or the document title — these are the first passwords any attacker will try. Use a randomly generated password.',
       'Forgetting the password after sharing — once forgotten, a PDF password cannot be recovered. Always record the password securely in a password manager or a secure note before sharing the document.',
       'Protecting a PDF and then sharing the password in the same message or email — the entire purpose of password protection is defeated if the password travels with the file.',
-      'Expecting PDF password protection to be unbreakable forever — AES 128-bit encrypted PDFs (the standard level) provide good security but can be brute-forced over time. Avoid using the same password repeatedly across documents.',
+      'Expecting PDF password protection to be unbreakable forever — AES-256 encrypted PDFs (the standard level used here) provide strong security, but a weak password itself is still guessable over time regardless of the encryption strength. Avoid using the same password repeatedly across documents.',
       'Protecting a PDF on a public or shared computer without logging out — the file remains in browser memory during the session, potentially exposing it to other users on the same machine.',
       'Using the tool on a large file over a slow mobile data connection — password protection requires re-processing the entire PDF. For files over 50 MB, use a desktop Wi-Fi connection.',
     ],
