@@ -9,11 +9,17 @@ import KeywordClusters from './KeywordClusters'
 import EeatBooster from './EeatBooster'
 import ContentStudio from './ContentStudio'
 
-// Humanize calls do multiple sequential OpenAI calls server-side (chunked for
-// long posts) — override the shared 60s axios default so a long post doesn't
-// time out client-side before the server finishes. Paired with a small retry
-// wrapper for transient failures (rate limits, dropped connections).
-const HUMANIZE_TIMEOUT_MS = 180_000
+// Humanize calls do multiple OpenAI calls server-side per chunk (analysis +
+// rewrite in parallel, then a scoring pass) — override the shared axios
+// default so a long post doesn't time out client-side before the server
+// finishes. Paired with a small retry wrapper for transient failures (rate
+// limits, dropped connections).
+const HUMANIZE_TIMEOUT_MS = 240_000
+
+// /generate runs its own content-gen calls first, then (when autoHumanize is
+// on) the same humanize chain above on top of that — needs more headroom
+// than the shared axios default gives every other admin call.
+const GENERATE_TIMEOUT_MS = 300_000
 
 async function withRetry(fn, { attempts = 3, baseDelayMs = 2000 } = {}) {
   let lastErr
@@ -217,7 +223,7 @@ function AIBlogWriterTab({ onPreFill }) {
       const res  = await api.post('/api/admin/blog/generate', {
         ...form,
         toolName: tool?.name || '',
-      })
+      }, { timeout: GENERATE_TIMEOUT_MS })
       if (res.data.success) {
         setPost(res.data.post)
         setActualWords(res.data.actualWords || null)

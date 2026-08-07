@@ -46,20 +46,6 @@ Return JSON:
 }
 Return ONLY JSON.`.trim();
 
-  const analysisRes = await openai.chat.completions.create({
-    model:       'gpt-4o-mini',
-    max_tokens:  1000,
-    temperature: 0,
-    messages: [
-      { role: 'system', content: 'Return only valid JSON.' },
-      { role: 'user',   content: analyzePrompt }
-    ]
-  }, OPENAI_CALL_OPTS);
-
-  const analysis = parseAIJson(
-    analysisRes.choices[0].message.content
-  ) || { aiScore: 50, patterns: [] };
-
   const humanizePrompt = `
 Rewrite this content to sound completely human-written.
 
@@ -86,18 +72,36 @@ ${content}
 Return the COMPLETE rewritten content as plain text.
 No JSON. No markdown. Just the rewritten article.`.trim();
 
-  const humanRes = await openai.chat.completions.create({
-    model:       'gpt-4o',
-    max_tokens:  4000,
-    temperature: 0.7,
-    messages: [
-      {
-        role: 'system',
-        content: `You are an expert content editor who makes AI-written content sound genuinely human. Write naturally, with personality and warmth.`
-      },
-      { role: 'user', content: humanizePrompt }
-    ]
-  }, OPENAI_CALL_OPTS);
+  // Analysis and the rewrite are independent of each other (the rewrite prompt
+  // doesn't use the analysis result) — run them in parallel so this call's
+  // worst case is 2 sequential legs (parallel pair, then scoring) instead of 3.
+  const [analysisRes, humanRes] = await Promise.all([
+    openai.chat.completions.create({
+      model:       'gpt-4o-mini',
+      max_tokens:  1000,
+      temperature: 0,
+      messages: [
+        { role: 'system', content: 'Return only valid JSON.' },
+        { role: 'user',   content: analyzePrompt }
+      ]
+    }, OPENAI_CALL_OPTS),
+    openai.chat.completions.create({
+      model:       'gpt-4o',
+      max_tokens:  4000,
+      temperature: 0.7,
+      messages: [
+        {
+          role: 'system',
+          content: `You are an expert content editor who makes AI-written content sound genuinely human. Write naturally, with personality and warmth.`
+        },
+        { role: 'user', content: humanizePrompt }
+      ]
+    }, OPENAI_CALL_OPTS),
+  ]);
+
+  const analysis = parseAIJson(
+    analysisRes.choices[0].message.content
+  ) || { aiScore: 50, patterns: [] };
 
   const humanizedContent = humanRes.choices[0].message.content;
 
