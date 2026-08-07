@@ -135,24 +135,17 @@ function PagesRibbon({ activePage, pageCount, onInsertBlank, onDuplicate, onRequ
   )
 }
 
-// Password Protect/Permissions is a labeled, disabled placeholder, not a
-// working button — pdf-lib (this project's only PDF-manipulation library)
-// has no .encrypt() method, confirmed via live QA on batch-39, which is why
-// that feature was built then reverted. Shown disabled with an honest
-// tooltip rather than omitted, so its absence doesn't look like an
-// oversight. See docs/backlog.md.
-function SecurityRibbon({ activeTool, onToolChange }) {
+// Password Protect opens ProtectModal (index.jsx), which encrypts the
+// flattened document via @pdfsmaller/pdf-encrypt — pdf-lib itself still has
+// no .encrypt() method (confirmed via live QA on batch-39, which is why
+// this was originally built then reverted), but that package fills the gap
+// with AES-256, same as the standalone ProtectPDF.jsx tool.
+function SecurityRibbon({ activeTool, onToolChange, onProtectClick }) {
   return (
     <>
       <RibbonButton label="Redact" icon="⬛" shortcut="X" desc="Cover an area with a permanent solid black box" active={activeTool === TOOLS.REDACT} onClick={() => onToolChange(TOOLS.REDACT)} />
       <Divider />
-      <div
-        title="Coming soon — pdf-lib (this project's PDF library) can't currently write password encryption; see docs/backlog.md"
-        className="flex flex-col items-center justify-center gap-1 w-24 h-16 shrink-0 opacity-40 text-center px-1"
-      >
-        <span className="text-3xl leading-none" aria-hidden>🔒</span>
-        <span className="text-[10px] leading-tight">Password Protect (soon)</span>
-      </div>
+      <RibbonButton label="Protect" icon="🔒" desc="Password-protect and encrypt the document (AES-256)" onClick={onProtectClick} />
     </>
   )
 }
@@ -214,6 +207,7 @@ export default function RibbonToolbar({
   fileName,
   activePage, pageCount, onInsertBlank, onDuplicate, onRequestDelete, onMovePage, onSplitAfter, onExtractCurrentPage,
   hasFormFields, onFormFillClick, onAutoFillClick,
+  onProtectClick,
 }) {
   const [activeTab, setActiveTab] = useState('annotate')
 
@@ -299,7 +293,7 @@ export default function RibbonToolbar({
             onExtractCurrentPage={onExtractCurrentPage}
           />
         )}
-        {activeTab === 'security' && <SecurityRibbon activeTool={activeTool} onToolChange={onToolChange} />}
+        {activeTab === 'security' && <SecurityRibbon activeTool={activeTool} onToolChange={onToolChange} onProtectClick={onProtectClick} />}
         {activeTab === 'view' && (
           <ViewRibbon
             zoom={zoom}

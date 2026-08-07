@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { PDFDocument, StandardFonts, rgb, PDFTextField, PDFCheckBox, PDFRadioGroup, PDFDropdown, PDFString } from 'pdf-lib'
+import { encryptPDF } from '@pdfsmaller/pdf-encrypt'
 import ToolPageShell from '../../ToolPageShell'
 import PageCanvas from './PageCanvas'
 import RibbonToolbar from './RibbonToolbar'
@@ -11,6 +12,7 @@ import AiResultModal from './AiResultModal'
 import FindReplaceBar from './FindReplaceBar'
 import ConfirmModal from './ConfirmModal'
 import DocumentToolsModal from './DocumentToolsModal'
+import ProtectModal from './ProtectModal'
 import { usePdfDoc } from './usePdfDoc'
 import { useAnnotations } from './useAnnotations'
 import { useFormFields } from './useFormFields'
@@ -251,6 +253,8 @@ export default function PdfEditorV2() {
   const [pendingDeletePosition, setPendingDeletePosition] = useState(null)
   const [documentToolMode, setDocumentToolMode] = useState(null)
   const [documentToolLoading, setDocumentToolLoading] = useState(false)
+  const [showProtectModal, setShowProtectModal] = useState(false)
+  const [protectLoading, setProtectLoading] = useState(false)
 
   // localStorage read — effect, not render body, so it never runs during SSR.
   useEffect(() => { autoFillApi.load() }, [])
@@ -873,6 +877,37 @@ export default function PdfEditorV2() {
     }
   }, [buildFlattenedPdfLibDoc, pdfDoc.fileName, showToast])
 
+  // Same flatten step as Download, then encrypts via @pdfsmaller/pdf-encrypt
+  // (pdf-lib itself still has no .encrypt()) — mirrors the standalone
+  // ProtectPDF.jsx tool's permission profile, but protects the flattened
+  // edited document instead of a raw upload.
+  const handleApplyProtect = useCallback(async (password) => {
+    setProtectLoading(true)
+    try {
+      const pdfLibDoc = await buildFlattenedPdfLibDoc()
+      const bytes = await pdfLibDoc.save()
+      const encrypted = await encryptPDF(bytes, password, {
+        ownerPassword: password + '_aweos',
+        allowPrinting: true,
+        allowHighQualityPrint: true,
+        allowModifying: false,
+        allowCopying: false,
+        allowAnnotating: false,
+        allowFillingForms: true,
+        allowExtraction: true,
+        allowAssembly: false,
+      })
+      const baseName = (pdfDoc.fileName || 'document').replace(/\.pdf$/i, '')
+      downloadFile(encrypted, `${baseName}-protected.pdf`)
+      setShowProtectModal(false)
+      showToast('PDF protected and downloaded.', 'success')
+    } catch (err) {
+      showToast(err?.message || 'Failed to protect PDF.', 'error')
+    } finally {
+      setProtectLoading(false)
+    }
+  }, [buildFlattenedPdfLibDoc, pdfDoc.fileName, showToast])
+
   useEffect(() => {
     function onKeyDown(e) {
       const tag = document.activeElement?.tagName
@@ -967,6 +1002,7 @@ export default function PdfEditorV2() {
         hasFormFields={formFieldsApi.hasFields}
         onFormFillClick={handleJumpToFirstField}
         onAutoFillClick={() => setShowProfileModal(true)}
+        onProtectClick={() => setShowProtectModal(true)}
       />
 
       {viewRotation !== 0 && (
@@ -1168,6 +1204,13 @@ export default function PdfEditorV2() {
         loading={documentToolLoading}
         onApply={handleApplyDocumentTool}
         onClose={() => setDocumentToolMode(null)}
+      />
+    )}
+    {showProtectModal && (
+      <ProtectModal
+        loading={protectLoading}
+        onApply={handleApplyProtect}
+        onClose={() => setShowProtectModal(false)}
       />
     )}
     </>
