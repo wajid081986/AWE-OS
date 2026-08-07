@@ -784,8 +784,8 @@ export const TOOL_REGISTRY = [
     tags: ['gpa calculator', 'grade point average', 'college gpa', 'academic calculator', 'grade calculator'],
     relatedSlugs: ['percentage-calculator', 'age-calculator'],
     seo: {
-      title: 'GPA Calculator — Calculate Grade Point Average Free | AWE-OS',
-      description: 'Calculate your GPA from course grades and credit hours. Supports weighted and unweighted GPA. Free online tool.',
+      title: 'GPA Calculator — Weighted College & University GPA Free | AWE-OS',
+      description: 'Calculate your weighted GPA from letter grades & credit hours — instant 4.0 scale result with grade-point reference table. Free, no sign-up, for college & university students.',
     },
   },
 
