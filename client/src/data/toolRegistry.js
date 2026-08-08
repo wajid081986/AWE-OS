@@ -506,8 +506,8 @@ export const TOOL_REGISTRY = [
     tags: ['pdf editor', 'edit pdf', 'annotate pdf', 'pdf annotator', 'sign pdf', 'fill pdf form'],
     relatedSlugs: ['watermark-pdf', 'protect-pdf', 'merge-pdf'],
     seo: {
-      title: 'PDF Editor — Edit PDF Online Free | AWE-OS',
-      description: 'Free online PDF editor. Add text, draw, highlight, sign and annotate PDF files in your browser. No upload, no signup.',
+      title: 'PDF Editor — Edit, Annotate & Sign PDF Free | AWE-OS',
+      description: 'Edit, annotate, sign and fill PDF forms free online at AWE-OS — no upload, no signup, 100% browser-based PDF editor.',
     },
   },
 
@@ -565,8 +565,8 @@ export const TOOL_REGISTRY = [
     tags: ['fd calculator', 'fixed deposit calculator', 'rd calculator', 'sbi fd', 'hdfc fd', 'tds on fd', 'fd interest calculator', 'india'],
     relatedSlugs: ['sip-calculator', 'loan-calculator', 'tax-calculator'],
     seo: {
-      title: 'FD Calculator — Fixed Deposit & RD Calculator India | AWE-OS',
-      description: 'Calculate FD maturity and TDS. Compare fixed deposit rates across SBI, HDFC, ICICI, Axis, Kotak and Post Office. Free FD & RD calculator for India.',
+      title: 'FD Calculator — TDS & Tax on Fixed Deposit Interest | AWE-OS',
+      description: 'Calculate FD maturity, TDS & tax on interest — compare SBI, HDFC, ICICI, Axis & Kotak FD rates. Free fixed deposit calculator for India.',
     },
   },
 
@@ -640,8 +640,8 @@ export const TOOL_REGISTRY = [
     tags: ['tax', 'income tax', 'ITR', 'tax calculator', 'TDS', 'finance', 'tax slab', 'new regime', 'old regime', 'US tax', 'federal tax'],
     relatedSlugs: ['loan-calculator', 'percentage-calculator', 'bmi-calculator'],
     seo: {
-      title: 'Tax Calculator — India & US Income Tax Free | AWE-OS',
-      description: 'Calculate India income tax (Old/New Regime, FY 2024-25) and US Federal tax. Slab breakdown, effective rate, TDS, regime comparison. Free, browser-based.',
+      title: 'Tax Calculator — India & US Federal Tax Estimator | AWE-OS',
+      description: 'Estimate income tax instantly — India (Old/New Regime) slab breakdown or US federal tax by filing status, with effective tax rate. Free & browser-based.',
     },
   },
   {
@@ -694,8 +694,8 @@ export const TOOL_REGISTRY = [
     tags: ['loan calculator', 'emi calculator', 'mortgage calculator', 'interest calculator', 'monthly payment'],
     relatedSlugs: ['percentage-calculator', 'bmi-calculator'],
     seo: {
-      title: 'Loan EMI Calculator — Monthly Payment & Amortization | AWE-OS',
-      description: 'Calculate monthly EMI for any loan. Get a complete amortization schedule. Free, instant loan calculator.',
+      title: 'Online EMI Calculator — Personal, Home & Car Loan | AWE-OS',
+      description: 'Calculate personal, home & car loan EMI online — instant monthly payment, interest breakdown & full amortization schedule. 100% free.',
     },
   },
   {
@@ -784,8 +784,8 @@ export const TOOL_REGISTRY = [
     tags: ['gpa calculator', 'grade point average', 'college gpa', 'academic calculator', 'grade calculator'],
     relatedSlugs: ['percentage-calculator', 'age-calculator'],
     seo: {
-      title: 'GPA Calculator — Calculate Grade Point Average Free | AWE-OS',
-      description: 'Calculate your GPA from course grades and credit hours. Supports weighted and unweighted GPA. Free online tool.',
+      title: 'GPA Calculator — Weighted College & University GPA Free | AWE-OS',
+      description: 'Calculate your weighted GPA from letter grades & credit hours — instant 4.0 scale result with grade-point reference table. Free, no sign-up, for college & university students.',
     },
   },
 
@@ -822,8 +822,8 @@ export const TOOL_REGISTRY = [
     tags: ['nps calculator', 'national pension system', 'nps returns calculator', 'nps maturity calculator', 'nps pension calculator india'],
     relatedSlugs: ['ppf-calculator', 'sip-calculator', 'tax-calculator'],
     seo: {
-      title: 'NPS Calculator — National Pension System Returns India | AWE-OS',
-      description: 'Calculate your NPS retirement corpus, tax-free lump sum, and monthly pension. Adjust contribution, expected return, and annuity rate. Free NPS calculator for India.',
+      title: 'NPS Calculator — Pension, Annuity & Returns (India) | AWE-OS',
+      description: 'Calculate NPS pension, annuity payout, tax-free lump sum & retirement corpus — for govt employees & private investors. Free NPS calculator for India.',
     },
   },
 
@@ -841,8 +841,8 @@ export const TOOL_REGISTRY = [
     tags: ['capital gains calculator india', 'ltcg stcg calculator', 'capital gains tax 2025', 'equity capital gains calculator', 'property capital gains india'],
     relatedSlugs: ['tax-calculator', 'sip-calculator', 'roi-calculator'],
     seo: {
-      title: 'Capital Gains Calculator — LTCG STCG Tax India 2025 | AWE-OS',
-      description: 'Calculate capital gains tax on equity, debt funds, real estate, and gold per Finance Act 2024 rates. STCG/LTCG classification, effective tax rate, net profit. Free for India.',
+      title: 'LTCG & STCG Calculator — Capital Gains Tax India 2025 | AWE-OS',
+      description: 'Calculate capital gains tax on mutual funds, equity, property & gold with indexation — FY 2025-26 rates. LTCG/STCG classification & net profit. Free for India.',
     },
   },
 
