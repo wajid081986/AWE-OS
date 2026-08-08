@@ -161,13 +161,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'callout',
-        text: 'For a detailed breakdown and personalized suggestions, try using a budget calculator.',
-        links: [
-          {
-            href: '/tools/budget-calculator',
-            label: 'budget-calculator'
-          }
-        ]
+        text: 'For a detailed breakdown and personalized suggestions, try using a budget calculator.'
       },
       {
         type: 'h2',
@@ -420,18 +414,7 @@ export const BLOG_POSTS = [
     excerpt: 'Discover the versatile world of QR codes with our QR Code Generator for free online. Learn 10 practical uses, from simplifying transactions to enhancing marketing strategies in India.',
     metaTitle: 'QR Code Generator for Free Online - 10 Uses',
     metaDescription: 'Explore 10 practical uses of a QR Code Generator for free online. Discover how it can benefit you!',
-    relatedTools: [
-      {
-        label: 'Barcode Generator',
-        slug: 'barcode-generator',
-        icon: '📦'
-      },
-      {
-        label: 'URL Shortener',
-        slug: 'url-shortener',
-        icon: '🔗'
-      }
-    ],
+    relatedTools: [],
     content: [
       {
         type: 'p',
@@ -614,14 +597,14 @@ export const BLOG_POSTS = [
     metaDescription: 'Use our Loan EMI Calculator for free to plan your home, car, or personal loan wisely. Perfect for Indian financial planning!',
     relatedTools: [
       {
-        label: 'Interest Rate Tracker',
-        slug: 'interest-rate-tracker',
-        icon: '📈'
+        label: 'FD Calculator',
+        slug: 'fd-calculator',
+        icon: '🏦'
       },
       {
-        label: 'Savings Calculator',
-        slug: 'savings-calculator',
-        icon: '💰'
+        label: 'SIP Calculator',
+        slug: 'sip-calculator',
+        icon: '📊'
       }
     ],
     content: [
@@ -749,7 +732,7 @@ export const BLOG_POSTS = [
       },
       {
         label: 'Loan EMI Calculator',
-        slug: 'loan-emi-calculator',
+        slug: 'loan-calculator',
         icon: '📊'
       }
     ],
@@ -935,14 +918,14 @@ export const BLOG_POSTS = [
     metaDescription: 'Explore how the SIP Calculator can enhance your mutual fund returns in India. Start optimizing today!',
     relatedTools: [
       {
-        label: 'Compound Interest Calculator',
-        slug: 'compound-interest-calculator',
+        label: 'ROI Calculator',
+        slug: 'roi-calculator',
         icon: '📈'
       },
       {
-        label: 'Investment Growth Calculator',
-        slug: 'investment-growth-calculator',
-        icon: '💹'
+        label: 'FD Calculator',
+        slug: 'fd-calculator',
+        icon: '🏦'
       }
     ],
     content: [
@@ -1121,18 +1104,7 @@ export const BLOG_POSTS = [
     excerpt: "Struggling to get your resume noticed? Our ATS resume builder free tool ensures your CV gets past ATS systems with ease. Learn how to optimize your job applications and stand out in India's competitive job market.",
     metaTitle: 'Free ATS Resume Builder for Job Success',
     metaDescription: 'Discover how our ATS resume builder free tool helps you get past ATS systems effortlessly.',
-    relatedTools: [
-      {
-        label: 'AI Cover Letter Generator',
-        slug: 'ai-cover-letter-generator',
-        icon: '✉️'
-      },
-      {
-        label: 'Job Interview Simulator',
-        slug: 'job-interview-simulator',
-        icon: '🗣️'
-      }
-    ],
+    relatedTools: [],
     content: [
       {
         type: 'p',
@@ -1319,14 +1291,9 @@ export const BLOG_POSTS = [
     metaDescription: 'Discover 10 free PDF tools online you need in 2026 for efficient document management.',
     relatedTools: [
       {
-        label: 'AWE-OS PDF Editor',
-        slug: 'awe-os-pdf-editor',
-        icon: '📝'
-      },
-      {
-        label: 'PDF Converter Pro',
-        slug: 'pdf-converter-pro',
-        icon: '🔄'
+        label: 'PDF Editor',
+        slug: 'pdf-editor',
+        icon: '✏️'
       }
     ],
     content: [
@@ -1519,18 +1486,7 @@ export const BLOG_POSTS = [
     excerpt: 'Explore the benefits of using a word counter online free tool for writers and students. Boost productivity and ensure accuracy in your documents.',
     metaTitle: 'Word Counter Online Free for Writers',
     metaDescription: 'Discover how a word counter online free tool boosts productivity. Perfect for writers and students.',
-    relatedTools: [
-      {
-        label: 'Character Counter',
-        slug: 'character-counter',
-        icon: '🔢'
-      },
-      {
-        label: 'Grammar Checker',
-        slug: 'grammar-checker',
-        icon: '✍️'
-      }
-    ],
+    relatedTools: [],
     content: [
       {
         type: 'p',
@@ -1712,11 +1668,6 @@ export const BLOG_POSTS = [
         label: 'Password Generator',
         slug: 'password-generator',
         icon: '🔐'
-      },
-      {
-        label: 'Security Check',
-        slug: 'security-check',
-        icon: '🔍'
       }
     ],
     content: [
@@ -1858,11 +1809,6 @@ export const BLOG_POSTS = [
         label: 'Currency Converter',
         slug: 'currency-converter',
         icon: '💱'
-      },
-      {
-        label: 'Time Zone Converter',
-        slug: 'time-zone-converter',
-        icon: '🌍'
       }
     ],
     content: [
@@ -2048,13 +1994,8 @@ export const BLOG_POSTS = [
     relatedTools: [
       {
         label: 'Loan EMI Calculator',
-        slug: 'loan-emi-calculator',
+        slug: 'loan-calculator',
         icon: '💰'
-      },
-      {
-        label: 'Retirement Calculator',
-        slug: 'retirement-calculator',
-        icon: '🏖️'
       }
     ],
     content: [
@@ -2231,14 +2172,9 @@ export const BLOG_POSTS = [
     metaDescription: 'Explore the best free GST invoice generator for Indian freelancers. Simplify your invoicing with AWE-OS.',
     relatedTools: [
       {
-        label: 'AWE-OS',
-        slug: 'awe-os',
-        icon: '🧰'
-      },
-      {
-        label: 'SEBI Guidelines',
-        slug: 'sebi-guidelines',
-        icon: '📜'
+        label: 'GST Calculator',
+        slug: 'gst-calculator',
+        icon: '🧾'
       }
     ],
     content: [
@@ -2594,14 +2530,9 @@ export const BLOG_POSTS = [
     metaDescription: 'Learn how to compress image online free without losing quality. Optimize your images effortlessly.',
     relatedTools: [
       {
-        label: 'Image Resizer',
-        slug: 'image-resizer',
+        label: 'Image Compressor',
+        slug: 'image-compressor',
         icon: '🖼️'
-      },
-      {
-        label: 'File Converter',
-        slug: 'file-converter',
-        icon: '🔄'
       }
     ],
     content: [
@@ -2985,11 +2916,6 @@ export const BLOG_POSTS = [
         label: 'BMI Calculator',
         slug: 'bmi-calculator',
         icon: '⚖️'
-      },
-      {
-        label: 'Health Risk Assessment',
-        slug: 'health-risk-assessment',
-        icon: '🩺'
       }
     ],
     content: [
@@ -3372,7 +3298,7 @@ export const BLOG_POSTS = [
       },
       {
         label: 'Income Tax Calculator',
-        slug: 'income-tax-calculator',
+        slug: 'tax-calculator',
         icon: '📊'
       }
     ],
@@ -3489,7 +3415,7 @@ export const BLOG_POSTS = [
       },
       {
         label: 'Income Tax Calculator',
-        slug: 'income-tax-calculator',
+        slug: 'tax-calculator',
         icon: '💰'
       }
     ],
@@ -3601,7 +3527,7 @@ export const BLOG_POSTS = [
     relatedTools: [
       {
         label: 'Income Tax Calculator',
-        slug: 'income-tax-calculator',
+        slug: 'tax-calculator',
         icon: '🧮'
       },
       {
