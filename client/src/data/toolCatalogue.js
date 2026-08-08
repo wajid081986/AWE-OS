@@ -13,7 +13,7 @@ export const TOOL_CATALOGUE = {
     label: 'PDF Tools',
     icon: '📄',
     to: '/tools/pdf',
-    count: '18+',
+    count: '20+',
     description: 'Merge, split, compress, convert and secure PDFs',
     accent: 'red',
     sections: [
@@ -49,6 +49,8 @@ export const TOOL_CATALOGUE = {
           { icon: '📸', label: 'PDF to JPG',         to: '/tools/pdf-to-jpg'  },
           { icon: '📝', label: 'PDF to Word',        to: '/tools/pdf-to-word' },
           { icon: '📈', label: 'PDF to Excel',       to: '/tools/pdf-to-excel'},
+          { icon: '📝', label: 'PDF to Text',        to: '/tools/pdf-to-text' },
+          { icon: '📊', label: 'PDF to PowerPoint',  to: '/tools/pdf-to-ppt'  },
         ],
       },
       {
@@ -74,7 +76,7 @@ export const TOOL_CATALOGUE = {
     label: 'Calculators',
     icon: '🧮',
     to: '/tools/calculators',
-    count: '6+',
+    count: '16+',
     description: 'BMI, Loan, GPA, Age, Percentage and more',
     accent: 'green',
     sections: [
@@ -99,6 +101,9 @@ export const TOOL_CATALOGUE = {
           { icon: '🧓', label: 'NPS Calculator',          to: '/tools/nps-calculator'        },
           { icon: '📈', label: 'Capital Gains Calculator', to: '/tools/capital-gains-calculator' },
           { icon: '💰', label: 'Interest Calculator',     to: '/tools/interest-calculator',  comingSoon: true },
+          { icon: '🧾', label: 'GST Calculator',          to: '/tools/gst-calculator'        },
+          { icon: '💰', label: 'Tip Calculator',          to: '/tools/tip-calculator'        },
+          { icon: '🏷️', label: 'Discount Calculator',     to: '/tools/discount-calculator'   },
         ],
       },
       {
@@ -114,15 +119,16 @@ export const TOOL_CATALOGUE = {
     label: 'Converters',
     icon: '🔄',
     to: '/tools/converters',
-    count: '9+',
+    count: '10+',
     description: 'Unit conversion, text tools, file converters',
     accent: 'purple',
     sections: [
       {
         title: 'Unit Conversion',
         items: [
-          { icon: '📐', label: 'Unit Converter',          to: '/tools/unit-converter' },
-          { icon: '🎨', label: 'Color Picker',            to: '/tools/color-picker'   },
+          { icon: '📐', label: 'Unit Converter',          to: '/tools/unit-converter'    },
+          { icon: '🎨', label: 'Color Picker',            to: '/tools/color-picker'      },
+          { icon: '💱', label: 'Currency Converter',      to: '/tools/currency-converter'},
         ],
       },
       {
@@ -140,6 +146,13 @@ export const TOOL_CATALOGUE = {
           { icon: '⬛', label: 'QR Code Generator',       to: '/tools/qr-code-generator'  },
         ],
       },
+      {
+        title: 'Data Tools',
+        items: [
+          { icon: '🔢', label: 'Number Base Converter',   to: '/tools/base-converter' },
+          { icon: '{ }', label: 'JSON Formatter',         to: '/tools/json-formatter' },
+        ],
+      },
     ],
   },
 
@@ -147,14 +160,15 @@ export const TOOL_CATALOGUE = {
     label: 'Productivity',
     icon: '🧾',
     to: '/tools/productivity',
-    count: '3+',
+    count: '4+',
     description: 'Invoice generation, contracts, billing and business tools',
     accent: 'indigo',
     sections: [
       {
         title: 'Billing',
         items: [
-          { icon: '🧾', label: 'Invoice Generator', to: '/tools/invoice' },
+          { icon: '🧾', label: 'Invoice Generator',       to: '/tools/invoice' },
+          { icon: '📄', label: 'Invoice Generator (Quick)', to: '/tools/invoice-generator' },
         ],
       },
       {
