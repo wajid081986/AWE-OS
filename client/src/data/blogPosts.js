@@ -3398,7 +3398,6 @@ export const BLOG_POSTS = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     slug: 'how-to-use-gst-calculator-online',
-    noindex: true,
     title: 'How to Use GST Calculator Online Efficiently',
     date: '2026-05-24',
     category: 'Finance',
