@@ -247,7 +247,7 @@ router.get('/priority-queue', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('blog_posts')
-      .select('id, title, slug, category, content, faqs, human_score')
+      .select('id, title, slug, category, content, faqs, human_score, meta_title, meta_description')
       .eq('status', 'published');
     if (error) throw error;
 
@@ -281,6 +281,8 @@ router.get('/priority-queue', requireAuth, requireAdmin, async (req, res) => {
 
         return {
           ...audited,
+          meta_title:       post.meta_title,
+          meta_description: post.meta_description,
           impressions,
           clicks,
           avgPosition,
