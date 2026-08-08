@@ -253,6 +253,106 @@ router.get('/search-performance', requireAuth, requireAdmin, async (req, res) =>
   }
 })
 
+// ── Content decay (SDD Phase 3, Batch 60) ────────────────────────────────────
+// Week-over-week ranking trend per page, built on the same gsc_daily_stats
+// cache as fetchSearchPerformance above, independent query/aggregation so a
+// failure here can't affect the 7d/28d snapshot path.
+
+const DECAY_LOOKBACK_DAYS           = 60 // bounds query size; only buckets 0 and 1 are ever compared
+const DECAY_BUCKET_DAYS             = 7  // rolling week, not calendar week
+const DECAY_MIN_TOTAL_DAYS          = 14 // need 2 full buckets of overall history before attempting a trend
+const DECAY_MIN_BUCKET_IMPRESSIONS  = 10 // per-page noise filter, scaled down from CTR_MIN_IMPRESSIONS (20/28d)
+const DECAY_THRESHOLD               = 3.0 // position worsened by this many points or more, week over week
+
+// Groups cached GSC rows into rolling 7-day buckets anchored to the most
+// recent date present (bucket 0 = most recent week, bucket 1 = the week
+// before it, ...), then flags pages whose impression-weighted avg position
+// got worse by DECAY_THRESHOLD+ from bucket 1 to bucket 0. Returns null if
+// GSC isn't configured, { sufficientData: false, daysCollected } if there
+// isn't yet 14 days of overall history, otherwise { sufficientData: true,
+// daysCollected, pages }.
+async function fetchContentDecay() {
+  if (!isConfigured()) return null
+
+  const cutoff = new Date(Date.now() - DECAY_LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
+  const fmt    = d => d.toISOString().slice(0, 10)
+
+  const { data: rows, error } = await supabase
+    .from('gsc_daily_stats')
+    .select('date, page_url, impressions, position')
+    .gte('date', fmt(cutoff))
+    .order('date', { ascending: true })
+    .limit(20000)
+  if (error) throw error
+
+  if (!rows || rows.length === 0) {
+    return { sufficientData: false, daysCollected: 0 }
+  }
+
+  const minDate       = rows[0].date
+  const maxDate       = rows[rows.length - 1].date
+  const maxDateMs     = new Date(maxDate).getTime()
+  const daysCollected = Math.floor((maxDateMs - new Date(minDate).getTime()) / 86400000) + 1
+
+  if (daysCollected < DECAY_MIN_TOTAL_DAYS) {
+    return { sufficientData: false, daysCollected }
+  }
+
+  const bucketOf = date => Math.floor((maxDateMs - new Date(date).getTime()) / 86400000 / DECAY_BUCKET_DAYS)
+
+  const pageBuckets = new Map() // page_url -> bucketIndex -> { weighted, impressions }
+  for (const r of rows) {
+    const bucket  = bucketOf(r.date)
+    const buckets = pageBuckets.get(r.page_url) || new Map()
+    const entry   = buckets.get(bucket) || { weighted: 0, impressions: 0 }
+    entry.weighted    += r.position * r.impressions
+    entry.impressions += r.impressions
+    buckets.set(bucket, entry)
+    pageBuckets.set(r.page_url, buckets)
+  }
+
+  const pages = []
+  for (const [page_url, buckets] of pageBuckets) {
+    const recent   = buckets.get(0)
+    const previous = buckets.get(1)
+    if (!recent || !previous) continue
+    if (recent.impressions < DECAY_MIN_BUCKET_IMPRESSIONS || previous.impressions < DECAY_MIN_BUCKET_IMPRESSIONS) continue
+
+    const recentAvgPosition   = Number((recent.weighted / recent.impressions).toFixed(1))
+    const previousAvgPosition = Number((previous.weighted / previous.impressions).toFixed(1))
+    const positionDelta       = Number((recentAvgPosition - previousAvgPosition).toFixed(1))
+
+    pages.push({
+      page_url,
+      recentAvgPosition,
+      previousAvgPosition,
+      positionDelta,
+      decaying:            positionDelta >= DECAY_THRESHOLD,
+      recentImpressions:   recent.impressions,
+      previousImpressions: previous.impressions,
+    })
+  }
+
+  return { sufficientData: true, daysCollected, pages }
+}
+
+// ── GET /api/admin/growth-os/search-performance/decay ───────────────────────
+// Mirrors /search-performance's response conventions exactly.
+
+router.get('/search-performance/decay', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    if (!isConfigured()) {
+      return res.json({ success: true, configured: false })
+    }
+
+    const decay = await fetchContentDecay()
+    res.json({ success: true, configured: true, ...decay })
+  } catch (err) {
+    console.error('[admin-growth-os/search-performance/decay]', err.message)
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
 // ── GET /api/admin/growth-os/recommendations ──────────────────────────────────
 // Heuristic recommendations from real signals: which tools have no recent
 // blog coverage, the category mix of published posts, and — when synced —
@@ -412,5 +512,8 @@ Exactly 5 prompts, each a single detailed sentence describing composition, subje
 // (Batch 53) — attached to the router object so `require('./admin-growth-os')`
 // call sites that only expect the router keep working unchanged.
 router.fetchSearchPerformance = fetchSearchPerformance
+// Additive export for reuse by admin-blog-bulk-audit.js's Priority Queue
+// content decay merge (Batch 60) — same attachment pattern as above.
+router.fetchContentDecay = fetchContentDecay
 
 module.exports = router
