@@ -506,8 +506,8 @@ export const TOOL_REGISTRY = [
     tags: ['pdf editor', 'edit pdf', 'annotate pdf', 'pdf annotator', 'sign pdf', 'fill pdf form'],
     relatedSlugs: ['watermark-pdf', 'protect-pdf', 'merge-pdf'],
     seo: {
-      title: 'PDF Editor — Edit PDF Online Free | AWE-OS',
-      description: 'Free online PDF editor. Add text, draw, highlight, sign and annotate PDF files in your browser. No upload, no signup.',
+      title: 'PDF Editor — Edit, Annotate & Sign PDF Free | AWE-OS',
+      description: 'Edit, annotate, sign and fill PDF forms free online at AWE-OS — no upload, no signup, 100% browser-based PDF editor.',
     },
   },
 
