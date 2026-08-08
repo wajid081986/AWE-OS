@@ -970,8 +970,8 @@ export const TOOL_REGISTRY = [
     tags: ['currency converter', 'inr to usd', 'rupee to dollar', 'forex calculator', 'exchange rate india', 'currency exchange'],
     relatedSlugs: ['gst-calculator', 'percentage-calculator', 'unit-converter'],
     seo: {
-      title: 'Currency Converter — INR to USD, EUR, AED & More | AWE-OS',
-      description: 'Convert Indian Rupee to USD, EUR, GBP, AED, SGD and 10 more currencies. Free online currency converter with live exchange rate display.',
+      title: 'Online Currency Converter — INR to USD, EUR, AED & More | AWE-OS',
+      description: 'Convert INR to USD, EUR, GBP, AED and 14+ currencies online — instant results with live exchange rates. Free currency calculator, no sign-up.',
     },
   },
   {
