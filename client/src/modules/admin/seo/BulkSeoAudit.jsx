@@ -422,6 +422,299 @@ function CtrOptimizerSection() {
   )
 }
 
+// ── Priority Queue (Batch 59 — SDD Phase 2) ─────────────────────────────────
+// Merges the structural audit with real GSC performance into a single
+// ranked list. Own local state/handlers, reusing the FixPreviewModal and
+// MetaOptionsModal components as-is — the existing Structural Audit and
+// CTR Optimizer sections below are untouched.
+
+function ScoreBadge({ score }) {
+  const color = score >= 120
+    ? 'bg-red-900 text-red-300'
+    : score >= 60
+      ? 'bg-yellow-900 text-yellow-300'
+      : 'bg-green-900 text-green-300'
+  return (
+    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${color}`}>
+      {score}
+    </span>
+  )
+}
+
+function PriorityQueueRow({ post, onFixThis, fixing, fixError, onSuggest, suggesting, suggestError }) {
+  return (
+    <tr className="border-t border-gray-700 align-top">
+      <td className="px-4 py-3 text-white max-w-xs truncate">{post.title}</td>
+      <td className="px-4 py-3"><ScoreBadge score={post.score} /></td>
+      <td className="px-4 py-3 max-w-sm">
+        <ul className="text-xs text-gray-400 space-y-0.5">
+          {post.reasons.map((reason, i) => <li key={i}>{reason}</li>)}
+        </ul>
+      </td>
+      <td className="px-4 py-3 text-gray-400 whitespace-nowrap">{post.impressions}</td>
+      <td className="px-4 py-3 text-gray-400 whitespace-nowrap">{post.avgPosition || '—'}</td>
+      <td className="px-4 py-3">
+        {post.issuesCount > 0 && (
+          <>
+            <button
+              type="button"
+              onClick={() => onFixThis(post)}
+              disabled={fixing}
+              className="text-indigo-400 hover:underline disabled:opacity-50 disabled:no-underline whitespace-nowrap text-sm"
+            >
+              {fixing ? 'Analyzing…' : 'Fix This →'}
+            </button>
+            {fixError && <p className="text-xs text-red-400 mt-1 max-w-[12rem]">{fixError}</p>}
+          </>
+        )}
+        {post.needsMetaFix && (
+          <div className={post.issuesCount > 0 ? 'mt-1' : ''}>
+            <button
+              type="button"
+              onClick={() => onSuggest(post)}
+              disabled={suggesting}
+              className="text-indigo-400 hover:underline disabled:opacity-50 disabled:no-underline whitespace-nowrap text-sm"
+            >
+              {suggesting ? 'Thinking…' : 'Suggest →'}
+            </button>
+            {suggestError && <p className="text-xs text-red-400 mt-1 max-w-[12rem]">{suggestError}</p>}
+          </div>
+        )}
+      </td>
+    </tr>
+  )
+}
+
+function PriorityQueueSection() {
+  const [posts,      setPosts]      = useState([])
+  const [configured, setConfigured] = useState(true)
+  const [loading,    setLoading]    = useState(false)
+  const [error,      setError]      = useState(null)
+
+  const [fixingId, setFixingId] = useState(null)
+  const [fixError, setFixError] = useState({})
+  const [preview,  setPreview]  = useState(null) // { postId, postTitle, mode, data }
+  const [saving,   setSaving]   = useState(false)
+  const [saveError, setSaveError] = useState(null)
+
+  const [suggestingId, setSuggestingId] = useState(null)
+  const [suggestError, setSuggestError] = useState({})
+  const [modal,         setModal]         = useState(null) // { postId, postTitle, current, options }
+  const [applyingIndex, setApplyingIndex] = useState(null)
+  const [applyError,    setApplyError]    = useState(null)
+
+  async function fetchQueue() {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await api.get('/api/admin/blog-bulk-audit/priority-queue')
+      if (res.data.success) {
+        setConfigured(res.data.configured !== false)
+        setPosts(res.data.posts || [])
+      } else {
+        setError(res.data.error || 'Failed to load priority queue')
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || err.message || 'Request failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchQueue() }, [])
+
+  async function handleFixThis(post) {
+    setFixingId(post.id)
+    setFixError(prev => ({ ...prev, [post.id]: null }))
+    try {
+      const res = await api.post(`/api/admin/blog-bulk-audit/fix/${post.id}`)
+      if (res.data.success) {
+        setPreview({ postId: post.id, postTitle: post.title, mode: res.data.mode, data: res.data.preview })
+      } else {
+        setFixError(prev => ({ ...prev, [post.id]: res.data.error || 'Fix failed' }))
+      }
+    } catch (err) {
+      setFixError(prev => ({ ...prev, [post.id]: err.response?.data?.error || err.message || 'Request failed' }))
+    } finally {
+      setFixingId(null)
+    }
+  }
+
+  function closePreview() {
+    setPreview(null)
+    setSaveError(null)
+  }
+
+  async function handleReplace() {
+    if (!preview) return
+    setSaving(true)
+    setSaveError(null)
+    try {
+      const res = await api.post(`/api/admin/blog-bulk-audit/fix/${preview.postId}/confirm`, {
+        mode:    preview.mode,
+        preview: preview.data,
+      })
+      if (res.data.success) {
+        closePreview()
+        fetchQueue()
+      } else {
+        setSaveError(res.data.error || 'Replace failed')
+      }
+    } catch (err) {
+      setSaveError(err.response?.data?.error || err.message || 'Request failed')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleSuggest(post) {
+    setSuggestingId(post.id)
+    setSuggestError(prev => ({ ...prev, [post.id]: null }))
+    try {
+      const res = await api.post(`/api/admin/blog-bulk-audit/meta-suggest/${post.id}`)
+      if (res.data.success) {
+        setModal({
+          postId:    post.id,
+          postTitle: post.title,
+          current:   { meta_title: post.meta_title, meta_description: post.meta_description },
+          options:   res.data.options || [],
+        })
+      } else {
+        setSuggestError(prev => ({ ...prev, [post.id]: res.data.error || 'Suggest failed' }))
+      }
+    } catch (err) {
+      setSuggestError(prev => ({ ...prev, [post.id]: err.response?.data?.error || err.message || 'Request failed' }))
+    } finally {
+      setSuggestingId(null)
+    }
+  }
+
+  function closeModal() {
+    setModal(null)
+    setApplyError(null)
+    setApplyingIndex(null)
+  }
+
+  async function handleApply(option, index) {
+    if (!modal) return
+    setApplyingIndex(index)
+    setApplyError(null)
+    try {
+      const res = await api.post(`/api/admin/blog-bulk-audit/meta-confirm/${modal.postId}`, {
+        meta_title:       option.meta_title,
+        meta_description: option.meta_description,
+      })
+      if (res.data.success) {
+        closeModal()
+        fetchQueue()
+      } else {
+        setApplyError(res.data.error || 'Apply failed')
+        setApplyingIndex(null)
+      }
+    } catch (err) {
+      setApplyError(err.response?.data?.error || err.message || 'Request failed')
+      setApplyingIndex(null)
+    }
+  }
+
+  return (
+    <div className="mb-10">
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-xl font-bold text-white">Priority Queue</h2>
+        <button
+          type="button"
+          onClick={fetchQueue}
+          disabled={loading}
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
+        >
+          {loading ? 'Refreshing…' : 'Refresh'}
+        </button>
+      </div>
+      <p className="text-gray-400 text-sm mb-6">
+        Structural issues ranked against real Search Console performance (28d) — work on these posts next,
+        in this order. Score = issues × 25 + capped impressions/position, damped for posts with no
+        structural flags. No AI cost to view; "Fix This" and "Suggest" reuse the same actions below.
+      </p>
+
+      {error && (
+        <div className="bg-red-900/40 border border-red-700 rounded-lg p-4 text-red-300 text-sm mb-6">
+          {error}
+        </div>
+      )}
+
+      {!loading && !error && !configured && (
+        <p className="text-gray-500 text-sm mb-6">Search Console isn't configured yet — showing structural issues only.</p>
+      )}
+
+      {loading && posts.length === 0 && (
+        <div className="flex items-center justify-center py-16 text-gray-500 text-sm">
+          <div className="w-7 h-7 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mr-3" />
+          Ranking posts…
+        </div>
+      )}
+
+      {!loading && posts.length > 0 && (
+        <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-900/60 text-gray-400 text-xs uppercase">
+              <tr>
+                <th className="text-left px-4 py-3">Title</th>
+                <th className="text-left px-4 py-3">Score</th>
+                <th className="text-left px-4 py-3">Reasons</th>
+                <th className="text-left px-4 py-3">Impressions (28d)</th>
+                <th className="text-left px-4 py-3">Avg position</th>
+                <th className="text-left px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {posts.map(post => (
+                <PriorityQueueRow
+                  key={post.id}
+                  post={post}
+                  onFixThis={handleFixThis}
+                  fixing={fixingId === post.id}
+                  fixError={fixError[post.id]}
+                  onSuggest={handleSuggest}
+                  suggesting={suggestingId === post.id}
+                  suggestError={suggestError[post.id]}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {!loading && !error && posts.length === 0 && (
+        <p className="text-gray-500 text-sm">No published posts found.</p>
+      )}
+
+      {preview && (
+        <FixPreviewModal
+          postTitle={preview.postTitle}
+          mode={preview.mode}
+          preview={preview.data}
+          saving={saving}
+          error={saveError}
+          onReplace={handleReplace}
+          onCancel={closePreview}
+        />
+      )}
+
+      {modal && (
+        <MetaOptionsModal
+          postTitle={modal.postTitle}
+          current={modal.current}
+          options={modal.options}
+          applyingIndex={applyingIndex}
+          error={applyError}
+          onApply={handleApply}
+          onCancel={closeModal}
+        />
+      )}
+    </div>
+  )
+}
+
 export default function BulkSeoAudit() {
   const [posts,   setPosts]   = useState([])
   const [summary, setSummary] = useState(null)
@@ -500,8 +793,12 @@ export default function BulkSeoAudit() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
+      <h1 className="text-2xl font-bold text-white mb-6">Bulk SEO Audit</h1>
+
+      <PriorityQueueSection />
+
       <div className="flex items-center justify-between mb-2">
-        <h1 className="text-2xl font-bold text-white">Bulk SEO Audit</h1>
+        <h2 className="text-xl font-bold text-white">Structural Audit</h2>
         <button
           type="button"
           onClick={fetchAudit}

@@ -217,6 +217,94 @@ router.post('/fix/:id/confirm', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
+// ── GET /priority-queue — structural audit + real GSC performance, merged
+// into a single ranked list (SDD Phase 2, Batch 59). Read-only, no AI calls.
+// Reuses auditPost() and fetchSearchPerformance() rather than duplicating
+// either query. Score formula: issuesCount*25 + gscPortion, where gscPortion
+// is damped 70% when a post has zero structural flags (nothing for "Fix
+// This" to act on) so it can't outrank actually-fixable posts.
+
+const PRIORITY_ISSUE_WEIGHT      = 25;
+const PRIORITY_IMPRESSIONS_CAP   = 1000;
+const PRIORITY_POSITION_CAP      = 100;
+const PRIORITY_ZERO_FLAG_DAMPING = 0.3;
+
+const FLAG_REASON = {
+  thin_content:      'Thin content (fewer than 800 words)',
+  no_faq:            'Missing FAQ section',
+  no_internal_links: 'No internal links',
+  not_humanized:     'Not humanized / AI-detectable',
+};
+
+function priorityScore(issuesCount, impressions, avgPosition) {
+  const gscPortion = Math.min(impressions, PRIORITY_IMPRESSIONS_CAP) / 10
+                    + Math.min(avgPosition, PRIORITY_POSITION_CAP);
+  const damping = issuesCount === 0 ? PRIORITY_ZERO_FLAG_DAMPING : 1;
+  return Math.round(issuesCount * PRIORITY_ISSUE_WEIGHT + gscPortion * damping);
+}
+
+router.get('/priority-queue', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('id, title, slug, category, content, faqs, human_score, meta_title, meta_description')
+      .eq('status', 'published');
+    if (error) throw error;
+
+    let perf = null;
+    try {
+      perf = await fetchSearchPerformance();
+    } catch (perfErr) {
+      console.error('[admin-blog-bulk-audit/priority-queue] search performance fetch failed:', perfErr.message);
+    }
+    const pageByUrl = new Map((perf?.last28?.allPages || []).map(p => [p.page_url, p]));
+
+    const posts = (data || [])
+      .map(post => {
+        const audited = auditPost(post);
+        const page    = pageByUrl.get(`${BLOG_URL_PREFIX}${post.slug}`);
+
+        const impressions  = page?.impressions || 0;
+        const clicks       = page?.clicks || 0;
+        const avgPosition  = page?.avgPosition || 0;
+        const needsMetaFix = !!page
+          && impressions > CTR_MIN_IMPRESSIONS
+          && (clicks === 0 || page.ctr < CTR_LOW_THRESHOLD);
+
+        const reasons = audited.flags.map(f => FLAG_REASON[f] || f);
+        if (impressions > 0) {
+          reasons.push(`${impressions} impressions (28d) at avg position ${avgPosition}`);
+        }
+        if (needsMetaFix) {
+          reasons.push('Low CTR despite impressions');
+        }
+
+        return {
+          ...audited,
+          meta_title:       post.meta_title,
+          meta_description: post.meta_description,
+          impressions,
+          clicks,
+          avgPosition,
+          needsMetaFix,
+          score: priorityScore(audited.issuesCount, impressions, avgPosition),
+          reasons,
+        };
+      })
+      .sort((a, b) => b.score - a.score);
+
+    const summary = {
+      totalPosts: posts.length,
+      avgScore:   posts.length ? Number((posts.reduce((sum, p) => sum + p.score, 0) / posts.length).toFixed(1)) : 0,
+    };
+
+    res.json({ success: true, configured: !!perf, posts, summary });
+  } catch (err) {
+    console.error('[admin-blog-bulk-audit/priority-queue]', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ── GET /ctr-opportunities — published posts with real impressions but
 // very low/zero clicks (a title/meta problem, not a ranking problem) ─────────
 // Joins blog_posts.slug to gsc_daily_stats.page_url via the confirmed
