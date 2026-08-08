@@ -1,5 +1,7 @@
 const supabase = require('../db/supabase');
 const { callClaude, parseJSONResponse } = require('./ai.service');
+const { uploadFile } = require('./s3.service');
+const { buildStaticBundle } = require('../templates/static');
 
 const SYSTEM_PROMPT = `You are an AI tool builder for AWE-OS SaaS platform. When given a category or idea, you generate complete tool configurations. You MUST respond with ONLY a valid JSON object. No markdown. No backticks. No explanation. Start your response with { and end with }`;
 
@@ -31,11 +33,44 @@ async function callWithRetry(promptFn, maxAttempts = 3) {
   throw lastErr;
 }
 
-const generateToolConfig = async (category, idea) => {
+const generateToolConfig = async (category, idea, productType = 'prompt-tool') => {
   const safeCategory = sanitizeForPrompt(category, 50);
   const safeIdea     = sanitizeForPrompt(idea, 200);
 
-  const prompt = `Generate a complete AI tool configuration for the "${safeCategory}" category.
+  const prompt = productType === 'static-bundle'
+    ? `Generate a complete static product page configuration for the "${safeCategory}" category.
+${safeIdea ? `Specific idea: ${safeIdea}` : ''}
+
+Return ONLY this JSON structure:
+{
+  "name": "Product Name",
+  "slug": "product-slug",
+  "description": "One line description",
+  "category": "${category}",
+  "price": 0,
+  "is_free": true,
+  "hero": {
+    "headline": "Short, punchy headline",
+    "subheadline": "One or two sentence supporting copy",
+    "cta_text": "Button label"
+  },
+  "features": [
+    { "title": "Feature name", "description": "One sentence benefit" }
+  ],
+  "cta": {
+    "heading": "Closing call-to-action heading",
+    "button_text": "Button label"
+  }
+}
+
+Rules:
+- slug: lowercase, hyphens only, no spaces
+- 3-4 features max
+- Make it genuinely useful for businesses
+- price: 0 for free tools, 99-999 for paid tools
+
+IMPORTANT: Respond with ONLY a valid JSON object. No markdown, no backticks, no explanation. Just raw JSON.`
+    : `Generate a complete AI tool configuration for the "${safeCategory}" category.
 ${safeIdea ? `Specific idea: ${safeIdea}` : ''}
 
 Return ONLY this JSON structure:
@@ -116,13 +151,13 @@ IMPORTANT: Respond with ONLY a valid JSON array. No markdown, no backticks, no e
   return parseJSONResponse(text);
 };
 
-const runFactory = async (jobId, category, idea, userId) => {
+const runFactory = async (jobId, category, idea, userId, productType = 'prompt-tool') => {
   try {
     await supabase.from('factory_jobs')
       .update({ status: 'running' })
       .eq('id', jobId);
 
-    const toolConfig = await generateToolConfig(category, idea);
+    const toolConfig = await generateToolConfig(category, idea, productType);
 
     // Ensure unique slug
     const { data: existing } = await supabase
@@ -135,9 +170,26 @@ const runFactory = async (jobId, category, idea, userId) => {
       toolConfig.slug = `${toolConfig.slug}-${Date.now()}`;
     }
 
-    const { data: newTool, error } = await supabase
-      .from('tools')
-      .insert({
+    let insertRow;
+    if (productType === 'static-bundle') {
+      const bundle    = buildStaticBundle(toolConfig);
+      const assetKey  = `factory-bundles/${toolConfig.slug}/index.html`;
+      await uploadFile(Buffer.from(bundle['index.html'], 'utf8'), assetKey, 'text/html');
+      await uploadFile(Buffer.from(bundle['style.css'], 'utf8'), `factory-bundles/${toolConfig.slug}/style.css`, 'text/css');
+
+      insertRow = {
+        name:         toolConfig.name,
+        slug:         toolConfig.slug,
+        description:  toolConfig.description,
+        category:     toolConfig.category,
+        price:        toolConfig.price || 0,
+        is_free:      toolConfig.is_free ?? true,
+        product_type: 'static-bundle',
+        asset_url:    assetKey,
+        approved:     false,
+      };
+    } else {
+      insertRow = {
         name:         toolConfig.name,
         slug:         toolConfig.slug,
         description:  toolConfig.description,
@@ -147,7 +199,12 @@ const runFactory = async (jobId, category, idea, userId) => {
         input_fields: toolConfig.input_fields,
         ai_prompt:    toolConfig.ai_prompt,
         approved: false,
-      })
+      };
+    }
+
+    const { data: newTool, error } = await supabase
+      .from('tools')
+      .insert(insertRow)
       .select()
       .single();
 
