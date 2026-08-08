@@ -15,8 +15,9 @@ const factoryLimiter = rateLimit({
 
 // POST /api/factory/generate
 router.post('/generate', requireAuth, requireAdmin, factoryLimiter, async (req, res) => {
-  const { category, idea } = req.body;
-  const userId = req.user.userId;
+  const { category, idea, product_type } = req.body;
+  const userId     = req.user.userId;
+  const productType = product_type || 'prompt-tool';
 
   if (!category) return res.status(400).json({ error: 'Category required' });
 
@@ -34,7 +35,7 @@ router.post('/generate', requireAuth, requireAdmin, factoryLimiter, async (req, 
 
     if (error) throw new Error(error.message);
 
-    const result = await runFactory(job.id, category, idea, userId);
+    const result = await runFactory(job.id, category, idea, userId, productType);
 
     if (!result.success) {
       return res.status(500).json({ error: result.error || 'Tool generation failed' });
