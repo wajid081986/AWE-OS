@@ -3,6 +3,7 @@ const OpenAI   = require('openai');
 const supabase = require('../db/supabase');
 const { requireAuth, requireAdmin } = require('../middleware/admin.middleware');
 const { getPublicTools, getPublicTool } = require('../controllers/tools.controller');
+const { generatePresignedUrl } = require('../services/s3.service');
 
 const Anthropic = require('@anthropic-ai/sdk');
 
@@ -180,6 +181,53 @@ router.post('/:slug/run', async (req, res) => {
     res.json({ success: true, result, tool: { id: tool.id, name: tool.name, slug: tool.slug } });
   } catch (err) {
     console.error('[/run] error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ── GET /api/tools/:slug/download — download non-prompt product assets ───
+// MUST be before /:slugOrId wildcard
+router.get('/:slug/download', async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    // Same gate as /:slug/run — admins can preview unapproved products.
+    let isAdmin = false;
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        const decoded = require('jsonwebtoken').verify(
+          authHeader.split(' ')[1],
+          process.env.JWT_SECRET
+        );
+        isAdmin = decoded.role === 'admin';
+      } catch (_) {}
+    }
+
+    let toolQuery = supabase
+      .from('tools')
+      .select('id, slug, product_type, asset_url, approved')
+      .eq('slug', slug);
+
+    if (!isAdmin) {
+      toolQuery = toolQuery.eq('approved', true);
+    }
+    const { data: tool, error } = await toolQuery.maybeSingle();
+
+    if (error) throw error;
+    if (!tool) return res.status(404).json({ success: false, error: 'Tool not found' });
+
+    if (tool.product_type === 'prompt-tool') {
+      return res.status(400).json({ success: false, error: 'This product is executed via /run, not downloaded' });
+    }
+    if (!tool.asset_url) {
+      return res.status(404).json({ success: false, error: 'No downloadable asset for this product' });
+    }
+
+    const url = await generatePresignedUrl(tool.asset_url, 300);
+    res.redirect(url);
+  } catch (err) {
+    console.error('[/download] error:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
