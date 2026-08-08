@@ -447,7 +447,7 @@ function PriorityQueueRow({ post, onFixThis, fixing, fixError, onSuggest, sugges
       <td className="px-4 py-3 text-white max-w-xs truncate">{post.title}</td>
       <td className="px-4 py-3"><ScoreBadge score={post.score} /></td>
       <td className="px-4 py-3 max-w-sm">
-        <ul className="text-xs text-gray-400 space-y-0.5">
+        <ul className={`text-xs space-y-0.5 ${post.decaying ? 'text-red-400' : 'text-gray-400'}`}>
           {post.reasons.map((reason, i) => <li key={i}>{reason}</li>)}
         </ul>
       </td>
@@ -486,10 +486,11 @@ function PriorityQueueRow({ post, onFixThis, fixing, fixError, onSuggest, sugges
 }
 
 function PriorityQueueSection() {
-  const [posts,      setPosts]      = useState([])
-  const [configured, setConfigured] = useState(true)
-  const [loading,    setLoading]    = useState(false)
-  const [error,      setError]      = useState(null)
+  const [posts,       setPosts]       = useState([])
+  const [configured,  setConfigured]  = useState(true)
+  const [decayStatus, setDecayStatus] = useState(null) // { sufficientData, daysCollected } | null
+  const [loading,     setLoading]     = useState(false)
+  const [error,       setError]       = useState(null)
 
   const [fixingId, setFixingId] = useState(null)
   const [fixError, setFixError] = useState({})
@@ -510,6 +511,7 @@ function PriorityQueueSection() {
       const res = await api.get('/api/admin/blog-bulk-audit/priority-queue')
       if (res.data.success) {
         setConfigured(res.data.configured !== false)
+        setDecayStatus(res.data.decayStatus || null)
         setPosts(res.data.posts || [])
       } else {
         setError(res.data.error || 'Failed to load priority queue')
@@ -633,7 +635,8 @@ function PriorityQueueSection() {
       <p className="text-gray-400 text-sm mb-6">
         Structural issues ranked against real Search Console performance (28d) — work on these posts next,
         in this order. Score = issues × 25 + capped impressions/position, damped for posts with no
-        structural flags. No AI cost to view; "Fix This" and "Suggest" reuse the same actions below.
+        structural flags. Reasons in red flag posts whose ranking worsened week-over-week once enough
+        history exists. No AI cost to view; "Fix This" and "Suggest" reuse the same actions below.
       </p>
 
       {error && (
@@ -644,6 +647,15 @@ function PriorityQueueSection() {
 
       {!loading && !error && !configured && (
         <p className="text-gray-500 text-sm mb-6">Search Console isn't configured yet — showing structural issues only.</p>
+      )}
+
+      {!loading && !error && configured && decayStatus && !decayStatus.sufficientData && (
+        <div className="bg-gray-800 border border-gray-700 border-dashed rounded-xl p-4 text-center mb-6">
+          <p className="text-xs text-gray-500">
+            Accumulating data — content decay trend available after 14 days
+            (currently {decayStatus.daysCollected} day{decayStatus.daysCollected === 1 ? '' : 's'} collected).
+          </p>
+        </div>
       )}
 
       {loading && posts.length === 0 && (

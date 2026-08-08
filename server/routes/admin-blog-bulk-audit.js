@@ -9,7 +9,7 @@ const {
   extractParagraphs,
   applyHumanizedParagraphs,
 } = require('./admin-blog');
-const { fetchSearchPerformance } = require('./admin-growth-os');
+const { fetchSearchPerformance, fetchContentDecay } = require('./admin-growth-os');
 
 const router = express.Router();
 
@@ -223,6 +223,13 @@ router.post('/fix/:id/confirm', requireAuth, requireAdmin, async (req, res) => {
 // either query. Score formula: issuesCount*25 + gscPortion, where gscPortion
 // is damped 70% when a post has zero structural flags (nothing for "Fix
 // This" to act on) so it can't outrank actually-fixable posts.
+//
+// Batch 60 (SDD Phase 3) additionally merges fetchContentDecay() — a
+// week-over-week ranking trend per page — as an extra reason line +
+// `decaying`/`positionDelta` fields. Purely additive: does not change
+// priorityScore() or sort order. `decayStatus` is returned once at the
+// top level so the client can show an "accumulating data" state while
+// gsc_daily_stats has less than 14 days of history.
 
 const PRIORITY_ISSUE_WEIGHT      = 25;
 const PRIORITY_IMPRESSIONS_CAP   = 1000;
@@ -259,10 +266,26 @@ router.get('/priority-queue', requireAuth, requireAdmin, async (req, res) => {
     }
     const pageByUrl = new Map((perf?.last28?.allPages || []).map(p => [p.page_url, p]));
 
+    // Content decay (Batch 60) — independent fetch/try-catch from perf above,
+    // so a decay failure can't affect the existing GSC merge or vice versa.
+    let decay = null;
+    try {
+      decay = await fetchContentDecay();
+    } catch (decayErr) {
+      console.error('[admin-blog-bulk-audit/priority-queue] content decay fetch failed:', decayErr.message);
+    }
+    const decayByUrl = decay?.sufficientData
+      ? new Map(decay.pages.map(p => [p.page_url, p]))
+      : new Map();
+    const decayStatus = decay && decay.sufficientData !== undefined
+      ? { sufficientData: decay.sufficientData, daysCollected: decay.daysCollected }
+      : null;
+
     const posts = (data || [])
       .map(post => {
         const audited = auditPost(post);
         const page    = pageByUrl.get(`${BLOG_URL_PREFIX}${post.slug}`);
+        const decayed = decayByUrl.get(`${BLOG_URL_PREFIX}${post.slug}`);
 
         const impressions  = page?.impressions || 0;
         const clicks       = page?.clicks || 0;
@@ -270,6 +293,7 @@ router.get('/priority-queue', requireAuth, requireAdmin, async (req, res) => {
         const needsMetaFix = !!page
           && impressions > CTR_MIN_IMPRESSIONS
           && (clicks === 0 || page.ctr < CTR_LOW_THRESHOLD);
+        const decaying     = !!decayed?.decaying;
 
         const reasons = audited.flags.map(f => FLAG_REASON[f] || f);
         if (impressions > 0) {
@@ -277,6 +301,9 @@ router.get('/priority-queue', requireAuth, requireAdmin, async (req, res) => {
         }
         if (needsMetaFix) {
           reasons.push('Low CTR despite impressions');
+        }
+        if (decaying) {
+          reasons.push(`Ranking worsening: position ${decayed.previousAvgPosition} → ${decayed.recentAvgPosition} vs. last week`);
         }
 
         return {
@@ -287,6 +314,8 @@ router.get('/priority-queue', requireAuth, requireAdmin, async (req, res) => {
           clicks,
           avgPosition,
           needsMetaFix,
+          decaying,
+          positionDelta: decayed?.positionDelta ?? null,
           score: priorityScore(audited.issuesCount, impressions, avgPosition),
           reasons,
         };
@@ -298,7 +327,7 @@ router.get('/priority-queue', requireAuth, requireAdmin, async (req, res) => {
       avgScore:   posts.length ? Number((posts.reduce((sum, p) => sum + p.score, 0) / posts.length).toFixed(1)) : 0,
     };
 
-    res.json({ success: true, configured: !!perf, posts, summary });
+    res.json({ success: true, configured: !!perf, decayStatus, posts, summary });
   } catch (err) {
     console.error('[admin-blog-bulk-audit/priority-queue]', err.message);
     res.status(500).json({ success: false, error: err.message });
