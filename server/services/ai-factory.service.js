@@ -2,6 +2,9 @@ const supabase = require('../db/supabase');
 const { callClaude, parseJSONResponse } = require('./ai.service');
 const { uploadFile } = require('./s3.service');
 const { buildStaticBundle } = require('../templates/static');
+const { buildUiKitBundle } = require('../templates/ui-kit');
+const { buildNotionTemplateBundle } = require('../templates/notion-template');
+const { buildBrowserExtensionBundle } = require('../templates/browser-extension');
 
 const SYSTEM_PROMPT = `You are an AI tool builder for AWE-OS SaaS platform. When given a category or idea, you generate complete tool configurations. You MUST respond with ONLY a valid JSON object. No markdown. No backticks. No explanation. Start your response with { and end with }`;
 
@@ -37,7 +40,90 @@ const generateToolConfig = async (category, idea, productType = 'prompt-tool') =
   const safeCategory = sanitizeForPrompt(category, 50);
   const safeIdea     = sanitizeForPrompt(idea, 200);
 
-  const prompt = productType === 'static-bundle'
+  const prompt = productType === 'ui-kit'
+    ? `Generate a complete React UI component configuration for the "${safeCategory}" category.
+${safeIdea ? `Specific idea: ${safeIdea}` : ''}
+
+Return ONLY this JSON structure:
+{
+  "name": "Component Name",
+  "slug": "component-slug",
+  "description": "One line description",
+  "category": "${category}",
+  "price": 0,
+  "is_free": true,
+  "component_name": "PascalCaseComponentName",
+  "component_description": "What the component renders",
+  "props": [
+    { "name": "propName", "type": "string", "description": "What this prop controls" }
+  ],
+  "readme_notes": "Any extra usage notes"
+}
+
+Rules:
+- slug: lowercase, hyphens only, no spaces
+- component_name: PascalCase, no spaces
+- 2-5 props max
+- price: 0 for free kits, 99-999 for paid kits
+
+IMPORTANT: Respond with ONLY a valid JSON object. No markdown, no backticks, no explanation. Just raw JSON.`
+    : productType === 'notion-template'
+    ? `Generate a complete Notion/Airtable-style database template configuration for the "${safeCategory}" category.
+${safeIdea ? `Specific idea: ${safeIdea}` : ''}
+
+Return ONLY this JSON structure:
+{
+  "name": "Template Name",
+  "slug": "template-slug",
+  "description": "One line description",
+  "category": "${category}",
+  "price": 0,
+  "is_free": true,
+  "template": {
+    "title": "Database title",
+    "properties": [
+      { "name": "Status", "type": "select", "options": ["Todo", "Doing", "Done"] }
+    ],
+    "sample_rows": [
+      { "Status": "Todo" }
+    ]
+  }
+}
+
+Rules:
+- slug: lowercase, hyphens only, no spaces
+- 3-8 properties max
+- 2-4 sample rows max
+- price: 0 for free templates, 99-999 for paid templates
+
+IMPORTANT: Respond with ONLY a valid JSON object. No markdown, no backticks, no explanation. Just raw JSON.`
+    : productType === 'browser-extension'
+    ? `Generate a complete browser extension skeleton configuration for the "${safeCategory}" category.
+${safeIdea ? `Specific idea: ${safeIdea}` : ''}
+
+Return ONLY this JSON structure:
+{
+  "name": "Extension Name",
+  "slug": "extension-slug",
+  "description": "One line description",
+  "category": "${category}",
+  "price": 0,
+  "is_free": true,
+  "extension": {
+    "action_title": "Toolbar icon title",
+    "permissions": ["activeTab"],
+    "popup_heading": "Popup heading text",
+    "popup_body": "Popup body text"
+  }
+}
+
+Rules:
+- slug: lowercase, hyphens only, no spaces
+- permissions: valid Manifest V3 permission names only
+- price: 0 for free extensions, 99-999 for paid extensions
+
+IMPORTANT: Respond with ONLY a valid JSON object. No markdown, no backticks, no explanation. Just raw JSON.`
+    : productType === 'static-bundle'
     ? `Generate a complete static product page configuration for the "${safeCategory}" category.
 ${safeIdea ? `Specific idea: ${safeIdea}` : ''}
 
@@ -151,6 +237,46 @@ IMPORTANT: Respond with ONLY a valid JSON array. No markdown, no backticks, no e
   return parseJSONResponse(text);
 };
 
+const BUNDLE_MIME_TYPES = {
+  '.html': 'text/html',
+  '.css':  'text/css',
+  '.json': 'application/json',
+  '.jsx':  'text/plain',
+  '.js':   'application/javascript',
+  '.md':   'text/markdown',
+};
+
+function mimeTypeFor(filename) {
+  const ext = filename.slice(filename.lastIndexOf('.'));
+  return BUNDLE_MIME_TYPES[ext] || 'application/octet-stream';
+}
+
+// Uploads every file in a generated bundle to S3 under a per-slug prefix,
+// then builds the tools insert row with asset_url pointing at the
+// bundle's primary/entry file. Shared by every non-prompt-tool product type.
+async function uploadBundleAndInsert(toolConfig, productType, bundle, primaryFile) {
+  const prefix = `factory-bundles/${toolConfig.slug}`;
+  let assetKey = null;
+
+  for (const [filename, content] of Object.entries(bundle)) {
+    const key = `${prefix}/${filename}`;
+    await uploadFile(Buffer.from(content, 'utf8'), key, mimeTypeFor(filename));
+    if (filename === primaryFile) assetKey = key;
+  }
+
+  return {
+    name:         toolConfig.name,
+    slug:         toolConfig.slug,
+    description:  toolConfig.description,
+    category:     toolConfig.category,
+    price:        toolConfig.price || 0,
+    is_free:      toolConfig.is_free ?? true,
+    product_type: productType,
+    asset_url:    assetKey,
+    approved:     false,
+  };
+}
+
 const runFactory = async (jobId, category, idea, userId, productType = 'prompt-tool') => {
   try {
     await supabase.from('factory_jobs')
@@ -172,22 +298,13 @@ const runFactory = async (jobId, category, idea, userId, productType = 'prompt-t
 
     let insertRow;
     if (productType === 'static-bundle') {
-      const bundle    = buildStaticBundle(toolConfig);
-      const assetKey  = `factory-bundles/${toolConfig.slug}/index.html`;
-      await uploadFile(Buffer.from(bundle['index.html'], 'utf8'), assetKey, 'text/html');
-      await uploadFile(Buffer.from(bundle['style.css'], 'utf8'), `factory-bundles/${toolConfig.slug}/style.css`, 'text/css');
-
-      insertRow = {
-        name:         toolConfig.name,
-        slug:         toolConfig.slug,
-        description:  toolConfig.description,
-        category:     toolConfig.category,
-        price:        toolConfig.price || 0,
-        is_free:      toolConfig.is_free ?? true,
-        product_type: 'static-bundle',
-        asset_url:    assetKey,
-        approved:     false,
-      };
+      insertRow = await uploadBundleAndInsert(toolConfig, 'static-bundle', buildStaticBundle(toolConfig), 'index.html');
+    } else if (productType === 'ui-kit') {
+      insertRow = await uploadBundleAndInsert(toolConfig, 'ui-kit', buildUiKitBundle(toolConfig), 'Component.jsx');
+    } else if (productType === 'notion-template') {
+      insertRow = await uploadBundleAndInsert(toolConfig, 'notion-template', buildNotionTemplateBundle(toolConfig), 'template.json');
+    } else if (productType === 'browser-extension') {
+      insertRow = await uploadBundleAndInsert(toolConfig, 'browser-extension', buildBrowserExtensionBundle(toolConfig), 'manifest.json');
     } else {
       insertRow = {
         name:         toolConfig.name,
