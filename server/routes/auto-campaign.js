@@ -5,6 +5,7 @@ const fetchFeaturedImage = require('../services/unsplashImage')
 const { getOpenAI } = require('../core/ai-engine')
 const { postTweet }  = require('../services/twitter.service')
 const { createPin }  = require('../services/pinterest.service')
+const { buildTrackedUrl } = require('../services/utm')
 
 const router = express.Router()
 
@@ -127,9 +128,11 @@ Generate all content for this tool. Keep it authentic and helpful.`,
     send({ step: 4, total: 6, status: 'running', label: 'Publishing blog to AWE-OS...' })
 
     let blogUrl = null
+    let campaignSlug = null
     try {
       const rawSlug   = content.blogSlug || `${toolSlug}-guide`
       const cleanSlug = rawSlug.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
+      campaignSlug = cleanSlug
       const blogBlocks = content.blogBlocks || []
       const blogWordCount = blogBlocks
         .map(b => b.text || (b.items || []).join(' '))
@@ -175,7 +178,11 @@ Generate all content for this tool. Keep it authentic and helpful.`,
 
     let tweetUrl = null
     try {
-      const linkToUse = blogUrl || toolUrl
+      const linkToUse = buildTrackedUrl(blogUrl || toolUrl, {
+        source:   'twitter',
+        medium:   'social',
+        campaign: campaignSlug || toolSlug,
+      })
       const tweetText = content.twitterText || `${toolName} — free on AWE-OS! No signup needed.`
       const posted    = await postTweet(tweetText, linkToUse)
       tweetUrl        = posted.tweetUrl
@@ -194,7 +201,11 @@ Generate all content for this tool. Keep it authentic and helpful.`,
       const pin = await createPin({
         title:       content.pinterestTitle || `Free ${toolName} Online — AWE-OS`,
         description: content.pinterestDescription,
-        link:        blogUrl || toolUrl,
+        link:        buildTrackedUrl(blogUrl || toolUrl, {
+          source:   'pinterest',
+          medium:   'social',
+          campaign: campaignSlug || toolSlug,
+        }),
       })
       pinUrl = pin.pinUrl
       send({ step: 6, total: 6, status: 'done',   label: 'Pinterest pin created', url: pinUrl })
