@@ -132,6 +132,10 @@ function aggregateWindow(rows) {
   // above, so CTR Optimizer (Batch 53) can show which real queries are
   // driving impressions on a specific low-CTR page.
   const pageQueryMap = new Map() // page_url -> Map(query -> { query, clicks, impressions })
+  // Per-page position, tracked separately from pageMap (not merged onto its
+  // objects) so topPages — which references those same objects — stays
+  // byte-identical for its existing consumers. See Batch 59 plan.
+  const pagePositionMap = new Map() // page_url -> { weighted, impressions }
 
   for (const r of rows) {
     totalClicks      += r.clicks
@@ -142,6 +146,11 @@ function aggregateWindow(rows) {
     page.clicks      += r.clicks
     page.impressions += r.impressions
     pageMap.set(r.page_url, page)
+
+    const pp = pagePositionMap.get(r.page_url) || { weighted: 0, impressions: 0 }
+    pp.weighted    += r.position * r.impressions
+    pp.impressions += r.impressions
+    pagePositionMap.set(r.page_url, pp)
 
     const q = queryMap.get(r.query) || { query: r.query, clicks: 0, impressions: 0, positionWeighted: 0 }
     q.clicks           += r.clicks
@@ -164,13 +173,17 @@ function aggregateWindow(rows) {
   // existing consumers (/recommendations), since a zero-click page would
   // never surface there.
   const allPages = [...pageMap.values()]
-    .map(p => ({
-      ...p,
-      ctr:        p.impressions > 0 ? Number((p.clicks / p.impressions).toFixed(4)) : 0,
-      topQueries: [...(pageQueryMap.get(p.page_url)?.values() || [])]
-        .sort((a, b) => b.impressions - a.impressions)
-        .slice(0, 3),
-    }))
+    .map(p => {
+      const pp = pagePositionMap.get(p.page_url)
+      return {
+        ...p,
+        ctr:         p.impressions > 0 ? Number((p.clicks / p.impressions).toFixed(4)) : 0,
+        avgPosition: pp && pp.impressions > 0 ? Number((pp.weighted / pp.impressions).toFixed(1)) : 0,
+        topQueries:  [...(pageQueryMap.get(p.page_url)?.values() || [])]
+          .sort((a, b) => b.impressions - a.impressions)
+          .slice(0, 3),
+      }
+    })
     .sort((a, b) => b.impressions - a.impressions)
 
   const topQueries = [...queryMap.values()]
