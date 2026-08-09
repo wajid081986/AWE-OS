@@ -5,6 +5,7 @@ const { buildStaticBundle } = require('../templates/static');
 const { buildUiKitBundle } = require('../templates/ui-kit');
 const { buildNotionTemplateBundle } = require('../templates/notion-template');
 const { buildBrowserExtensionBundle } = require('../templates/browser-extension');
+const { generatePackaging } = require('./packaging.service');
 
 const SYSTEM_PROMPT = `You are an AI tool builder for AWE-OS SaaS platform. When given a category or idea, you generate complete tool configurations. You MUST respond with ONLY a valid JSON object. No markdown. No backticks. No explanation. Start your response with { and end with }`;
 
@@ -328,6 +329,18 @@ const runFactory = async (jobId, category, idea, userId, productType = 'prompt-t
       .single();
 
     if (error) throw new Error(error.message);
+
+    if (productType !== 'prompt-tool') {
+      try {
+        const packagingMetadata = await generatePackaging(newTool, toolConfig);
+        await supabase.from('tools')
+          .update({ packaging_metadata: packagingMetadata })
+          .eq('id', newTool.id);
+        newTool.packaging_metadata = packagingMetadata;
+      } catch (packagingErr) {
+        console.warn('[AI FACTORY] Packaging generation failed (non-fatal):', packagingErr.message);
+      }
+    }
 
     await supabase.from('factory_jobs')
       .update({
