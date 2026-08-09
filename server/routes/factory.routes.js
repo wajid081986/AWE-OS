@@ -3,6 +3,7 @@ const rateLimit    = require('express-rate-limit');
 const { requireAuth, requireAdmin } = require('../middleware/admin.middleware');
 const { generateToolIdeas, runFactory } = require('../services/ai-factory.service');
 const intelligence = require('../intelligence');
+const marketTrendScorer = require('../intelligence/market-trend-scorer');
 const supabase     = require('../db/supabase');
 const router       = express.Router();
 
@@ -218,6 +219,25 @@ router.post('/intelligence/feedback/:ideaId', requireAuth, requireAdmin, async (
   try {
     await intelligence.recordFeedback(req.params.ideaId, req.body);
     res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ════════════════════════════════════════════════════════════════
+// PHASE 4 — Market Intelligence (informational only)
+// ════════════════════════════════════════════════════════════════
+
+// POST /api/factory/score-idea
+// Scores a candidate idea against the curated trend catalog. Informational
+// only — never called by /generate, never blocks or gates tool generation.
+router.post('/score-idea', requireAuth, requireAdmin, async (req, res) => {
+  const { idea, category, product_type } = req.body;
+  if (!category) return res.status(400).json({ success: false, error: 'category is required' });
+
+  try {
+    const result = marketTrendScorer.scoreIdea({ idea, category, product_type });
+    res.json({ success: true, ...result });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
