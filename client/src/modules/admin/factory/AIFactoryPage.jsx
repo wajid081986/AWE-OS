@@ -266,17 +266,9 @@ export default function AIFactoryPage() {
     setIsGenerating(true); setGeneratingStep(0); setGeneratedTool(null); setGenError(null)
     try {
       setGeneratingStep(0)
-      const res = await fetch('/api/generate-tool', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-secret': import.meta.env.VITE_ADMIN_SECRET || '',
-        },
-        body: JSON.stringify({ category, idea }),
-      })
+      const response = await api.post('/api/factory/generate', { category, idea })
       setGeneratingStep(1)
-      if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || `Error ${res.status}`) }
-      const responseData = await res.json()
+      const responseData = response.data
       console.log('[GENERATE] Raw response:', responseData)
 
       // Handle both { tool: {...} } and direct object shapes
@@ -292,7 +284,7 @@ export default function AIFactoryPage() {
       console.log('[GENERATE] generatedTool state set:', tool.name)
       addToJobs(tool)
     } catch (err) {
-      setGenError(err.message || 'Tool generation failed')
+      setGenError(err?.response?.data?.error || err.message || 'Tool generation failed')
     } finally {
       setIsGenerating(false)
     }
