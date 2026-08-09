@@ -126,10 +126,10 @@ function ToolPreviewCard({ tool, onPublish, onEdit, onReset, publishing }) {
       <div className="flex flex-col gap-2">
         <button
           onClick={onPublish}
-          disabled={publishing || !!tool.savedId}
+          disabled={publishing || tool.approved}
           className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm"
         >
-          {publishing ? 'Publishing…' : tool.savedId ? 'Saved to DB ✓' : 'Publish Tool →'}
+          {publishing ? 'Publishing…' : tool.approved ? 'Approved ✓' : 'Publish Tool →'}
         </button>
         <button onClick={onEdit} className="w-full bg-gray-700 hover:bg-gray-600 text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
           Edit in Builder
@@ -345,56 +345,29 @@ export default function AIFactoryPage() {
   }, [category, analyze, saveIdea, resetIntelligence])
 
   const handlePublish = useCallback(async () => {
-    console.log('[PUBLISH] generatedTool value:', generatedTool)
-    console.log('[PUBLISH] generatedTool?.name:', generatedTool?.name)
-
-    if (!generatedTool) {
-      console.error('[PUBLISH] BLOCKED — generatedTool is null/undefined')
+    if (!generatedTool?.id) {
       setGenError('No tool to publish. Please generate first.')
       return
     }
-    console.log('[PUBLISH CLICKED] tool.approved:', generatedTool?.approved, 'tool.savedId:', generatedTool?.savedId)
-    console.log('[PUBLISH CLICKED] API URL:', api.defaults?.baseURL)
     try {
       setPublishing(true)
       setGenError(null)
 
-      // Build the payload the tools table expects
-      // status 'idea' satisfies the DB CHECK constraint (idea|building|live|scaling|killed)
-      const payload = {
-        name:         generatedTool.name,
-        slug:         generatedTool.slug,
-        description:  generatedTool.description,
-        category:     generatedTool.category || category,
-        is_free:      generatedTool.is_free  ?? true,
-        price:        generatedTool.price    ?? 0,
-        input_fields: generatedTool.input_fields || generatedTool.inputFields || [],
-        ai_prompt:    generatedTool.corePrompt || generatedTool.ai_prompt ||
-                      `You are a helpful ${generatedTool.name} assistant.`,
-        approved:     false,   // goes to review queue, not live immediately
-        status:       'idea',
-      }
+      // POST /api/factory/generate already inserted this row (approved: false) —
+      // "Publish" approves the existing row, it does not create a new one.
+      await api.put(`/api/tools/${generatedTool.id}`, { approved: true })
 
-      // api.service.js Axios instance points to VITE_API_URL (Express on Render/local)
-      const response = await api.post('/api/tools', payload)
-      const savedTool = response.data?.tool || response.data
-
-      // Mark saved with the real Supabase UUID (savedId drives button disabled state)
-      setGeneratedTool(t => ({ ...t, savedId: savedTool.id }))
-
-      // Refresh session history with the newly saved entry
-      addToJobs({ ...savedTool, generatedAt: savedTool.created_at })
-
-      // Navigate to Tool Builder so admin can finish editing before publishing
-      navigate(`/admin/tools/builder?id=${savedTool.id}`)
+      setGeneratedTool(t => ({ ...t, approved: true }))
+      // Reflect the approval on the matching Session History entry, don't add a new one
+      setJobs(prev => prev.map(j =>
+        j.tool?.id === generatedTool.id ? { ...j, tool: { ...j.tool, approved: true } } : j
+      ))
     } catch (err) {
-      console.error('[PUBLISH FAILED]', err?.response?.status, err?.response?.data, err?.message)
-      setGenError(err?.response?.data?.message || err?.response?.data?.error || err?.message || 'Publish failed')
-      setGeneratedTool(t => ({ ...t, savedId: null }))
+      setGenError(err?.response?.data?.error || err?.message || 'Publish failed')
     } finally {
       setPublishing(false)
     }
-  }, [generatedTool, category, navigate, addToJobs])
+  }, [generatedTool])
 
   const handleReset = useCallback(() => {
     setGeneratedTool(null)
