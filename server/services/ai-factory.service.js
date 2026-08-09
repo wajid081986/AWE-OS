@@ -8,6 +8,8 @@ const { buildBrowserExtensionBundle } = require('../templates/browser-extension'
 const { buildApiKitBundle } = require('../templates/api-kit');
 const { buildAgentPackBundle } = require('../templates/agent-pack');
 const { buildBotKitBundle } = require('../templates/bot-kit');
+const { buildAutomationTemplateBundle } = require('../templates/automation-template');
+const { buildMobileTemplateBundle } = require('../templates/mobile-template');
 const { generatePackaging } = require('./packaging.service');
 
 const SYSTEM_PROMPT = `You are an AI tool builder for AWE-OS SaaS platform. When given a category or idea, you generate complete tool configurations. You MUST respond with ONLY a valid JSON object. No markdown. No backticks. No explanation. Start your response with { and end with }`;
@@ -211,6 +213,61 @@ Rules:
 - price: 0 for free bots, 99-999 for paid bots
 
 IMPORTANT: Respond with ONLY a valid JSON object. No markdown, no backticks, no explanation. Just raw JSON.`
+    : productType === 'automation-template'
+    ? `Generate a complete no-code automation workflow configuration for the "${safeCategory}" category.
+${safeIdea ? `Specific idea: ${safeIdea}` : ''}
+
+Return ONLY this JSON structure:
+{
+  "name": "Automation Name",
+  "slug": "automation-slug",
+  "description": "One line description",
+  "category": "${category}",
+  "price": 0,
+  "is_free": true,
+  "automation": {
+    "trigger": { "app": "App name", "event": "Event that starts the workflow", "description": "What triggers this" },
+    "steps": [
+      { "app": "App name", "action": "Action performed", "description": "What this step does" }
+    ]
+  }
+}
+
+Rules:
+- slug: lowercase, hyphens only, no spaces
+- 2-6 steps max
+- This describes a generic workflow shape, not a specific platform's native format
+- price: 0 for free templates, 99-999 for paid templates
+
+IMPORTANT: Respond with ONLY a valid JSON object. No markdown, no backticks, no explanation. Just raw JSON.`
+    : productType === 'mobile-template'
+    ? `Generate a complete mobile app template configuration for the "${safeCategory}" category.
+${safeIdea ? `Specific idea: ${safeIdea}` : ''}
+
+Return ONLY this JSON structure:
+{
+  "name": "App Name",
+  "slug": "app-slug",
+  "description": "One line description",
+  "category": "${category}",
+  "price": 0,
+  "is_free": true,
+  "mobile": {
+    "app_name": "App display name",
+    "screens": [
+      { "name": "Screen name", "description": "What this screen shows" }
+    ],
+    "navigation_type": "stack"
+  }
+}
+
+Rules:
+- slug: lowercase, hyphens only, no spaces
+- 2-5 screens max
+- navigation_type: one of "stack", "tabs"
+- price: 0 for free templates, 99-999 for paid templates
+
+IMPORTANT: Respond with ONLY a valid JSON object. No markdown, no backticks, no explanation. Just raw JSON.`
     : productType === 'static-bundle'
     ? `Generate a complete static product page configuration for the "${safeCategory}" category.
 ${safeIdea ? `Specific idea: ${safeIdea}` : ''}
@@ -401,6 +458,10 @@ const runFactory = async (jobId, category, idea, userId, productType = 'prompt-t
       insertRow = await uploadBundleAndInsert(toolConfig, 'agent-pack', buildAgentPackBundle(toolConfig), 'agent-pack.json');
     } else if (productType === 'bot-kit') {
       insertRow = await uploadBundleAndInsert(toolConfig, 'bot-kit', buildBotKitBundle(toolConfig), 'bot.config.json');
+    } else if (productType === 'automation-template') {
+      insertRow = await uploadBundleAndInsert(toolConfig, 'automation-template', buildAutomationTemplateBundle(toolConfig), 'workflow.json');
+    } else if (productType === 'mobile-template') {
+      insertRow = await uploadBundleAndInsert(toolConfig, 'mobile-template', buildMobileTemplateBundle(toolConfig), 'app.json');
     } else {
       insertRow = {
         name:         toolConfig.name,
