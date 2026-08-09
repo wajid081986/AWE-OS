@@ -5,6 +5,9 @@ const { buildStaticBundle } = require('../templates/static');
 const { buildUiKitBundle } = require('../templates/ui-kit');
 const { buildNotionTemplateBundle } = require('../templates/notion-template');
 const { buildBrowserExtensionBundle } = require('../templates/browser-extension');
+const { buildApiKitBundle } = require('../templates/api-kit');
+const { buildAgentPackBundle } = require('../templates/agent-pack');
+const { buildBotKitBundle } = require('../templates/bot-kit');
 const { generatePackaging } = require('./packaging.service');
 
 const SYSTEM_PROMPT = `You are an AI tool builder for AWE-OS SaaS platform. When given a category or idea, you generate complete tool configurations. You MUST respond with ONLY a valid JSON object. No markdown. No backticks. No explanation. Start your response with { and end with }`;
@@ -122,6 +125,90 @@ Rules:
 - slug: lowercase, hyphens only, no spaces
 - permissions: valid Manifest V3 permission names only
 - price: 0 for free extensions, 99-999 for paid extensions
+
+IMPORTANT: Respond with ONLY a valid JSON object. No markdown, no backticks, no explanation. Just raw JSON.`
+    : productType === 'api-kit'
+    ? `Generate a complete standalone API/backend kit configuration for the "${safeCategory}" category.
+${safeIdea ? `Specific idea: ${safeIdea}` : ''}
+
+Return ONLY this JSON structure:
+{
+  "name": "Kit Name",
+  "slug": "kit-slug",
+  "description": "One line description",
+  "category": "${category}",
+  "price": 0,
+  "is_free": true,
+  "resource_name": "camelCaseResourceName",
+  "endpoints": [
+    { "method": "GET", "path": "/api/resource", "description": "What this endpoint does" }
+  ],
+  "config_notes": "Any env vars or setup notes"
+}
+
+Rules:
+- slug: lowercase, hyphens only, no spaces
+- resource_name: camelCase, no spaces
+- 2-6 endpoints max
+- method: one of GET, POST, PUT, PATCH, DELETE
+- price: 0 for free kits, 99-999 for paid kits
+
+IMPORTANT: Respond with ONLY a valid JSON object. No markdown, no backticks, no explanation. Just raw JSON.`
+    : productType === 'agent-pack'
+    ? `Generate a complete AI agent / prompt-pack template configuration for the "${safeCategory}" category.
+${safeIdea ? `Specific idea: ${safeIdea}` : ''}
+
+Return ONLY this JSON structure:
+{
+  "name": "Agent Pack Name",
+  "slug": "agent-pack-slug",
+  "description": "One line description",
+  "category": "${category}",
+  "price": 0,
+  "is_free": true,
+  "agent_pack": {
+    "agent_name": "Agent display name",
+    "system_prompt": "The agent's system prompt",
+    "prompt_chain": [
+      { "step": "Step name", "prompt": "Prompt text for this step" }
+    ],
+    "tools": ["tool_name_one", "tool_name_two"]
+  }
+}
+
+Rules:
+- slug: lowercase, hyphens only, no spaces
+- 2-5 prompt_chain steps max
+- 0-5 tools max
+- price: 0 for free packs, 99-999 for paid packs
+
+IMPORTANT: Respond with ONLY a valid JSON object. No markdown, no backticks, no explanation. Just raw JSON.`
+    : productType === 'bot-kit'
+    ? `Generate a complete chat bot boilerplate configuration for the "${safeCategory}" category.
+${safeIdea ? `Specific idea: ${safeIdea}` : ''}
+
+Return ONLY this JSON structure:
+{
+  "name": "Bot Name",
+  "slug": "bot-slug",
+  "description": "One line description",
+  "category": "${category}",
+  "price": 0,
+  "is_free": true,
+  "bot": {
+    "platform": "discord",
+    "bot_name": "Bot display name",
+    "commands": [
+      { "name": "help", "description": "What this command does" }
+    ]
+  }
+}
+
+Rules:
+- slug: lowercase, hyphens only, no spaces
+- platform: one of "discord", "telegram", "slack"
+- 2-6 commands max
+- price: 0 for free bots, 99-999 for paid bots
 
 IMPORTANT: Respond with ONLY a valid JSON object. No markdown, no backticks, no explanation. Just raw JSON.`
     : productType === 'static-bundle'
@@ -308,6 +395,12 @@ const runFactory = async (jobId, category, idea, userId, productType = 'prompt-t
       insertRow = await uploadBundleAndInsert(toolConfig, 'notion-template', buildNotionTemplateBundle(toolConfig), 'template.json');
     } else if (productType === 'browser-extension') {
       insertRow = await uploadBundleAndInsert(toolConfig, 'browser-extension', buildBrowserExtensionBundle(toolConfig), 'manifest.json');
+    } else if (productType === 'api-kit') {
+      insertRow = await uploadBundleAndInsert(toolConfig, 'api-kit', buildApiKitBundle(toolConfig), 'config.json');
+    } else if (productType === 'agent-pack') {
+      insertRow = await uploadBundleAndInsert(toolConfig, 'agent-pack', buildAgentPackBundle(toolConfig), 'agent-pack.json');
+    } else if (productType === 'bot-kit') {
+      insertRow = await uploadBundleAndInsert(toolConfig, 'bot-kit', buildBotKitBundle(toolConfig), 'bot.config.json');
     } else {
       insertRow = {
         name:         toolConfig.name,
