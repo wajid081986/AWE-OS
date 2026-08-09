@@ -1,6 +1,6 @@
 const supabase = require('../db/supabase');
 const { callClaude, parseJSONResponse } = require('./ai.service');
-const { uploadFile } = require('./s3.service');
+const { uploadFile, BUCKET } = require('./s3.service');
 const { buildStaticBundle } = require('../templates/static');
 const { buildUiKitBundle } = require('../templates/ui-kit');
 const { buildNotionTemplateBundle } = require('../templates/notion-template');
@@ -260,6 +260,8 @@ async function uploadBundleAndInsert(toolConfig, productType, bundle, primaryFil
 
   for (const [filename, content] of Object.entries(bundle)) {
     const key = `${prefix}/${filename}`;
+    // TEMPORARY DEBUG — Bucket investigation, remove after diagnosis
+    console.log('[DEBUG s3 bucket investigation]', { BUCKET, key, slug: toolConfig.slug });
     await uploadFile(Buffer.from(content, 'utf8'), key, mimeTypeFor(filename));
     if (filename === primaryFile) assetKey = key;
   }

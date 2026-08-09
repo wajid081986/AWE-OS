@@ -36,4 +36,4 @@ const deleteFile = async (key) => {
   await s3Client.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key }))
 }
 
-module.exports = { uploadFile, generatePresignedUrl, deleteFile }
+module.exports = { uploadFile, generatePresignedUrl, deleteFile, BUCKET }
