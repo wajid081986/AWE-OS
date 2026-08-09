@@ -16,6 +16,25 @@ const CATEGORIES = [
   'pdf', 'calculators', 'converters', 'other',
 ]
 
+const PRODUCT_TYPES = [
+  { value: 'prompt-tool',       label: 'Prompt Tool (default)' },
+  { value: 'static-bundle',     label: 'Static Bundle' },
+  { value: 'ui-kit',            label: 'UI Kit' },
+  { value: 'notion-template',   label: 'Notion Template' },
+  { value: 'browser-extension', label: 'Browser Extension' },
+]
+
+const DEMAND_STYLES = {
+  'high-demand': { label: 'High demand', className: 'bg-green-900/40 text-green-400 border-green-700/30' },
+  saturated:     { label: 'Saturated',   className: 'bg-red-900/40 text-red-400 border-red-700/30' },
+  emerging:      { label: 'Emerging',    className: 'bg-blue-900/40 text-blue-400 border-blue-700/30' },
+  unrated:       { label: 'Unrated',     className: 'bg-gray-700/60 text-gray-400 border-gray-600/40' },
+}
+
+// Same fallback api.service.js uses — kept local rather than exporting a new
+// constant from a shared file for a single anchor href.
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://awe-os.onrender.com'
+
 const JOB_STATUS = {
   pending:   { label: 'Pending',   dot: 'bg-yellow-400',             text: 'text-yellow-400' },
   running:   { label: 'Running',   dot: 'bg-blue-400 animate-pulse', text: 'text-blue-400'   },
@@ -126,10 +145,10 @@ function ToolPreviewCard({ tool, onPublish, onEdit, onReset, publishing }) {
       <div className="flex flex-col gap-2">
         <button
           onClick={onPublish}
-          disabled={publishing || !!tool.savedId}
+          disabled={publishing || tool.approved}
           className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm"
         >
-          {publishing ? 'Publishing…' : tool.savedId ? 'Saved to DB ✓' : 'Publish Tool →'}
+          {publishing ? 'Publishing…' : tool.approved ? 'Approved ✓' : 'Publish Tool →'}
         </button>
         <button onClick={onEdit} className="w-full bg-gray-700 hover:bg-gray-600 text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
           Edit in Builder
@@ -204,8 +223,12 @@ export default function AIFactoryPage() {
   const [activeTab, setActiveTab] = useState('tool')
 
   // ── Form state (shared across tabs) ──
-  const [category, setCategory] = useState('marketing')
-  const [idea, setIdea]         = useState('')
+  const [category, setCategory]       = useState('marketing')
+  const [idea, setIdea]               = useState('')
+  const [productType, setProductType] = useState('prompt-tool')
+
+  // ── Market demand check (informational only, separate from Generate) ──
+  const [demandCheck, setDemandCheck] = useState({ loading: false, result: null, error: null })
 
   // ── Backend generation state ──
   const [isGenerating, setIsGenerating]     = useState(false)
@@ -235,7 +258,7 @@ export default function AIFactoryPage() {
   const trackedIdRef = useRef(null)
 
   const addToJobs = useCallback((tool) => {
-    setJobs(prev => [{ id: tool.id, category: tool.category, status: 'completed', created_at: tool.generatedAt, tool }, ...prev].slice(0, 20))
+    setJobs(prev => [{ id: tool.id, category: tool.category, status: 'completed', created_at: tool.created_at || new Date().toISOString(), tool }, ...prev].slice(0, 20))
   }, [])
 
   // Load real factory_jobs history from DB on mount
@@ -266,17 +289,9 @@ export default function AIFactoryPage() {
     setIsGenerating(true); setGeneratingStep(0); setGeneratedTool(null); setGenError(null)
     try {
       setGeneratingStep(0)
-      const res = await fetch('/api/generate-tool', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-secret': import.meta.env.VITE_ADMIN_SECRET || '',
-        },
-        body: JSON.stringify({ category, idea }),
-      })
+      const response = await api.post('/api/factory/generate', { category, idea, product_type: productType })
       setGeneratingStep(1)
-      if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || `Error ${res.status}`) }
-      const responseData = await res.json()
+      const responseData = response.data
       console.log('[GENERATE] Raw response:', responseData)
 
       // Handle both { tool: {...} } and direct object shapes
@@ -292,11 +307,22 @@ export default function AIFactoryPage() {
       console.log('[GENERATE] generatedTool state set:', tool.name)
       addToJobs(tool)
     } catch (err) {
-      setGenError(err.message || 'Tool generation failed')
+      setGenError(err?.response?.data?.error || err.message || 'Tool generation failed')
     } finally {
       setIsGenerating(false)
     }
-  }, [category, idea, addToJobs])
+  }, [category, idea, productType, addToJobs])
+
+  // Informational only — never blocks or gates handleGenerate.
+  const handleCheckDemand = useCallback(async () => {
+    setDemandCheck({ loading: true, result: null, error: null })
+    try {
+      const response = await api.post('/api/factory/score-idea', { idea, category, product_type: productType })
+      setDemandCheck({ loading: false, result: response.data, error: null })
+    } catch (err) {
+      setDemandCheck({ loading: false, result: null, error: err?.response?.data?.error || err?.message || 'Demand check failed' })
+    }
+  }, [idea, category, productType])
 
   const handleAnalyze = useCallback(async () => {
     if (!idea.trim()) return
@@ -353,56 +379,29 @@ export default function AIFactoryPage() {
   }, [category, analyze, saveIdea, resetIntelligence])
 
   const handlePublish = useCallback(async () => {
-    console.log('[PUBLISH] generatedTool value:', generatedTool)
-    console.log('[PUBLISH] generatedTool?.name:', generatedTool?.name)
-
-    if (!generatedTool) {
-      console.error('[PUBLISH] BLOCKED — generatedTool is null/undefined')
+    if (!generatedTool?.id) {
       setGenError('No tool to publish. Please generate first.')
       return
     }
-    console.log('[PUBLISH CLICKED] tool.approved:', generatedTool?.approved, 'tool.savedId:', generatedTool?.savedId)
-    console.log('[PUBLISH CLICKED] API URL:', api.defaults?.baseURL)
     try {
       setPublishing(true)
       setGenError(null)
 
-      // Build the payload the tools table expects
-      // status 'idea' satisfies the DB CHECK constraint (idea|building|live|scaling|killed)
-      const payload = {
-        name:         generatedTool.name,
-        slug:         generatedTool.slug,
-        description:  generatedTool.description,
-        category:     generatedTool.category || category,
-        is_free:      generatedTool.is_free  ?? true,
-        price:        generatedTool.price    ?? 0,
-        input_fields: generatedTool.input_fields || generatedTool.inputFields || [],
-        ai_prompt:    generatedTool.corePrompt || generatedTool.ai_prompt ||
-                      `You are a helpful ${generatedTool.name} assistant.`,
-        approved:     false,   // goes to review queue, not live immediately
-        status:       'idea',
-      }
+      // POST /api/factory/generate already inserted this row (approved: false) —
+      // "Publish" approves the existing row, it does not create a new one.
+      await api.put(`/api/tools/${generatedTool.id}`, { approved: true })
 
-      // api.service.js Axios instance points to VITE_API_URL (Express on Render/local)
-      const response = await api.post('/api/tools', payload)
-      const savedTool = response.data?.tool || response.data
-
-      // Mark saved with the real Supabase UUID (savedId drives button disabled state)
-      setGeneratedTool(t => ({ ...t, savedId: savedTool.id }))
-
-      // Refresh session history with the newly saved entry
-      addToJobs({ ...savedTool, generatedAt: savedTool.created_at })
-
-      // Navigate to Tool Builder so admin can finish editing before publishing
-      navigate(`/admin/tools/builder?id=${savedTool.id}`)
+      setGeneratedTool(t => ({ ...t, approved: true }))
+      // Reflect the approval on the matching Session History entry, don't add a new one
+      setJobs(prev => prev.map(j =>
+        j.tool?.id === generatedTool.id ? { ...j, tool: { ...j.tool, approved: true } } : j
+      ))
     } catch (err) {
-      console.error('[PUBLISH FAILED]', err?.response?.status, err?.response?.data, err?.message)
-      setGenError(err?.response?.data?.message || err?.response?.data?.error || err?.message || 'Publish failed')
-      setGeneratedTool(t => ({ ...t, savedId: null }))
+      setGenError(err?.response?.data?.error || err?.message || 'Publish failed')
     } finally {
       setPublishing(false)
     }
-  }, [generatedTool, category, navigate, addToJobs])
+  }, [generatedTool])
 
   const handleReset = useCallback(() => {
     setGeneratedTool(null)
@@ -468,19 +467,63 @@ export default function AIFactoryPage() {
               <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
                 <div className="space-y-4">
 
-                  {/* Category */}
+                  {/* Category + Product Type */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm text-gray-300 mb-2 font-medium">Category</label>
+                      <select
+                        value={category}
+                        onChange={e => {
+                          setCategory(e.target.value)
+                          if (intelligence) resetIntelligence()
+                          setDemandCheck({ loading: false, result: null, error: null })
+                        }}
+                        disabled={isGenerating}
+                        className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 capitalize disabled:opacity-50"
+                      >
+                        {CATEGORIES.map(c => (
+                          <option key={c} value={c} className="capitalize">{c}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-300 mb-2 font-medium">Product Type</label>
+                      <select
+                        value={productType}
+                        onChange={e => { setProductType(e.target.value); setDemandCheck({ loading: false, result: null, error: null }) }}
+                        disabled={isGenerating}
+                        className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                      >
+                        {PRODUCT_TYPES.map(pt => (
+                          <option key={pt.value} value={pt.value}>{pt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Check demand — informational only, separate from Generate */}
                   <div>
-                    <label className="block text-sm text-gray-300 mb-2 font-medium">Category</label>
-                    <select
-                      value={category}
-                      onChange={e => { setCategory(e.target.value); if (intelligence) resetIntelligence() }}
-                      disabled={isGenerating}
-                      className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 capitalize disabled:opacity-50"
+                    <button
+                      type="button"
+                      onClick={handleCheckDemand}
+                      disabled={isGenerating || demandCheck.loading}
+                      className="text-xs bg-gray-700/60 hover:bg-gray-700 disabled:opacity-50 border border-gray-600 text-gray-300 font-medium px-3 py-2 rounded-lg transition-colors inline-flex items-center gap-2"
                     >
-                      {CATEGORIES.map(c => (
-                        <option key={c} value={c} className="capitalize">{c}</option>
-                      ))}
-                    </select>
+                      {demandCheck.loading ? (
+                        <><span className="w-3.5 h-3.5 border border-gray-400 border-t-transparent rounded-full animate-spin" />Checking…</>
+                      ) : '📈 Check demand for this combo'}
+                    </button>
+                    {demandCheck.error && (
+                      <p className="mt-2 text-xs text-red-400">{demandCheck.error}</p>
+                    )}
+                    {demandCheck.result && (
+                      <div className="mt-2 flex items-start gap-2">
+                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border shrink-0 ${DEMAND_STYLES[demandCheck.result.demand]?.className || DEMAND_STYLES.unrated.className}`}>
+                          {DEMAND_STYLES[demandCheck.result.demand]?.label || demandCheck.result.demand}
+                        </span>
+                        <p className="text-xs text-gray-400 leading-relaxed">{demandCheck.result.reasoning}</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Idea */}
@@ -586,22 +629,56 @@ export default function AIFactoryPage() {
                   </div>
                 ) : (
                   <div className="divide-y divide-gray-700 max-h-[600px] overflow-y-auto">
-                    {jobs.map(job => (
-                      <div key={job.id} className="px-4 py-3 hover:bg-gray-700/40 transition-colors">
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <div className="min-w-0">
-                            <p className="text-white text-sm font-medium capitalize truncate">
-                              {job.tool?.name || job.category}
-                            </p>
-                            <p className="text-gray-500 text-xs capitalize">{job.category}</p>
+                    {jobs.map(job => {
+                      const tool          = job.tool
+                      const jobProductType = tool?.product_type
+                      const isNonPrompt   = jobProductType && jobProductType !== 'prompt-tool'
+                      const listing       = tool?.packaging_metadata?.listing
+                      return (
+                        <div key={job.id} className="px-4 py-3 hover:bg-gray-700/40 transition-colors">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <div className="min-w-0">
+                              <p className="text-white text-sm font-medium capitalize truncate">
+                                {tool?.name || job.category}
+                              </p>
+                              <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                                <p className="text-gray-500 text-xs capitalize">{job.category}</p>
+                                {jobProductType && (
+                                  <span className="text-[10px] bg-indigo-900/60 text-indigo-300 px-1.5 py-0.5 rounded-full capitalize">
+                                    {jobProductType}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <JobStatusBadge status={job.status} />
                           </div>
-                          <JobStatusBadge status={job.status} />
+                          <p className="text-gray-500 text-xs">
+                            {new Date(job.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
+                          </p>
+                          {isNonPrompt && tool?.slug && (
+                            <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+                              <a
+                                href={`${API_BASE_URL}/api/tools/${tool.slug}/download`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-indigo-400 hover:text-indigo-300 underline"
+                              >
+                                ⬇ Download
+                              </a>
+                              {!tool.approved && (
+                                <span className="text-[10px] text-gray-600">(approve to enable public download)</span>
+                              )}
+                            </div>
+                          )}
+                          {listing && (listing.title || listing.description) && (
+                            <div className="mt-1.5 text-[10px] text-gray-500 leading-snug">
+                              {listing.title && <p className="text-gray-400 font-medium truncate">{listing.title}</p>}
+                              {listing.description && <p className="line-clamp-2">{listing.description}</p>}
+                            </div>
+                          )}
                         </div>
-                        <p className="text-gray-500 text-xs">
-                          {new Date(job.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
-                        </p>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 )}
               </div>
