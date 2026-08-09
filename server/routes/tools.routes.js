@@ -194,6 +194,8 @@ router.get('/:slug/download', async (req, res) => {
     // Same gate as /:slug/run — admins can preview unapproved products.
     let isAdmin = false;
     const authHeader = req.headers.authorization;
+    // TEMPORARY DEBUG — approved-gate investigation, remove after diagnosis
+    console.log('[DEBUG download gate] authHeader:', authHeader || 'MISSING');
     if (authHeader?.startsWith('Bearer ')) {
       try {
         const decoded = require('jsonwebtoken').verify(
@@ -203,6 +205,8 @@ router.get('/:slug/download', async (req, res) => {
         isAdmin = decoded.role === 'admin';
       } catch (_) {}
     }
+    // TEMPORARY DEBUG — approved-gate investigation, remove after diagnosis
+    console.log('[DEBUG download gate] admin branch taken:', isAdmin);
 
     let toolQuery = supabase
       .from('tools')
@@ -213,6 +217,8 @@ router.get('/:slug/download', async (req, res) => {
       toolQuery = toolQuery.eq('approved', true);
     }
     const { data: tool, error } = await toolQuery.maybeSingle();
+    // TEMPORARY DEBUG — approved-gate investigation, remove after diagnosis
+    console.log('[DEBUG download gate] query result:', { slug, found: !!tool, approved: tool?.approved, filterApplied: !isAdmin });
 
     if (error) throw error;
     if (!tool) return res.status(404).json({ success: false, error: 'Tool not found' });
