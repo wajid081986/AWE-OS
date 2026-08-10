@@ -5,12 +5,16 @@ function Spinner() {
   return <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto" />
 }
 
+const CURRENCY_SYMBOL = { INR: '₹', USD: '$' }
+
 export default function StoreApprovalQueue() {
   const [products, setProducts] = useState([])
   const [isLoading, setLoading] = useState(true)
   const [acting, setActing]     = useState(null)
   const [rejecting, setRejecting] = useState(null)
   const [reason, setReason]     = useState('')
+  const [priceEdits, setPriceEdits] = useState({})
+  const [savingPrice, setSavingPrice] = useState(null)
 
   const load = () => {
     setLoading(true)
@@ -21,6 +25,35 @@ export default function StoreApprovalQueue() {
   }
 
   useEffect(load, [])
+
+  const priceEditFor = (p) => priceEdits[p.id] || { price: String(p.price), currency: p.currency || 'INR' }
+
+  const setPriceEdit = (p, patch) => {
+    setPriceEdits(prev => ({ ...prev, [p.id]: { ...priceEditFor(p), ...patch } }))
+  }
+
+  const priceEditDirty = (p) => {
+    const edit = priceEditFor(p)
+    return edit.price !== String(p.price) || edit.currency !== (p.currency || 'INR')
+  }
+
+  const savePrice = async (p) => {
+    const edit = priceEditFor(p)
+    const price = Number(edit.price)
+    if (!Number.isFinite(price) || price < 0) { alert('Enter a valid non-negative price'); return }
+
+    setSavingPrice(p.id)
+    try {
+      const res = await api.put(`/api/store/admin/products/${p.id}/price`, { price, currency: edit.currency })
+      const updated = res.data.product
+      setProducts(prev => prev.map(item => item.id === p.id ? { ...item, price: updated.price, currency: updated.currency } : item))
+      setPriceEdits(prev => { const next = { ...prev }; delete next[p.id]; return next })
+    } catch (err) {
+      alert(err.response?.data?.error || 'Price update failed')
+    } finally {
+      setSavingPrice(null)
+    }
+  }
 
   const approve = async (id) => {
     setActing(id)
@@ -66,9 +99,38 @@ export default function StoreApprovalQueue() {
                   <div className="flex-1 min-w-0">
                     <h3 className="text-white font-semibold">{p.title}</h3>
                     <p className="text-gray-500 text-xs mt-0.5">
-                      by {p.store_sellers?.display_name || 'Platform'} · {p.category} · ₹{p.price}
+                      by {p.store_sellers?.display_name || 'Platform'} · {p.category}
                     </p>
                     <p className="text-gray-400 text-sm mt-2 line-clamp-2">{p.description}</p>
+
+                    <div className="mt-3 flex items-center gap-2">
+                      <span className="text-gray-500 text-xs">{CURRENCY_SYMBOL[priceEditFor(p).currency]}</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={priceEditFor(p).price}
+                        onChange={e => setPriceEdit(p, { price: e.target.value })}
+                        className="w-24 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <select
+                        value={priceEditFor(p).currency}
+                        onChange={e => setPriceEdit(p, { currency: e.target.value })}
+                        className="bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="INR">INR</option>
+                        <option value="USD">USD</option>
+                      </select>
+                      {priceEditDirty(p) && (
+                        <button
+                          onClick={() => savePrice(p)}
+                          disabled={savingPrice === p.id}
+                          className="text-xs bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                        >
+                          {savingPrice === p.id ? 'Saving...' : 'Save'}
+                        </button>
+                      )}
+                    </div>
                   </div>
                   {p.thumbnail_url && (
                     <img src={p.thumbnail_url} alt={p.title} className="w-20 h-20 object-cover rounded-lg shrink-0" />

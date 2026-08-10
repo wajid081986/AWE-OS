@@ -60,6 +60,37 @@ router.post('/admin/products/:id/reject', requireAuth, requireAdmin, async (req,
   }
 });
 
+// ── PUT /api/store/admin/products/:id/price ──────────────────────────────────
+// Admin-only price/currency correction for a pending listing before
+// Approve/Reject — no ownership check, unlike the seller-side price edit,
+// since this covers Platform (seller_id: null) rows too. Currency is
+// display-only; it does not change how payment is actually collected.
+router.put('/admin/products/:id/price', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { price, currency } = req.body;
+    const parsedPrice = Number(price);
+    if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
+      return res.status(400).json({ error: 'price must be a non-negative number' });
+    }
+    if (currency !== 'INR' && currency !== 'USD') {
+      return res.status(400).json({ error: "currency must be 'INR' or 'USD'" });
+    }
+
+    const { data, error } = await supabase
+      .from('digital_products')
+      .update({ price: parsedPrice, currency })
+      .eq('id', req.params.id)
+      .select()
+      .single();
+    if (error) throw error;
+
+    res.json({ product: data });
+  } catch (err) {
+    console.error('PUT /store/admin/products/:id/price error:', err.message);
+    res.status(500).json({ error: 'Price update failed' });
+  }
+});
+
 // ── GET /api/store/admin/sellers ─────────────────────────────────────────────
 router.get('/admin/sellers', requireAuth, requireAdmin, async (_req, res) => {
   try {
