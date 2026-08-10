@@ -3,13 +3,38 @@ import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import api from '../../../services/api.service'
 
-const SORTS = [
-  { value: 'newest',     label: 'Newest' },
-  { value: 'popular',    label: 'Popular' },
+const PRIMARY_SORTS = [
+  { value: 'newest',  label: 'Browse New' },
+  { value: 'popular', label: 'Browse Bestsellers' },
+]
+
+const SECONDARY_SORTS = [
   { value: 'rating',     label: 'Top Rated' },
   { value: 'price_asc',  label: 'Price: Low to High' },
   { value: 'price_desc', label: 'Price: High to Low' },
 ]
+
+// Keyword → emoji lookup for category cards. Falls back to a generic box
+// for anything unmatched (e.g. the default 'General' category) — purely
+// presentational, no icon library dependency.
+const ICON_RULES = [
+  [/template/i,          '📄'],
+  [/kit/i,                '🧩'],
+  [/bundle|pack/i,        '🧰'],
+  [/extension|plugin/i,   '🧷'],
+  [/agent|bot/i,          '🤖'],
+  [/api/i,                '🔌'],
+  [/mobile|app/i,         '📱'],
+]
+
+function categoryIcon(name) {
+  const rule = ICON_RULES.find(([re]) => re.test(String(name || '')))
+  return rule ? rule[1] : '📦'
+}
+
+function titleCase(str) {
+  return String(str || '').replace(/\b\w/g, (c) => c.toUpperCase())
+}
 
 function Spinner() {
   return <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto" />
@@ -50,9 +75,24 @@ function ProductCard({ product }) {
   )
 }
 
+function CategoryCard({ category, count, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="bg-gray-800 border border-gray-700 rounded-xl p-6 flex flex-col items-center gap-2 text-center hover:border-teal-500 transition-colors"
+    >
+      <span className="text-3xl">{categoryIcon(category)}</span>
+      <span className="text-white font-semibold text-sm">{titleCase(category)}</span>
+      <span className="text-gray-500 text-xs">{count} item{count === 1 ? '' : 's'}</span>
+    </button>
+  )
+}
+
 export default function StoreListingPage() {
+  const [view, setView]             = useState('categories') // 'categories' | 'products'
   const [products, setProducts]     = useState([])
   const [categories, setCategories] = useState([])
+  const [categoriesLoading, setCategoriesLoading] = useState(true)
   const [total, setTotal]           = useState(0)
   const [page, setPage]             = useState(1)
   const [q, setQ]                   = useState('')
@@ -63,6 +103,7 @@ export default function StoreListingPage() {
   const limit = 24
 
   const load = useCallback(async () => {
+    if (view !== 'products') return
     setLoading(true)
     try {
       const params = { page, limit, sort }
@@ -76,7 +117,7 @@ export default function StoreListingPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, sort, q, category])
+  }, [view, page, sort, q, category])
 
   useEffect(() => { load() }, [load])
 
@@ -84,9 +125,45 @@ export default function StoreListingPage() {
     api.get('/api/store/categories')
       .then(res => setCategories(res.data.categories || []))
       .catch(() => {})
+      .finally(() => setCategoriesLoading(false))
   }, [])
 
+  // Empty catalog (no categories yet) — skip straight to the flat product
+  // list instead of showing an empty category grid.
+  useEffect(() => {
+    if (!categoriesLoading && categories.length === 0 && view === 'categories') {
+      setView('products')
+    }
+  }, [categoriesLoading, categories, view])
+
+  const openCategory = (cat) => {
+    setCategory(cat)
+    setPage(1)
+    setView('products')
+  }
+
+  const openAllProducts = () => {
+    setCategory('')
+    setPage(1)
+    setView('products')
+  }
+
+  const backToCategories = () => {
+    setView('categories')
+    setCategory('')
+    setQ('')
+    setPage(1)
+  }
+
+  const handleLandingSearch = (e) => {
+    const val = e.target.value
+    setQ(val)
+    setPage(1)
+    if (val) setView('products')
+  }
+
   const totalPages = Math.max(Math.ceil(total / limit), 1)
+  const secondarySortValue = SECONDARY_SORTS.some(s => s.value === sort) ? sort : ''
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -97,39 +174,95 @@ export default function StoreListingPage() {
 
       <div className="border-b border-gray-800 bg-gray-900 px-6 pt-8 pb-6">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold text-white mb-1">Digital Tools Store</h1>
-          <p className="text-gray-400 text-sm mb-6">Templates, resources &amp; tools from verified sellers</p>
+          {view === 'categories' ? (
+            <>
+              <h1 className="text-3xl font-bold text-white mb-1">Digital Tools Store</h1>
+              <p className="text-gray-400 text-sm mb-6">Templates, resources &amp; tools from verified sellers</p>
+              <input
+                value={q}
+                onChange={handleLandingSearch}
+                placeholder="Search all products..."
+                className="w-full sm:max-w-md bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </>
+          ) : (
+            <>
+              <button
+                onClick={backToCategories}
+                className="text-teal-400 hover:text-teal-300 text-sm font-medium mb-4 transition-colors"
+              >
+                ← All Categories
+              </button>
+              <h1 className="text-3xl font-bold text-white mb-1">
+                {category ? titleCase(category) : 'All Products'}
+              </h1>
+              <p className="text-gray-400 text-sm mb-6">{total} product{total === 1 ? '' : 's'}</p>
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <input
-              value={q}
-              onChange={e => { setPage(1); setQ(e.target.value) }}
-              placeholder="Search products..."
-              className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-            <select
-              value={category}
-              onChange={e => { setPage(1); setCategory(e.target.value) }}
-              className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="">All Categories</option>
-              {categories.map(c => (
-                <option key={c.category} value={c.category}>{c.category} ({c.count})</option>
-              ))}
-            </select>
-            <select
-              value={sort}
-              onChange={e => { setPage(1); setSort(e.target.value) }}
-              className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              {SORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-            </select>
-          </div>
+              <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                <input
+                  value={q}
+                  onChange={e => { setPage(1); setQ(e.target.value) }}
+                  placeholder={category ? `Search ${titleCase(category)}...` : 'Search products...'}
+                  className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+                <select
+                  value={secondarySortValue}
+                  onChange={e => { if (e.target.value) { setPage(1); setSort(e.target.value) } }}
+                  className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                >
+                  <option value="" disabled>Sort: More ▾</option>
+                  {SECONDARY_SORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+              </div>
+
+              <div className="flex gap-2">
+                {PRIMARY_SORTS.map(s => (
+                  <button
+                    key={s.value}
+                    onClick={() => { setPage(1); setSort(s.value) }}
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                      sort === s.value
+                        ? 'bg-teal-600 text-white'
+                        : 'bg-gray-800 text-gray-400 hover:text-white border border-gray-700'
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {isLoading ? (
+        {view === 'categories' ? (
+          categoriesLoading ? (
+            <div className="py-24"><Spinner /></div>
+          ) : (
+            <>
+              <h2 className="text-white font-semibold text-lg mb-4">Browse by Category</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                {categories.map(c => (
+                  <CategoryCard
+                    key={c.category}
+                    category={c.category}
+                    count={c.count}
+                    onClick={() => openCategory(c.category)}
+                  />
+                ))}
+              </div>
+              <div className="text-center mt-8">
+                <button
+                  onClick={openAllProducts}
+                  className="text-teal-400 hover:text-teal-300 text-sm font-medium transition-colors"
+                >
+                  View all products →
+                </button>
+              </div>
+            </>
+          )
+        ) : isLoading ? (
           <div className="py-24"><Spinner /></div>
         ) : products.length === 0 ? (
           <div className="text-center py-24">
@@ -148,7 +281,7 @@ export default function StoreListingPage() {
                 <button
                   disabled={page <= 1}
                   onClick={() => setPage(p => p - 1)}
-                  className="bg-gray-800 border border-gray-700 text-white text-sm px-4 py-2 rounded-lg disabled:opacity-40 hover:border-indigo-500 transition-colors"
+                  className="bg-gray-800 border border-gray-700 text-white text-sm px-4 py-2 rounded-lg disabled:opacity-40 hover:border-teal-500 transition-colors"
                 >
                   Previous
                 </button>
@@ -156,7 +289,7 @@ export default function StoreListingPage() {
                 <button
                   disabled={page >= totalPages}
                   onClick={() => setPage(p => p + 1)}
-                  className="bg-gray-800 border border-gray-700 text-white text-sm px-4 py-2 rounded-lg disabled:opacity-40 hover:border-indigo-500 transition-colors"
+                  className="bg-gray-800 border border-gray-700 text-white text-sm px-4 py-2 rounded-lg disabled:opacity-40 hover:border-teal-500 transition-colors"
                 >
                   Next
                 </button>
