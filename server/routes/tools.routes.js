@@ -4,6 +4,7 @@ const supabase = require('../db/supabase');
 const { requireAuth, requireAdmin } = require('../middleware/admin.middleware');
 const { getPublicTools, getPublicTool } = require('../controllers/tools.controller');
 const { generatePresignedUrl } = require('../services/s3.service');
+const { createMarketplaceListing } = require('../services/marketplace-listing.service');
 
 const Anthropic = require('@anthropic-ai/sdk');
 
@@ -269,6 +270,13 @@ router.put('/:id', requireAuth, requireAdmin, async (req, res) => {
 
     if (error) throw error;
     if (!tool) return res.status(404).json({ success: false, error: 'Tool not found' });
+
+    // Non-fatal: createMarketplaceListing catches its own errors and never
+    // throws, so this can't fail the approval response.
+    if (row.approved === true && tool.product_type !== 'prompt-tool') {
+      await createMarketplaceListing(tool);
+    }
+
     res.json({ success: true, tool });
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });
