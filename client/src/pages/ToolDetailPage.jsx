@@ -258,6 +258,15 @@ export default function ToolDetailPage() {
     { name: 'Tools',     url: `${SITE_URL}/tools` },
     { name: tool.name,   url: pageUrl },
   ])
+  // Generated per-tool content (Content Quality module, batch-83) — falls back
+  // to the generic template below for tools not yet backfilled.
+  const aboutParagraphs = tool.about_content
+    ? tool.about_content.split('\n\n').filter(Boolean)
+    : null
+  const faqItems = Array.isArray(tool.faq) && tool.faq.length > 0
+    ? tool.faq.map(f => ({ q: f.q, a: f.a }))
+    : FAQS(tool.name)
+
   const steps    = [
     'Enter your content or upload your file in the input area below.',
     `Click the "${tool.name}" button to process your request.`,
@@ -340,17 +349,23 @@ export default function ToolDetailPage() {
             <div className="mb-8 p-5 bg-gray-50 rounded-xl border border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900 mb-3">About {tool.name}</h2>
               <div className="text-gray-600 text-sm leading-relaxed space-y-3">
-                <p>
-                  {tool.name} is one of the most popular free tools available on AWE-OS.
-                  Designed for professionals, students and everyday users, it makes {tool.description?.toLowerCase()} easier than ever before.
-                </p>
-                <p>
-                  Unlike other online tools, {tool.name} is completely free with no hidden charges.
-                  You don&apos;t need to install any software or create an account to get started — simply open the tool and begin working immediately.
-                </p>
-                <p>
-                  Our AI-powered engine ensures fast, accurate results every time. Whether you&apos;re a first-time user or a power user, {tool.name} scales to meet your needs. Join over {((tool.usageCount || 5000)).toLocaleString()} users who already rely on this tool every day.
-                </p>
+                {aboutParagraphs ? (
+                  aboutParagraphs.map((p, i) => <p key={i}>{p}</p>)
+                ) : (
+                  <>
+                    <p>
+                      {tool.name} is one of the most popular free tools available on AWE-OS.
+                      Designed for professionals, students and everyday users, it makes {tool.description?.toLowerCase()} easier than ever before.
+                    </p>
+                    <p>
+                      Unlike other online tools, {tool.name} is completely free with no hidden charges.
+                      You don&apos;t need to install any software or create an account to get started — simply open the tool and begin working immediately.
+                    </p>
+                    <p>
+                      Our AI-powered engine ensures fast, accurate results every time. Whether you&apos;re a first-time user or a power user, {tool.name} scales to meet your needs. Join over {((tool.usageCount || 5000)).toLocaleString()} users who already rely on this tool every day.
+                    </p>
+                  </>
+                )}
               </div>
             </div>
 
@@ -358,7 +373,7 @@ export default function ToolDetailPage() {
             <div className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-5">Frequently Asked Questions</h2>
               <div className="space-y-4">
-                {FAQS(tool.name).map(({ q, a }) => (
+                {faqItems.map(({ q, a }) => (
                   <details key={q} className="group border border-gray-200 rounded-xl overflow-hidden">
                     <summary className="flex items-center justify-between px-5 py-4 cursor-pointer select-none">
                       <span className="text-sm font-medium text-gray-900 pr-4">{q}</span>
