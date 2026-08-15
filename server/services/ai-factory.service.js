@@ -1,5 +1,5 @@
 const supabase = require('../db/supabase');
-const { callClaude, parseJSONResponse } = require('./ai.service');
+const { callOpenAI, parseJSONResponse } = require('./ai.service');
 const { uploadFile, BUCKET } = require('./s3.service');
 const { buildStaticBundle } = require('../templates/static');
 const { buildUiKitBundle } = require('../templates/ui-kit');
@@ -40,6 +40,17 @@ async function callWithRetry(promptFn, maxAttempts = 3) {
     }
   }
   throw lastErr;
+}
+
+// Normalizes provider errors so factory_jobs.error_message (surfaced
+// verbatim to the admin UI by factory.routes.js) never leaks a raw
+// API error blob (e.g. an Anthropic/OpenAI {type, error, request_id}
+// error envelope).
+function toUserMessage(err) {
+  if (err.code === 'AI_TIMEOUT' || err.code === 'AI_UNAVAILABLE') return err.message;
+  if (err.code === 'PARSE_ERROR') return 'AI response could not be parsed as JSON. Please try again.';
+  if (typeof err.message === 'string' && !/^[{[]/.test(err.message.trim())) return err.message;
+  return 'AI tool generation failed. Please try again in a moment.';
 }
 
 const generateToolConfig = async (category, idea, productType = 'prompt-tool') => {
@@ -334,11 +345,16 @@ Rules:
 
 IMPORTANT: Respond with ONLY a valid JSON object. No markdown, no backticks, no explanation. Just raw JSON.`;
 
-  const rawResponse = await callWithRetry(() => callClaude(prompt, {
-    model:        'claude-sonnet-4-6',
-    max_tokens:   1024,
-    systemPrompt: SYSTEM_PROMPT,
-  }));
+  let rawResponse;
+  try {
+    rawResponse = await callWithRetry(() => callOpenAI(prompt, {
+      model:        'gpt-4o-mini',
+      max_tokens:   1024,
+      systemPrompt: SYSTEM_PROMPT,
+    }));
+  } catch (err) {
+    throw new Error(toUserMessage(err));
+  }
 
   const cleaned = rawResponse
     .replace(/```json/g, '')
@@ -349,7 +365,7 @@ IMPORTANT: Respond with ONLY a valid JSON object. No markdown, no backticks, no 
     return JSON.parse(cleaned);
   } catch (err) {
     console.error('RAW AI RESPONSE:', rawResponse);
-    throw new Error(`Failed to parse AI response as JSON: ${err.message}`);
+    throw new Error('AI response could not be parsed as JSON. Please try again.');
   }
 };
 
@@ -373,13 +389,22 @@ Make ideas practical and marketable.
 
 IMPORTANT: Respond with ONLY a valid JSON array. No markdown, no backticks, no explanation. Just raw JSON.`;
 
-  const text = await callWithRetry(() => callClaude(prompt, {
-    model:        'claude-sonnet-4-6',
-    max_tokens:   2048,
-    systemPrompt: SYSTEM_PROMPT,
-  }));
+  let text;
+  try {
+    text = await callWithRetry(() => callOpenAI(prompt, {
+      model:        'gpt-4o-mini',
+      max_tokens:   2048,
+      systemPrompt: SYSTEM_PROMPT,
+    }));
+  } catch (err) {
+    throw new Error(toUserMessage(err));
+  }
 
-  return parseJSONResponse(text);
+  try {
+    return parseJSONResponse(text);
+  } catch (err) {
+    throw new Error(toUserMessage(err));
+  }
 };
 
 const BUNDLE_MIME_TYPES = {
