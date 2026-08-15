@@ -96,3 +96,19 @@ Read-only investigation (this conversation) found three independent causes in
 - Confirm the updated `GET /tools` query reads correctly against the current
   schema (columns exist, no typos) — static review, not a live query, until
   you run it yourself.
+
+## Correction (post-implementation, same branch)
+
+The `.eq('status', 'live')` condition originally added above was wrong and
+has been removed. You confirmed via direct query that all 3 real target
+tools (final-price-calculator, second-brain-pkm-system, simple-word-counter)
+have `status='idea'`, `approved=true` — the AI Factory pipeline
+(`ai-factory.service.js`'s `runFactory()`, verified across all 9 insert
+paths: the default prompt-tool row and all 8 `uploadBundleAndInsert`
+product types) never sets `tools.status` at all, so it stays at whatever
+the column default is forever. `status='live'` only ever applied to the old
+idea-pipeline's state machine, which this batch's target tools don't go
+through. `approved=true` alone — matching `tools.controller.js`'s
+`getPublicTools`/`getPublicTool` exactly, which is the actual definition of
+"publicly visible" on this codebase — is the correct and only status-like
+filter needed.

@@ -63,11 +63,14 @@ router.get('/tools', requireAuth, requireAdmin, async (req, res) => {
     const { data, error } = await supabase
       .from('tools')
       .select('id, name, slug, category, approved, status, about_content, content_generated_at, created_at')
-      // approved alone isn't enough — idea-pipeline.js sets approved=true while
-      // status is still 'idea'/'building', so status='live' excludes tools that
-      // haven't actually shipped yet.
+      // approved=true is the only reliable "actually public" signal — matches
+      // tools.controller.js's getPublicTools/getPublicTool exactly. status is
+      // NOT a valid gate here: the old idea-pipeline sets it ('idea' ->
+      // 'building' -> ...), but the AI Factory pipeline (ai-factory.service.js
+      // runFactory(), all product types) never touches tools.status at all, so
+      // an AI-Factory-published, approved=true tool can sit at status='idea'
+      // forever. A status filter here silently excludes real published tools.
       .eq('approved', true)
-      .eq('status', 'live')
       // Excludes hand-built tools synced by sync-tool-registry.js that render
       // via their own TOOL_COMPONENTS entry — they never hit the generic
       // fallback template this backlog exists to fix.
