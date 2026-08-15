@@ -3,15 +3,15 @@
 /**
  * AWE-OS — ToolBlueprintGenerator                             Phase 6A
  *
- * Generates a full implementation blueprint for a tool idea using Claude Sonnet.
+ * Generates a full implementation blueprint for a tool idea using gpt-4o.
  * Returns frontend structure, backend design, DB requirements, API plan,
  * scaling notes, security considerations, and phased build plan.
  *
- * Uses Claude Sonnet (more capable) — this is a heavier call (~5–10s).
+ * Uses gpt-4o (more capable) — this is a heavier call (~5–10s).
  * Called via a dedicated endpoint, not inline with the fast analysis pipeline.
  */
 
-const { callClaude, parseJSONResponse } = require('../services/ai.service');
+const { callOpenAI, parseJSONResponse } = require('../services/ai.service');
 const { createLogger }                  = require('../monitoring/logger');
 
 const log = createLogger('blueprint-generator');
@@ -114,8 +114,8 @@ Return ONLY this JSON:
   const startMs = Date.now();
 
   try {
-    const raw       = await callClaude(userPrompt, {
-      model:        'claude-sonnet-4-6',
+    const raw       = await callOpenAI(userPrompt, {
+      model:        'gpt-4o',
       max_tokens:   2048,
       systemPrompt: SYSTEM_PROMPT,
     });

@@ -1,5 +1,5 @@
 const express = require('express');
-const { callClaude, parseJSONResponse } = require('../services/ai.service');
+const { callOpenAI, parseJSONResponse } = require('../services/ai.service');
 
 const router = express.Router();
 
@@ -21,8 +21,8 @@ router.post('/summarize', async (req, res) => {
 
   const { text: clamped, truncated } = clampText(text);
   try {
-    const result = await callClaude(clamped, {
-      model: 'claude-sonnet-5',
+    const result = await callOpenAI(clamped, {
+      model: 'gpt-4o',
       max_tokens: 1024,
       systemPrompt: 'Summarize the following document as concise bullet points. Return only the bullet points, one per line starting with "- ", no preamble or closing remarks.',
     });
@@ -42,8 +42,8 @@ router.post('/translate', async (req, res) => {
   const languageName = targetLang === 'hi' ? 'Hindi' : 'Urdu';
   const { text: clamped, truncated } = clampText(text);
   try {
-    const result = await callClaude(clamped, {
-      model: 'claude-sonnet-5',
+    const result = await callOpenAI(clamped, {
+      model: 'gpt-4o',
       max_tokens: 4096,
       systemPrompt: `Translate the following document into ${languageName}. Return only the translated text, no preamble, no notes, no original text.`,
     });
@@ -59,8 +59,8 @@ router.post('/extract-tables', async (req, res) => {
 
   const { text: clamped, truncated } = clampText(text);
   try {
-    const raw = await callClaude(clamped, {
-      model: 'claude-sonnet-5',
+    const raw = await callOpenAI(clamped, {
+      model: 'gpt-4o',
       max_tokens: 4096,
       systemPrompt: 'Find every table in the following document text and return them as JSON only, matching this exact shape: {"tables": [{"headers": ["col1", "col2"], "rows": [["a", "b"]]}]}. If no tables are found, return {"tables": []}. Return only the JSON, no markdown fences, no commentary.',
     });
