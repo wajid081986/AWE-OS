@@ -36,27 +36,46 @@ Category: ${category || 'General'}
 Short description: ${description || 'Not provided'}
 
 Write:
-1. "about" — 3 short paragraphs (max 4 sentences each) introducing this specific tool: what
-   it does, who it's for, and why someone would use AWE-OS's version over doing it manually.
-   Be specific to this tool, not generic filler ("is one of the most popular tools" is
-   exactly what NOT to write).
-2. "faq" — exactly 5 question/answer pairs specific to this tool (not generic site-wide
-   questions like "is it free"). Each answer 40-60 words.
+1. "about" — 6 paragraphs (3-5 sentences each), 700-800 words total. Be specific to this
+   tool throughout — generic filler ("is one of the most popular tools") is exactly what
+   NOT to write. Each paragraph has a distinct job, so the length comes from real substance,
+   not padding:
+   1. What the tool does and who it's for.
+   2. How AWE-OS's version specifically works (browser-based, no signup, no upload — files
+      never leave the device) and why that beats the manual/alternative way of doing this.
+   3. A concrete, tool-specific use-case scenario.
+   4. A second, different concrete use-case scenario.
+   5. Practical tips for getting the best result from this specific tool.
+   6. Indian-context relevance where it naturally applies (₹, common Indian forms/documents/
+      scenarios) — don't force it if the tool has nothing to do with that.
+2. "faq" — exactly 6 question/answer pairs specific to this tool (not generic site-wide
+   questions like "is it free"). Each answer 60-90 words.
 
 Avoid corporate/AI phrasing: no "In conclusion", "It is worth noting", "leverage",
 "seamless", "in today's fast-paced world". Write like a knowledgeable person explaining it
-to a friend, not a marketing brochure.
+to a friend, not a marketing brochure. Do not pad sentences just to hit a word count —
+add genuine substance (use cases, tips, specifics) instead.
 
 Return ONLY valid JSON, no markdown fences:
 {
-  "about": ["paragraph 1", "paragraph 2", "paragraph 3"],
+  "about": ["paragraph 1", "paragraph 2", "paragraph 3", "paragraph 4", "paragraph 5", "paragraph 6"],
   "faq": [
-    {"q": "Question specific to this tool?", "a": "40-60 word answer."}
+    {"q": "Question specific to this tool?", "a": "60-90 word answer."}
   ]
 }`
 }
 
-// ── GET /tools — backlog list (tools with no about_content yet) ─────────────
+// ── GET /tools — backlog list (tools with no content, or content that's ────
+// ── still too thin — below MIN_ABOUT_WORDS from a pre-batch-85 generation) ──
+
+// Below the new 700-800 word target with margin for natural variance, but
+// comfortably above the legacy ~138-162 word content this needs to catch —
+// see docs/batches/batch-85-plan.md for the reasoning.
+const MIN_ABOUT_WORDS = 400
+
+function wordCount(text) {
+  return (text || '').trim().split(/\s+/).filter(Boolean).length
+}
 
 router.get('/tools', requireAuth, requireAdmin, async (req, res) => {
   try {
@@ -75,16 +94,18 @@ router.get('/tools', requireAuth, requireAdmin, async (req, res) => {
       // via their own TOOL_COMPONENTS entry — they never hit the generic
       // fallback template this backlog exists to fix.
       .eq('has_dedicated_component', false)
-      .is('about_content', null)
       .order('created_at', { ascending: false })
     if (error) throw error
 
-    // De-dupe by name: the idea pipeline's duplicate detector only checks
-    // status='idea' rows within a 30-day window, so the same tool name can
-    // land here multiple times under different slugs. Keep the newest
-    // occurrence (rows are already ordered created_at desc).
+    // Surface never-generated AND thin-existing content — PostgREST can't
+    // express "word count below N" as a DB filter, so this check happens
+    // here. Also de-dupe by name: the idea pipeline's duplicate detector
+    // only checks status='idea' rows within a 30-day window, so the same
+    // tool name can land here multiple times under different slugs. Keep
+    // the newest occurrence (rows are already ordered created_at desc).
     const seen  = new Set()
     const tools = (data || []).filter(t => {
+      if (t.about_content !== null && wordCount(t.about_content) >= MIN_ABOUT_WORDS) return false
       const key = t.name.trim().toLowerCase()
       if (seen.has(key)) return false
       seen.add(key)
@@ -130,7 +151,10 @@ router.post('/tools/:id/generate', requireAuth, requireAdmin, async (req, res) =
 
     const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
-      max_tokens: 1200,
+      // 700-800 words (about) + 6x60-90 words (faq) is ~1400-1800 tokens of
+      // content before JSON structure/escaping overhead — 1200 was sized for
+      // the old ~150-word target and would truncate mid-response now.
+      max_tokens: 3000,
       temperature: 0.7,
       messages: [
         { role: 'system', content: 'Return only valid JSON.' },
