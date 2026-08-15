@@ -16,15 +16,14 @@ export default async function handler(req, res) {
   if (!toolIdea) return res.status(400).json({ error: 'toolIdea is required' });
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'gpt-4o-mini',
         max_tokens: 1500,
         messages: [{
           role: 'user',
@@ -73,20 +72,20 @@ Return ONLY valid JSON, no markdown:
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error('Claude API error:', response.status, errText);
+      console.error('OpenAI API error:', response.status, errText);
       return res.status(502).json({
-        error: `Claude API error: ${response.status}`,
+        error: `OpenAI API error: ${response.status}`,
         detail: errText.slice(0, 200)
       });
     }
 
     const data = await response.json();
-    const text = data.content?.[0]?.text || '';
+    const text = data.choices?.[0]?.message?.content || '';
     const match = text.match(/\{[\s\S]*\}/);
 
     if (!match) {
       console.error('No JSON in response:', text.slice(0, 300));
-      return res.status(502).json({ error: 'No JSON in Claude response' });
+      return res.status(502).json({ error: 'No JSON in OpenAI response' });
     }
 
     const blueprint = JSON.parse(match[0]);
