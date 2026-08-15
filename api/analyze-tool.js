@@ -20,16 +20,15 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(
-      "https://api.anthropic.com/v1/messages",
+      "https://api.openai.com/v1/chat/completions",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": process.env.ANTHROPIC_API_KEY,
-          "anthropic-version": "2023-06-01"
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
-          model: "claude-sonnet-4-6",
+          model: "gpt-4o-mini",
           max_tokens: 1000,
           messages: [{
             role: "user",
@@ -39,10 +38,18 @@ export default async function handler(req, res) {
       }
     );
 
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('OpenAI API error:', response.status, errText);
+      return res.status(502).json({ error: `Analysis failed (OpenAI ${response.status})` });
+    }
+
     const data = await response.json();
-    res.status(200).json(data);
+    const text = data.choices?.[0]?.message?.content || '';
+    res.status(200).json({ content: [{ text }] });
 
   } catch (error) {
+    console.error('analyze-tool handler error:', error);
     res.status(500).json({ error: 'Analysis failed' });
   }
 }
