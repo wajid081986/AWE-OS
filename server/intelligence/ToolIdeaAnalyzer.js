@@ -4,11 +4,11 @@
  * AWE-OS — ToolIdeaAnalyzer                                   Phase 6A
  *
  * Analyzes a tool idea prompt and extracts structured strategic intelligence
- * using a single Claude Haiku call (~800ms). Falls back to keyword-based
+ * using a single gpt-4o-mini call (~800ms). Falls back to keyword-based
  * heuristics if the AI call fails.
  */
 
-const { callClaude, parseJSONResponse } = require('../services/ai.service');
+const { callOpenAI, parseJSONResponse } = require('../services/ai.service');
 const { createLogger }                  = require('../monitoring/logger');
 
 const log = createLogger('tool-idea-analyzer');
@@ -79,8 +79,8 @@ Return ONLY this exact JSON structure:
 Use real numbers for scores (integers 0-100). Be accurate and pragmatic.`;
 
   try {
-    const raw    = await callClaude(userPrompt, {
-      model:        'claude-haiku-4-5-20251001',
+    const raw    = await callOpenAI(userPrompt, {
+      model:        'gpt-4o-mini',
       max_tokens:   1024,
       systemPrompt: SYSTEM_PROMPT,
     });
