@@ -15,15 +15,14 @@ export default async function handler(req, res) {
   const { blueprint, analysis, toolIdea } = req.body;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: 'gpt-4o-mini',
         max_tokens: 3000,
         messages: [{
           role: 'user',
@@ -56,9 +55,18 @@ Return ONLY the prompt text — no explanation, no markdown fences, just the raw
       }),
     });
 
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('OpenAI API error:', response.status, errText);
+      return res.status(502).json({
+        error: `OpenAI API error: ${response.status}`,
+        detail: errText.slice(0, 200)
+      });
+    }
+
     const data = await response.json();
-    const text = data.content?.[0]?.text || '';
-    if (!text) return res.status(500).json({ error: 'No prompt generated' });
+    const text = data.choices?.[0]?.message?.content || '';
+    if (!text) return res.status(502).json({ error: 'No prompt generated' });
     res.status(200).json({ prompt: text });
   } catch (error) {
     res.status(500).json({ error: 'Prompt generation failed: ' + error.message });

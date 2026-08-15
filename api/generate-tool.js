@@ -19,15 +19,14 @@ export default async function handler(req, res) {
       ? `Generate a complete tool configuration for building "${idea}" in the "${category}" category for AWE-OS — a free tools website.`
       : `Pick a high-value free tool idea for the "${category}" category on AWE-OS, then provide its full configuration.`
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'gpt-4o-mini',
         max_tokens: 1500,
         messages: [{ role: 'user', content: `You are an AI tool configuration expert. Return ONLY valid JSON, no markdown.
 
@@ -64,11 +63,18 @@ Rules:
 - Return ONLY the JSON object, nothing else` }],
       }),
     })
-    if (!response.ok) throw new Error(`Claude API ${response.status}`)
+    if (!response.ok) {
+      const errText = await response.text()
+      console.error('OpenAI API error:', response.status, errText)
+      return res.status(502).json({
+        error: `OpenAI API error: ${response.status}`,
+        detail: errText.slice(0, 200)
+      })
+    }
     const data = await response.json()
-    const text = data.content?.[0]?.text || ''
+    const text = data.choices?.[0]?.message?.content || ''
     const match = text.match(/\{[\s\S]*\}/)
-    if (!match) throw new Error('No JSON in response')
+    if (!match) return res.status(502).json({ error: 'No JSON in OpenAI response' })
     const tool = JSON.parse(match[0])
     tool.approved = false
     tool.generatedAt = new Date().toISOString()
