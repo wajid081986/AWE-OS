@@ -14,7 +14,7 @@ export available for this category) found a concrete root cause in
 1. An apex→www host rule (line 6-12): any request to `awe-os.com/*` matches
    `"source": "/(.*)"` with `has: [{ type: "host", value: "awe-os.com" }]`
    and redirects to `https://www.awe-os.com/$1`.
-2. 33 path-specific rules for retired tool/blog/city-page slugs, each with a
+2. 52 path-specific rules for retired tool/blog/city-page slugs, each with a
    **relative** destination (e.g. `"/tools/merge-pdf"`).
 
 Vercel's redirect matching returns only the **first matching rule per
@@ -30,16 +30,16 @@ awe-os.com/tools/pdf-merger
 
 This 2-hop chain is what GSC flags as "Page with redirect — Failed."
 
-All 33 destination slugs were verified against `client/src/data/toolRegistry.js`
+All 52 destination slugs were verified against `client/src/data/toolRegistry.js`
 and `client/src/data/blogPosts.js` — every destination is a real, live route.
 No destination is itself broken or another redirect source, so there are no
 loops (A→B→A) and no chains longer than 2 hops.
 
 ## Fix
 
-- Make all 33 path-specific redirect destinations **absolute**
+- Make all 52 path-specific redirect destinations **absolute**
   (`https://www.awe-os.com/...`) instead of relative.
-- Move these 33 rules **above** the apex→www host catch-all rule.
+- Move these 52 rules **above** the apex→www host catch-all rule.
 
 Result: any request — apex or www — to one of these retired slugs resolves
 in a single 301 straight to the final `www` URL. Requests to paths not in
@@ -48,7 +48,7 @@ apex→www redirect (unchanged behavior, still single-hop).
 
 ## Files touched
 
-- `vercel.json` — reorder + absolutize the 33 path-specific redirect
+- `vercel.json` — reorder + absolutize the 52 path-specific redirect
   entries. No other file changes. `rewrites` and `headers` blocks
   untouched.
 
