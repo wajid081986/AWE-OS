@@ -22,7 +22,8 @@ require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') }
 const path = require('path');
 const supabase = require('../db/supabase');
 
-const REGISTRY_PATH = path.resolve(__dirname, '../../client/src/data/toolRegistry.js');
+const REGISTRY_PATH   = path.resolve(__dirname, '../../client/src/data/toolRegistry.js');
+const COMPONENT_MAP_PATH = path.resolve(__dirname, '../../client/src/pages/tools/toolComponentMap.js');
 // tools.source has a CHECK constraint allowing only 'manual' or 'ai' (schema_idea_pipeline.sql).
 // These are hand-built shipped tools, not AI pipeline output, so 'manual' is correct.
 const SOURCE_TAG = 'manual';
@@ -37,13 +38,30 @@ async function loadRegistryTools() {
     .filter((tool) => !EXCLUDED_SLUGS.has(tool.slug));
 }
 
+// has_dedicated_component (migration 042) mirrors DynamicToolPage.jsx's own
+// slug -> component resolution (resolve alias, then look up TOOL_COMPONENTS),
+// so this stays the single source of truth instead of a hand-maintained list.
+async function loadDedicatedComponentSlugs() {
+  const [registryMod, componentMod] = await Promise.all([
+    import(`file://${REGISTRY_PATH.replace(/\\/g, '/')}`),
+    import(`file://${COMPONENT_MAP_PATH.replace(/\\/g, '/')}`),
+  ]);
+  const slugAliases    = registryMod.SLUG_ALIASES || {};
+  const toolComponents = componentMod.TOOL_COMPONENTS || {};
+
+  return (slug) => {
+    const canonicalSlug = slugAliases[slug] ?? slug;
+    return Boolean(toolComponents[canonicalSlug]);
+  };
+}
+
 async function fetchExistingSlugs() {
   const { data, error } = await supabase.from('tools').select('slug').not('slug', 'is', null);
   if (error) throw new Error(`Failed to fetch existing tools: ${error.message}`);
   return new Set((data || []).map((row) => row.slug));
 }
 
-function toRow(tool) {
+function toRow(tool, hasDedicatedComponent) {
   return {
     name: tool.name,
     slug: tool.slug,
@@ -56,19 +74,30 @@ function toRow(tool) {
     approved: true,
     is_free: true,
     source: SOURCE_TAG,
+    has_dedicated_component: hasDedicatedComponent(tool.slug),
   };
 }
 
 async function main() {
   const apply = process.argv.includes('--apply');
 
-  const registryTools = await loadRegistryTools();
-  const existingSlugs = await fetchExistingSlugs();
+  const registryTools       = await loadRegistryTools();
+  const existingSlugs       = await fetchExistingSlugs();
+  const hasDedicatedComponent = await loadDedicatedComponentSlugs();
 
   const toInsert = registryTools
     .filter((tool) => !existingSlugs.has(tool.slug))
-    .map(toRow);
+    .map((tool) => toRow(tool, hasDedicatedComponent));
   const skipped = registryTools.filter((tool) => existingSlugs.has(tool.slug));
+
+  // Existing rows never get has_dedicated_component set by the insert path
+  // above (they're skipped entirely) — recompute it for every already-synced
+  // slug too, so this self-heals whenever a tool gains/loses a dedicated
+  // component, instead of only being correct at first-insert time.
+  const toUpdate = skipped.map((tool) => ({
+    slug: tool.slug,
+    has_dedicated_component: hasDedicatedComponent(tool.slug),
+  }));
 
   console.log(`[sync] Registry tools found:      ${registryTools.length}`);
   console.log(`[sync] Already in tools table:    ${skipped.length}`);
@@ -77,25 +106,38 @@ async function main() {
   if (toInsert.length > 0) {
     console.log('\n[sync] Will insert (slug — name — category):');
     for (const row of toInsert) {
-      console.log(`  - ${row.slug} — ${row.name} — ${row.category}`);
+      console.log(`  - ${row.slug} — ${row.name} — ${row.category} — has_dedicated_component=${row.has_dedicated_component}`);
     }
   }
 
   if (!apply) {
-    console.log('\n[sync] Dry run only — no rows written. Re-run with --apply to insert.');
+    console.log('\n[sync] Dry run only — no rows written. Re-run with --apply to insert/update.');
     return;
   }
 
-  if (toInsert.length === 0) {
+  if (toInsert.length > 0) {
+    const { data, error } = await supabase.from('tools').insert(toInsert).select('id, slug');
+    if (error) {
+      throw new Error(`Insert failed: ${error.message}`);
+    }
+    console.log(`\n[sync] Inserted ${data.length} rows into tools (status='live').`);
+  } else {
     console.log('\n[sync] Nothing to insert.');
-    return;
   }
 
-  const { data, error } = await supabase.from('tools').insert(toInsert).select('id, slug');
-  if (error) {
-    throw new Error(`Insert failed: ${error.message}`);
+  let updated = 0;
+  for (const row of toUpdate) {
+    const { error } = await supabase
+      .from('tools')
+      .update({ has_dedicated_component: row.has_dedicated_component })
+      .eq('slug', row.slug);
+    if (error) {
+      console.error(`[sync] has_dedicated_component update failed for "${row.slug}": ${error.message}`);
+      continue;
+    }
+    updated++;
   }
-  console.log(`\n[sync] Inserted ${data.length} rows into tools (status='live').`);
+  console.log(`[sync] Refreshed has_dedicated_component on ${updated}/${toUpdate.length} existing rows.`);
 }
 
 main().catch((err) => {
