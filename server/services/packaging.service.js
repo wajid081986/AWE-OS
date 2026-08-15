@@ -1,8 +1,16 @@
-const { callClaude } = require('./ai.service');
+const { callOpenAI } = require('./ai.service');
 
 const LICENSE_HOLDER = 'AWE-OS';
 
 const README_SYSTEM_PROMPT = `You write concise, practical README files for downloadable digital products sold on a marketplace. Output plain Markdown only. No code fences around the whole document, no explanation before or after.`;
+
+// Keeps raw provider error blobs (e.g. an Anthropic/OpenAI API error
+// envelope) out of server logs, mirroring the normalization in
+// ai-factory.service.js's toUserMessage().
+function safeErrorMessage(err) {
+  if (typeof err.message === 'string' && !/^[{[]/.test(err.message.trim())) return err.message;
+  return `${err.code || 'AI_ERROR'}: request failed`;
+}
 
 function fallbackReadme(toolConfig, productType) {
   const name = toolConfig.name || 'This product';
@@ -20,13 +28,13 @@ Include: what it is, what's included, how to use it. Keep it under 300 words.
 Respond with ONLY the Markdown content of the README. No preamble, no code fences.`;
 
   try {
-    return await callClaude(prompt, {
-      model:        'claude-sonnet-4-6',
+    return await callOpenAI(prompt, {
+      model:        'gpt-4o-mini',
       max_tokens:   1024,
       systemPrompt: README_SYSTEM_PROMPT,
     });
   } catch (err) {
-    console.warn('[PACKAGING] README generation failed, using fallback template:', err.message);
+    console.warn('[PACKAGING] README generation failed, using fallback template:', safeErrorMessage(err));
     return fallbackReadme(toolConfig, productType);
   }
 }
