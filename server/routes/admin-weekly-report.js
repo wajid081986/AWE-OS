@@ -1,19 +1,19 @@
 const express   = require('express')
 const requireAuth = require('../middleware/auth')
-const Anthropic = require('@anthropic-ai/sdk')
+const OpenAI    = require('openai')
 
 const router = express.Router()
 
 // Explicit per-call ceiling instead of the SDK's ~10min default.
 const AI_CALL_TIMEOUT_MS = 90_000
 
-function getAnthropic() {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    const err = new Error('ANTHROPIC_API_KEY not set')
+function getOpenAI() {
+  if (!process.env.OPENAI_API_KEY) {
+    const err = new Error('OPENAI_API_KEY not set')
     err.status = 503
     throw err
   }
-  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 }
 
 function requireAdmin(req, res, next) {
@@ -41,7 +41,7 @@ router.post('/weekly-report-claude', requireAuth, requireAdmin, async (req, res)
   } = req.body
 
   try {
-    const client = getAnthropic()
+    const client = getOpenAI()
 
     const scheduled = scheduledPostsData
       ? `${scheduledPostsData.completed ?? 0} completed, ${scheduledPostsData.pending ?? 0} pending`
@@ -51,8 +51,8 @@ router.post('/weekly-report-claude', requireAuth, requireAdmin, async (req, res)
       ? previousRecommendations.map(r => `${r.action} (${r.priority})`).join('; ')
       : 'none â€” first report'
 
-    const msg = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o-mini',
       max_tokens: 2000,
       messages: [{
         role: 'user',
@@ -85,8 +85,8 @@ Based on this data, generate a strategic weekly report. Return ONLY valid JSON â
       }],
     }, { timeout: AI_CALL_TIMEOUT_MS })
 
-    const raw = msg.content?.[0]?.text
-    if (!raw) throw new Error('Empty response from Claude')
+    const raw = completion.choices?.[0]?.message?.content
+    if (!raw) throw new Error('Empty response from OpenAI')
 
     const analysis = extractJson(raw)
     res.json({ success: true, data: analysis })

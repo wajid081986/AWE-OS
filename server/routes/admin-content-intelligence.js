@@ -1,19 +1,19 @@
 const express    = require('express')
 const requireAuth = require('../middleware/auth')
-const Anthropic  = require('@anthropic-ai/sdk')
+const OpenAI     = require('openai')
 
 const router = express.Router()
 
 // Explicit per-call ceiling instead of the SDK's ~10min default.
 const AI_CALL_TIMEOUT_MS = 90_000
 
-function getAnthropic() {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    const err = new Error('ANTHROPIC_API_KEY not set')
+function getOpenAI() {
+  if (!process.env.OPENAI_API_KEY) {
+    const err = new Error('OPENAI_API_KEY not set')
     err.status = 503
     throw err
   }
-  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 }
 
 function requireAdmin(req, res, next) {
@@ -39,7 +39,7 @@ router.post('/content-patterns-claude', requireAuth, requireAdmin, async (req, r
   }
 
   try {
-    const client = getAnthropic()
+    const client = getOpenAI()
 
     const summary = entries.map(e =>
       `- "${e.title}" | Type: ${e.type} | Date: ${e.date} | Views: ${e.views} | Engagement: ${e.engagement} | Rating: ${e.rating}/5`
@@ -48,8 +48,8 @@ router.post('/content-patterns-claude', requireAuth, requireAdmin, async (req, r
     const topPerformers = entries.filter(e => e.rating >= 4).map(e => e.title)
     const lowPerformers = entries.filter(e => e.rating <= 2).map(e => e.title)
 
-    const msg = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o-mini',
       max_tokens: 1500,
       messages: [{
         role: 'user',
@@ -75,8 +75,8 @@ Identify what makes the successful content work and what's holding back the rest
       }],
     }, { timeout: AI_CALL_TIMEOUT_MS })
 
-    const raw = msg.content?.[0]?.text
-    if (!raw) throw new Error('Empty response from Claude')
+    const raw = completion.choices?.[0]?.message?.content
+    if (!raw) throw new Error('Empty response from OpenAI')
 
     const patterns = extractJson(raw)
     res.json({ success: true, data: patterns })
@@ -91,7 +91,7 @@ router.post('/content-suggestions-claude', requireAuth, requireAdmin, async (req
   const { patterns, entries = [] } = req.body
 
   try {
-    const client = getAnthropic()
+    const client = getOpenAI()
 
     const patternContext = patterns
       ? `Content DNA insights:
@@ -103,8 +103,8 @@ router.post('/content-suggestions-claude', requireAuth, requireAdmin, async (req
 
     const recentTitles = entries.slice(0, 10).map(e => e.title).join(', ')
 
-    const msg = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o-mini',
       max_tokens: 1800,
       messages: [{
         role: 'user',
@@ -129,8 +129,8 @@ estimatedDifficulty must be exactly one of: Easy, Medium, Hard`,
       }],
     }, { timeout: AI_CALL_TIMEOUT_MS })
 
-    const raw = msg.content?.[0]?.text
-    if (!raw) throw new Error('Empty response from Claude')
+    const raw = completion.choices?.[0]?.message?.content
+    if (!raw) throw new Error('Empty response from OpenAI')
 
     const parsed = extractJson(raw)
     const suggestions = Array.isArray(parsed) ? parsed : (parsed.suggestions || [])

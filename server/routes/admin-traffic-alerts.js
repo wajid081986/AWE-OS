@@ -1,19 +1,19 @@
 const express    = require('express')
 const requireAuth = require('../middleware/auth')
-const Anthropic  = require('@anthropic-ai/sdk')
+const OpenAI     = require('openai')
 
 const router = express.Router()
 
 // Explicit per-call ceiling instead of the SDK's ~10min default.
 const AI_CALL_TIMEOUT_MS = 90_000
 
-function getAnthropic() {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    const err = new Error('ANTHROPIC_API_KEY not set')
+function getOpenAI() {
+  if (!process.env.OPENAI_API_KEY) {
+    const err = new Error('OPENAI_API_KEY not set')
     err.status = 503
     throw err
   }
-  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 }
 
 function requireAdmin(req, res, next) {
@@ -38,7 +38,7 @@ router.post('/recovery-plan-claude', requireAuth, requireAdmin, async (req, res)
   }
 
   try {
-    const client = getAnthropic()
+    const client = getOpenAI()
 
     const alertSummary = triggeredAlerts
       .map(a => `- ${a.name}: ${a.detail}`)
@@ -52,8 +52,8 @@ router.post('/recovery-plan-claude', requireAuth, requireAdmin, async (req, res)
       ? `Latest week change: ${trafficChange > 0 ? '+' : ''}${trafficChange?.toFixed(1)}%`
       : ''
 
-    const msg = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o-mini',
       max_tokens: 1800,
       messages: [{
         role: 'user',
@@ -87,8 +87,8 @@ urgency must be exactly one of: Critical, High, Medium`,
       }],
     }, { timeout: AI_CALL_TIMEOUT_MS })
 
-    const raw = msg.content?.[0]?.text
-    if (!raw) throw new Error('Empty response from Claude')
+    const raw = completion.choices?.[0]?.message?.content
+    if (!raw) throw new Error('Empty response from OpenAI')
 
     const plan = extractJson(raw)
     res.json({ success: true, data: plan })
@@ -103,7 +103,7 @@ router.post('/goal-analysis-claude', requireAuth, requireAdmin, async (req, res)
   const { goals = {}, actuals = {}, achieved = [] } = req.body
 
   try {
-    const client = getAnthropic()
+    const client = getOpenAI()
 
     const achievedList = achieved.join(', ') || 'various goals'
 
@@ -111,8 +111,8 @@ router.post('/goal-analysis-claude', requireAuth, requireAdmin, async (req, res)
       .map(([k, v]) => `${k}: ${v} / ${goals[k] || '?'} target`)
       .join(', ')
 
-    const msg = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o-mini',
       max_tokens: 300,
       messages: [{
         role: 'user',
@@ -125,8 +125,8 @@ Write a short (2-3 sentences), energetic, and specific motivational message cele
       }],
     }, { timeout: AI_CALL_TIMEOUT_MS })
 
-    const raw = msg.content?.[0]?.text
-    if (!raw) throw new Error('Empty response from Claude')
+    const raw = completion.choices?.[0]?.message?.content
+    if (!raw) throw new Error('Empty response from OpenAI')
 
     const result = extractJson(raw)
     res.json({ success: true, data: result })
