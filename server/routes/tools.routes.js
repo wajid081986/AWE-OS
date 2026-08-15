@@ -6,11 +6,8 @@ const { getPublicTools, getPublicTool } = require('../controllers/tools.controll
 const { generatePresignedUrl } = require('../services/s3.service');
 const { createMarketplaceListing } = require('../services/marketplace-listing.service');
 
-const Anthropic = require('@anthropic-ai/sdk');
-
 const router   = express.Router();
 const openai   = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 // Explicit per-call ceiling instead of the SDK's ~10min default.
 const AI_CALL_TIMEOUT_MS = 60_000
@@ -166,12 +163,12 @@ router.post('/:slug/run', async (req, res) => {
       }
     }
 
-    const message = await anthropic.messages.create({
-      model:      'claude-haiku-4-5-20251001',
+    const completion = await openai.chat.completions.create({
+      model:      'gpt-4o-mini',
       max_tokens: 1024,
       messages:   [{ role: 'user', content: prompt }],
     }, { timeout: AI_CALL_TIMEOUT_MS });
-    const result = message.content[0]?.text || 'No response generated.';
+    const result = completion.choices[0]?.message?.content || 'No response generated.';
 
     supabase
       .from('tools')
