@@ -1,19 +1,19 @@
 const express   = require('express')
 const requireAuth = require('../middleware/auth')
-const Anthropic  = require('@anthropic-ai/sdk')
+const OpenAI     = require('openai')
 
 const router = express.Router()
 
 // Explicit per-call ceiling instead of the SDK's ~10min default.
 const AI_CALL_TIMEOUT_MS = 90_000
 
-function getAnthropic() {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    const err = new Error('ANTHROPIC_API_KEY not set')
+function getOpenAI() {
+  if (!process.env.OPENAI_API_KEY) {
+    const err = new Error('OPENAI_API_KEY not set')
     err.status = 503
     throw err
   }
-  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 }
 
 function requireAdmin(req, res, next) {
@@ -37,11 +37,13 @@ router.post('/seo-keywords-claude', requireAuth, requireAdmin, async (req, res) 
     return res.status(400).json({ success: false, error: 'competitorUrl and toolName are required' })
   }
   try {
-    const client = getAnthropic()
-    const msg = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+    const client = getOpenAI()
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o-mini',
       max_tokens: 1400,
-      system: `You are an SEO keyword gap analyst specialising in Indian search traffic. Find keyword opportunities where a competitor likely ranks but AWE-OS does not yet have content.
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: `You are an SEO keyword gap analyst specialising in Indian search traffic. Find keyword opportunities where a competitor likely ranks but AWE-OS does not yet have content.
 AWE-OS is a free tools website for Indian users — PDF tools, GST/SIP/FD/Tax/BMI calculators, AI writing tools, converters, and generators.
 Return ONLY valid JSON — no markdown fences, no extra text:
 {
@@ -55,10 +57,11 @@ Return ONLY valid JSON — no markdown fences, no extra text:
     }
   ]
 }
-Return exactly 5 keywords. Focus on long-tail Indian search intent with realistic monthly search estimates.`,
-      messages: [{ role: 'user', content: `Competitor URL: ${competitorUrl}\nAWE-OS Tool to promote: ${toolName}\n\nFind 5 keyword gaps where this competitor ranks but AWE-OS can outrank with better content targeting Indian users.` }]
+Return exactly 5 keywords. Focus on long-tail Indian search intent with realistic monthly search estimates.` },
+        { role: 'user', content: `Competitor URL: ${competitorUrl}\nAWE-OS Tool to promote: ${toolName}\n\nFind 5 keyword gaps where this competitor ranks but AWE-OS can outrank with better content targeting Indian users.` }
+      ]
     }, { timeout: AI_CALL_TIMEOUT_MS })
-    const raw = msg.content[0]?.text || ''
+    const raw = completion.choices?.[0]?.message?.content || ''
     let result
     try { result = extractJson(raw) } catch { result = { keywords: [] } }
     res.json({ success: true, keywords: result.keywords || [] })
@@ -76,11 +79,13 @@ router.post('/blog-writer-claude', requireAuth, requireAdmin, async (req, res) =
   }
   const toolUrl = `https://www.awe-os.com/tools/${toolSlug || ''}`
   try {
-    const client = getAnthropic()
-    const msg = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+    const client = getOpenAI()
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o',
       max_tokens: 2800,
-      system: `You are an expert SEO content writer for Indian audiences. Write clear, helpful, conversational 700-800 word blog articles.
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: `You are an expert SEO content writer for Indian audiences. Write clear, helpful, conversational 700-800 word blog articles.
 AWE-OS is a free tools website — PDF tools, calculators, AI tools for Indian users.
 Embed the AWE-OS tool link as a markdown hyperlink [${toolName}](${toolUrl}) at least twice naturally in the sections content.
 Return ONLY valid JSON — no markdown fences, no extra text:
@@ -102,10 +107,11 @@ Rules:
 - slug: URL-friendly kebab-case from the title
 - sections: 3-4 sections, each content field is 2-3 paragraphs of plain text with the tool linked naturally
 - faqSection: exactly 3 FAQs targeting real user questions
-- Total article should be 700-800 words across all sections`,
-      messages: [{ role: 'user', content: `Target keyword: "${keyword}"\nAWE-OS Tool: ${toolName}\nTool URL: ${toolUrl}\n\nWrite a complete SEO blog article targeting Indian users searching for "${keyword}".` }]
+- Total article should be 700-800 words across all sections` },
+        { role: 'user', content: `Target keyword: "${keyword}"\nAWE-OS Tool: ${toolName}\nTool URL: ${toolUrl}\n\nWrite a complete SEO blog article targeting Indian users searching for "${keyword}".` }
+      ]
     }, { timeout: AI_CALL_TIMEOUT_MS })
-    const raw = msg.content[0]?.text || ''
+    const raw = completion.choices?.[0]?.message?.content || ''
     let result
     try {
       result = extractJson(raw)
@@ -135,11 +141,13 @@ router.post('/landing-page-claude', requireAuth, requireAdmin, async (req, res) 
   const toolUrl = `https://www.awe-os.com/tools/${toolSlug || ''}`
   const locationCtx = location ? ` for users in ${location}` : ' for Indian users'
   try {
-    const client = getAnthropic()
-    const msg = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+    const client = getOpenAI()
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o',
       max_tokens: 3500,
-      system: `You are an expert programmatic SEO landing page copywriter. Write conversion-focused content for free tool landing pages${locationCtx}.
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: `You are an expert programmatic SEO landing page copywriter. Write conversion-focused content for free tool landing pages${locationCtx}.
 AWE-OS is a free tools website with PDF tools, GST/SIP/FD calculators, AI writers, converters, and generators.
 Return ONLY valid JSON — no markdown fences, no trailing text:
 {
@@ -172,10 +180,11 @@ Rules (strictly followed):
 - useCases: exactly 3 use cases${location ? ` with context specific to ${location}` : ' with Indian context'}
 - faqSection: exactly 5 FAQs with detailed answers (2-3 sentences each)
 - relatedTools: array of exactly 3 strings — real AWE-OS tool names (e.g. "GST Calculator", "Merge PDF", "SIP Calculator")
-- seoKeywords: array of exactly 8 relevant long-tail keywords targeting Indian searches`,
-      messages: [{ role: 'user', content: `Tool: ${toolName}\nTool URL: ${toolUrl}\nTarget location: ${location || 'India'}\n\nGenerate complete programmatic SEO landing page content.` }]
+- seoKeywords: array of exactly 8 relevant long-tail keywords targeting Indian searches` },
+        { role: 'user', content: `Tool: ${toolName}\nTool URL: ${toolUrl}\nTarget location: ${location || 'India'}\n\nGenerate complete programmatic SEO landing page content.` }
+      ]
     }, { timeout: AI_CALL_TIMEOUT_MS })
-    const raw = msg.content[0]?.text || ''
+    const raw = completion.choices?.[0]?.message?.content || ''
     let result
     try { result = extractJson(raw) } catch { result = {} }
     res.json({ success: true, ...result })
@@ -196,11 +205,15 @@ router.post('/social-blast-claude', requireAuth, requireAdmin, async (req, res) 
     : 'https://www.awe-os.com/tools'
   const pageUrl = articleUrl || toolUrl
   try {
-    const client = getAnthropic()
-    const msg = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+    const client = getOpenAI()
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o',
       max_tokens: 3000,
-      system: `You are a social media expert who creates genuine, value-first content that serves real users.
+      response_format: { type: 'json_object' },
+      messages: [
+        {
+          role: 'system',
+          content: `You are a social media expert who creates genuine, value-first content that serves real users.
 CORE RULE: Every post must provide actual value. Tool mentions must feel natural — like a friend recommending something useful, never promotional spam.
 Write for ${audience || 'General'} audiences in India. AWE-OS is a free Indian tools website.
 
@@ -244,13 +257,15 @@ Rules for each platform:
 - pinterestPin.hashtags: array of 8-10 hashtag strings (include # prefix)
 - whatsappMessage.text: max 100 words, conversational, 1-2 Hindi phrases natural (e.g. "bilkul free hai", "zaroor try karein"), end with tool link: ${pageUrl}
 - linkedinPost.text: professional tone, 150-200 words, insight-led, subtle tool mention at end
-- twitterThread: exactly 3 tweets. Tweet 1 = hook or surprising fact < 280 chars. Tweet 2 = key insight or tip < 280 chars. Tweet 3 = CTA + link < 280 chars. charCount must be accurate.`,
-      messages: [{
-        role: 'user',
-        content: `Article title: "${articleTitle}"\nContent URL: ${pageUrl}\nAWE-OS Tool: ${toolName}\nTool URL: ${toolUrl}\nTarget audience: ${audience || 'General'}\n\nGenerate social media content for all 6 platforms.`
-      }]
+- twitterThread: exactly 3 tweets. Tweet 1 = hook or surprising fact < 280 chars. Tweet 2 = key insight or tip < 280 chars. Tweet 3 = CTA + link < 280 chars. charCount must be accurate.`
+        },
+        {
+          role: 'user',
+          content: `Article title: "${articleTitle}"\nContent URL: ${pageUrl}\nAWE-OS Tool: ${toolName}\nTool URL: ${toolUrl}\nTarget audience: ${audience || 'General'}\n\nGenerate social media content for all 6 platforms.`
+        }
+      ]
     }, { timeout: AI_CALL_TIMEOUT_MS })
-    const raw = msg.content[0]?.text || ''
+    const raw = completion.choices?.[0]?.message?.content || ''
     let result
     try { result = extractJson(raw) } catch { result = {} }
     res.json({ success: true, ...result })
@@ -268,11 +283,15 @@ router.post('/backlink-content-claude', requireAuth, requireAdmin, async (req, r
   }
   const toolUrl = `https://www.awe-os.com/tools/${toolSlug || ''}`
   try {
-    const client = getAnthropic()
-    const msg = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+    const client = getOpenAI()
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o-mini',
       max_tokens: 900,
-      system: `You write directory submission content for AWE-OS, a free online tools platform for Indian users (PDF tools, calculators, converters, AI tools).
+      response_format: { type: 'json_object' },
+      messages: [
+        {
+          role: 'system',
+          content: `You write directory submission content for AWE-OS, a free online tools platform for Indian users (PDF tools, calculators, converters, AI tools).
 Return ONLY valid JSON — no markdown, no extra text:
 {
   "tagline": "string (max 60 chars, compelling benefit-focused headline, no filler)",
@@ -284,13 +303,15 @@ Return ONLY valid JSON — no markdown, no extra text:
 Rules:
 - tagline: punchy, clear benefit, no exclamation marks
 - categories: 3 relevant directory-style categories (e.g. "Productivity", "Free Tools", "PDF Utilities")
-- tags: 5 short search-friendly tags without spaces`,
-      messages: [{
-        role: 'user',
-        content: `Tool: ${toolName}\nURL: ${toolUrl}\nDirectory: ${directoryName}\n\nGenerate directory submission content optimised for ${directoryName}.`
-      }]
+- tags: 5 short search-friendly tags without spaces`
+        },
+        {
+          role: 'user',
+          content: `Tool: ${toolName}\nURL: ${toolUrl}\nDirectory: ${directoryName}\n\nGenerate directory submission content optimised for ${directoryName}.`
+        }
+      ]
     }, { timeout: AI_CALL_TIMEOUT_MS })
-    const raw = msg.content[0]?.text || ''
+    const raw = completion.choices?.[0]?.message?.content || ''
     let result
     try { result = extractJson(raw) } catch { result = {} }
     res.json({ success: true, ...result })
@@ -308,11 +329,15 @@ router.post('/outreach-email-claude', requireAuth, requireAdmin, async (req, res
   }
   const toolUrl = `https://www.awe-os.com/tools/${toolSlug || ''}`
   try {
-    const client = getAnthropic()
-    const msg = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+    const client = getOpenAI()
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o-mini',
       max_tokens: 800,
-      system: `You write personalized outreach emails for AWE-OS (a free tools platform) to bloggers and websites that cover free tools, productivity, PDF tools, or calculators.
+      response_format: { type: 'json_object' },
+      messages: [
+        {
+          role: 'system',
+          content: `You write personalized outreach emails for AWE-OS (a free tools platform) to bloggers and websites that cover free tools, productivity, PDF tools, or calculators.
 Return ONLY valid JSON — no markdown, no extra text:
 {
   "subject": "string (personalized subject, max 70 chars, references their niche, not generic)",
@@ -322,13 +347,15 @@ Rules:
 - Subject: specific to their site niche, avoids words like 'collaboration', 'partnership', 'synergy'
 - Body: peer-to-peer tone like a fellow creator, not corporate PR
 - No excessive exclamation marks
-- The ask should be easy to say yes to (e.g. "happy to be featured in a round-up" not "partnership deal")`,
-      messages: [{
-        role: 'user',
-        content: `Blogger/Website: ${bloggerUrl}\nTool to promote: ${toolName}\nTool URL: ${toolUrl}\n\nWrite a personalized outreach email.`
-      }]
+- The ask should be easy to say yes to (e.g. "happy to be featured in a round-up" not "partnership deal")`
+        },
+        {
+          role: 'user',
+          content: `Blogger/Website: ${bloggerUrl}\nTool to promote: ${toolName}\nTool URL: ${toolUrl}\n\nWrite a personalized outreach email.`
+        }
+      ]
     }, { timeout: AI_CALL_TIMEOUT_MS })
-    const raw = msg.content[0]?.text || ''
+    const raw = completion.choices?.[0]?.message?.content || ''
     let result
     try { result = extractJson(raw) } catch { result = {} }
     res.json({ success: true, subject: result.subject || '', body: result.body || '' })
@@ -347,11 +374,15 @@ router.post('/schedule-intelligence', requireAuth, requireAdmin, async (req, res
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   const currentDay = dayNames[typeof dayOfWeek === 'number' ? dayOfWeek : new Date().getDay()]
   try {
-    const client = getAnthropic()
-    const msg = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+    const client = getOpenAI()
+    const completion = await client.chat.completions.create({
+      model: 'gpt-4o-mini',
       max_tokens: 800,
-      system: `You are a social media scheduling expert for Indian audiences.
+      response_format: { type: 'json_object' },
+      messages: [
+        {
+          role: 'system',
+          content: `You are a social media scheduling expert for Indian audiences.
 Analyze the best posting times for AWE-OS content based on Indian user behavior in IST timezone.
 Return ONLY valid JSON — no markdown, no extra text:
 {
@@ -369,13 +400,15 @@ Rules:
 - Return EXACTLY 3 suggestions, priority values 1, 2, 3
 - Match platform to audience: Finance/PDF → LinkedIn + Reddit; AI tools → Twitter; lifestyle → Pinterest
 - Avoid times that have already passed today (current day: ${currentDay})
-- Reference Indian work/study schedules (college hours 9-5, office 9-6, peak phone usage 6-10 PM)`,
-      messages: [{
-        role: 'user',
-        content: `Tool category: ${toolCategory}\nTarget audience: ${audience}\nCurrent day: ${currentDay}\n\nSuggest the 3 best posting times this week for maximum reach.`
-      }]
+- Reference Indian work/study schedules (college hours 9-5, office 9-6, peak phone usage 6-10 PM)`
+        },
+        {
+          role: 'user',
+          content: `Tool category: ${toolCategory}\nTarget audience: ${audience}\nCurrent day: ${currentDay}\n\nSuggest the 3 best posting times this week for maximum reach.`
+        }
+      ]
     }, { timeout: AI_CALL_TIMEOUT_MS })
-    const raw = msg.content[0]?.text || ''
+    const raw = completion.choices?.[0]?.message?.content || ''
     let result
     try { result = extractJson(raw) } catch { result = { suggestions: [] } }
     res.json({ success: true, suggestions: result.suggestions || [] })
