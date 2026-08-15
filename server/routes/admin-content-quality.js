@@ -63,10 +63,32 @@ router.get('/tools', requireAuth, requireAdmin, async (req, res) => {
     const { data, error } = await supabase
       .from('tools')
       .select('id, name, slug, category, approved, status, about_content, content_generated_at, created_at')
+      // approved alone isn't enough — idea-pipeline.js sets approved=true while
+      // status is still 'idea'/'building', so status='live' excludes tools that
+      // haven't actually shipped yet.
+      .eq('approved', true)
+      .eq('status', 'live')
+      // Excludes hand-built tools synced by sync-tool-registry.js that render
+      // via their own TOOL_COMPONENTS entry — they never hit the generic
+      // fallback template this backlog exists to fix.
+      .eq('has_dedicated_component', false)
       .is('about_content', null)
       .order('created_at', { ascending: false })
     if (error) throw error
-    res.json({ success: true, tools: data || [] })
+
+    // De-dupe by name: the idea pipeline's duplicate detector only checks
+    // status='idea' rows within a 30-day window, so the same tool name can
+    // land here multiple times under different slugs. Keep the newest
+    // occurrence (rows are already ordered created_at desc).
+    const seen  = new Set()
+    const tools = (data || []).filter(t => {
+      const key = t.name.trim().toLowerCase()
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+
+    res.json({ success: true, tools })
   } catch (err) {
     console.error('[admin-content-quality/tools]', err.message)
     res.status(500).json({ success: false, error: err.message })
