@@ -17,11 +17,16 @@ const CATEGORIES = [
 ]
 
 const PRODUCT_TYPES = [
-  { value: 'prompt-tool',       label: 'Prompt Tool (default)' },
-  { value: 'static-bundle',     label: 'Static Bundle' },
-  { value: 'ui-kit',            label: 'UI Kit' },
-  { value: 'notion-template',   label: 'Notion Template' },
-  { value: 'browser-extension', label: 'Browser Extension' },
+  { value: 'prompt-tool',         label: 'Prompt Tool (default)' },
+  { value: 'static-bundle',       label: 'Static Bundle' },
+  { value: 'ui-kit',              label: 'UI Kit' },
+  { value: 'notion-template',     label: 'Notion Template' },
+  { value: 'browser-extension',   label: 'Browser Extension' },
+  { value: 'api-kit',             label: 'API/Backend Kit' },
+  { value: 'agent-pack',          label: 'AI Agent Pack' },
+  { value: 'bot-kit',             label: 'Bot Kit' },
+  { value: 'automation-template', label: 'Automation Template' },
+  { value: 'mobile-template',     label: 'Mobile App Template' },
 ]
 
 const DEMAND_STYLES = {
