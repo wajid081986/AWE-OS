@@ -185,6 +185,7 @@ export default function StoreListingPage() {
       <Helmet>
         <title>Digital Tools Store | AWE-OS Marketplace</title>
         <meta name="description" content="Browse and buy digital templates, tools, and resources from verified creators on AWE-OS." />
+        <meta name="robots" content="noindex, follow" />
       </Helmet>
 
       <div className="border-b border-gray-800 bg-gray-900 px-6 pt-8 pb-6">
