@@ -26,6 +26,15 @@ export default function ProductsStorePage() {
     setTimeout(() => setToast(null), 3000)
   }
 
+  // Load Razorpay script
+  useEffect(() => {
+    if (window.Razorpay) return
+    const script = document.createElement('script')
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    script.async = true
+    document.head.appendChild(script)
+  }, [])
+
   useEffect(() => {
     Promise.all([
       api.get('/api/products'),

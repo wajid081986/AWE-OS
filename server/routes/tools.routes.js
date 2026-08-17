@@ -40,6 +40,7 @@ router.get('/', async (req, res) => {
       .from('tools')
       .select('id, name, slug, description, input_fields, price, is_free, category, approved, created_at')
       .eq('approved', true)
+      .eq('marketplace_visible', true)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
