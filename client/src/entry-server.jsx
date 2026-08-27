@@ -20,10 +20,13 @@
  * already uses (toolRegistry, blogPosts, cityPages, comparisonPages,
  * faqPages) — single source of truth, no hand-duplicated route list.
  *
- * Explicitly excluded (see Batch 0B plan): /store/*, /calculators/*,
- * /tools/resume, /tools/pdf-editor/editor, /payment/success, /dashboard/*,
- * /admin/*, /login, /404 — none of these are in architecture.md's frozen
- * route table and/or have no unique static content to prerender.
+ * Explicitly excluded (see Batch 0B plan): /store/*, /tools/pdf-editor/editor
+ * (never a real route), /payment/success, /dashboard/*, /admin/*, /login,
+ * /404 — none of these are in architecture.md's frozen route table and/or
+ * have no unique static content to prerender. /calculators/* and
+ * /tools/resume used to be in this list too — both were retired as public
+ * routes in batch-90 (301'd in vercel.json instead) after a GSC audit found
+ * them as unindexed, canonical-less soft-404 sources.
  *
  * Batch 5.6 — tree parity with the client (required for hydrateRoot):
  *
