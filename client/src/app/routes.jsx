@@ -57,11 +57,6 @@ const PaymentSuccess = lazy(() => import('../pages/PaymentSuccess'))
 
 // ── Auth / standalone ─────────────────────────────────────────────────────────
 const LoginPage   = lazy(() => import('../modules/auth/pages/LoginPage'))
-const ResumePage  = lazy(() => import('../modules/tools/resume/pages/ResumePage'))
-
-// ── Calculators (public, standalone dark theme) ───────────────────────────────
-const CalculatorsListPage = lazy(() => import('../modules/calculators/pages/CalculatorsListPage'))
-const CalculatorPage      = lazy(() => import('../modules/calculators/pages/CalculatorPage'))
 
 // ── User dashboard ────────────────────────────────────────────────────────────
 const Dashboard         = lazy(() => import('../modules/user/pages/DashboardPage'))
@@ -223,10 +218,11 @@ export default function AppRoutes() {
       </Route>
 
       {/* ── Standalone (no shared shell) ─────────────────────────────────── */}
+      {/* /tools/resume and /calculators(/:slug) are retired public routes —
+          vercel.json 301s them to /tools/resume-builder and /tools/calculators
+          respectively (batch-90: were unindexed, canonical-less soft-404
+          sources). The /admin/calculators builder and its API are unaffected. */}
       <Route path="/login"              element={lazy$(<LoginPage />)} />
-      <Route path="/tools/resume"       element={lazy$(<ResumePage />)} />
-      <Route path="/calculators"        element={lazy$(<CalculatorsListPage />)} />
-      <Route path="/calculators/:slug"  element={lazy$(<CalculatorPage />)} />
 
       {/* ── Authenticated (persistent dark AppShell nav) ─────────────────── */}
       <Route element={lazy$(<ProtectedRoute><AppShell /></ProtectedRoute>)}>

@@ -14,7 +14,10 @@
     { "source": "/tools/character-counter",     "destination": "https://www.awe-os.com/tools/word-counter",     "permanent": true },
     { "source": "/tools/image-resizer",         "destination": "https://www.awe-os.com/tools/image-compressor", "permanent": true },
 
-    { "source": "/calculators", "destination": "https://www.awe-os.com/tools/calculators", "permanent": true },
+    { "source": "/calculators",       "destination": "https://www.awe-os.com/tools/calculators",     "permanent": true },
+    { "source": "/calculators/:slug", "destination": "https://www.awe-os.com/tools/calculators",     "permanent": true },
+    { "source": "/tools/resume",      "destination": "https://www.awe-os.com/tools/resume-builder",  "permanent": true },
+    { "source": "/pricing",           "destination": "https://www.awe-os.com/",                       "permanent": true },
 
     { "source": "/bmi-calculator/visakhapatnam", "destination": "https://www.awe-os.com/tools/bmi-calculator", "permanent": true },
     { "source": "/bmi-calculator/coimbatore",    "destination": "https://www.awe-os.com/tools/bmi-calculator", "permanent": true },

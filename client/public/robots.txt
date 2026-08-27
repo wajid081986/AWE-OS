@@ -7,14 +7,15 @@ Allow: /blog
 Allow: /blog/*
 Allow: /about
 Allow: /contact
-Allow: /pricing
 Allow: /privacy-policy
 Allow: /terms
 Allow: /disclaimer
 
 # Private — do not index
 Disallow: /dashboard/
+Disallow: /dashboard
 Disallow: /admin/
+Disallow: /admin
 Disallow: /api/
 Disallow: /login
 Disallow: /tools/test-ai-tool
