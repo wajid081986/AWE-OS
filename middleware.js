@@ -9,12 +9,17 @@
  * were never real pages at all. Google Search Console flagged the paths
  * below as "soft 404s" because of this.
  *
- * These 9 paths are confirmed dead — not in TOOL_COMPONENTS, TOOL_REGISTRY,
- * SLUG_ALIASES, CITY_PAGES, or the generated SSG_PATHS manifest. The 8
+ * These 10 paths are confirmed dead — not in TOOL_COMPONENTS, TOOL_REGISTRY,
+ * SLUG_ALIASES, CITY_PAGES, or the generated SSG_PATHS manifest. The 9
  * /tools/* ones exist only as decorative "related tool" links inside blog
  * post body copy (src/data/blogPosts.js) for tools that were referenced in
  * writing but never built. /bmi-calculator/bhopa is a typo of the real
  * /bmi-calculator/bhopal redirect entry in vercel.json's `redirects` array.
+ *
+ * /tools/budget-calculator (added batch-91) — same profile as the original
+ * 8: its one inline blog-post link was already dropped in batch-55, so it
+ * has zero live internal referrers either. GSC's Aug-4 audit just missed it
+ * because it wasn't in that day's 8-URL sample.
  *
  * Deliberately an exact-path matcher, not a pattern like `/tools/(.*)`  —
  * this must never intercept a real or future /tools/:slug. There is no
@@ -33,6 +38,7 @@ const DEAD_PATHS = new Set([
   '/tools/retirement-calculator',
   '/tools/savings-calculator',
   '/tools/barcode-generator',
+  '/tools/budget-calculator',
   '/bmi-calculator/bhopa',
 ])
 
@@ -82,6 +88,7 @@ export const config = {
     '/tools/retirement-calculator',
     '/tools/savings-calculator',
     '/tools/barcode-generator',
+    '/tools/budget-calculator',
     '/bmi-calculator/bhopa',
   ],
   runtime: 'edge',

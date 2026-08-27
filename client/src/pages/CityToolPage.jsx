@@ -142,7 +142,7 @@ export default function CityToolPage() {
               return (
                 <Link
                   key={c.slug}
-                  to={`/tools/${toolSlug}/${cityPath}`}
+                  to={`/${toolSlug}/${cityPath}`}
                   className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-colors font-medium"
                 >
                   {toolLabel} in {cityName}
