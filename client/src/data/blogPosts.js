@@ -1524,7 +1524,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'p',
-        text: 'Consider the following data on the effectiveness of strong passwords. Studies indicate that using a password with a mix of characters can reduce the likelihood of a breach by up to 70%. This is significant in a country like India, where digital transactions are rapidly increasing. Protecting your accounts with strong passwords is a proactive step towards cyber security.'
+        text: "Password length and character variety both directly increase the number of guesses a brute-force attack needs to make, since each additional character (and each additional character type — lowercase, uppercase, numbers, symbols) multiplies the total combinations. The table below shows roughly how that plays out. This matters more every year in India, where digital transactions and the accounts tied to them keep growing."
       },
       {
         type: 'table',
@@ -1914,7 +1914,7 @@ export const BLOG_POSTS = [
       },
       {
         q: 'What other features do age calculators offer?',
-        a: 'Besides calculating age, many age calculators offer additional features like determining the number of days until your next birthday, providing age in months or even weeks, and sometimes offering insights into life expectancy based on ICMR guidelines. These features extend the utility of the tool, making it a comprehensive resource for personal and professional planning.'
+        a: 'Besides calculating age, the AWE-OS Age Calculator shows the number of days until your next birthday, your total age in days, and which day of the week you were born on — useful details beyond just the years/months/days breakdown.'
       }
     ],
     id: 31
