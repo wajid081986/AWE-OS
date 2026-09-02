@@ -82,47 +82,7 @@ export const TOOL_ABOUT = {
   },
 
   'pdf-editor': {
-  "description": "AWE-OS PDF Editor is an indispensable free tool tailored for Indian users who need to manage their PDF documents with ease and security. As businesses and educational institutions in India increasingly adopt digital documentation, the need for reliable editing tools has never been greater. Whether you're a student reviewing lecture notes, a small business owner drafting invoices, or a government official handling sensitive documents, our browser-based PDF editor enables you to edit, annotate, and sign PDFs seamlessly. Best of all, you can do this without the concern of exposing sensitive information to external servers, making it a perfect fit for the privacy-conscious Indian user.",
-  "features": [
-    "User-friendly interface: Navigate effortlessly through our intuitive design, making PDF editing accessible for everyone, regardless of tech-savviness.",
-    "Real-time collaboration: Work together with colleagues or classmates on the same document simultaneously, enhancing teamwork and productivity.",
-    "Secure document handling: Edit your PDFs without uploading them to external servers, ensuring your sensitive information remains private and secure.",
-    "Comprehensive annotation tools: Highlight, underline, and add comments or notes to your documents, making it easy to review and share feedback.",
-    "E-signature capabilities: Easily sign your PDFs electronically, streamlining the approval process for contracts and agreements, which is essential for businesses dealing with GST invoices.",
-    "Multi-format support: Import and export PDFs with various formats, allowing you to convert documents as needed for presentations or reports."
-  ],
-  "useCases": [
-    "As a student in India, you can use AWE-OS PDF Editor to annotate your lecture notes and share them with classmates, ensuring everyone has access to the same information without the hassle of printed materials.",
-    "Small business owners can efficiently draft and sign contracts or invoices, ensuring compliance with GST regulations while saving time and money by avoiding printing and mailing.",
-    "A government employee managing departmental documents can utilize our editor to easily update forms or reports, ensuring that all changes are captured without needing to start from scratch.",
-    "Freelancers can use this tool to create polished proposals and contracts for clients, enhancing professionalism and making the process smoother with built-in e-signature functionality."
-  ],
-  "howToUse": [
-    "Step 1: Visit the AWE-OS PDF Editor website and select 'Start Editing' to access the editor without any downloads.",
-    "Step 2: Upload your PDF document directly from your computer or drag and drop it into the editor.",
-    "Step 3: Use the available tools to annotate, highlight, or edit text within the PDF as needed.",
-    "Step 4: Once your edits are complete, save the document directly to your device or share it via email or other platforms.",
-    "Step 5: For documents requiring signatures, use our e-signature feature to sign and send the document securely."
-  ],
-  "whyUseUs": [
-    "Our PDF Editor is completely free, meaning Indian users can access high-quality editing tools without the burden of subscription fees or hidden costs, making it budget-friendly for students and small businesses alike.",
-    "We prioritize user privacy by not requiring uploads to external servers, allowing you to handle sensitive information securely, which is crucial for maintaining confidentiality in business and personal matters.",
-    "With a focus on the Indian context, our tools are designed to cater to local needs, including compliance with GST regulations, ensuring users can manage their documents effectively within the legal framework."
-  ],
-  "faqs": [
-    {
-      "q": "Is AWE-OS PDF Editor really free to use?",
-      "a": "Yes, AWE-OS PDF Editor is completely free for all users. There are no hidden charges or subscription fees, making it an ideal choice for Indian students, freelancers, and small businesses looking to manage their PDF documents without financial strain."
-    },
-    {
-      "q": "Can I use this tool for sensitive documents?",
-      "a": "Absolutely! AWE-OS PDF Editor allows you to edit and annotate documents without uploading them to any server. This means your sensitive information remains secure, making it suitable for handling personal, business, or government documents."
-    },
-    {
-      "q": "What types of documents can I create or edit with this tool?",
-      "a": "You can create or edit a variety of document types including contracts, invoices, lecture notes, and reports. Our PDF Editor supports various formats, allowing you to convert files as necessary for your specific needs, especially for compliance with GST or other Indian regulations."
-    }
-  ]
+  "description": "PDF Editor lets you annotate, highlight, draw, stamp, and sign PDFs directly in the browser — PDF.js renders the pages, pdf-lib saves your changes. Every tool, including Whiteout and Redact, draws a new layer on top of the page. Nothing you add replaces what was already there."
 },
 
   'image-compressor': {
