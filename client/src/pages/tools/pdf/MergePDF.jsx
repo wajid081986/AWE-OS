@@ -127,7 +127,8 @@ const FAQS = [
     a: "Convert your images to PDF first using the JPG to PDF tool on AWE-OS, which turns any number of JPG, PNG, or WEBP images into a single PDF. You can then merge that PDF with other documents using this tool. This is useful for combining scanned receipts, photos, or screenshots with existing PDF reports.",
   },
 ]
-const ABOUT = TOOL_ABOUT['merge-pdf']
+// about.howToUse/about.faqs dropped — STEPS/FAQS above are the single rendered source for those sections
+const { howToUse: _aboutHowToUse, faqs: _aboutFaqs, ...ABOUT } = TOOL_ABOUT['merge-pdf']
 
 export default function MergePDF() {
   return (

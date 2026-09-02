@@ -33,7 +33,8 @@ const FAQS = [
   },
 ]
 
-const ABOUT = TOOL_ABOUT['hra-calculator']
+// about.howToUse/about.faqs dropped — STEPS/FAQS above are the single rendered source for those sections
+const { howToUse: _aboutHowToUse, faqs: _aboutFaqs, ...ABOUT } = TOOL_ABOUT['hra-calculator']
 
 function fmt(n) {
   return new Intl.NumberFormat('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.round(n))

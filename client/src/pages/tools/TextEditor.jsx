@@ -433,7 +433,8 @@ const FAQS = [
   { q: 'Can I upload an image file instead of pasting a URL?', a: 'No — by design. AWE-OS never uploads files to a server, and supporting local image uploads inside a document editor would blur that promise. Paste a URL to a publicly hosted image instead.' },
   { q: 'Does the page count reflect exactly how many pages will print?', a: 'The "Page N of M" counter is an approximation based on content height against a standard A4 page height — real pagination depends on your printer, margins, and browser print settings, so treat it as a guide, not an exact print preview.' },
 ]
-const ABOUT = TOOL_ABOUT['text-editor']
+// about.howToUse/about.faqs dropped — STEPS/FAQS above are the single rendered source for those sections
+const { howToUse: _aboutHowToUse, faqs: _aboutFaqs, ...ABOUT } = TOOL_ABOUT['text-editor']
 
 export default function TextEditor() {
   return (

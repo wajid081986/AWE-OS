@@ -661,7 +661,8 @@ const FAQS = [
   },
 ]
 
-const ABOUT = TOOL_ABOUT['sip-calculator']
+// about.howToUse/about.faqs dropped — STEPS/FAQS above are the single rendered source for those sections
+const { howToUse: _aboutHowToUse, faqs: _aboutFaqs, ...ABOUT } = TOOL_ABOUT['sip-calculator']
 
 // ── Page export ───────────────────────────────────────────────────────────────
 
