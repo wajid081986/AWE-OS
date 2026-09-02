@@ -604,198 +604,6 @@ export const BLOG_POSTS = [
     id: 43
   },
   // ─────────────────────────────────────────────────────────────────────────────
-  // 41. How to Use a GST Calculator for Free in India
-  // ─────────────────────────────────────────────────────────────────────────────
-  {
-    slug: 'gst-calculator-india-add-remove-gst',
-    title: 'How to Use a GST Calculator for Free in India',
-    date: '2026-06-01',
-    category: 'Calculators',
-    author: 'AWE-OS Team',
-    readTime: '8 min read',
-    excerpt: 'Discover the simplicity of using a GST Calculator for free to manage your goods and services transactions in India. Learn how to add or remove GST seamlessly with our comprehensive guide.',
-    metaTitle: 'GST Calculator for Free in India',
-    metaDescription: 'Explore how to use a GST Calculator for free to add or remove GST in India effortlessly.',
-    relatedTools: [
-      {
-        label: 'Currency Converter',
-        slug: 'currency-converter',
-        icon: '💱'
-      },
-      {
-        label: 'Loan EMI Calculator',
-        slug: 'loan-calculator',
-        icon: '📊'
-      }
-    ],
-    content: [
-      {
-        type: 'p',
-        text: "Understanding the complexities of the Goods and Services Tax (GST) can be daunting for anyone new to the Indian tax system. Thankfully, tools like the GST Calculator for free can simplify these calculations, helping individuals and businesses determine the right amount to pay or claim. Whether you're adding GST to a product's price or removing it to find the base cost, knowing how to use these calculators effectively can save both time and money. This blog post will guide you through the basics of using a GST calculator, offering examples and practical tips. By the end, you'll feel more confident in managing GST-related computations for your personal or business finances."
-      },
-      {
-        type: 'h2',
-        text: 'What is GST Calculator India Add Remove GST?'
-      },
-      {
-        type: 'p',
-        text: 'A GST Calculator in India is a digital tool designed to compute the amount of GST added to or removed from the price of goods and services. This tool is particularly useful for businesses, accountants, and consumers who want quick and accurate GST calculations. By inputting the pre-GST or post-GST price and the applicable GST rate, users can easily determine the tax amount. The Indian GST system classifies goods and services into different tax slabs such as 5%, 12%, 18%, and 28%. Knowing which slab your product or service falls under is crucial for accurate calculations.'
-      },
-      {
-        type: 'p',
-        text: 'Using a GST Calculator for free can greatly reduce the chance of errors. These calculators automatically compute the GST amount based on the inputs provided, eliminating the need for manual calculations. They are also user-friendly and can be accessed on various platforms like desktops, tablets, and smartphones. This accessibility ensures that anyone in India can perform GST calculations anytime, anywhere, making it an indispensable tool for businesses and individuals alike. As GST regulations continue to evolve, staying updated and making precise calculations is vital for compliance and financial planning.'
-      },
-      {
-        type: 'h2',
-        text: 'How to Use a GST Calculator: Main Explanation'
-      },
-      {
-        type: 'p',
-        text: "To understand how a GST Calculator works, let's explore the process of adding and removing GST. When adding GST, you start with the base price of a good or service and apply the relevant GST rate. For instance, if the base price is ₹10,000 and the applicable GST rate is 18%, the GST amount would be ₹1,800, making the final price ₹11,800. Conversely, to remove GST, you begin with the GST-inclusive price and reverse-calculate to find the base price. This involves deducting the GST amount from the total."
-      },
-      {
-        type: 'table',
-        headers: [
-          'Description',
-          'Base Price (₹)',
-          'GST Rate (%)',
-          'Total Price (₹)'
-        ],
-        rows: [
-          [
-            'Product A',
-            '₹10,000',
-            '18%',
-            '₹11,800'
-          ],
-          [
-            'Service B',
-            '₹15,000',
-            '12%',
-            '₹16,800'
-          ],
-          [
-            'Item C',
-            '₹25,000',
-            '5%',
-            '₹26,250'
-          ]
-        ]
-      },
-      {
-        type: 'p',
-        text: 'The table above illustrates how the GST Calculator simplifies these computations. By inputting the base price and selecting the correct GST rate, the calculator provides the total price inclusive of GST. This feature is especially beneficial for businesses that deal with multiple products or services, each potentially subject to different GST rates. Additionally, it is crucial for those looking to verify GST amounts on invoices or during financial audits. Understanding these calculations ensures transparency and accuracy in financial dealings.'
-      },
-      {
-        type: 'h2',
-        text: 'Real Examples with ₹ Calculations'
-      },
-      {
-        type: 'p',
-        text: "Let's delve into some real-world scenarios to further illustrate the use of a GST Calculator. Consider a retailer selling a washing machine with a base price of **₹20,000** and a GST rate of 28%. Using the GST Calculator, the GST amount added would be **₹5,600**, making the total price **₹25,600**. This quick computation helps retailers set accurate price tags and ensures customers are aware of the tax component."
-      },
-      {
-        type: 'p',
-        text: 'Next, imagine a freelance graphic designer who charges **₹50,000** for a project. At a GST rate of 18%, the total amount billed to the client would be **₹59,000**. The designer can use the GST Calculator to confirm this amount, ensuring they are compliant with tax regulations. This clarity helps in seamless billing and can prevent potential disputes with clients over tax calculations.'
-      },
-      {
-        type: 'p',
-        text: 'Lastly, consider a restaurant that offers a meal costing **₹2,000** before tax. At a 5% GST rate, the GST added is **₹100**, bringing the total to **₹2,100**. For restaurant owners, the GST Calculator is a handy tool to ensure menu pricing aligns with tax obligations. It also aids in maintaining transparency with customers, as they can see how much of their bill is attributed to GST.'
-      },
-      {
-        type: 'h2',
-        text: 'Who Should Use This Tool?'
-      },
-      {
-        type: 'ul',
-        items: [
-          'Small business owners should use the GST Calculator to ensure they are charging the correct GST rate on their products and services, thus staying compliant with tax regulations.',
-          'Accountants and financial professionals benefit from using the GST Calculator as it aids in accurate financial reporting and helps in preparing tax returns for clients.',
-          'Freelancers and independent contractors can use this tool to confidently add GST to their invoices, ensuring they meet tax obligations and maintain transparency with clients.',
-          'Retailers and service providers find the GST Calculator essential for displaying accurate prices inclusive of GST, which enhances customer trust and avoids pricing disputes.',
-          'Consumers can also use the GST Calculator to verify the GST component on their purchases, promoting informed spending and ensuring they are not overcharged.'
-        ]
-      },
-      {
-        type: 'h2',
-        text: 'Step by Step Guide to Using the GST Calculator'
-      },
-      {
-        type: 'p',
-        text: "Using a GST calculator can simplify the process of adding or removing GST from your transactions, ensuring accuracy and saving time. Here's a step-by-step guide to help you navigate the GST calculator effectively."
-      },
-      {
-        type: 'ul',
-        items: [
-          'Step 1: Open the GST Calculator by clicking on the provided link. This will direct you to a user-friendly interface where you can begin your calculations.',
-          'Step 2: Enter the amount for which you need to add or remove GST. Make sure to input the amount accurately to avoid discrepancies.',
-          'Step 3: Select the GST rate applicable to your goods or services. Common rates are 5%, 12%, 18%, and 28%. Ensure you choose the correct rate as per Indian GST norms.',
-          'Step 4: Choose whether you want to add or remove GST from the entered amount. This option helps in calculating the net or gross amount effectively.',
-          "Step 5: Click on the 'Calculate' button. The tool will instantly display the GST amount along with the total amount including or excluding GST.",
-          'Step 6: Review the results. If you need to adjust any parameters, simply modify the input fields and recalculate.'
-        ]
-      },
-      {
-        type: 'callout',
-        text: 'For a seamless experience in calculating GST, use our free GST Calculator tool.',
-        links: [
-          {
-            href: '/tools/gst-calculator',
-            label: 'GST Calculator for free'
-          }
-        ]
-      },
-      {
-        type: 'h2',
-        text: 'Common Mistakes to Avoid While Using the GST Calculator'
-      },
-      {
-        type: 'ul',
-        items: [
-          'Mistake 1: Entering incorrect amounts can lead to inaccurate results. Always double-check the figures you input.',
-          'Mistake 2: Selecting the wrong GST rate is a common error. Ensure you are familiar with the correct rate for your specific goods or services.',
-          'Mistake 3: Failing to specify whether you want to add or remove GST can result in confusion. Always select the correct option to get the desired results.',
-          "Mistake 4: Overlooking the recalculation step after making changes can cause errors. Always click 'Calculate' again after any adjustments."
-        ]
-      },
-      {
-        type: 'h2',
-        text: 'Conclusion'
-      },
-      {
-        type: 'p',
-        text: 'Conclusion: In conclusion, using a GST calculator can dramatically simplify the complex process of handling GST calculations, especially in a dynamic market like India. The tool ensures that you apply the correct GST rates, add or remove GST as needed, and ultimately save time and reduce errors. By following the steps outlined and avoiding common mistakes, you can enhance your financial accuracy and efficiency.'
-      },
-      {
-        type: 'p',
-        text: "Take advantage of our free GST Calculator to streamline your transactions and stay compliant with GST regulations. Whether you're a business owner or an individual, understanding GST calculations is crucial for financial success. Start using the GST Calculator today and experience the ease of accurate financial management. For more information, visit our website and explore additional resources."
-      }
-    ],
-    faqs: [
-      {
-        q: 'What is GST and how does it affect prices?',
-        a: 'GST, or Goods and Services Tax, is a comprehensive tax levied on the supply of goods and services in India. It affects prices by either increasing the total cost when added or reducing the cost when removed. Understanding GST is crucial for businesses and consumers alike to ensure compliance and accurate pricing.'
-      },
-      {
-        q: 'How do I know which GST rate to apply?',
-        a: "The GST rate depends on the type of goods or services you are dealing with. The Indian government categorizes various goods and services under different tax slabs, such as 5%, 12%, 18%, and 28%. It's important to refer to the latest GST rate list or consult a tax professional to choose the correct rate."
-      },
-      {
-        q: 'Can I use the GST calculator for any type of goods or services?',
-        a: 'Yes, the GST calculator is designed to handle a wide range of goods and services. However, you must ensure that you apply the correct GST rate as per the specific category of your goods or services. The tool is versatile and provides accurate calculations for both adding and removing GST.'
-      },
-      {
-        q: 'Is the GST calculator free to use?',
-        a: "Absolutely, the GST calculator is completely free to use. There are no hidden charges or fees involved. It's a user-friendly tool designed to help individuals and businesses accurately calculate the GST amount on their transactions without incurring additional costs."
-      },
-      {
-        q: 'Why is it important to use a GST calculator?',
-        a: 'Using a GST calculator is important because it minimizes human error, saves time, and ensures compliance with GST regulations. It helps in accurately computing the GST amount, thereby aiding in correct financial reporting and budgeting. This tool is essential for both businesses and individuals to manage their finances effectively.'
-      }
-    ],
-    id: 41
-  },
-  // ─────────────────────────────────────────────────────────────────────────────
   // 40. Maximize Your Investments with the SIP Calculator in India
   // ─────────────────────────────────────────────────────────────────────────────
   {
@@ -3027,240 +2835,6 @@ export const BLOG_POSTS = [
     id: 19
   },
   // ─────────────────────────────────────────────────────────────────────────────
-  // 18. What is GST Calculator? Complete Guide for Indians 2026
-  // ─────────────────────────────────────────────────────────────────────────────
-  {
-    slug: 'what-is-gst-calculator-complete-guide-indians-2026',
-    noindex: true,
-    title: 'What is GST Calculator? Complete Guide for Indians 2026',
-    date: '2026-05-24',
-    category: 'Finance',
-    author: 'AWE-OS Team',
-    readTime: '8 min read',
-    excerpt: 'Learn everything about the GST calculator and its application in India for 2026. This guide helps you understand how to calculate GST and its significance for businesses and individuals.',
-    metaTitle: 'What is GST Calculator? Guide 2026',
-    metaDescription: 'Discover what a GST calculator is and how it helps Indians in 2026. Learn to calculate GST easily.',
-    relatedTools: [
-      {
-        label: 'GST Calculator',
-        slug: 'gst-calculator',
-        icon: '🧮'
-      },
-      {
-        label: 'Income Tax Calculator',
-        slug: 'tax-calculator',
-        icon: '📊'
-      }
-    ],
-    content: [
-      {
-        type: 'p',
-        text: "The Goods and Services Tax (GST) replaced India's layered indirect tax system in July 2017, consolidating over a dozen central and state taxes into one nationwide framework. For businesses, freelancers, and consultants operating in India, correctly calculating GST on every invoice is a daily legal requirement — not an option. An error in the GST amount causes GSTR-1 and GSTR-3B mismatches, triggers demand notices from the GST department, and can attract penalties under Section 122 of the CGST Act. A dedicated GST calculator eliminates these risks, saves time on routine billing, and ensures every invoice you raise is compliant with current GST rules — whether you are charging 5% on essential services, 12% on processed goods, 18% on software and IT services, or 28% on luxury products.",
-      },
-      {
-        type: 'h2',
-        text: 'What is a GST Calculator?',
-      },
-      {
-        type: 'p',
-        text: "A GST calculator is a digital tool that computes the Goods and Services Tax on any transaction in seconds. You enter the base price (pre-GST amount) or the gross price (GST-inclusive amount), select the applicable rate — 5%, 12%, 18%, or 28% — and the tool instantly returns the GST amount, the CGST and SGST breakdown for intra-state supplies, or the IGST amount for inter-state supplies, and the total invoice value. GST replaced VAT, Central Excise, Service Tax, and eight other indirect taxes under a dual-tax structure. For intra-state transactions, CGST is collected by the central government and SGST by the state government, each at half the applicable rate. For inter-state supplies, IGST applies at the full rate. A GST calculator automates this split, removing the need for manual computation and reducing billing errors to near zero. The AWE-OS GST Calculator covers all slabs, both supply types, and both calculation modes in a single browser-based tool.",
-      },
-      {
-        type: 'h2',
-        text: 'How to Use the AWE-OS GST Calculator',
-      },
-      {
-        type: 'ul',
-        items: [
-          "Step 1: Open the GST Calculator at awe-os.com/tools/gst-calculator — no login or installation required.",
-          "Step 2: Enter the transaction amount. For Add GST mode, enter the pre-tax (net) price. For Remove GST mode, enter the GST-inclusive gross price.",
-          "Step 3: Select the GST rate: 5%, 12%, 18%, or 28%. If unsure, consult the CBIC HSN/SAC rate finder at cbic-gst.gov.in.",
-          "Step 4: Choose supply type — Intra-state (same state, CGST+SGST) or Inter-state (different states, IGST). The supplier and recipient locations determine this.",
-          "Step 5: Select calculation mode — Add GST to get the total invoice value, or Remove GST to extract the net price and tax component from an inclusive amount.",
-          "Step 6: Read the CGST, SGST (or IGST), and total invoice value from the results. Copy values to your invoice, accounting entry, or e-invoice JSON for IRP submission.",
-        ],
-      },
-      {
-        type: 'h2',
-        text: 'Key Features and Benefits of the AWE-OS GST Calculator',
-      },
-      {
-        type: 'ul',
-        items: [
-          "Dual calculation modes: Add GST (net to gross) and Remove GST (gross to net) — both in one screen, switching instantly.",
-          "Automatic CGST/SGST/IGST split: Select intra-state or inter-state and the correct tax structure applies without manual splitting.",
-          "All four GST slabs: 5%, 12%, 18%, and 28%, plus 0% for nil-rated and exempt supplies.",
-          "Instant results with no page reload: Calculation runs entirely in the browser, as fast as you type.",
-          "No account or sign-up required: Use without registration, payment, or personal details at any time of day.",
-          "Mobile-friendly design: Fully functional on smartphones — ideal for on-site billing at client premises or job sites.",
-          "Browser-only data processing: Invoice amounts and client details are never uploaded to any server — your financial data stays on your device.",
-        ],
-      },
-      {
-        type: 'h2',
-        text: 'India-Specific GST Examples with ₹ Calculations',
-      },
-      {
-        type: 'p',
-        text: "Example 1 — IT Freelancer (Intra-state): A Bengaluru-based software consultant raises a ₹1,00,000 invoice for application development services to a Bengaluru client. GST rate for IT services: 18%. Since both parties are in Karnataka (intra-state), CGST = ₹9,000 and SGST = ₹9,000. Total invoice: ₹1,18,000.",
-      },
-      {
-        type: 'p',
-        text: "Example 2 — Inter-State Goods Supply: A Mumbai manufacturer sells industrial machinery worth ₹5,00,000 to a buyer in Delhi. GST rate: 12% (inter-state). IGST = ₹60,000. Total invoice: ₹5,60,000. The Delhi buyer can claim ₹60,000 as input tax credit in their GSTR-2B.",
-      },
-      {
-        type: 'p',
-        text: "Example 3 — Reverse GST Calculation: A retailer receives a GST-inclusive bill for ₹59,000 at 18% and needs to separate the base price and GST for accounting. Using Remove GST mode: Net price = ₹50,000, GST component = ₹9,000. This split is essential for booking the correct input tax credit in GSTR-2B without overstating the cost.",
-      },
-      {
-        type: 'h2',
-        text: 'Frequently Asked Questions',
-      },
-      {
-        type: 'callout',
-        text: 'Calculate GST instantly for any invoice — intra-state or inter-state, any slab, Add or Remove mode. Free, no login, browser-only.',
-        links: [
-          {
-            href: '/tools/gst-calculator',
-            label: 'Open GST Calculator',
-          },
-        ],
-      },
-    ],
-    faqs: [
-      {
-        q: 'What is the difference between CGST, SGST, and IGST?',
-        a: "Under India's dual GST structure, intra-state supplies (supplier and buyer in the same state) attract CGST (Central Goods and Services Tax) and SGST (State Goods and Services Tax) at equal halves of the applicable rate. For example, an 18% GST on an intra-state supply means 9% CGST + 9% SGST. Inter-state supplies (supplier and buyer in different states) attract IGST (Integrated Goods and Services Tax) at the full applicable rate — the destination state's share is settled through the IGST mechanism. The AWE-OS GST Calculator automatically applies the correct structure when you select Intra-state or Inter-state.",
-      },
-      {
-        q: 'Which GST rate applies to my product or service?',
-        a: "GST rates are determined by the HSN (Harmonised System of Nomenclature) code for goods and the SAC (Services Accounting Code) for services. The GST Council has categorised all goods and services under five slabs: 0% (essential goods, unbranded food, healthcare, education), 5% (processed food, economy hotels, fertilisers), 12% (packaged food, non-AC restaurants, business class air travel), 18% (most professional services including IT and consulting, electronics, AC restaurants, telecom), and 28% (luxury goods, automobiles, aerated drinks). Verify your specific HSN/SAC code on the CBIC GST rate finder at cbic-gst.gov.in before raising invoices.",
-      },
-      {
-        q: 'Can I use the AWE-OS GST Calculator for Reverse Charge Mechanism (RCM) transactions?',
-        a: "Yes. Under the Reverse Charge Mechanism (RCM), the recipient (buyer) pays GST directly to the government instead of the supplier. The tax calculation formula is identical — the applicable rate (5%, 12%, 18%, or 28%) applied to the transaction value. The AWE-OS GST Calculator computes the correct GST amount regardless of whether normal charge or RCM applies; you then account for the liability in your GSTR-3B accordingly. RCM applies to specific categories such as legal services from advocates, services from unregistered vendors above ₹5,000 per day, and imports of services.",
-      },
-    ],
-    id: 18
-  },
-  // ─────────────────────────────────────────────────────────────────────────────
-  // 17. How to Use GST Calculator Online Efficiently
-  // ─────────────────────────────────────────────────────────────────────────────
-  {
-    slug: 'how-to-use-gst-calculator-online',
-    title: 'How to Use GST Calculator Online Efficiently',
-    date: '2026-05-24',
-    category: 'Finance',
-    author: 'AWE-OS Team',
-    readTime: '8 min read',
-    excerpt: 'Discover the ease of calculating GST with online tools. Our guide simplifies the steps to use the GST Calculator for accurate tax computation.',
-    metaTitle: 'How to Use GST Calculator Online',
-    metaDescription: 'Learn how to use GST calculator online to simplify your tax calculations. Perfect for Indian businesses.',
-    relatedTools: [
-      {
-        label: 'EMI Calculator',
-        slug: 'emi-calculator',
-        icon: '📊'
-      },
-      {
-        label: 'Income Tax Calculator',
-        slug: 'tax-calculator',
-        icon: '💰'
-      }
-    ],
-    content: [
-      {
-        type: 'p',
-        text: "India has over 1.4 crore active GST-registered taxpayers as of 2026, each required to file GSTR-1 (outward supplies) and GSTR-3B (summary return) monthly or quarterly. Every invoice raised must carry the correct GST amount — when GSTR-1 and invoice values disagree, the buyer's GSTR-2B is affected and their input tax credit claim fails. For businesses processing dozens or hundreds of invoices each month, using an online GST calculator efficiently is a compliance necessity, not just a convenience. This guide walks you through exactly how to use the AWE-OS GST Calculator online, covering every calculation mode, practical scenarios, and the efficiency tips that experienced accountants use to speed up their billing and reconciliation workflow.",
-      },
-      {
-        type: 'h2',
-        text: 'What is an Online GST Calculator?',
-      },
-      {
-        type: 'p',
-        text: "An online GST calculator is a browser-based tool that computes the Goods and Services Tax on any transaction without requiring software installation, login, or a subscription. You input the transaction amount and the applicable GST rate, select whether you need to add GST to a net price or extract GST from an inclusive amount, and the tool instantly returns the CGST and SGST split (for intra-state) or IGST (for inter-state), and the total invoice value. Online GST calculators are calibrated to all current Indian GST slabs — 5%, 12%, 18%, and 28% — and handle both calculation modes in a single interface. Unlike the manual formula GST Amount = (Base Price × Rate) ÷ 100, an online calculator eliminates arithmetic errors and removes the confusion between GST-inclusive and GST-exclusive calculations — a distinction that frequently causes incorrect billing even among experienced bookkeepers and finance teams.",
-      },
-      {
-        type: 'h2',
-        text: 'How to Use the AWE-OS GST Calculator Online — Step by Step',
-      },
-      {
-        type: 'ul',
-        items: [
-          "Step 1: Navigate to awe-os.com/tools/gst-calculator. The calculator loads instantly in Chrome, Firefox, Safari, or Edge — no login or personal details required.",
-          "Step 2: Choose your calculation mode. Select Add GST if you have the net (pre-tax) price and need the GST-inclusive total for your invoice. Select Remove GST if you have a GST-inclusive bill and need to separate the base price and the tax component for accounting.",
-          "Step 3: Enter the transaction amount in Indian Rupees. The tool handles any value from ₹100 to ₹10 crore without issue.",
-          "Step 4: Select the GST rate — 5%, 12%, 18%, or 28%. If your goods or services are nil-rated or exempt, no GST calculation is needed.",
-          "Step 5: Select the supply type. Choose Intra-state if the supplier and recipient are in the same state — the result shows CGST and SGST each at half the rate. Choose Inter-state for different states — the result shows IGST at the full rate.",
-          "Step 6: The CGST, SGST (or IGST) amounts and the final invoice total appear immediately. Copy the values directly into your invoice, tally entry, or e-invoice JSON for IRP submission.",
-        ],
-      },
-      {
-        type: 'h2',
-        text: 'Key Features That Make GST Calculation Efficient',
-      },
-      {
-        type: 'ul',
-        items: [
-          "Real-time calculation: Results update as you type — no Calculate button, no page reload, instant feedback.",
-          "Add GST and Remove GST modes: The Remove GST mode is essential for accountants receiving GST-inclusive supplier invoices who need to separate the base cost and input tax credit amount.",
-          "CGST/SGST/IGST auto-split: Select the supply type once and the tax structure is handled — no manual 9%+9% splitting for intra-state transactions.",
-          "All four GST slabs in one tool: Switch between 5%, 12%, 18%, and 28% without opening separate calculators or referencing tax tables.",
-          "Zero data storage: All calculation is browser-local — no invoice data, client amounts, or GSTIN are transmitted or stored.",
-          "Mobile-optimised layout: Full functionality on Android and iOS — useful for on-the-spot billing during client visits or site inspections.",
-        ],
-      },
-      {
-        type: 'h2',
-        text: 'India-Specific GST Calculation Examples',
-      },
-      {
-        type: 'table',
-        headers: ['Transaction Scenario', 'Net Amount (₹)', 'GST Rate', 'Tax Amount (₹)', 'Total Invoice (₹)'],
-        rows: [
-          ['IT services — intra-state (Bengaluru to Bengaluru)', '₹75,000', '18%', 'CGST ₹6,750 + SGST ₹6,750', '₹88,500'],
-          ['Restaurant meal (AC sit-down)', '₹2,400', '5%', 'CGST ₹60 + SGST ₹60', '₹2,520'],
-          ['Machinery sale — inter-state (Delhi to Chennai)', '₹8,00,000', '12%', 'IGST ₹96,000', '₹8,96,000'],
-          ['E-commerce electronics — inter-state', '₹12,500', '18%', 'IGST ₹2,250', '₹14,750'],
-        ],
-      },
-      {
-        type: 'p',
-        text: "The table shows how CGST and SGST each equal half the applicable rate for intra-state transactions, while IGST equals the full rate for inter-state supplies. The AWE-OS GST Calculator applies the correct structure automatically based on your supply type selection — saving time and eliminating the most common source of GST invoice errors.",
-      },
-      {
-        type: 'h2',
-        text: 'Frequently Asked Questions',
-      },
-      {
-        type: 'callout',
-        text: 'Use the AWE-OS GST Calculator to handle any GST computation in seconds — Add GST or Remove GST, intra-state or inter-state. Free, no login.',
-        links: [
-          {
-            href: '/tools/gst-calculator',
-            label: 'Open GST Calculator',
-          },
-        ],
-      },
-    ],
-    faqs: [
-      {
-        q: 'How do I calculate GST on an inter-state sale using the online calculator?',
-        a: "For inter-state sales (supplier and buyer in different states), select Inter-state in the AWE-OS GST Calculator. Enter your net invoice amount, select the applicable GST rate, and the tool returns the IGST amount — not a CGST+SGST split — at the full applicable rate. Example: a ₹2,00,000 software service invoice from Bengaluru to Delhi at 18% GST gives IGST = ₹36,000, total invoice = ₹2,36,000. The seller reports this in GSTR-1 under inter-state outward supplies. The buyer claims the IGST as input credit in GSTR-2B once the seller files their return.",
-      },
-      {
-        q: 'What does the Remove GST mode do in the AWE-OS GST Calculator?',
-        a: "Remove GST mode extracts the base price and GST component from a GST-inclusive total. This is essential when you receive a GST-inclusive supplier invoice and need to book the amounts separately — the net price goes to your purchase account and the GST goes to your input tax credit account in GSTR-2B. Example: a GST-inclusive bill of ₹1,18,000 at 18% — Remove GST gives net price ₹1,00,000 and GST ₹18,000. The formula is Net Price = Inclusive Amount ÷ (1 + Rate/100). The AWE-OS calculator performs this instantly without any manual formula work.",
-      },
-      {
-        q: 'How often do GST rates change, and how does the AWE-OS calculator stay current?',
-        a: "The GST Council meets periodically — typically quarterly — to review and revise rates for specific goods and services. Rate changes are notified via GST circulars published on the GSTN portal (gst.gov.in) and the CBIC website (cbic-gst.gov.in). The AWE-OS GST Calculator is updated following each GST Council notification. Across the standard slabs of 5%, 12%, 18%, and 28%, rates are stable for most categories. Always verify your specific HSN/SAC code on the CBIC rate finder if you operate in a category that has seen recent rationalisation by the GST Council.",
-      },
-    ],
-    id: 17
-  },
-  // ─────────────────────────────────────────────────────────────────────────────
   // 15. GST Calculator India 2026: Your Complete Guide
   // ─────────────────────────────────────────────────────────────────────────────
   {
@@ -3288,7 +2862,7 @@ export const BLOG_POSTS = [
     content: [
       {
         type: 'p',
-        text: "India's GST framework has matured significantly since its July 2017 launch. In 2026, over 1.4 crore businesses are GST-registered, e-invoicing is mandatory for all businesses with annual turnover above ₹5 crore, and the GST Council continues to rationalise rates across categories. Navigating the system requires accurate, fast GST computation at every step — from raising e-invoices on the Invoice Registration Portal (IRP) to reconciling input tax credits in GSTR-2B. For businesses of every size — from kirana stores to IT exporters — a reliable GST calculator is the first line of defence against filing errors, GSTR-1 mismatches, and demand notices. This complete guide covers how the AWE-OS GST Calculator handles every Indian GST calculation scenario in 2026.",
+        text: "India's GST framework has matured significantly since its July 2017 launch. Over 1.4 crore businesses are GST-registered as of 2026, e-invoicing is mandatory for anyone above ₹5 crore turnover, and the GST Council keeps rationalising rates across categories. Whether you're raising a single freelance invoice or reconciling GSTR-1 against hundreds of monthly transactions, getting the tax amount right the first time avoids filing mismatches and demand notices later. This guide covers every calculation mode the AWE-OS GST Calculator handles — forward and reverse, intra-state and inter-state, normal charge and reverse charge — with real numbers for each.",
       },
       {
         type: 'h2',
@@ -3331,19 +2905,35 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'India-Specific GST Scenarios and ₹ Calculations for 2026',
+        text: 'When Reverse Charge Applies',
       },
       {
         type: 'p',
-        text: "Scenario 1 — E-commerce Seller (Amazon India): A Maharashtra-registered seller sells electronics worth ₹18,000 to a Maharashtra buyer (intra-state). GST rate: 18%. CGST = ₹1,620 + SGST = ₹1,620. Total invoice: ₹21,240. Amazon deducts TCS (Tax Collected at Source) at 1% — ₹180 — and remits it on the seller's behalf, which the seller claims credit for in GSTR-2B.",
+        text: "Normal GST has the seller collecting tax and remitting it. Reverse Charge Mechanism (RCM) flips that: the buyer pays GST directly to the government instead of the seller. The math is identical — the same rate slab applies to the same transaction value — only who's responsible for paying changes.",
       },
       {
         type: 'p',
-        text: "Scenario 2 — IT Services Export (Zero-Rated): A Bengaluru IT company exports software development services to a US client valued at $10,000 (approximately ₹8,30,000). Exports under GST are zero-rated — IGST is 0%, and no GST appears on the invoice. The company files a refund claim for accumulated input tax credit on domestic purchases used to deliver the export service.",
+        text: "RCM applies in specific situations: legal services billed by an advocate, services bought from an unregistered vendor above ₹5,000 in a day, and imports of services. For example, a Delhi startup pays a practicing advocate ₹40,000 for legal consultation. GST at 18% is ₹7,200 — but the startup, not the advocate, deposits this with the government and later claims it as input tax credit in their GSTR-2B, accounted for through their GSTR-3B. The calculator gives you the correct GST amount either way; RCM only changes who reports and pays it.",
+      },
+      {
+        type: 'h2',
+        text: 'GST in Practice — Real Scenarios',
       },
       {
         type: 'p',
-        text: "Scenario 3 — Professional Services (Intra-state): A Delhi-based chartered accountant charges ₹1,20,000 for audit services to a Delhi client. GST rate for CA services: 18% (intra-state). CGST = ₹10,800 + SGST = ₹10,800. Total invoice: ₹1,41,600. The client, if GST-registered, claims ₹21,600 as input tax credit in GSTR-2B after the CA files their GSTR-1.",
+        text: "E-commerce seller (Amazon India, intra-state): A Maharashtra-registered seller sells electronics worth ₹18,000 to a Maharashtra buyer. GST at 18%: CGST ₹1,620 + SGST ₹1,620, total ₹21,240. Amazon deducts 1% TCS (₹180) and remits it on the seller's behalf — the seller claims this back as credit in GSTR-2B.",
+      },
+      {
+        type: 'p',
+        text: "IT services export (zero-rated): A Bengaluru company exports software development worth $10,000 (≈₹8,30,000) to a US client. Exports are zero-rated under GST — 0% IGST, nothing on the invoice — and the company instead files a refund claim for the input tax credit built up on domestic purchases used to deliver the service.",
+      },
+      {
+        type: 'p',
+        text: "Professional services, intra-state: A Delhi chartered accountant bills ₹1,20,000 for audit work. GST at 18%: CGST ₹10,800 + SGST ₹10,800, total ₹1,41,600. A GST-registered client claims the ₹21,600 as input credit once the CA files GSTR-1.",
+      },
+      {
+        type: 'p',
+        text: "Retail — everyday purchases: GST shows up on ordinary bills too, not just B2B invoices. A washing machine priced at ₹20,000 attracts 28% (consumer durables sit in the highest slab) — GST of ₹5,600, total ₹25,600. A ₹2,000 restaurant meal, by contrast, is taxed at 5% — GST of ₹100, total ₹2,100. Same calculator, same formula, very different tax burden depending on what's being sold.",
       },
       {
         type: 'h2',
@@ -3372,6 +2962,10 @@ export const BLOG_POSTS = [
       {
         q: 'Can I claim Input Tax Credit (ITC) on GST paid on purchases?',
         a: "Input Tax Credit (ITC) allows GST-registered businesses to offset GST paid on purchases against GST payable on sales. For example, if your business pays ₹1,80,000 IGST on imported machinery and your output GST for the month is ₹2,40,000, you pay only ₹60,000 net to the government. ITC is available only when the supplier has filed GSTR-1 and the credit appears in your GSTR-2B. ITC is blocked under Section 17(5) of the CGST Act for personal-use purchases, motor vehicles (with exceptions), food and beverages, and certain other categories. The AWE-OS GST Calculator helps you compute both output liability and the GST paid on each purchase for accurate ITC tracking.",
+      },
+      {
+        q: 'How often do GST rates change, and how do I stay current?',
+        a: "The GST Council meets periodically — typically quarterly — to review and revise rates. Changes are notified via circulars on the GSTN portal (gst.gov.in) and the CBIC website (cbic-gst.gov.in). Rates on the standard slabs (5%, 12%, 18%, 28%) are stable for most categories most of the time, but if you operate in a category that's seen recent rationalisation, verify your specific HSN/SAC code on the CBIC rate finder before invoicing.",
       },
     ],
     id: 15
