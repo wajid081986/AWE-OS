@@ -868,7 +868,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -1688,7 +1688,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -2425,7 +2425,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -2595,14 +2595,6 @@ export const BLOG_POSTS = [
           'Mistake 2: Selecting the wrong guideline. Using WHO standards instead of ICMR can lead to a misunderstanding of your health status, as the thresholds differ.',
           'Mistake 3: Ignoring age and gender factors. These can influence BMI interpretations significantly, especially in Indian populations, where nutritional and lifestyle factors vary widely.'
         ]
-      },
-      {
-        type: 'h2',
-        text: 'Frequently Asked Questions'
-      },
-      {
-        type: 'p',
-        text: 'Understanding the nuances of BMI calculation is important for maintaining health. Here are some frequently asked questions to help you navigate this topic.'
       },
       {
         type: 'h2',
