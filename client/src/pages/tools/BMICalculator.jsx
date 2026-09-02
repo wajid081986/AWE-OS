@@ -159,7 +159,8 @@ const FAQS = [
   },
 ]
 
-const ABOUT = TOOL_ABOUT['bmi-calculator']
+// about.howToUse/about.faqs dropped — STEPS/FAQS above are the single rendered source for those sections
+const { howToUse: _aboutHowToUse, faqs: _aboutFaqs, ...ABOUT } = TOOL_ABOUT['bmi-calculator']
 
 export default function BMICalculator() {
   return (

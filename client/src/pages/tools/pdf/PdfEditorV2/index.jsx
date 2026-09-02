@@ -38,7 +38,8 @@ const FAQS = [
   { q: 'Will my annotations survive a page refresh?', a: 'No — annotations live in memory for the current session only. Download before refreshing or closing the tab.' },
   { q: 'What does Whiteout do?', a: 'It draws a permanent white rectangle over the selected area. On download, pdf-lib embeds it as an opaque rectangle covering the original content underneath — the underlying text itself is not removed from the file.' },
 ]
-const ABOUT = TOOL_ABOUT['pdf-editor']
+// about.howToUse/about.faqs dropped — STEPS/FAQS above are the single rendered source for those sections
+const { howToUse: _aboutHowToUse, faqs: _aboutFaqs, ...ABOUT } = TOOL_ABOUT['pdf-editor']
 
 async function pickStandardFont(pdfLibDoc, family, bold, italic) {
   const isTimes = family === 'Times New Roman' || family === 'Georgia'
