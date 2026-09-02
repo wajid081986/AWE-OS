@@ -77,8 +77,7 @@ const FAQS = [
   { q: 'Is there a character or word limit?', a: 'There is no enforced limit. The tool handles large documents efficiently — a 10,000-word article or a full book chapter pastes and counts without issue. Performance may vary for very long texts over 100,000 words on older devices, but for typical writing tasks the tool runs without any noticeable delay.' },
 ]
 
-// about.howToUse/about.faqs dropped — STEPS/FAQS above are the single rendered source for those sections
-const { howToUse: _aboutHowToUse, faqs: _aboutFaqs, ...ABOUT } = TOOL_ABOUT['word-counter']
+const ABOUT = TOOL_ABOUT['word-counter']
 
 export default function WordCounter() {
   return (
