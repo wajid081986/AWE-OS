@@ -178,7 +178,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -366,7 +366,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -547,7 +547,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -868,7 +868,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -1056,7 +1056,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -1438,7 +1438,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -1615,7 +1615,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -1947,7 +1947,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -2296,7 +2296,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -2480,7 +2480,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -2663,7 +2663,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
