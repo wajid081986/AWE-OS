@@ -4,6 +4,9 @@
   "installCommand": "cd client && npm install --production=false",
   "framework": "vite",
   "redirects": [
+    { "source": "/blog/gst-calculator-india-add-remove-gst", "destination": "https://www.awe-os.com/blog/gst-calculator-india-2026-complete-guide", "permanent": true },
+    { "source": "/blog/what-is-gst-calculator-complete-guide-indians-2026", "destination": "https://www.awe-os.com/blog/gst-calculator-india-2026-complete-guide", "permanent": true },
+    { "source": "/blog/how-to-use-gst-calculator-online", "destination": "https://www.awe-os.com/blog/gst-calculator-india-2026-complete-guide", "permanent": true },
     { "source": "/tools/pdf-merger",     "destination": "https://www.awe-os.com/tools/merge-pdf",      "permanent": true },
     { "source": "/tools/emi-calculator", "destination": "https://www.awe-os.com/tools/loan-calculator", "permanent": true },
     { "source": "/tools/image-to-pdf",   "destination": "https://www.awe-os.com/tools/jpg-to-pdf",      "permanent": true },
