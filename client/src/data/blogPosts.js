@@ -1524,7 +1524,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'p',
-        text: 'Consider the following data on the effectiveness of strong passwords. Studies indicate that using a password with a mix of characters can reduce the likelihood of a breach by up to 70%. This is significant in a country like India, where digital transactions are rapidly increasing. Protecting your accounts with strong passwords is a proactive step towards cyber security.'
+        text: "Password length and character variety both directly increase the number of guesses a brute-force attack needs to make, since each additional character (and each additional character type — lowercase, uppercase, numbers, symbols) multiplies the total combinations. The table below shows roughly how that plays out. This matters more every year in India, where digital transactions and the accounts tied to them keep growing."
       },
       {
         type: 'table',
