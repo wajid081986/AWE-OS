@@ -112,22 +112,6 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Real Examples with ₹ Calculations'
-      },
-      {
-        type: 'p',
-        text: 'Example 1: Ajay, a software engineer earning **₹80,000** per month, allocates **₹20,000** for rent, **₹10,000** for groceries, and **₹5,000** for utilities. He saves **₹20,000** monthly and uses **₹10,000** for discretionary spending. This leaves him with **₹15,000** for transportation and emergencies, allowing flexibility in his budget.'
-      },
-      {
-        type: 'p',
-        text: 'Example 2: Priya, a college student with a monthly stipend of **₹15,000**, spends **₹5,000** on accommodation and **₹3,000** on food. She sets aside **₹2,000** for savings and uses the remaining **₹5,000** for books, transportation, and social activities, balancing her educational needs with personal enjoyment.'
-      },
-      {
-        type: 'p',
-        text: "Example 3: Raj and Anjali, a dual-income couple with a combined income of **₹1,50,000**, allocate **₹40,000** for housing, **₹15,000** for groceries, and **₹10,000** for utilities. They save **₹30,000** monthly and use **₹20,000** for leisure, ensuring a comfortable lifestyle while preparing for future expenses like children's education."
-      },
-      {
-        type: 'h2',
         text: 'Who Should Use This'
       },
       {
@@ -178,7 +162,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -261,55 +245,6 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Bank Document Types: Page Count and File Size Reference'
-      },
-      {
-        type: 'p',
-        text: "To merge PDF files for bank documents in India, you first need to select a reliable tool such as Merge PDF. Begin by gathering all the PDF files you wish to combine. This might include account statements, loan documents, and transaction records. Upload these files to the Merge PDF tool. After the files are uploaded, arrange them in the desired order. This order is crucial as it determines how the information will be presented in the final document. Once satisfied, click on the 'Merge' button to combine the files into a single PDF. Download the merged document and verify all information is intact and in the correct order."
-      },
-      {
-        type: 'table',
-        headers: [
-          'Document Type',
-          'Number of Pages',
-          'Estimated Size'
-        ],
-        rows: [
-          [
-            'Account Statement',
-            '5 pages',
-            '₹12,75,000'
-          ],
-          [
-            'Loan Agreement',
-            '8 pages',
-            '₹7,50,000'
-          ],
-          [
-            'Transaction Report',
-            '10 pages',
-            '₹5,00,000'
-          ]
-        ]
-      },
-      {
-        type: 'h2',
-        text: 'Real Examples with ₹ Calculations'
-      },
-      {
-        type: 'p',
-        text: 'Consider a scenario where you need to present a comprehensive financial summary to a bank for a loan application. You have three documents: an account statement, a loan agreement, and a transaction report. Each has a different number of pages and file sizes. The account statement, spanning 5 pages, has a file size of approximately **₹12,75,000** bytes. The loan agreement, at 8 pages, is about **₹7,50,000** bytes. Lastly, the transaction report, with 10 pages, is **₹5,00,000** bytes.'
-      },
-      {
-        type: 'p',
-        text: 'By using the Merge PDF tool, you combine these documents into a single file. The merged document now contains all the essential information needed to review your financial position. This consolidated document is easier for bank officials to analyze and makes the loan application process more efficient. Additionally, it reduces the chances of missing any crucial information since everything is in one place.'
-      },
-      {
-        type: 'p',
-        text: "Another example is during tax season when individuals need to submit various financial documents to the Income Tax Department. By merging their documents, such as salary slips, investment proofs, and tax deduction receipts, they create a single file that simplifies the submission process. This not only saves time but also ensures compliance with the department's documentation requirements, potentially speeding up the refund process or resolving any discrepancies quickly."
-      },
-      {
-        type: 'h2',
         text: 'Who Should Use This'
       },
       {
@@ -366,7 +301,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -438,55 +373,6 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'QR Code Usage and Investment by Industry in India'
-      },
-      {
-        type: 'p',
-        text: 'QR codes offer a versatile solution for various industries. In retail, they can be used to quickly access product details, promotions, or payment options. Educational institutions can embed URLs to digital resources, making learning more interactive and accessible. By using a QR Code Generator for free online, organizations can enhance user engagement and drive more traffic to their digital assets. Here is how different sectors in India utilize QR codes:'
-      },
-      {
-        type: 'table',
-        headers: [
-          'Sector',
-          'Usage',
-          'Investment (₹)'
-        ],
-        rows: [
-          [
-            'Retail',
-            'Product Information & Payments',
-            '₹5,000'
-          ],
-          [
-            'Education',
-            'Access to Digital Content',
-            '₹3,000'
-          ],
-          [
-            'Healthcare',
-            'Patient Records & Appointments',
-            '₹7,500'
-          ]
-        ]
-      },
-      {
-        type: 'p',
-        text: 'The table above highlights the potential investment required for integrating QR codes into various sectors. For instance, retail businesses might invest around **₹5,000** to implement product information and payment solutions. Educational institutions can enhance learning experiences with a minimal investment of **₹3,000** for digital content access. In healthcare, QR codes can support patient records and appointment management with an investment of about **₹7,500**.'
-      },
-      {
-        type: 'h2',
-        text: 'Real Examples with ₹ Calculations'
-      },
-      {
-        type: 'p',
-        text: 'Consider a local retail store in Mumbai that uses QR codes for product promotions. By investing **₹5,000**, they create QR codes linking to exclusive online discounts. This strategy increases sales by 15%, generating an additional **₹12,75,000** in revenue annually. Another example is a school in Delhi using QR codes in textbooks to link to educational videos. With an investment of **₹3,000**, they enhance student engagement, improving exam results by 20%.'
-      },
-      {
-        type: 'p',
-        text: 'In healthcare, a clinic in Bangalore employs QR codes to manage patient records. By investing **₹7,500**, they streamline appointment scheduling and reduce paperwork, saving **₹1,50,000** annually in administrative costs. These examples illustrate how QR codes can be a cost-effective solution across different sectors, offering significant returns on investment.'
-      },
-      {
-        type: 'h2',
         text: 'Who Should Use This'
       },
       {
@@ -547,7 +433,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -569,7 +455,7 @@ export const BLOG_POSTS = [
       },
       {
         q: 'Are QR codes widely used in India?',
-        a: 'Yes, QR codes are increasingly popular in India, especially with the rise of digital payments and contactless transactions. They are used by banks, retailers, and even government bodies like SEBI for easy access to information and services, making them an integral part of modern Indian commerce.'
+        a: 'Yes, QR codes are increasingly popular in India, especially with the rise of digital payments and contactless transactions. They are used by banks, retailers, and service providers for easy access to information and services, making them an integral part of modern Indian commerce.'
       },
       {
         q: 'What are some common uses of QR codes?',
@@ -868,7 +754,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -1056,7 +942,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -1438,7 +1324,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -1615,7 +1501,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -1947,7 +1833,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -2296,7 +2182,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -2480,7 +2366,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
@@ -2663,7 +2549,7 @@ export const BLOG_POSTS = [
       },
       {
         type: 'h2',
-        text: 'Frequently Asked Questions'
+        text: 'Conclusion'
       },
       {
         type: 'p',
