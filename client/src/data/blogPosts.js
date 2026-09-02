@@ -1914,7 +1914,7 @@ export const BLOG_POSTS = [
       },
       {
         q: 'What other features do age calculators offer?',
-        a: 'Besides calculating age, many age calculators offer additional features like determining the number of days until your next birthday, providing age in months or even weeks, and sometimes offering insights into life expectancy based on ICMR guidelines. These features extend the utility of the tool, making it a comprehensive resource for personal and professional planning.'
+        a: 'Besides calculating age, the AWE-OS Age Calculator shows the number of days until your next birthday, your total age in days, and which day of the week you were born on — useful details beyond just the years/months/days breakdown.'
       }
     ],
     id: 31
