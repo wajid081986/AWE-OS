@@ -37,6 +37,7 @@ const FAQS = [
   { q: 'Is my PDF uploaded to any server?', a: 'No. The editor runs entirely in your browser using PDF.js and pdf-lib — your file is never transmitted anywhere.' },
   { q: 'Will my annotations survive a page refresh?', a: 'No — annotations live in memory for the current session only. Download before refreshing or closing the tab.' },
   { q: 'What does Whiteout do?', a: 'It draws a permanent white rectangle over the selected area. On download, pdf-lib embeds it as an opaque rectangle covering the original content underneath — the underlying text itself is not removed from the file.' },
+  { q: 'Does Redact actually delete the text, or just cover it?', a: "Just covers it. Redact draws a solid black box over the selected area — the text underneath stays in the PDF unchanged. We tested this directly: covered a fake account number with Redact, then ran the page through a text extractor, and got the exact number back. If you're sharing a document and the content really needs to be gone, don't rely on Redact alone." },
 ]
 // about.howToUse/about.faqs dropped — STEPS/FAQS above are the single rendered source for those sections
 const { howToUse: _aboutHowToUse, faqs: _aboutFaqs, ...ABOUT } = TOOL_ABOUT['pdf-editor']
@@ -1129,7 +1130,7 @@ export default function PdfEditorV2() {
       steps={STEPS}
       faqs={FAQS}
       about={ABOUT}
-      limitation="Adds new text, drawings, and highlights on top of the PDF — it cannot edit or delete the PDF's original text."
+      limitation="Whiteout and Redact cover content with a box — they don't remove it. The text underneath is still in the file, and it comes back the moment someone copy-pastes it or runs the page through a text extractor. Replace All works the same way under the hood: it whites out the old text, then draws the new text on top. If you're actually trying to strip sensitive information before sharing a document, black it out in the source file before exporting to PDF, or use desktop software with certified redaction — this tool can't guarantee removal."
     >
       <input ref={fileInputRef} type="file" accept="application/pdf,.pdf" onChange={handleFileChange} className="hidden" />
       <input ref={imageInputRef} type="file" accept="image/png,image/jpeg" onChange={handleImageFileChange} className="hidden" />

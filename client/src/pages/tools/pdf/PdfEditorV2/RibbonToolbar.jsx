@@ -107,7 +107,7 @@ function EditRibbon({ onFindReplaceClick, activeTool, onToolChange, hasFormField
       <RibbonButton label="Find & Replace" icon="🔍" desc="Find and replace text across the document (Ctrl+F)" onClick={onFindReplaceClick} />
       <Divider />
       <RibbonButton label="Whiteout" icon="▢" shortcut="W" desc="Cover an area with an opaque white box (does not remove the underlying PDF text)" active={activeTool === TOOLS.WHITEOUT} onClick={() => onToolChange(TOOLS.WHITEOUT)} />
-      <RibbonButton label="Redact" icon="⬛" shortcut="X" desc="Cover an area with a permanent solid black box" active={activeTool === TOOLS.REDACT} onClick={() => onToolChange(TOOLS.REDACT)} />
+      <RibbonButton label="Redact" icon="⬛" shortcut="X" desc="Cover an area with a permanent solid black box (does not remove the underlying PDF text)" active={activeTool === TOOLS.REDACT} onClick={() => onToolChange(TOOLS.REDACT)} />
       <Divider />
       <RibbonButton label="Form Fill" icon="📝" desc={hasFormFields ? "Jump to this PDF's first fillable field" : 'This PDF has no fillable form fields'} disabled={!hasFormFields} onClick={onFormFillClick} />
       <RibbonButton label="Auto Fill" icon="👤" desc="Fill form fields from your saved profile" onClick={onAutoFillClick} />
@@ -143,7 +143,7 @@ function PagesRibbon({ activePage, pageCount, onInsertBlank, onDuplicate, onRequ
 function SecurityRibbon({ activeTool, onToolChange, onProtectClick }) {
   return (
     <>
-      <RibbonButton label="Redact" icon="⬛" shortcut="X" desc="Cover an area with a permanent solid black box" active={activeTool === TOOLS.REDACT} onClick={() => onToolChange(TOOLS.REDACT)} />
+      <RibbonButton label="Redact" icon="⬛" shortcut="X" desc="Cover an area with a permanent solid black box (does not remove the underlying PDF text)" active={activeTool === TOOLS.REDACT} onClick={() => onToolChange(TOOLS.REDACT)} />
       <Divider />
       <RibbonButton label="Protect" icon="🔒" desc="Password-protect and encrypt the document (AES-256)" onClick={onProtectClick} />
     </>
