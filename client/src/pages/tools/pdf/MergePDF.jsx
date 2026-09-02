@@ -115,8 +115,12 @@ const FAQS = [
     a: "Never. All merging runs entirely in your browser using the pdf-lib JavaScript library. Your files are never transmitted anywhere, never stored on any server, and are permanently discarded the moment you close or refresh the page. This makes AWE-OS Merge PDF one of the most private PDF tools available online.",
   },
   {
-    q: "Can I merge password-protected PDFs?",
-    a: "Password-protected PDFs cannot be merged directly — they will fail to load into the tool. You need to first remove the password using the Unlock PDF tool on AWE-OS, then upload the unlocked versions to merge. This is a browser security restriction, not a limitation of our tool.",
+    q: "Can I merge a password-protected PDF?",
+    a: "Don't. The tool won't stop you or show an error — it merges, downloads, and says it succeeded. But the pages from the password-protected file come out corrupted: present in the file, but unreadable in any viewer. Unlock it first with Unlock PDF, then merge the unlocked copy.",
+  },
+  {
+    q: "I added two files but only one shows up in the list — what happened?",
+    a: "Check the filenames. The tool matches files by name, not content, so a second report.pdf gets dropped silently even if it's a completely different document from a different folder. Rename one and add it again.",
   },
   {
     q: "How do I reorder individual pages within the merged PDF?",
@@ -127,15 +131,14 @@ const FAQS = [
     a: "Convert your images to PDF first using the JPG to PDF tool on AWE-OS, which turns any number of JPG, PNG, or WEBP images into a single PDF. You can then merge that PDF with other documents using this tool. This is useful for combining scanned receipts, photos, or screenshots with existing PDF reports.",
   },
 ]
-// about.howToUse/about.faqs dropped — STEPS/FAQS above are the single rendered source for those sections
-const { howToUse: _aboutHowToUse, faqs: _aboutFaqs, ...ABOUT } = TOOL_ABOUT['merge-pdf']
+const ABOUT = TOOL_ABOUT['merge-pdf']
 
 export default function MergePDF() {
   return (
     <ToolPageShell slug="merge-pdf" name="Merge PDF" icon="📎"
       description="Combine multiple PDF files into one document. Drag to reorder before merging."
       steps={STEPS} faqs={FAQS} about={ABOUT}
-      limitation={"Password-protected PDFs must be unlocked first — this tool cannot bypass PDF passwords."}>
+      limitation={"Two files with the same name? Only the first gets added — the second is silently skipped, so rename one before uploading if they're actually different documents. And a password-protected file won't throw an error here — it'll merge, download, and claim success while quietly corrupting that file's pages. Unlock it first with Unlock PDF."}>
       <MergeTool />
     </ToolPageShell>
   )

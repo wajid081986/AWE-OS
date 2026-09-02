@@ -8,47 +8,7 @@
 
 export const TOOL_ABOUT = {
   'merge-pdf': {
-  "description": "AWE-OS Merge PDF is a free, browser-based tool specially designed for Indian users to combine multiple PDF documents into a single file with ease. Ideal for professionals, students, and everyday users, this tool is perfect for merging crucial documents such as contract annexures, GST invoices, research paper appendices, and multi-chapter reports. By using this tool, you can eliminate the hassle of managing multiple PDFs, ensuring a streamlined process when submitting important documents that often require a unified presentation, such as those for government submissions or business proposals.",
-  "features": [
-    "Instant PDF Merging: Combine multiple PDF files into one in seconds without any delays.",
-    "Zero Server Uploads: Your files remain secure as no data is uploaded to external servers.",
-    "User-Friendly Interface: Designed for ease of use, making it accessible for all age groups and tech skills.",
-    "Compatible with All Browsers: Use the tool on any popular web browser without the need for downloads.",
-    "No Installation Required: Access the tool directly from your browser without needing to install additional software.",
-    "Support for Large Files: Merge multiple PDFs regardless of file size, perfect for comprehensive reports or extensive documentation."
-  ],
-  "useCases": [
-    "For Indian professionals preparing tender documents, AWE-OS Merge PDF allows you to combine technical specifications, financial bids, and compliance certificates into one cohesive file, making it easier to submit to government agencies or corporate clients.",
-    "Students can utilize the merging tool to compile research papers, thesis chapters, and project reports into a single PDF file, simplifying the submission process for academic evaluations and ensuring a polished presentation.",
-    "Businesses can merge multiple GST invoices and purchase orders into one document for streamlined record-keeping and tax filing, reducing the chances of errors during audits.",
-    "Event planners can combine contracts, itineraries, and vendor agreements into a single PDF, ensuring that all stakeholders have access to the necessary information in an organized manner."
-  ],
-  "howToUse": [
-    "Step 1: Open the AWE-OS Merge PDF tool by visiting https://www.awe-os.com/tools/merge-pdf in your web browser.",
-    "Step 2: Click on the 'Upload Files' button to select the PDF documents you want to merge from your device.",
-    "Step 3: Ensure the files are in the desired order by dragging and dropping them in the tool's interface.",
-    "Step 4: Once you're satisfied with the arrangement, click on the 'Merge PDF' button to start the process.",
-    "Step 5: After merging, download the combined PDF file to your device and use it as needed."
-  ],
-  "whyUseUs": [
-    "AWE-OS Merge PDF offers a unique advantage for Indian users by ensuring complete privacy and data security, as all processing happens in the browser without uploading files to servers, essential for sensitive business and personal documents.",
-    "The tool's seamless integration with the Indian digital landscape makes it a perfect fit for local users who require quick and efficient solutions for managing PDFs, especially when dealing with official paperwork that often needs to adhere to specific formats.",
-    "With no costs involved and user-friendly features, AWE-OS Merge PDF stands out as an ideal choice for students and professionals alike, facilitating easier document management without the need for expensive software or complicated processes."
-  ],
-  "faqs": [
-    {
-      "q": "Is my data safe when using AWE-OS Merge PDF?",
-      "a": "Yes, your data is completely safe when using AWE-OS Merge PDF. Since our tool works entirely in your browser, there are no server uploads, eliminating any risk of data breaches. Your files are processed locally on your device, ensuring that your sensitive documents remain private and secure."
-    },
-    {
-      "q": "Can I merge large PDF files with this tool?",
-      "a": "Absolutely! AWE-OS Merge PDF is designed to handle large files efficiently. Whether you are merging extensive reports, multi-part documents, or multiple invoices, our tool can manage the size without compromising speed or quality. This feature is particularly useful for Indian businesses that need to consolidate detailed documents for compliance and record-keeping."
-    },
-    {
-      "q": "Do I need to create an account to use the Merge PDF tool?",
-      "a": "No, you do not need to create an account to use AWE-OS Merge PDF. The tool is completely free and accessible without any sign-up process. Simply visit the website, upload your files, and start merging right away. This ease of access makes it convenient for users who require quick solutions without the hassle of account management."
-    }
-  ]
+  "description": "Merge PDF combines two or more PDF files into one, in whatever order you arrange them in the list. It runs entirely in the browser tab using pdf-lib, a JavaScript library that copies pages from your source files into a new document — nothing gets uploaded anywhere. Need to reorder or delete pages after merging? Use Organize PDF. Only want a few pages from one of the files, not all of them? Extract those first, then merge."
 },
 
   'bmi-calculator': {
