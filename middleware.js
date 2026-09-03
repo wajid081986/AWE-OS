@@ -9,8 +9,8 @@
  * were never real pages at all. Google Search Console flagged the paths
  * below as "soft 404s" because of this.
  *
- * These 10 paths are confirmed dead — not in TOOL_COMPONENTS, TOOL_REGISTRY,
- * SLUG_ALIASES, CITY_PAGES, or the generated SSG_PATHS manifest. The 9
+ * These 14 paths are confirmed dead — not in TOOL_COMPONENTS, TOOL_REGISTRY,
+ * SLUG_ALIASES, CITY_PAGES, or the generated SSG_PATHS manifest. The 13
  * /tools/* ones exist only as decorative "related tool" links inside blog
  * post body copy (src/data/blogPosts.js) for tools that were referenced in
  * writing but never built. /bmi-calculator/bhopa is a typo of the real
@@ -20,6 +20,17 @@
  * 8: its one inline blog-post link was already dropped in batch-55, so it
  * has zero live internal referrers either. GSC's Aug-4 audit just missed it
  * because it wasn't in that day's 8-URL sample.
+ *
+ * /tools/job-interview-simulator, /tools/ai-cover-letter-generator,
+ * /tools/awe-os-pdf-editor, /tools/interest-rate-tracker (added batch-102,
+ * 2026-09-03 GSC audit) — same profile again: confirmed via grep across
+ * client/src and server/ that none of the 4 have a single live reference
+ * anywhere in the current codebase. awe-os-pdf-editor is specifically an
+ * orphan of batch-55's blog-link remap — that batch fixed the *link text*
+ * in blog posts to point to the real /tools/pdf-editor, but never added a
+ * redirect/404 for the old /tools/awe-os-pdf-editor URL itself, so it kept
+ * serving the homepage at 200 for anyone (or Google) still holding the old
+ * link.
  *
  * Deliberately an exact-path matcher, not a pattern like `/tools/(.*)`  —
  * this must never intercept a real or future /tools/:slug. There is no
@@ -40,6 +51,10 @@ const DEAD_PATHS = new Set([
   '/tools/barcode-generator',
   '/tools/budget-calculator',
   '/bmi-calculator/bhopa',
+  '/tools/job-interview-simulator',
+  '/tools/ai-cover-letter-generator',
+  '/tools/awe-os-pdf-editor',
+  '/tools/interest-rate-tracker',
 ])
 
 const NOT_FOUND_HTML = `<!DOCTYPE html>
@@ -90,6 +105,10 @@ export const config = {
     '/tools/barcode-generator',
     '/tools/budget-calculator',
     '/bmi-calculator/bhopa',
+    '/tools/job-interview-simulator',
+    '/tools/ai-cover-letter-generator',
+    '/tools/awe-os-pdf-editor',
+    '/tools/interest-rate-tracker',
   ],
   runtime: 'edge',
 }
