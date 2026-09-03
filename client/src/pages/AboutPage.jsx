@@ -77,10 +77,11 @@ const STATS = [
   { value: '0',      label: 'Cost for Core Tools' },
 ]
 
-const TEAM = [
-  { name: 'Wajid',      role: 'Founder & CEO',        avatar: '👨‍💼', bio: 'Passionate about democratising AI and making powerful software tools accessible to people who need them most.' },
-  { name: 'AI Team',    role: 'Engineering & Models',  avatar: '👩‍💻', bio: 'Our AI agents continuously discover, design and deploy new tools based on real user needs.' },
-  { name: 'Community',  role: 'Users & Contributors',  avatar: '🌍', bio: 'Everyone who uses AWE-OS and shares feedback helps shape what we build next.' },
+const FOUNDER = { name: 'Wajid', role: 'Founder & Builder', avatar: '👨‍💼', bio: 'Independent creator based in Hyderabad, India. Passionate about democratising AI and making powerful software tools accessible to people who need them most.' }
+
+const HOW_ITS_BUILT = [
+  { icon: '🤖', title: 'AI-Assisted Development', desc: 'New tools and content are built with AI-assisted tools — but every feature is personally planned, reviewed, tested, and approved before it goes live. See the Editorial Policy for details.' },
+  { icon: '💬', title: 'Community Feedback',      desc: 'Tool requests and bug reports from real users directly shape what gets built next. Spotted something broken or missing? Get in touch.' },
 ]
 
 export default function AboutPage() {
@@ -276,21 +277,27 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Team */}
+      {/* Who's behind this + how it's built */}
       <section className="py-14 px-4 bg-gray-50">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">The Team</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Who's Behind AWE-OS</h2>
           <p className="text-gray-500 text-center text-sm mb-10 max-w-2xl mx-auto">
-            AWE-OS is built and maintained by a small team of developers passionate about making useful tools
-            accessible to everyone. We ship fast, listen to users, and keep things simple.
+            AWE-OS is built and maintained by one independent creator, using AI-assisted development tools —
+            every feature is planned, reviewed, and personally approved before it ships. Read the full{' '}
+            <Link to="/editorial-policy" className="text-blue-600 hover:underline font-medium">Editorial Policy</Link>.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {TEAM.map(({ name, role, avatar, bio }) => (
-              <div key={name} className="text-center p-6 bg-white rounded-xl border border-gray-200">
-                <span className="text-5xl block mb-3">{avatar}</span>
-                <h3 className="text-gray-900 font-semibold">{name}</h3>
-                <p className="text-blue-600 text-sm mb-2">{role}</p>
-                <p className="text-gray-500 text-xs leading-relaxed">{bio}</p>
+            <div className="text-center p-6 bg-white rounded-xl border border-gray-200">
+              <span className="text-5xl block mb-3">{FOUNDER.avatar}</span>
+              <h3 className="text-gray-900 font-semibold">{FOUNDER.name}</h3>
+              <p className="text-blue-600 text-sm mb-2">{FOUNDER.role}</p>
+              <p className="text-gray-500 text-xs leading-relaxed">{FOUNDER.bio}</p>
+            </div>
+            {HOW_ITS_BUILT.map(({ icon, title, desc }) => (
+              <div key={title} className="text-center p-6 bg-white rounded-xl border border-gray-200">
+                <span className="text-5xl block mb-3">{icon}</span>
+                <h3 className="text-gray-900 font-semibold mb-2">{title}</h3>
+                <p className="text-gray-500 text-xs leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
