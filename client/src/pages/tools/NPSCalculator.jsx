@@ -266,6 +266,7 @@ export default function NPSCalculator() {
   return (
     <ToolPageShell
       slug="nps-calculator"
+      ymyl
       name="NPS Calculator"
       description="Calculate your National Pension System (NPS) retirement corpus, tax-free lump sum, and monthly pension based on your contribution and expected returns."
       icon="🧓"

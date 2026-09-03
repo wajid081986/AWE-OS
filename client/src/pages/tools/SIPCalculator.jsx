@@ -670,6 +670,7 @@ export default function SIPCalculator() {
   return (
     <ToolPageShell
       slug="sip-calculator"
+      ymyl
       name="SIP Calculator"
       description="Calculate SIP returns, lumpsum growth, and goal-based SIP for Indian mutual funds. Compare returns at 8%, 12%, 15%, 18% with interactive charts."
       icon="📊"

@@ -31,6 +31,7 @@ import {
 } from '../../data/toolRegistry'
 import { TOOL_GUIDE } from '../../data/toolGuideContent'
 import { useTrackToolView } from '../../hooks/useTrackToolView'
+import { FOUNDER } from '../../data/author'
 
 const SITE_URL  = 'https://www.awe-os.com'
 const OG_IMAGE  = 'https://www.awe-os.com/og-image.png'
@@ -137,8 +138,23 @@ function AuthorBox() {
   )
 }
 
+// ── YMYL reviewer byline — real name/bio only, no fabricated credentials.
+// Shown only on tools flagged `ymyl` (batch-103: tax/investment/loan
+// calculators), separate from AuthorBox (which is about tool testing,
+// not content authorship). Links to /editorial-policy until batch-104's
+// dedicated methodology page exists. ─────────────────────────────────────
+function YMYLByline() {
+  return (
+    <p className="text-xs text-gray-500 mt-3">
+      Reviewed by <span className="font-medium text-gray-700">{FOUNDER.name}</span> — independent developer,
+      verified against official sources. Read our{' '}
+      <Link to="/editorial-policy" className="text-cobalt hover:underline">editorial policy</Link>.
+    </p>
+  )
+}
+
 // ── Main shell ────────────────────────────────────────────────────────────────
-export default function ToolPageShell({ slug, name, description, icon, steps, faqs, about, limitation, children }) {
+export default function ToolPageShell({ slug, name, description, icon, steps, faqs, about, limitation, ymyl, children }) {
   // Resolve tool and category metadata from the registry
   const toolMeta = getToolBySlug(slug)
   const catMeta  = toolMeta ? getCategoryMeta(toolMeta.category) : null
@@ -235,7 +251,9 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
     description:       seoDesc,
     url:               pageUrl,
     image:             OG_IMAGE,
-    author:            { '@type': 'Organization', name: 'AWE-OS', url: SITE_URL },
+    author:            ymyl
+      ? { '@type': 'Person', name: FOUNDER.name, url: `${SITE_URL}/about` }
+      : { '@type': 'Organization', name: 'AWE-OS', url: SITE_URL },
     publisher: {
       '@type': 'Organization',
       name:    'AWE-OS',
@@ -331,6 +349,7 @@ export default function ToolPageShell({ slug, name, description, icon, steps, fa
                 <span className="block mt-2 font-mono text-xs text-ink-soft">
                   Last updated: <b className="text-marigold">{updatedLabel}</b> · Tested on Chrome, Firefox, Edge, Safari
                 </span>
+                {ymyl && <YMYLByline />}
               </div>
             </div>
 

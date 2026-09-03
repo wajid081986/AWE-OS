@@ -548,6 +548,7 @@ export default function FDCalculator() {
   return (
     <ToolPageShell
       slug="fd-calculator"
+      ymyl
       name="FD Calculator"
       description="Calculate Fixed Deposit and Recurring Deposit returns, TDS on interest, and compare rates across SBI, HDFC, ICICI, Axis, Kotak and Post Office."
       icon="🏦"

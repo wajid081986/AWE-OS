@@ -561,6 +561,7 @@ export default function ROICalculator() {
   return (
     <ToolPageShell
       slug="roi-calculator"
+      ymyl
       name="ROI Calculator"
       description="Calculate return on investment with detailed analysis, charts, and scenario comparisons."
       icon="📈"
