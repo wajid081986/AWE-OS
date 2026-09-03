@@ -24,6 +24,7 @@
     { "source": "/calculators/:slug", "destination": "https://www.awe-os.com/tools/calculators",     "permanent": true },
     { "source": "/tools/resume",      "destination": "https://www.awe-os.com/tools/resume-builder",  "permanent": true },
     { "source": "/pricing",           "destination": "https://www.awe-os.com/",                       "permanent": true },
+    { "source": "/privacy",           "destination": "https://www.awe-os.com/privacy-policy",         "permanent": true },
 
     { "source": "/tools/bmi-calculator/ahmedabad", "destination": "https://www.awe-os.com/bmi-calculator/ahmedabad", "permanent": true },
     { "source": "/tools/bmi-calculator/kolkata",   "destination": "https://www.awe-os.com/bmi-calculator/kolkata",   "permanent": true },
