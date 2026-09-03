@@ -386,6 +386,7 @@ export default function CapitalGainsCalculator() {
   return (
     <ToolPageShell
       slug="capital-gains-calculator"
+      ymyl
       name="Capital Gains Calculator"
       description="Calculate capital gains tax on equity, debt mutual funds, real estate, and gold — FY 2025-26 rates per the Finance Act 2024, with STCG/LTCG classification and effective tax rate."
       icon="📈"

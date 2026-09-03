@@ -172,6 +172,7 @@ export default function GSTCalculator() {
   return (
     <ToolPageShell
       slug="gst-calculator"
+      ymyl
       name="GST Calculator"
       description="Calculate GST for any rate — add or extract tax with CGST, SGST, and IGST breakdown."
       icon="🧾"

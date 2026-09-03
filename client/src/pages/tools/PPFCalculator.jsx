@@ -774,6 +774,7 @@ export default function PPFCalculator() {
   return (
     <ToolPageShell
       slug="ppf-calculator"
+      ymyl
       name="PPF Calculator"
       description="Plan your Public Provident Fund journey — 15-year maturity amount, year-by-year growth, 80C tax savings, partial withdrawal eligibility and extension projections."
       icon="🏛️"

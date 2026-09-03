@@ -122,6 +122,7 @@ export default function TaxCalculator() {
   return (
     <ToolPageShell
       slug="tax-calculator"
+      ymyl
       name="Tax Calculator"
       description="Calculate your income tax instantly for India (Old/New Regime, FY 2024-25) and USA (2024 Federal). Get slab-wise breakdown, effective rate, and TDS estimate."
       icon="📊"

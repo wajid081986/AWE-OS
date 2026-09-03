@@ -158,6 +158,7 @@ export default function LoanCalculator() {
   return (
     <ToolPageShell
       slug="loan-calculator"
+      ymyl
       name="Loan EMI Calculator"
       description="Calculate monthly EMI, total interest and amortisation schedule for any loan."
       icon="🏦"

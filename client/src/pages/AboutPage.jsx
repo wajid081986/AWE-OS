@@ -1,5 +1,6 @@
 ﻿import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
+import { FOUNDER } from '../data/author'
 
 const ORG_SCHEMA = {
   '@context': 'https://schema.org',
@@ -76,8 +77,6 @@ const STATS = [
   { value: '0',      label: 'Files Stored' },
   { value: '0',      label: 'Cost for Core Tools' },
 ]
-
-const FOUNDER = { name: 'Wajid', role: 'Founder & Builder', avatar: '👨‍💼', bio: 'Independent creator based in Hyderabad, India. Passionate about democratising AI and making powerful software tools accessible to people who need them most.' }
 
 const HOW_ITS_BUILT = [
   { icon: '🤖', title: 'AI-Assisted Development', desc: 'New tools and content are built with AI-assisted tools — but every feature is personally planned, reviewed, tested, and approved before it goes live. See the Editorial Policy for details.' },

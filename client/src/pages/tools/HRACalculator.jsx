@@ -145,6 +145,7 @@ export default function HRACalculator() {
   return (
     <ToolPageShell
       slug="hra-calculator"
+      ymyl
       name="HRA Calculator"
       description="Calculate your House Rent Allowance tax exemption under Section 10(13A) — compare all 3 conditions and see exactly how much of your HRA is tax-free."
       icon="🏠"
