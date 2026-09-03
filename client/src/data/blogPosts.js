@@ -1297,11 +1297,11 @@ export const BLOG_POSTS = [
       },
       {
         type: 'p',
-        text: "Consider a scenario where you're purchasing building materials priced in pounds but need to convert the cost to kilograms. Using the online converter, you find that 100 pounds of cement costs ₹3,000. After conversion, you realize it's approximately 45.36 kilograms, helping you make an informed purchase decision. This clarity is invaluable when budgeting for large-scale projects."
+        text: "Buying materials priced by the pound but sold locally by the kilogram is a common source of confusion. Convert 100 pounds and you get approximately 45.36 kilograms — knowing the exact figure, not a rounded estimate, matters when you're comparing per-kilogram prices across suppliers on a large order."
       },
       {
         type: 'p',
-        text: "Another example is a chef following an international recipe that lists ingredients in ounces. By converting these to grams, they ensure precision in cooking. Suppose a dish requires 16 ounces of an ingredient, costing ₹800. By converting, you know it's about 453.59 grams, ensuring you buy just the right amount without overspending."
+        text: "A chef following an international recipe that lists ingredients in ounces runs into the same problem — 16 ounces converts to about 453.59 grams, and that precision matters more in baking than general cooking, since ratios there affect the outcome directly."
       },
       {
         type: 'p',
@@ -1968,15 +1968,15 @@ export const BLOG_POSTS = [
       },
       {
         type: 'p',
-        text: 'Consider a small business website with 100 product images, each originally 5 MB in size. Compressing these images using Image Compressor could reduce their size to 1 MB each. This results in a total saving of **400 MB**. If your hosting provider charges ₹0.50 per MB for bandwidth, this translates to a cost saving of **₹200**.'
+        text: 'A small business website with 100 product images, each originally 5 MB, could see those compress down to 1 MB each — a total saving of 400 MB. That is not just disk space: smaller images load faster, which matters for mobile visitors on slower connections and for Core Web Vitals as a ranking signal.'
       },
       {
         type: 'p',
-        text: "A personal blog featuring high-resolution travel photos might use 150 images, each at 3 MB. By compressing these images to 1.5 MB each, you save 225 MB overall. If you're charged ₹1 per MB, the cost saving would amount to **₹225**. This makes a significant difference in hosting costs and website speed."
+        text: "A personal blog with 150 high-resolution travel photos at 3 MB each could compress those down to 1.5 MB each — 225 MB saved overall, which shows up as a genuinely faster-loading gallery page, not just a smaller backup file."
       },
       {
         type: 'p',
-        text: 'For a large e-commerce site, compressing **500 images** from 10 MB each to 4 MB each results in a massive reduction of **3 GB**. With a bandwidth cost of ₹2 per MB, the savings would total **₹6,000**. This not only enhances the user experience but also helps in reducing operational expenses significantly.'
+        text: 'A large e-commerce site compressing 500 images from 10 MB each down to 4 MB each cuts 3 GB total. At that scale, the difference between compressed and uncompressed product photos is often the difference between a catalog page that loads in a couple of seconds and one that takes ten.'
       },
       {
         type: 'h2',
@@ -2144,7 +2144,7 @@ export const BLOG_POSTS = [
           ],
           [
             'Premium Software',
-            '₹5,000',
+            'Paid, varies by vendor',
             'Advanced features, Offline use'
           ],
           [
@@ -2160,15 +2160,15 @@ export const BLOG_POSTS = [
       },
       {
         type: 'p',
-        text: 'Consider a scenario where a business professional in India needs to convert a 50-page report from PDF to Word for a presentation. Using premium software can cost around **₹5,000**. However, by using the free Awe-OS tool, they save this amount and still achieve a high-quality result. This is a substantial saving, especially for small businesses operating on tight budgets.'
+        text: "A business professional converting a 50-page report from PDF to Word for a presentation doesn't need to install anything or buy a license — the browser-based tool handles the same conversion instantly, which matters when you're working against a deadline, not just a budget."
       },
       {
         type: 'p',
-        text: 'Similarly, a student working on a thesis may have multiple documents to convert. If each conversion using paid software costs around **₹200**, converting five documents would amount to **₹1,000**. By opting for a free tool, they can allocate these funds to other educational expenses, such as purchasing books or online courses.'
+        text: 'A student converting multiple thesis chapters faces the same task repeatedly — since there is no per-conversion charge or file limit, converting five documents takes about the same five minutes it would take to convert one.'
       },
       {
         type: 'p',
-        text: 'Finally, consider a legal firm that handles numerous contracts and legal documents. If they convert 100 documents a month, using a paid service at **₹50** per document, the total monthly cost would be **₹5,000**. Free conversion tools can significantly reduce this overhead, allowing firms to invest in other critical areas like employee training or client services.'
+        text: 'A legal firm converting dozens of contracts a month benefits less from the cost — there is none — and more from the privacy: since conversion runs entirely in the browser, client documents never get uploaded to a third-party server, which matters more for legal paperwork than for most other file types.'
       },
       {
         type: 'h2',
