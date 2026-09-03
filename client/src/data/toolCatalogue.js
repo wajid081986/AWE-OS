@@ -167,8 +167,7 @@ export const TOOL_CATALOGUE = {
       {
         title: 'Billing',
         items: [
-          { icon: '🧾', label: 'Invoice Generator',       to: '/tools/invoice' },
-          { icon: '📄', label: 'Invoice Generator (Quick)', to: '/tools/invoice-generator' },
+          { icon: '🧾', label: 'Invoice Generator', to: '/tools/invoice-generator' },
         ],
       },
       {
