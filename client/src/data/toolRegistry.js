@@ -1032,28 +1032,8 @@ export const TOOL_REGISTRY = [
   // ── PRODUCTIVITY ──────────────────────────────────────────────────────────
 
   {
-    slug: 'invoice',
-    name: 'Invoice Generator',
-    category: 'productivity',
-    subcategory: 'Billing',
-    icon: '🧾',
-    description: 'Create professional GST invoices with live preview, PDF export, and client management. Free for Indian freelancers and businesses.',
-    isFeatured: true,
-    isNew: false,
-    isPremium: false,
-    comingSoon: false,
-    tags: ['invoice', 'gst', 'pdf', 'billing', 'freelancer', 'invoice generator', 'gst invoice'],
-    relatedSlugs: ['tax-calculator', 'loan-calculator', 'percentage-calculator'],
-    path: '/tools/invoice',
-    seo: {
-      title: 'Invoice Generator — Free GST Invoice Maker Online | AWE-OS',
-      description: 'Create GST-compliant invoices with live preview and one-click PDF export. Free for Indian freelancers and small businesses. No sign-up required.',
-    },
-  },
-
-  {
     slug: 'invoice-generator',
-    name: 'Invoice Generator (Quick)',
+    name: 'Invoice Generator',
     category: 'productivity',
     subcategory: 'Billing',
     icon: '📄',
@@ -1062,8 +1042,8 @@ export const TOOL_REGISTRY = [
     isNew: true,
     isPremium: false,
     comingSoon: false,
-    tags: ['invoice generator', 'gst invoice maker', 'free invoice pdf', 'cgst sgst invoice', 'india invoice generator', 'freelancer invoice'],
-    relatedSlugs: ['invoice', 'gst-calculator', 'tax-calculator'],
+    tags: ['invoice generator', 'gst invoice maker', 'free invoice pdf', 'cgst sgst invoice', 'india invoice generator', 'freelancer invoice', 'invoice'],
+    relatedSlugs: ['gst-calculator', 'tax-calculator'],
     seo: {
       title: 'Invoice Generator — Free GST Invoice PDF Maker | AWE-OS',
       description: 'Create GST-compliant invoices with CGST+SGST or IGST breakdown and download as PDF instantly. Free invoice generator for Indian freelancers — no sign-up.',
@@ -1081,7 +1061,7 @@ export const TOOL_REGISTRY = [
     isPremium: false,
     comingSoon: false,
     tags: ['contract generator', 'nda india', 'service agreement', 'employment contract', 'freelance contract india', 'gst contract', 'tds freelance'],
-    relatedSlugs: ['invoice', 'tax-calculator', 'percentage-calculator'],
+    relatedSlugs: ['invoice-generator', 'tax-calculator', 'percentage-calculator'],
     seo: {
       title: 'Contract Generator — Free Freelance Contracts India | AWE-OS',
       description: 'Generate professional NDA, Service Agreement and Employment contracts for Indian freelancers. GST/TDS compliance check and instant PDF download — free.',
@@ -1100,7 +1080,7 @@ export const TOOL_REGISTRY = [
     isPremium: false,
     comingSoon: false,
     tags: ['online text editor', 'free word processor online', 'ms word alternative free', 'online document editor', 'rich text editor online india'],
-    relatedSlugs: ['pdf-editor', 'word-to-pdf', 'invoice', 'word-counter'],
+    relatedSlugs: ['pdf-editor', 'word-to-pdf', 'invoice-generator', 'word-counter'],
     seo: {
       title: 'Online Text Editor — Free Word Processor Online | AWE-OS',
       description: 'Free online text editor and word processor. Format, tabulate, and export documents as .txt, .html, or .docx — 100% browser-based, no upload, no sign-up.',
